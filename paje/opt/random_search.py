@@ -51,11 +51,12 @@ class RandomSearch():
     def fmin(self, objective):
         best_conf = self.get_random_attr()
         best_value = objective(**best_conf)
+        print(best_value)
         for t in range(1, self.max_iter):
             conf = self.get_random_attr()
             value = objective(**conf)
 
-            print(best_value)
+            print(value)
             if value < best_value:
                 best_value = value
                 best_conf = conf
@@ -125,45 +126,4 @@ class HPSpace(Node):
     def add_branch(cls, father, name=None):
         return Node(name=name, parent=father)
 
-def my_func():
-    return np.random.randint(1, 10)
 
-def making_space():
-    hp = HPSpace(name="root")
-    hp.add_axis(hp, "x1", 'c', 0, 5, ['5', '10', '15', '20', '25'])
-
-    b1 = hp.add_branch(hp, "b1")
-    hp.add_axis(b1, "x2", 'r', 0, 10, np.random.ranf)
-    hp.add_axis(b1, "x3", 'z', -2, 10, np.random.ranf)
-
-    b2 = hp.add_branch(hp, "b2")
-    hp.add_axis(b2, "x4", 'f', None, None, my_func)
-
-    hp.print(data=True)
-
-    return hp
-
-
-def objective(*argv, **kwargs):
-    print("*argv --> {0} \n **kwargs --> {1}".format(argv, kwargs))
-
-    aux = 10000
-    x3 = kwargs.get('x3')
-    x1 = kwargs.get('x1')
-    x4 = kwargs.get('x4')
-
-    if x3 != None:
-        x2 = kwargs.get('x2')
-        aux = int(x1) + x2 + x3 + 1
-    elif x4 != None:
-        aux = int(x1) * x4
-    else:
-        print("Some error occur")
-
-
-    return aux
-
-
-sr = RandomSearch(making_space())
-result = sr.fmin(objective)
-print("Best fmin = {0}\nConf = {1}\n".format(result[0], result[1]))

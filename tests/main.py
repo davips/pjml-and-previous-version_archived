@@ -1,8 +1,19 @@
-from paje.preprocessing.feature_selection.SelectKBest import SelectKBest
 
+import sys
+import os
 import numpy as np
 import pandas as pd
 from sklearn.datasets import load_iris
+
+# adding the project root to import 'paje' modules
+PATH = os.path.dirname(os.path.realpath(__file__))
+MODULE_PATH = os.path.split(PATH)[0]
+sys.path.append(MODULE_PATH)
+
+from paje.preprocessing.feature_selection.SelectKBest import SelectKBest
+from paje.opt.random_search import RandomSearch
+from paje.opt.random_search import HPSpace
+
 
 iris = load_iris()
 data1 = pd.DataFrame(data= np.c_[iris['data'], iris['target']],
@@ -20,31 +31,48 @@ for m in SelectKBest.get_methods():
     print(X_new.columns)
 
 
-hp = HPSpace(name="FS")
-hp.add_axis(hp, "k", 'd', 1, 1, np.random.randint)
-#
-# dt = hp.add_branch(hp, "decision tree")
-# hp.add_axis(dt, "alg", 'd', 1, 1, 'dt')
-# hp.add_axis(dt, "pr1", 'd', 1, 1, 'dt')
-# pr2_1 = hp.add_branch(dt, "PR2_1")
-# hp.add_axis(pr2_1, "pr2", 'd', 1, 1, 'dt')
-# hp.add_axis(pr2_1, "pr4", 'd', 1, 1, 'dt')
-# pr2_2 = hp.add_branch(dt, "PR2_2")
-# hp.add_axis(pr2_2, "pr2", 'd', 1, 1, 'dt')
-# hp.add_axis(pr2_2, "pr3", 'd', 1, 1, 'dt')
-#
-# svm = hp.add_branch(hp, "support vector machine")
-# hp.add_axis(svm, "alg", 'd', 1, 1, 'rf')
-#
-# hp.print(data=True)
-#
-#
+def my_func():
+    return np.random.randint(1, 10)
+
+def making_space():
+    hp = HPSpace(name="root")
+    hp.add_axis(hp, "x1", 'c', 0, 5, ['5', '10', '15', '20', '25'])
+
+    b1 = hp.add_branch(hp, "b1")
+    hp.add_axis(b1, "x2", 'r', 0, 10, np.random.ranf)
+    hp.add_axis(b1, "x3", 'z', -2, 10, np.random.ranf)
+
+    b2 = hp.add_branch(hp, "b2")
+    hp.add_axis(b2, "x4", 'f', None, None, my_func)
+
+    hp.print(data=True)
+
+    return hp
+
+
 def objective(*argv, **kwargs):
     print("*argv --> {0} \n **kwargs --> {1}".format(argv, kwargs))
-    alg = kwargs.get('alg')
 
-    print("alg={0}\npr1={1}\npr2={2}\npr3={3}\npr4={4}\n\n".format(alg, pr1, pr2, pr3, pr4))
-    return 1
+    aux = 10000
+    x3 = kwargs.get('x3')
+    x1 = kwargs.get('x1')
+    x4 = kwargs.get('x4')
 
-sr = RandomSearch(hp)
-sr.fmin(objective)
+    if x3 != None:
+        x2 = kwargs.get('x2')
+        aux = int(x1) + x2 + x3 + 1
+    elif x4 != None:
+        aux = int(x1) * x4
+    else:
+        print("Some error occur")
+
+
+    return aux
+
+
+np.random.seed(0)
+sr = RandomSearch(making_space())
+print()
+result = sr.fmin(objective)
+print("\nBest fmin = {0}\nConf = {1}\n".format(result[0], result[1]))
+
