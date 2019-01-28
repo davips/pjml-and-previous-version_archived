@@ -13,7 +13,7 @@ import numpy as np
 class RandomSearch():
     """ Random Search method """
 
-    def __init__(self, space, max_iter=100):
+    def __init__(self, space, max_iter=10):
         """ Come thing
 
         Note:
@@ -42,9 +42,6 @@ class RandomSearch():
     def __get_random_attr(self, space, conf):
         nro_branches = len(space.children)
         conf.update(space.get_data())
-        # print(space)
-        # print(conf)
-        # print(nro_branches)
 
         if nro_branches:
             aux = np.random.randint(nro_branches)
@@ -52,18 +49,18 @@ class RandomSearch():
 
 
     def fmin(self, objective):
-        best = float("Inf")
-        best_conf = []
-
-        for t in range(0,self.max_iter):
+        best_conf = self.get_random_attr()
+        best_value = objective(**best_conf)
+        for t in range(1, self.max_iter):
             conf = self.get_random_attr()
-            value = objective(conf)
+            value = objective(**conf)
 
-            if value < best:
-                best = value
+            print(best_value)
+            if value < best_value:
+                best_value = value
                 best_conf = conf
 
-        return best, conf
+        return best_value, best_conf
 
 
 class Node(object):
@@ -85,10 +82,23 @@ class Node(object):
     def add_content(self, name, content):
         self.data[name] = content
 
-    def get_value(c_type, s, e, f):
+    def get_value(self,k):
+        c_type, s, e, f = self.data[k]
         value = None
-        if c_type
-        return
+
+        if c_type == 'c':
+            value = f[np.random.randint(0,len(f))]
+        elif c_type == 'z':
+            value = int(np.rint(((e-s)*f()) - s))
+        elif c_type == 'r':
+            value = ((e-s)*f()) - s
+        elif c_type == 'f':
+            value = f()
+
+        return value
+
+    def get_data(self):
+        return {k:self.get_value(k) for k in self.data.keys()}
 
     def get_content():
         return {k:get_value(**self.data[k]) for k in self.data.keys()}
@@ -115,33 +125,45 @@ class HPSpace(Node):
     def add_branch(cls, father, name=None):
         return Node(name=name, parent=father)
 
+def my_func():
+    return np.random.randint(1, 10)
+
+def making_space():
+    hp = HPSpace(name="root")
+    hp.add_axis(hp, "x1", 'c', 0, 5, ['5', '10', '15', '20', '25'])
+
+    b1 = hp.add_branch(hp, "b1")
+    hp.add_axis(b1, "x2", 'r', 0, 10, np.random.ranf)
+    hp.add_axis(b1, "x3", 'z', -2, 10, np.random.ranf)
+
+    b2 = hp.add_branch(hp, "b2")
+    hp.add_axis(b2, "x4", 'f', None, None, my_func)
+
+    hp.print(data=True)
+
+    return hp
 
 
-hp = HPSpace(name="root")
+def objective(*argv, **kwargs):
+    print("*argv --> {0} \n **kwargs --> {1}".format(argv, kwargs))
+
+    aux = 10000
+    x3 = kwargs.get('x3')
+    x1 = kwargs.get('x1')
+    x4 = kwargs.get('x4')
+
+    if x3 != None:
+        x2 = kwargs.get('x2')
+        aux = int(x1) + x2 + x3 + 1
+    elif x4 != None:
+        aux = int(x1) * x4
+    else:
+        print("Some error occur")
 
 
-nb = hp.add_branch(hp, "naive bayes")
-hp.add_axis(nb, "alg", 'd', 1, 1, 'naive_bayes')
-
-dt = hp.add_branch(hp, "decision tree")
-hp.add_axis(dt, "alg", 'd', 1, 1, 'dt')
-hp.add_axis(dt, "pr1", 'd', 1, 1, 'dt')
-pr2_1 = hp.add_branch(dt, "PR2_1")
-hp.add_axis(pr2_1, "pr2", 'd', 1, 1, 'dt')
-hp.add_axis(pr2_1, "pr4", 'd', 1, 1, 'dt')
-pr2_2 = hp.add_branch(dt, "PR2_2")
-hp.add_axis(pr2_2, "pr2", 'd', 1, 1, 'dt')
-hp.add_axis(pr2_2, "pr3", 'd', 1, 1, 'dt')
-
-svm = hp.add_branch(hp, "support vector machine")
-hp.add_axis(svm, "alg", 'd', 1, 1, 'rf')
-
-hp.print(data=True)
+    return aux
 
 
-def objective(param):
-    print(param)
-    return 1
-
-sr = RandomSearch(hp)
-sr.fmin(objective)
+sr = RandomSearch(making_space())
+result = sr.fmin(objective)
+print("Best fmin = {0}\nConf = {1}\n".format(result[0], result[1]))
