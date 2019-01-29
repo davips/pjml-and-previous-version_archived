@@ -12,7 +12,7 @@ sys.path.append(MODULE_PATH)
 
 from paje.preprocessing.feature_selection.SelectKBest import SelectKBest
 from paje.opt.random_search import RandomSearch
-from paje.opt.random_search import HPSpace
+from paje.opt.hp_space import HPSpace
 
 
 iris = load_iris()
@@ -38,11 +38,11 @@ def making_space():
     hp = HPSpace(name="root")
     hp.add_axis(hp, "x1", 'c', 0, 5, ['5', '10', '15', '20', '25'])
 
-    b1 = hp.add_branch(hp, "b1")
+    b1 = hp.new_branch(hp, "b1")
     hp.add_axis(b1, "x2", 'r', 0, 10, np.random.ranf)
     hp.add_axis(b1, "x3", 'z', -2, 10, np.random.ranf)
 
-    b2 = hp.add_branch(hp, "b2")
+    b2 = hp.new_branch(hp, "b2")
     hp.add_axis(b2, "x4", 'f', None, None, my_func)
 
     hp.print(data=True)
