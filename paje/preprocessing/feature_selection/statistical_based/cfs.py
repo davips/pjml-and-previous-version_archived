@@ -1,28 +1,38 @@
 from paje.preprocessing.feature_selection.filter import Filter
+from skfeature.function.statistical_based import CFS
+from paje.util.check import check_float, check_X_y
+import pandas as pd
 
-@PluginBase.register
+
 class FilterCFS(Filter):
-    def __init__(self, ratio=0.8):
-        self.ratio = ratio
+    """  """
+    def __init__(self):
+        self.__rank = self.__score = None
 
 
     def fit(self, X, y):
-        print("fit")
+        check_X_y(X, y)
+
+        # TODO: verify if is possible implement this with numpy
+        y = pd.Categorical(y).codes
+
+        self.idx = CFS.cfs(X, y)
+        self.idx = self.idx[self.idx >= 0]
+
+        return self
 
 
     def transform(self, X, y):
-        print("transform")
+        check_X_y(X, y)
+        return X[:, self.idx], y
 
 
     def rank(self):
-        print("rank")
+        return self.__rank
 
 
-    # def rank_values(self):
-        # pass
+    def score(self):
+        return self.__score
 
-
-f = FilterCFS()
-f.fit([], [])
-f.transform([], [])
-f.rank_values()
+    def selected(self):
+        return self.idx
