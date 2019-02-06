@@ -39,12 +39,14 @@ class RandomSearch():
 
     def fmin(self, objective, **kwargs):
         best_conf = self.get_random_attr()
-        best_conf.update(kwargs)
-        best_value = objective(**best_conf)
+        aux = best_conf.copy()
+        aux.update(kwargs)
+        best_value = objective(**aux)
         for t in range(1, self.max_iter):
             conf = self.get_random_attr()
-            conf.update(kwargs)
-            value = objective(**conf)
+            aux = conf.copy()
+            aux.update(kwargs)
+            value = objective(**aux)
 
             print(value)
             if value < best_value:

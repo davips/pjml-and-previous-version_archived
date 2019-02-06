@@ -38,7 +38,7 @@ class HPSpace(object):
         elif c_type == 'z':
             value = int(np.rint(((e-s)*f()) + s))
         elif c_type == 'r':
-            value = ((e-s)*f()) - s
+            value = ((e-s)*f()) + s
         elif c_type == 'f':
             value = f()
 
