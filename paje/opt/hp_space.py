@@ -36,7 +36,7 @@ class HPSpace(object):
         if c_type == 'c':
             value = f[np.random.randint(0,len(f))]
         elif c_type == 'z':
-            value = int(np.rint(((e-s)*f()) - s))
+            value = int(np.rint(((e-s)*f()) + s))
         elif c_type == 'r':
             value = ((e-s)*f()) - s
         elif c_type == 'f':

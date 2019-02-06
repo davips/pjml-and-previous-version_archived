@@ -43,6 +43,7 @@ class RandomSearch():
         best_value = objective(**best_conf)
         for t in range(1, self.max_iter):
             conf = self.get_random_attr()
+            conf.update(kwargs)
             value = objective(**conf)
 
             print(value)
