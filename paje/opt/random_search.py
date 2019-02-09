@@ -51,27 +51,29 @@ class RandomSearch():
 
     @staticmethod
     def map_objective(param):
-        value, objective, confs = param
+        value, objective, confs, kwargs = param
         conf = confs[value]
-        value = objective(**conf)
+        aux = conf.copy()
+        aux.update(kwargs)
+        value = objective(**aux)
         return value, conf
+
+    def update_dic(self, a, b):
+        a.update(b)
+        return a
 
     def fmin_par(self, objective, **kwargs):
         with Pool(self.n_jobs) as pool:
             manager = Manager()
             self.objective = objective
-            if len(kwargs) > 0:
-                self.confs = [self.get_random_attr().update(kwargs)
-                          for i in range(0, self.max_iter)]
-            else:
-                self.confs = [self.get_random_attr()
-                          for i in range(0, self.max_iter)]
+            self.confs = [self.get_random_attr() for i in range(0, self.max_iter)]
+
             confs_m = manager.list(self.confs)
-            param = [(i, objective, confs_m) for i in range(0, self.max_iter)]
+            kwargs_m = manager.list(kwargs)
+            param = [(i, objective, confs_m, kwargs) for i in range(0, self.max_iter)]
             result = pool.map(RandomSearch.map_objective, param)
             result.sort(key=self.__takeFirst)
             return result[0]
-
 
     def fmin_seq(self, objective, **kwargs):
         best_conf = self.get_random_attr()

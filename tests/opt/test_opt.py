@@ -50,6 +50,8 @@ class TesteRandomSearch:
         x_3 = kwargs.get('x3')
         x_1 = kwargs.get('x1')
         x_4 = kwargs.get('x4')
+        a = kwargs.get('a')
+        # print(a)
 
         if x_4 is None:
             x_2 = kwargs.get('x2')
@@ -68,9 +70,15 @@ class TesteRandomSearch:
         np.random.seed(0)
         rans = RandomSearch(TesteRandomSearch.making_space(),
                             max_iter=10, n_jobs=1)
+
         result = rans.fmin(TesteRandomSearch.objective)
         result_test = (0, {'x1': '0', 'x4': 4})
-        print("\nBest fmin = {0}\nConf = {1}\n".format(result[0], result[1]))
+        assert result == result_test
+
+        np.random.seed(0)
+        a = "teste"
+        result = rans.fmin(TesteRandomSearch.objective, a=a)
+        result_test = (0, {'x1': '0', 'x4': 4})
         assert result == result_test
 
     @staticmethod
@@ -80,7 +88,13 @@ class TesteRandomSearch:
         np.random.seed(0)
         rans = RandomSearch(TesteRandomSearch.making_space(),
                             max_iter=10, n_jobs=4)
+
         result = rans.fmin(TesteRandomSearch.objective)
         result_test = (0, {'x1': '0', 'x4': 4})
-        print("\nBest fmin = {0}\nConf = {1}\n".format(result[0], result[1]))
+        assert result == result_test
+
+        np.random.seed(0)
+        a = "teste"
+        result = rans.fmin(TesteRandomSearch.objective, a=a)
+        result_test = (0, {'x1': '0', 'x4': 4})
         assert result == result_test
