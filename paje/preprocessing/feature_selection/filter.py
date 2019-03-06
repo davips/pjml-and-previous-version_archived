@@ -1,5 +1,5 @@
 import abc
-from paje.base.preprocessing import Preprocessing
+from paje.preprocessing.preprocessing import Preprocessing
 
 
 class Filter(Preprocessing):
@@ -7,9 +7,10 @@ class Filter(Preprocessing):
 
     @abc.abstractmethod
     def rank(self):
-        """  """
-
+        """Todo the docs string
+        """
 
     @abc.abstractmethod
     def score(self):
-        """ """
+        """Todo the docs string
+        """
