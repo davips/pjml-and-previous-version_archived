@@ -2,10 +2,11 @@ import numpy as np
 from paje.opt.hp_space import HPSpace
 from multiprocessing import Pool, Manager
 
+
 class RandomSearch():
     """ Random Search method """
 
-    def __init__(self, space, max_iter=10, n_jobs=1):
+    def __init__(self, space, max_iter=10, fixed=True, n_jobs=1):
         """ Come thing
 
         Note:
