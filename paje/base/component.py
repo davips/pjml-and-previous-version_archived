@@ -4,8 +4,9 @@ from abc import ABC, abstractmethod
 class Component(ABC):
     """Todo the docs string
     """
+    @staticmethod
     @abstractmethod
-    def hps(self, data):
+    def hps(data):
         """Todo the doc string
         """
         pass
@@ -16,9 +17,8 @@ class Component(ABC):
         """
         pass
 
-    @staticmethod
     @abstractmethod
-    def use(data):
+    def use(self, data):
         """Todo the doc string
         """
         pass

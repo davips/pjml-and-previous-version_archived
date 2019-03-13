@@ -57,8 +57,7 @@ class RadomSearchAutoML(AutoML):
                 conf[k] = space.data[k][1][aux]
 
             elif space.data[k][0] == 'r':
-                conf[k] = space.data[k][1] + (
-                    np.random.ranf()*space.data[k][2])
+                conf[k] = ((space.data[k][2]-space.data[k][1])*np.random.ranf()) + space.data[k][1]
             elif space.data[k][0] == 'z':
                 conf[k] = np.random.randint(space.data[k][1],
                                             space.data[k][2], 1)[0]
