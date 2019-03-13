@@ -4,6 +4,7 @@ from skfeature.function.statistical_based import chi_square
 from paje.util.check import check_float, check_X_y
 import pandas as pd
 from paje.opt.hps import HPTree
+import math
 
 
 class FilterChiSquare(Filter):
@@ -13,7 +14,6 @@ class FilterChiSquare(Filter):
         self.ratio = ratio
         self.__rank = self.__score = None
 
-
     def fit(self, X, y):
         check_X_y(X, y)
 
@@ -22,7 +22,7 @@ class FilterChiSquare(Filter):
 
         self.__score = chi_square.chi_square(X, y)
         self.__rank = chi_square.feature_ranking(self.__score)
-        self.nro_features = int((self.ratio)*X.shape[1])
+        self.nro_features = math.ceil((self.ratio)*X.shape[1])
 
         return self
 
@@ -39,9 +39,10 @@ class FilterChiSquare(Filter):
     def selected(self):
         return self.__rank[0:self.nro_features]
 
-    def hps(self, data):
+    @staticmethod
+    def hps(data):
         return HPTree(
-            data={'ratio': ['c', 1e-05, 1]},
+            data={'ratio': ['r', 1e-05, 1]},
             children=None)
 
     def apply(self, data):

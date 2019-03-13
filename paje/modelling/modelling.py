@@ -2,7 +2,7 @@ from abc import abstractmethod
 from paje.base.component import Component
 
 
-class Preprocessing(Component):
+class Modelling(Component):
     """ Preprocessing base class"""
 
     @abstractmethod

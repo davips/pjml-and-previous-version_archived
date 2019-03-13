@@ -16,8 +16,9 @@ class Component(ABC):
         """
         pass
 
+    @staticmethod
     @abstractmethod
-    def use(self, data):
+    def use(data):
         """Todo the doc string
         """
         pass

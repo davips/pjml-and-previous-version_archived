@@ -32,7 +32,8 @@ class FilterCFS(Filter):
     def selected(self):
         return self.idx
 
-    def hps(self, data):
+    @staticmethod
+    def hps(data):
         return HPTree(data=None, children=None)
 
     def apply(self, data):

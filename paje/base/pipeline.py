@@ -6,15 +6,17 @@ class Pipeline():
         self.obj_comp = []
 
     def apply(self, data):
-        aux = None
         self.obj_comp = []
         for obj, param in self.components:
-            aux = obj(*param).apply(data)
-        return aux
+            # print(param)
+            aux = obj(**param)
+            aux.apply(data)
+            self.obj_comp.append(aux)
 
     def use(self, data):
         aux = None
         for obj in self.obj_comp:
+            # print(data)
             aux = obj.use(data)
         return aux
 

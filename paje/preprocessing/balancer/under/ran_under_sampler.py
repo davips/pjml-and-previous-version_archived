@@ -14,7 +14,8 @@ class RanUnderSampler(Preprocessing):
     def transform(self, X=None, y=None):
         return self.newx.copy(), self.newy.copy()
 
-    def hps(self, data):
+    @staticmethod
+    def hps(data):
         return HPTree(data={
             'sampling_strategy': ['c', ['majority', 'not minority',
                                         'not majority', 'all']]
@@ -22,7 +23,7 @@ class RanUnderSampler(Preprocessing):
 
     def apply(self, data):
         self.fit(data.data_x, data.data_y)
-        data.data_x, data.data_y = self.transfrom()
+        data.data_x, data.data_y = self.newx, self.newy
 
     def use(self, data):
         return data

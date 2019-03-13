@@ -29,6 +29,7 @@ class Data(object):
         self.data_y = data_y
         self.columns = columns
 
+    @staticmethod
     def read_arff(file, target):
         data = arff.load(open(file, 'r'), encode_nominal=True)
 
@@ -36,7 +37,7 @@ class Data(object):
         df = pd.DataFrame(data['data'],
                           columns=[attr[0] for attr in data['attributes']])
 
-        data_y = pd.DataFrame(df.pop(target)).values
+        data_y = df.pop(target).values
         data_x = df.values.astype('float')
 
         return Data(data_x, data_y, columns)

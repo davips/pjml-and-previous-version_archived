@@ -14,15 +14,16 @@ class RanOverSampler(Preprocessing):
     def transform(self, X=None, y=None):
         return self.newx.copy(), self.newy.copy()
 
-    def hps(self, data):
+    @staticmethod
+    def hps(data):
         return HPTree(data={
-            'sampling_strategy': ['c', ['majority', 'not minority',
+            'sampling_strategy': ['c', ['not minority',
                                         'not majority', 'all']]
         }, children=None)
 
     def apply(self, data):
         self.fit(data.data_x, data.data_y)
-        data.data_x, data.data_y = self.transfrom()
+        data.data_x, data.data_y = self.newx, self.newy
 
     def use(self, data):
         return data

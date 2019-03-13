@@ -9,11 +9,11 @@ class HPSpace(object):
 
 class HPTree(object):
     def __init__(self, data=None, children=None):
-        if data is not None:
+        if data is None:
             self.data = {}
         else:
             self.data = data
-        if children is not None:
+        if children is None:
             self.children = []
         else:
             self.children = children
