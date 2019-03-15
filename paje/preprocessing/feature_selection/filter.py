@@ -1,8 +1,8 @@
 import abc
-from paje.preprocessing.preprocessing import Preprocessing
+from paje.base.component import Component
 
 
-class Filter(Preprocessing):
+class Filter(Component):
     """ Filter base class"""
 
     @abc.abstractmethod

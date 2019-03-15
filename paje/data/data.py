@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import arff
-
+import copy
 
 class Data(object):
     def __init__(self, data_x, data_y, columns=None):
@@ -43,4 +43,10 @@ class Data(object):
         return Data(data_x, data_y, columns)
 
     def read_csv(file, target):
-        pass
+        raise NotImplementedError("Method read_csv should be implement!")
+
+    def xy(self):
+        return self.data_x, self.data_y
+
+    def copy(self):
+        return copy.deepcopy(self)

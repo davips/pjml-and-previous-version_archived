@@ -7,22 +7,20 @@ from paje.preprocessing.balancer.over.ran_over_sampler\
         import RanOverSampler
 from paje.preprocessing.balancer.under.ran_under_sampler\
         import RanUnderSampler
-from paje.opt.hps import HPTree
-from paje.opt.random_search import RandomSearch
+from paje.base.hps import HPTree
 import numpy as np
-from paje.base.pipeline import Pipeline
-from sklearn.model_selection import ShuffleSplit
-from sklearn.metrics import accuracy_score
-from paje.base.data import Data
+from paje.pipeline.pipeline import Pipeline
+from paje.data.data import Data
 from paje.modelling.random_forest import RandomForest
-from sklearn.model_selection import StratifiedShuffleSplit
+from paje.evaluator.evaluator import Evaluator
+from paje.evaluator.metrics import Metrics
 
 
 class RadomSearchAutoML(AutoML):
     methods = ["all", "white_box", "gray_box", "black_box"]
 
     def __init__(self, method="all", max_iter=30, fixed=True,
-                 deep=5, repetitions=False):
+                 deep=5, repetitions=False, random_state=0):
         self.hps_preprocessing = self.hps_modelling = None
         self.prep_comp = self.mode_comp = None
         self.max_iter = max_iter
@@ -33,6 +31,7 @@ class RadomSearchAutoML(AutoML):
                           RanOverSampler, RanUnderSampler]
         self.mode_comp = [RandomForest]
         self.comps = self.prep_comp + self.mode_comp
+        self.random_state = random_state
 
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!
         self.hps_mode = []
@@ -129,7 +128,7 @@ class RadomSearchAutoML(AutoML):
     def _objective(self, conf, data):
         pipe = Pipeline(conf)
         perf = self.evaluator.eval(pipe, data)
-        print(np.mean(perf))
+        # print(np.mean(perf))
 
         return np.mean(perf)
 
@@ -143,13 +142,15 @@ class RadomSearchAutoML(AutoML):
 
             if value < best_value:
                 best_value = value
+                print(best_value)
                 best_conf = conf
 
         return best_value, best_conf
 
     def apply(self, data):
         self._build_hyperspace(data)
-        self.evaluator = Evaluator(data, "cv", 5, "auc")
+        self.evaluator = Evaluator(data, Metrics.error, "cv",
+                                   3, self.random_state)
         best_value, best_conf = self._fmin(data)
         print(best_conf)
         print(best_value)
@@ -159,22 +160,5 @@ class RadomSearchAutoML(AutoML):
     def use(self, data):
         return self.best_pipeline.use(data)
 
-class Evaluator():
-    def __init__(self, data, type_break="cv", steps=10, metric=None):
-        sss = StratifiedShuffleSplit(n_splits=1, test_size=0.3, random_state=0)
-        for train_index, test_index in sss.split(data.data_x, data.data_y):
-            self.train_index = train_index
-            self.test_index = test_index
-
-    def eval(self, pipe, data):
-        data_train = Data(data.data_x[self.train_index],
-                          data.data_y[self.train_index])
-        data_test = Data(data.data_x[self.test_index],
-                         data.data_y[self.test_index])
-
-        pipe.apply(data_train)
-        output_test = pipe.use(data_test)
-
-        # print(data_test.data_y)
-        # print(output_test)
-        return 1-accuracy_score(data_test.data_y, output_test)
+    def hps(self, data):
+        pass

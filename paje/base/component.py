@@ -6,7 +6,7 @@ class Component(ABC):
     """
     @staticmethod
     @abstractmethod
-    def hps(data):
+    def hps(data=None):
         """Todo the doc string
         """
         pass

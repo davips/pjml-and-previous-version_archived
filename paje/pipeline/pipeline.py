@@ -1,4 +1,7 @@
-class Pipeline():
+from paje.base.component import Component
+from paje.base.hps import HPTree
+
+class Pipeline(Component):
 
     # components is like this --> [(obj, {}), (obj, {}), (obj, {})]
     def __init__(self, components):
@@ -20,5 +23,6 @@ class Pipeline():
             aux = obj.use(data)
         return aux
 
-    def set_param(self, **kwargs):
-        pass
+    @staticmethod
+    def hps(data=None):
+        raise NotImplementedError("Method hps should be implement!")
