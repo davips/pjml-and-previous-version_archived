@@ -136,6 +136,7 @@ class RadomSearchAutoML(AutoML):
         best_conf = self._next()
         best_value = self._objective(best_conf, data)
 
+        print(best_value)
         for t in range(1, self.max_iter):
             conf = self._next()
             value = self._objective(conf, data)
