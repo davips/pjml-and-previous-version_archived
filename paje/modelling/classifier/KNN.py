@@ -1,11 +1,12 @@
-from sklearn.neighbors.classification import KNeighborsClassifier
-from sklearn.neighbors.dist_metrics import DistanceMetric, MahalanobisDistance
-from paje.base.hps import HPTree
 from math import *
+
 import numpy as np
+from sklearn.neighbors.classification import KNeighborsClassifier
+
+from paje.base.hps import HPTree
 
 
-class KNN():
+class KNN:
     def __init__(self, n_neighbors=5, metric='euclidean', weights='uniform'):
         self.n_neighbors = n_neighbors
         self.metric = metric
@@ -34,7 +35,7 @@ class KNN():
         np.warnings.filterwarnings('always')
         return res
 
-    def explain(self, instance):
+    def explain(self, X):
         raise NotImplementedError("Should it return a sorted list of neighbors?")
 
     @staticmethod
