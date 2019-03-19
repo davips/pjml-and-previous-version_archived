@@ -1,8 +1,9 @@
-
 from paje.preprocessing.feature_selection.filter import Filter
 from skfeature.function.statistical_based import chi_square
 from paje.util.check import check_float, check_X_y
+from paje.base.hps import HPTree
 import pandas as pd
+import math
 
 
 class FilterChiSquare(Filter):
@@ -10,33 +11,35 @@ class FilterChiSquare(Filter):
     def __init__(self, ratio=0.8):
         check_float('ratio', ratio, 0.0, 1.0)
         self.ratio = ratio
-        self.__rank = self.__score = None
+        self.rank = self.score = None
+        self.nro_features = None
 
+    def rank(self):
+        return self.rank.copy()
 
-    def fit(self, X, y):
-        check_X_y(X, y)
+    def score(self):
+        return self.score.copy()
 
+    def selected(self):
+        return self.rank[0:self.nro_features]
+
+    def apply(self, data):
+        X, y = data.xy()
         # TODO: verify if is possible implement this with numpy
         y = pd.Categorical(y).codes
 
-        self.__score = chi_square.chi_square(X, y)
-        self.__rank = chi_square.feature_ranking(self.__score)
-        self.nro_features = int((self.ratio)*X.shape[1])
+        self.score = chi_square.chi_square(X, y)
+        self.rank = chi_square.feature_ranking(self.score)
+        self.nro_features = math.ceil((self.ratio)*X.shape[1])
 
-        return self
+        self.use(data)
 
+    def use(self, data):
+        data.data_x = data.data_x[:, self.selected()]
+        return data
 
-    def transform(self, X, y):
-        check_X_y(X, y)
-        return X[:, self.selected()], y
-
-
-    def rank(self):
-        return self.__rank
-
-
-    def score(self):
-        return self.__score
-
-    def selected(self):
-        return self.__rank[0:self.nro_features]
+    @staticmethod
+    def hps(data):
+        return HPTree(
+            data={'ratio': ['r', 1e-05, 1]},
+            children=[])
