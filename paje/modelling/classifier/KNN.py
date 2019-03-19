@@ -3,7 +3,7 @@ from sklearn.neighbors.dist_metrics import DistanceMetric, MahalanobisDistance
 from paje.base.hps import HPTree
 from math import *
 import numpy as np
-import warnings
+
 
 class KNN():
     def __init__(self, n_neighbors=5, metric='euclidean', weights='uniform'):
@@ -15,24 +15,24 @@ class KNN():
     def apply(self, data):
         X, y = data.xy()
         if self.metric == 'mahalanobis':
-            with warnings.catch_warnings(): # Supressing warnings due to NaN in linear algebra calculations.
-                warnings.simplefilter("ignore")
-                try:
-                    cov = np.cov(X)
-                    inv = np.linalg.pinv(cov) # pinv is the same as inv for invertible matrices
-                    self.model = KNeighborsClassifier(algorithm='brute', metric_params={'VI': inv}, metric='mahalanobis', weights=self.weights, n_neighbors=self.n_neighbors).fit(X, y)
-                    print('ok----------------')
-                except:
-                    # Uses a fake inverse of covariance matrix as fallback.
-                    print('exception----------------')
-                    self.model = KNeighborsClassifier(algorithm='brute', metric_params={'VI': np.eye(len(X))}, metric='mahalanobis', weights=self.weights, n_neighbors=self.n_neighbors).fit(X, y)
-                    print('excep   ok----------------')
+            np.warnings.filterwarnings('ignore')  # Supressing warnings due to NaN in linear algebra calculations.
+            try:
+                cov = np.cov(X)
+                inv = np.linalg.pinv(cov)  # pinv is the same as inv for invertible matrices
+                self.model = KNeighborsClassifier(algorithm='brute', metric_params={'VI': inv}, metric='mahalanobis', weights=self.weights, n_neighbors=self.n_neighbors).fit(X, y)
+            except:
+                # Uses a fake inverse of covariance matrix as fallback.
+                self.model = KNeighborsClassifier(algorithm='brute', metric_params={'VI': np.eye(len(X))}, metric='mahalanobis', weights=self.weights, n_neighbors=self.n_neighbors).fit(X, y)
+            np.warnings.filterwarnings('always')
         else:
             self.model = KNeighborsClassifier(weights=self.weights, n_neighbors=self.n_neighbors, metric=self.metric).fit(X, y)
 
     def use(self, data):
         X = data.data_x
-        return self.model.predict(X)
+        np.warnings.filterwarnings('ignore')  # Supressing warnings due to NaN in linear algebra calculations.
+        res = self.model.predict(X)
+        np.warnings.filterwarnings('always')
+        return res
 
     def explain(self, instance):
         raise NotImplementedError("Should it return a sorted list of neighbors?")
