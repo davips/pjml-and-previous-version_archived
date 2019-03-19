@@ -14,6 +14,7 @@ class Data(object):
 
         # TODO
         # check if exits dtype indefined == object
+        # check dimensions of X and y
 
         if data_x is not None:
             if data_y is not None:
@@ -50,3 +51,6 @@ class Data(object):
 
     def copy(self):
         return copy.deepcopy(self)
+
+    def size(self):
+        return len(self.data_x)

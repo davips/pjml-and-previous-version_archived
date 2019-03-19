@@ -19,5 +19,6 @@ class RandomForest(Component):
 
     @staticmethod
     def hps(data=None):
+        # TODO: define the biggest possible fixed n_estimators based on nattributes and ninstances, since the only thing that limits n_estimators is processing time
         return HPTree(data={'n_estimators': ['z', 2, 1000]},
                       children=[])

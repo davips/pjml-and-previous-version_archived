@@ -7,11 +7,10 @@ from paje.preprocessing.balancer.over.ran_over_sampler\
         import RanOverSampler
 from paje.preprocessing.balancer.under.ran_under_sampler\
         import RanUnderSampler
-from paje.base.hps import HPTree
 import numpy as np
 from paje.pipeline.pipeline import Pipeline
-from paje.data.data import Data
-from paje.modelling.random_forest import RandomForest
+from paje.modelling.classifier.random_forest import RandomForest
+from paje.modelling.classifier.KNN import KNN
 from paje.evaluator.evaluator import Evaluator
 from paje.evaluator.metrics import Metrics
 
@@ -29,7 +28,7 @@ class RadomSearchAutoML(AutoML):
         self.repetitions = repetitions
         self.prep_comp = [FilterCFS, FilterChiSquare,
                           RanOverSampler, RanUnderSampler]
-        self.mode_comp = [RandomForest]
+        self.mode_comp = [RandomForest, KNN]
         self.comps = self.prep_comp + self.mode_comp
         self.random_state = random_state
 
@@ -141,9 +140,9 @@ class RadomSearchAutoML(AutoML):
             conf = self._next()
             value = self._objective(conf, data)
 
+            print(value)
             if value < best_value:
                 best_value = value
-                print(best_value)
                 best_conf = conf
 
         return best_value, best_conf
