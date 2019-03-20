@@ -1,6 +1,7 @@
 from imblearn.under_sampling import RandomUnderSampler
-from paje.base.hps import HPTree
+
 from paje.base.component import Component
+from paje.base.hps import HPTree
 
 
 class RanUnderSampler(Component):
@@ -17,8 +18,8 @@ class RanUnderSampler(Component):
         return data
 
     @staticmethod
-    def hps(data=None):
-        return HPTree(data={
+    def hps_impl(data=None):
+        return HPTree(dic={
             'sampling_strategy': ['c', ['majority', 'not minority',
                                         'not majority', 'all']]
         }, children=[])

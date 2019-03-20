@@ -39,7 +39,7 @@ class FilterChiSquare(Filter):
         return data
 
     @staticmethod
-    def hps(data):
+    def hps_impl(data):
         return HPTree(
-            data={'ratio': ['r', 1e-05, 1]},
+            dic={'ratio': ['r', 1e-05, 1]},
             children=[])

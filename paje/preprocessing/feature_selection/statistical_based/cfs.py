@@ -30,5 +30,5 @@ class FilterCFS(Filter):
         data.data_x = data.data_x[:, self.idx]
 
     @staticmethod
-    def hps(data=None):
-        return HPTree(data={}, children=[])
+    def hps_impl(data=None):
+        return HPTree(dic={}, children=[])

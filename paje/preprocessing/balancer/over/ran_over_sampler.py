@@ -17,8 +17,8 @@ class RanOverSampler(Component):
         return data
 
     @staticmethod
-    def hps(data=None):
-        return HPTree(data={
+    def hps_impl(data=None):
+        return HPTree(dic={
             'sampling_strategy': ['c', ['not minority',
                                         'not majority', 'all']]
         }, children=[])

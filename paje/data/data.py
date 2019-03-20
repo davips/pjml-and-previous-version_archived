@@ -54,3 +54,6 @@ class Data(object):
 
     def size(self):
         return len(self.data_x)
+
+    def n_attributes(self):
+        return len(self.data_x[0])

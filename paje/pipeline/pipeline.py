@@ -24,5 +24,5 @@ class Pipeline(Component):
         return aux
 
     @staticmethod
-    def hps(data=None):
+    def hps_impl(data=None):
         raise NotImplementedError("Method hps should be implement!")

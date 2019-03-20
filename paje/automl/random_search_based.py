@@ -49,17 +49,18 @@ class RadomSearchAutoML(AutoML):
     def __get_random_attr(self, space, conf):
         nro_branches = len(space.children)
         # conf.update(space.get_data())
-        for k in space.data.keys():
-            # print(space.data[k])
-            if space.data[k][0] == 'c':
-                aux = np.random.randint(0, len(space.data[k][1]), 1)[0]
-                conf[k] = space.data[k][1][aux]
+        for k in space.dic.keys():
+            # print(space.dic[k])
+            # TODO: create a search that considers 'o' different from 'c'
+            if space.dic[k][0] == 'c' or space.dic[k][0] == 'o':
+                aux = np.random.randint(0, len(space.dic[k][1]), 1)[0]
+                conf[k] = space.dic[k][1][aux]
 
-            elif space.data[k][0] == 'r':
-                conf[k] = ((space.data[k][2]-space.data[k][1])*np.random.ranf()) + space.data[k][1]
-            elif space.data[k][0] == 'z':
-                conf[k] = np.random.randint(space.data[k][1],
-                                            space.data[k][2], 1)[0]
+            elif space.dic[k][0] == 'r':
+                conf[k] = ((space.dic[k][2]-space.dic[k][1])*np.random.ranf()) + space.dic[k][1]
+            elif space.dic[k][0] == 'z':
+                conf[k] = np.random.randint(space.dic[k][1],
+                                            space.dic[k][2], 1)[0]
 
         if nro_branches:
             aux = np.random.randint(nro_branches)
@@ -161,5 +162,6 @@ class RadomSearchAutoML(AutoML):
     def use(self, data):
         return self.best_pipeline.use(data)
 
-    def hps(self, data):
-        pass
+    def hps_impl(self, data):
+        raise NotImplementedError("Should it return the space of hyperspaces?")
+
