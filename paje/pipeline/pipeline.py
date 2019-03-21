@@ -25,4 +25,4 @@ class Pipeline(Component):
 
     @staticmethod
     def hps_impl(data=None):
-        raise NotImplementedError("Method hps should be implement!")
+        raise NotImplementedError("Method hps should be implemented!")

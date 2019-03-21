@@ -37,7 +37,7 @@ class KNN(Classifier):
         if data is None:
             print('KNN needs to know the size of the dataset to estimate the maximum allowed k.')
             exit(0)
-        kmax = floor(data.size() / 2)  # Assumes worst case of k-fold CV, i.e. k=2.
+        kmax = floor(data.n_instances() / 2)  # Assumes worst case of k-fold CV, i.e. k=2.
         dic = {
             'n_neighbors': ['z', 1, kmax],
             'metric': ['c', ['euclidean', 'manhattan', 'chebyshev', 'mahalanobis']],

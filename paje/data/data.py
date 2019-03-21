@@ -3,6 +3,7 @@ import pandas as pd
 import arff
 import copy
 
+
 class Data(object):
     def __init__(self, data_x, data_y, columns=None):
         self.is_classification = False
@@ -52,8 +53,12 @@ class Data(object):
     def copy(self):
         return copy.deepcopy(self)
 
-    def size(self):
+    def n_instances(self):
         return len(self.data_x)
 
     def n_attributes(self):
         return len(self.data_x[0])
+
+    def n_classes(self):
+        # Unfortunately, it is impossible to memoize this calculation because Data() is promiscuous and accepts external changes to data_x and _y from everyone.
+        return len(set(self.data_y))
