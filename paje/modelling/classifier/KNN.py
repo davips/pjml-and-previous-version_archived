@@ -7,7 +7,6 @@ from paje.base.hps import HPTree
 from paje.modelling.classifier.classifier import Classifier
 
 
-
 class KNN(Classifier):
     def __init__(self, **kwargs):
         self.model = KNeighborsClassifier(**kwargs)
@@ -34,7 +33,10 @@ class KNN(Classifier):
         return res
 
     @staticmethod
-    def hps_impl(data):
+    def hps_impl(data=None):
+        if data is None:
+            print('KNN needs to know the size of the dataset to estimate the maximum allowed k.')
+            exit(0)
         kmax = floor(data.size() / 2)  # Assumes worst case of k-fold CV, i.e. k=2.
         dic = {
             'n_neighbors': ['z', 1, kmax],

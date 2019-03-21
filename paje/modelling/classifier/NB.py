@@ -9,6 +9,6 @@ class NB(Classifier):
         self.model = GaussianNB()
 
     @staticmethod
-    def hps_impl(data):
+    def hps_impl(data=None):
         dic = {}
         return HPTree(dic, children=[])

@@ -15,6 +15,9 @@ class RandomForest(Classifier):
 
     @staticmethod
     def hps_impl(data=None):
+        if data is None:
+            print('RF needs dataset to be able to estimate maximum values for some hyperparameters.')
+            exit(0)
         n_estimators = min([500, floor(sqrt(data.size() * data.n_attributes()))])
 
         data_for_speed = {'n_estimators': ['z', 2, 1000], 'max_depth': ['z', 2, data.size()]} # Entre outros
