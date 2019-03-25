@@ -1,12 +1,13 @@
 from paje.automl.automl import AutoML
-from paje.preprocessing.feature_selection.statistical_based.cfs\
-        import FilterCFS
-from paje.preprocessing.feature_selection.statistical_based.chi_square\
-        import FilterChiSquare
-from paje.preprocessing.balancer.over.ran_over_sampler\
-        import RanOverSampler
-from paje.preprocessing.balancer.under.ran_under_sampler\
-        import RanUnderSampler
+from paje.modelling.classifier.MLP import MLP
+from paje.preprocessing.feature_selection.statistical_based.cfs \
+    import FilterCFS
+from paje.preprocessing.feature_selection.statistical_based.chi_square \
+    import FilterChiSquare
+from paje.preprocessing.balancer.over.ran_over_sampler \
+    import RanOverSampler
+from paje.preprocessing.balancer.under.ran_under_sampler \
+    import RanUnderSampler
 import numpy as np
 from paje.pipeline.pipeline import Pipeline
 from paje.modelling.classifier.random_forest import RandomForest
@@ -53,15 +54,21 @@ class RadomSearchAutoML(AutoML):
         for k in space.dic.keys():
             # print(space.dic[k])
             # TODO: create a search that considers 'o' different from 'c'
-            if space.dic[k][0] == 'c' or space.dic[k][0] == 'o':
-                aux = np.random.randint(0, len(space.dic[k][1]), 1)[0]
-                conf[k] = space.dic[k][1][aux]
+            try:
+                if space.dic[k][0] == 'c' or space.dic[k][0] == 'o':
+                    aux = np.random.randint(0, len(space.dic[k][1]), 1)[0]
+                    conf[k] = space.dic[k][1][aux]
 
-            elif space.dic[k][0] == 'r':
-                conf[k] = ((space.dic[k][2]-space.dic[k][1])*np.random.ranf()) + space.dic[k][1]
-            elif space.dic[k][0] == 'z':
-                conf[k] = np.random.randint(space.dic[k][1],
-                                            space.dic[k][2], 1)[0]
+                elif space.dic[k][0] == 'r':
+                    conf[k] = ((space.dic[k][2] - space.dic[k][1]) * np.random.ranf()) + space.dic[k][1]
+                elif space.dic[k][0] == 'z':
+                    conf[k] = np.random.randint(space.dic[k][1],
+                                                space.dic[k][2], 1)[0]
+            except:
+                print('Problems parsing HPTree:')
+                print(k)
+                print(space.dic.keys())
+                exit(0)
 
         if nro_branches:
             aux = np.random.randint(nro_branches)
@@ -91,7 +98,7 @@ class RadomSearchAutoML(AutoML):
                 sample = range(0, len(self.prep_comp))
                 while sample:
                     value = np.random.choice(sample, 1)[0]
-                    sample = range(value+1, len(self.prep_comp))
+                    sample = range(value + 1, len(self.prep_comp))
                     values.append(value)
                 values = np.array(values, dtype=int)
             # No fixed pipeline
@@ -165,4 +172,3 @@ class RadomSearchAutoML(AutoML):
 
     def hps_impl(self, data):
         raise NotImplementedError("Should it return the space of hyperspaces?")
-
