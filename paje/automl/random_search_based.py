@@ -31,7 +31,7 @@ class RadomSearchAutoML(AutoML):
         self.repetitions = repetitions
         self.prep_comp = [FilterCFS, FilterChiSquare,
                           RanOverSampler, RanUnderSampler]
-        self.mode_comp = [RandomForest, KNN, NB, DT]
+        self.mode_comp = [RandomForest, KNN, NB, DT, MLP]
         self.comps = self.prep_comp + self.mode_comp
         self.random_state = random_state
 
