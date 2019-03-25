@@ -27,9 +27,11 @@ class KNN(Classifier):
         super().apply(data)
 
     def use(self, data):
-        np.warnings.filterwarnings('ignore')  # Supressing warnings due to NaN in linear algebra calculations.
+        if self.model.metric == 'mahalanobis':
+            np.warnings.filterwarnings('ignore')  # Supressing warnings due to NaN in linear algebra calculations.
         res = super().use(data)
-        np.warnings.filterwarnings('always')
+        if self.model.metric == 'mahalanobis':
+            np.warnings.filterwarnings('always')
         return res
 
     @staticmethod
