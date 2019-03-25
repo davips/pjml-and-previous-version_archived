@@ -50,3 +50,11 @@ class Component(ABC):
             print('Problems with hyperparameter space: ' + str(dic))
             exit(0)
         return hps
+
+    @classmethod
+    def print_hps(cls, data=None, depth=''):
+        tree = cls.hps(data)
+        print(depth + str(tree.dic))
+        depth += '     '
+        for child in tree.children:
+            cls.print_hps(child, depth)
