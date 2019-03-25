@@ -10,6 +10,7 @@ from paje.preprocessing.balancer.under.ran_under_sampler\
 import numpy as np
 from paje.pipeline.pipeline import Pipeline
 from paje.modelling.classifier.random_forest import RandomForest
+from paje.modelling.classifier.DT import DT
 from paje.modelling.classifier.KNN import KNN
 from paje.modelling.classifier.NB import NB
 from paje.evaluator.evaluator import Evaluator
@@ -29,7 +30,7 @@ class RadomSearchAutoML(AutoML):
         self.repetitions = repetitions
         self.prep_comp = [FilterCFS, FilterChiSquare,
                           RanOverSampler, RanUnderSampler]
-        self.mode_comp = [RandomForest, KNN, NB]
+        self.mode_comp = [RandomForest, KNN, NB, DT]
         self.comps = self.prep_comp + self.mode_comp
         self.random_state = random_state
 
