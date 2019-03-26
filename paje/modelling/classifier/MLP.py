@@ -35,7 +35,7 @@ class MLP(Classifier):
         dic = {
             'alpha': ['o', [0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000]],  # https://scikit-learn.org/stable/auto_examples/neural_networks/plot_mlp_alpha.html
             'max_iter': ['z', 1, 10000],  # 'Number of epochs'/'gradient steps'.
-            'tol': ['r', 0.0000001, 1.0],  # Maybe useless when learning_rate is set to ‘adaptive’.
+            'tol': ['o', [0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000]],  # Maybe useless when learning_rate is set to ‘adaptive’.
             'nesterovs_momentum': ['c', [True, False]],
         }
 
