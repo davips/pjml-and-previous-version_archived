@@ -5,6 +5,9 @@ class Component(ABC):
     """Todo the docs string
     """
 
+    def __init_subclass__(cls, **kwargs):
+        cls.show_warnings = True
+
     @abstractmethod
     def apply(self, data):
         """Todo the doc string

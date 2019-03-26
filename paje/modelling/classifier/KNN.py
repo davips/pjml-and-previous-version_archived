@@ -14,7 +14,6 @@ class KNN(Classifier):
     def apply(self, data):
         if self.model.metric == 'mahalanobis':
             X = data.data_x
-            np.warnings.filterwarnings('ignore')  # Supressing warnings due to NaN in linear algebra calculations.
             self.model.algorithm = 'brute'
             try:
                 cov = np.cov(X)
@@ -23,16 +22,7 @@ class KNN(Classifier):
             except:
                 # Uses a fake inverse of covariance matrix as fallback.
                 self.model.metric_params = {'VI': np.eye(len(X))}
-            np.warnings.filterwarnings('always')
         super().apply(data)
-
-    def use(self, data):
-        if self.model.metric == 'mahalanobis':
-            np.warnings.filterwarnings('ignore')  # Supressing warnings due to NaN in linear algebra calculations.
-        res = super().use(data)
-        if self.model.metric == 'mahalanobis':
-            np.warnings.filterwarnings('always')
-        return res
 
     @staticmethod
     def hps_impl(data=None):
