@@ -150,7 +150,9 @@ class RadomSearchAutoML(AutoML):
             conf = self._next()
             value = self._objective(conf, data)
 
+            print(best_conf)
             print(value)
+            print()
             if value < best_value:
                 best_value = value
                 best_conf = conf

@@ -16,7 +16,7 @@ else:
 
 
     automl_rs = RadomSearchAutoML(fixed=False, repetitions=True,
-                                  deep=5, max_iter=10, random_state=0)
+                                  deep=5, max_iter=20, random_state=0)
 
     data_train = Data(X_train, y_train)
     data_test = Data(X_test, y_test)
