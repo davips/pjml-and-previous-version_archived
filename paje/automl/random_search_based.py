@@ -1,4 +1,5 @@
 from paje.automl.automl import AutoML
+from paje.modelling.classifier.CB import CB
 from paje.modelling.classifier.MLP import MLP
 from paje.modelling.classifier.SVM import SVM
 from paje.preprocessing.feature_selection.statistical_based.cfs \
@@ -32,7 +33,7 @@ class RadomSearchAutoML(AutoML):
         self.repetitions = repetitions
         self.prep_comp = [FilterCFS, FilterChiSquare,
                           RanOverSampler, RanUnderSampler]
-        self.mode_comp = [RF, KNN, NB, DT, MLP, SVM]
+        self.mode_comp = [RF, KNN, NB, DT, MLP, SVM, CB]
         self.comps = self.prep_comp + self.mode_comp
         self.random_state = random_state
 
