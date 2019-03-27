@@ -2,6 +2,7 @@ from math import *
 
 from sklearn.ensemble import RandomForestClassifier
 
+from paje.base.component import Component
 from paje.base.hps import HPTree
 from paje.modelling.classifier.classifier import Classifier
 
@@ -10,14 +11,9 @@ class RF(Classifier):
     def __init__(self, **kwargs):
         self.model = RandomForestClassifier(**kwargs)
 
-    # def __init__(self, n_estimators=200, bootstrap=True, min_impurity_decrease=0, max_leaf_nodes=None, max_features='auto', min_weight_fraction_leaf=0, min_samples_leaf=1):
-    #     self.model = RandomForestClassifier(n_estimators, bootstrap, min_impurity_decrease, max_leaf_nodes, max_features, min_weight_fraction_leaf, min_samples_leaf, max_depth=2)
-
-    @staticmethod
-    def hps_impl(data=None):
-        if data is None:
-            print('RF needs dataset to be able to estimate maximum values for some hyperparameters.')
-            exit(0)
+    @classmethod
+    def hps_impl(cls, data=None):
+        cls.check_data(data)
         n_estimators = min([500, floor(sqrt(data.n_instances() * data.n_attributes()))])
 
         data_for_speed = {'n_estimators': ['z', 2, 1000], 'max_depth': ['z', 2, data.n_instances()]}  # Entre outros

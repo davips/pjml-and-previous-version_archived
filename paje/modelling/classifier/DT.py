@@ -10,12 +10,10 @@ class DT(Classifier):
     def __init__(self, **kwargs):
         self.model = DecisionTreeClassifier(**kwargs)
 
-    @staticmethod
-    def hps_impl(data=None):
+    @classmethod
+    def hps_impl(cls, data):
         #todo: set random seed
-        if data is None:
-            print('DT needs to know the size of the dataset to estimate hyperparameters like the maximum allowed depth.')
-            exit(0)
+        cls.check_data(data)
         dic = {
             'criterion': ['c', ['gini', 'entropy']],
             'splitter': ['c', ['best', 'random']],

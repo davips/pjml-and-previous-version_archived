@@ -28,8 +28,9 @@ class MLP(Classifier):
             new_kwargs['hidden_layer_sizes'] = values
         self.model = MLPClassifier(**new_kwargs)
 
-    @staticmethod
-    def hps_impl(data):
+    @classmethod
+    def hps_impl(cls, data):
+        cls.check_data(data)
         # todo: set random seed
         max_free_parameters = data.n_instances() / (data.n_attributes() + data.n_classes())
         dic = {

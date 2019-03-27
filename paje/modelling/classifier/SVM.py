@@ -18,8 +18,9 @@ class SVM(Classifier):
                 print('Falling back to random classifier, if there are convergence problems (bad "nu" value, for instance).')
             self.model = DummyClassifier(strategy='uniform').fit(*data.xy())
 
-    @staticmethod
-    def hps_impl(data=None):
+    @classmethod
+    def hps_impl(cls, data):
+        cls.check_data(data)
         # todo: set random seed; set 'cache_size'
         max_iter = data.n_instances()
         dic = {

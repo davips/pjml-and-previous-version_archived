@@ -26,9 +26,9 @@ class Component(ABC):
         """
         raise NotImplementedError("Should it return probability distributions, rules?")
 
-    @staticmethod
+    @classmethod
     @abstractmethod
-    def hps_impl(data=None):
+    def hps_impl(cls, data=None):
         """Todo the doc string
         """
         pass
@@ -61,3 +61,9 @@ class Component(ABC):
         depth += '     '
         for child in tree.children:
             cls.print_hps(child, depth)
+
+    @classmethod
+    def check_data(cls, data):
+        if data is None:
+            print(cls.__name__ + ' needs a dataset to be able to estimate maximum values for some hyperparameters.')
+            exit(0)
