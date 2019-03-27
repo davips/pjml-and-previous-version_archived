@@ -6,7 +6,7 @@ from paje.base.hps import HPTree
 from paje.modelling.classifier.classifier import Classifier
 
 
-class RandomForest(Classifier):
+class RF(Classifier):
     def __init__(self, **kwargs):
         self.model = RandomForestClassifier(**kwargs)
 
