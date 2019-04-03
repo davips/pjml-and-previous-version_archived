@@ -1,7 +1,9 @@
+import copy
+
+import arff
 import numpy as np
 import pandas as pd
-import arff
-import copy
+import sklearn.datasets as ds
 
 
 class Data(object):
@@ -43,6 +45,11 @@ class Data(object):
         data_x = df.values.astype('float')
 
         return Data(data_x, data_y, columns)
+
+    @staticmethod
+    def random(n_attributes, n_classes, n_instances):
+        x, y = ds.make_classification(n_samples=n_instances, n_features=n_attributes, n_classes=n_classes, n_informative=int(np.sqrt(2 * n_classes)) + 1)
+        return Data(x, y)
 
     def read_csv(file, target):
         raise NotImplementedError("Method read_csv should be implement!")

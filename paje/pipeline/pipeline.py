@@ -1,6 +1,7 @@
 from paje.base.component import Component
 from paje.base.hps import HPTree
 
+
 class Pipeline(Component):
 
     # components is like this --> [(obj, {}), (obj, {}), (obj, {})]
