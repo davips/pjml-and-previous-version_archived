@@ -18,6 +18,7 @@ from paje.modelling.classifier.KNN import KNN
 from paje.modelling.classifier.NB import NB
 from paje.evaluator.evaluator import Evaluator
 from paje.evaluator.metrics import Metrics
+from paje.preprocessing.scaler.equalization import Equalization
 from paje.preprocessing.scaler.standard import Standard
 
 
@@ -34,7 +35,7 @@ class RadomSearchAutoML(AutoML):
         self.repetitions = repetitions
         self.prep_comp = [FilterCFS, FilterChiSquare,
                           RanOverSampler, RanUnderSampler,
-                          Standard]
+                          Standard, Equalization]
         self.mode_comp = [RF, KNN, NB, DT, MLP, SVM, CB]
         self.comps = self.prep_comp + self.mode_comp
         self.random_state = random_state
