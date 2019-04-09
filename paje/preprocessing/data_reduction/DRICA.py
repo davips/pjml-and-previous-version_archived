@@ -52,5 +52,5 @@ class DRICA(Data):
     @staticmethod
     def hps_impl(data):
         return HPTree(
-            dic={'n_components': ['n', list(range(1, len(data.data_x[0]) + 1))]},
+            dic={'n_components': ['z', list(range(1, len(data.data_x[0]) + 1))]},
             children=[])

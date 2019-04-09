@@ -47,6 +47,6 @@ class DRGRP(Data):
     @staticmethod
     def hps_impl(data):
         return HPTree(
-            dic={'n_components': ['n', list(range(1, len(data.data_x[0]) + 1))],
-                 'eps': ['e', [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]]},
+            dic={'n_components': ['z', list(range(1, len(data.data_x[0]) + 1))],
+                 'eps': ['r', [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]]},
             children=[])

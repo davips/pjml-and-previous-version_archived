@@ -49,7 +49,7 @@ class DRFtAg(Data):
     @staticmethod
     def hps_impl(data):
         return HPTree(
-            dic={'n_components': ['n', list(range(1, len(data.data_x[0]) + 1))],
-                 'affinity': ['a', ['euclidean', 'l1', 'l2', 'manhattan', 'cosine', 'precomputed']],
-                 'linkage': ['l', ['ward', 'complete', 'average', 'single']]},
+            dic={'n_components': ['z', list(range(1, len(data.data_x[0]) + 1))],
+                 'affinity': ['c', ['euclidean', 'l1', 'l2', 'manhattan', 'cosine', 'precomputed']],
+                 'linkage': ['c', ['ward', 'complete', 'average', 'single']]},
             children=[])

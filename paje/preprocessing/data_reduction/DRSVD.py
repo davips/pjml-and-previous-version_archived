@@ -51,12 +51,12 @@ class DRSVD(Data):
     def apply(self, n_components):
         u, s, _ = svds(self.x, n_components)
         pc = u @ diag(s) # If we use V^T in this operation, the pc will have the original dimension
-        
+
         return Data(pc, self.y)
 
 
     @staticmethod
     def hps_impl(data):
         return HPTree(
-            dic={'n_components': ['n', list(range(1, len(data.data_x[0]) + 1))]},
+            dic={'n_components': ['z', list(range(1, len(data.data_x[0]) + 1))]},
             children=[])
