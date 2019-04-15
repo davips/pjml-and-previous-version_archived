@@ -10,7 +10,7 @@ class Classifier(Component, ABC):
         if not self.__class__.show_warnings:
             np.warnings.filterwarnings('ignore')  # Mahalanobis in KNN needs to supress warnings due to NaN in linear algebra calculations. MLP is also verbose due to nonconvergence issues among other problems.
 
-        self.model = self.model.fit(*data.xy())  # self.model will be set in the child class
+        self.model.fit(*data.xy())  # self.model will be set in the child class
 
         if not self.__class__.show_warnings:
             np.warnings.filterwarnings('always')  # Mahalanobis in KNN needs to supress warnings due to NaN in linear algebra calculations. MLP is also verbose due to nonconvergence issues among other problems.
