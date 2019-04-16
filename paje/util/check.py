@@ -26,7 +26,7 @@ def check_float(name, imputed_value, min_value, max_value):
     return True
 
 
-def  check_X_y(X, y):
+def  check_X_y(X, y): #TODO: this function might be replaced by sklearn's default(?)
     check_is("X", np.ndarray, X)
     check_is("y", np.ndarray, y)
     if X.shape[0] != y.shape[0]:
