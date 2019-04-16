@@ -1,5 +1,4 @@
-from paje.base.component import Component
-from paje.base.hps import HPTree
+from paje.component.component import Component
 
 
 class Pipeline(Component):

@@ -1,25 +1,22 @@
-from paje.automl.automl import AutoML
-from paje.modelling.classifier.CB import CB
-from paje.modelling.classifier.MLP import MLP
-from paje.modelling.classifier.SVM import SVM
-from paje.preprocessing.feature_selection.statistical_based.cfs \
-    import FilterCFS
-from paje.preprocessing.feature_selection.statistical_based.chi_square \
-    import FilterChiSquare
-from paje.preprocessing.balancer.over.ran_over_sampler \
-    import RanOverSampler
-from paje.preprocessing.balancer.under.ran_under_sampler \
-    import RanUnderSampler
 import numpy as np
-from paje.pipeline.pipeline import Pipeline
-from paje.modelling.classifier.RF import RF
-from paje.modelling.classifier.DT import DT
-from paje.modelling.classifier.KNN import KNN
-from paje.modelling.classifier.NB import NB
+
+from paje.automl.automl import AutoML
+from paje.component.modelling.classifier.CB import CB
+from paje.component.modelling.classifier.DT import DT
+from paje.component.modelling.classifier.KNN import KNN
+from paje.component.modelling.classifier.MLP import MLP
+from paje.component.modelling.classifier.NB import NB
+from paje.component.modelling.classifier.RF import RF
+from paje.component.modelling.classifier.SVM import SVM
+from paje.component.preprocessing.balancer.over.ran_over_sampler import RanOverSampler
+from paje.component.preprocessing.balancer.under.ran_under_sampler import RanUnderSampler
+from paje.component.preprocessing.feature_selection.statistical_based.cfs import FilterCFS
+from paje.component.preprocessing.feature_selection.statistical_based.chi_square import FilterChiSquare
+from paje.component.preprocessing.scaler.equalization import Equalization
+from paje.component.preprocessing.scaler.standard import Standard
 from paje.evaluator.evaluator import Evaluator
 from paje.evaluator.metrics import Metrics
-from paje.preprocessing.scaler.equalization import Equalization
-from paje.preprocessing.scaler.standard import Standard
+from paje.pipeline.pipeline import Pipeline
 
 
 class RadomSearchAutoML(AutoML):

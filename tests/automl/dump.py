@@ -1,11 +1,7 @@
 from sklearn.externals import joblib
 
 from paje.data.data import Data
-from paje.modelling.classifier.AB import AB
-from paje.modelling.classifier.CB import CB
-from paje.modelling.classifier.KNN import KNN
-from paje.modelling.classifier.MLP import MLP
-from paje.modelling.classifier.RF import RF
+from paje.component.modelling.classifier.RF import RF
 import sklearn.metrics
 from sys import argv
 
