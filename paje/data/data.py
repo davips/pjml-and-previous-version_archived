@@ -4,6 +4,7 @@ import arff
 import numpy as np
 import pandas as pd
 import sklearn.datasets as ds
+from sklearn.utils import check_X_y
 
 
 class Data(object):
@@ -15,9 +16,9 @@ class Data(object):
         self.is_supervised = False
         self.is_unsupervised = False
 
+        check_X_y(data_x, data_y)
         # TODO
         # check if exits dtype indefined == object
-        # check dimensions of X and y
 
         if data_x is not None:
             if data_y is not None:
