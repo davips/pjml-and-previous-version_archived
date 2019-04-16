@@ -8,19 +8,19 @@ class Pipeline(Component):
         self.components = components
         self.obj_comp = []
 
-    def apply(self, data):
+    def apply_impl(self, data):
         self.obj_comp = []
         for obj, param in self.components:
             # print(param)
             aux = obj(**param)
-            aux.apply(data)
+            aux.apply_impl(data)
             self.obj_comp.append(aux)
 
-    def use(self, data):
+    def use_impl(self, data):
         aux = None
         for obj in self.obj_comp:
             # print(data)
-            aux = obj.use(data)
+            aux = obj.use_impl(data)
         return aux
 
     @staticmethod

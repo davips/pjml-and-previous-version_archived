@@ -11,7 +11,7 @@ class KNN(Classifier):
     def __init__(self, **kwargs):
         self.model = KNeighborsClassifier(**kwargs)
 
-    def apply(self, data):
+    def apply_impl(self, data):
         if self.model.metric == 'mahalanobis':
             X = data.data_x
             self.model.algorithm = 'brute'
@@ -22,7 +22,7 @@ class KNN(Classifier):
             except:
                 # Uses a fake inverse of covariance matrix as fallback.
                 self.model.metric_params = {'VI': np.eye(len(X))}
-        super().apply(data)
+        super().apply_impl(data)
 
     @classmethod
     def hps_impl(cls, data=None):

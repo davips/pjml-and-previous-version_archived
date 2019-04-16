@@ -6,7 +6,7 @@ from paje.component.component import Component
 
 
 class Scaler(Component, ABC):
-    def apply(self, data):
+    def apply_impl(self, data):
         if not self.__class__.show_warnings:
             np.warnings.filterwarnings('ignore')
 
@@ -15,5 +15,5 @@ class Scaler(Component, ABC):
         if not self.__class__.show_warnings:
             np.warnings.filterwarnings('always')
 
-    def use(self, data):
+    def use_impl(self, data):
         return self.model.transform(data.data_x)

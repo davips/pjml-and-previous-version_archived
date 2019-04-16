@@ -161,7 +161,7 @@ class RadomSearchAutoML(AutoML):
 
         return best_value, best_conf
 
-    def apply(self, data):
+    def apply_impl(self, data):
         self._build_hyperspace(data)
         self.evaluator = Evaluator(data, Metrics.error, "cv",
                                    3, self.random_state)
@@ -169,10 +169,10 @@ class RadomSearchAutoML(AutoML):
         print(best_conf)
         print(best_value)
         self.best_pipeline = Pipeline(best_conf)
-        self.best_pipeline.apply(data)
+        self.best_pipeline.apply_impl(data)
 
-    def use(self, data):
-        return self.best_pipeline.use(data)
+    def use_impl(self, data):
+        return self.best_pipeline.use_impl(data)
 
     def hps_impl(self, data):
         raise NotImplementedError("Should it return the space of hyperspaces?")

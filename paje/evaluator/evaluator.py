@@ -29,8 +29,8 @@ class Evaluator():
                               data.data_y[train_index])
             data_test = Data(data.data_x[test_index],
                              data.data_y[test_index])
-            pipe.apply(data_train)
-            output_test = pipe.use(data_test)
+            pipe.apply_impl(data_train)
+            output_test = pipe.use_impl(data_test)
             perfs.append(self.metric(data_test, output_test))
 
         return perfs

@@ -41,7 +41,7 @@ class DRSRP(Component):
         self.x, self.y = data.xy()
         self.att_labels = data.columns
 
-    def apply(self, n_components, density='auto', eps=0.1, dense_output=True):
+    def apply_impl(self, n_components, density='auto', eps=0.1, dense_output=True):
         rp = SparseRandomProjection(n_components=n_components,
                                     density=density,
                                     eps=eps,
@@ -52,7 +52,7 @@ class DRSRP(Component):
 
         return Data(pc, self.y)
 
-    def use(self, data):
+    def use_impl(self, data):
         pass
 
     @staticmethod

@@ -9,16 +9,28 @@ class Component(ABC):
         cls.show_warnings = True
 
     @abstractmethod
-    def apply(self, data):
+    def apply_impl(self, data):
         """Todo the doc string
         """
         pass
 
     @abstractmethod
-    def use(self, data):
+    def use_impl(self, data):
         """Todo the doc string
         """
         pass
+
+    def apply(self, data):
+        """Todo the doc string
+        """
+        # code to switch between inplace and copying Data
+        self.apply_impl()
+
+    def use(self, data):
+        """Todo the doc string
+        """
+        # code to switch between inplace and copying Data
+        self.apply_impl()
 
     # @abstractmethod
     # def explain(self, X):

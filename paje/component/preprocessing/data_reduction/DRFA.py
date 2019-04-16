@@ -112,12 +112,12 @@ class DRFA(Component):
         self.x, self.y = data.xy()
         self.att_labels = data.columns
 
-    def apply(self, n_components):
+    def apply_impl(self, n_components):
         pc = FactorAnalysis(n_components=n_components, random_state=0).fit_transform(self.x)
 
         return Data(pc, self.y)
 
-    def use(self, data):
+    def use_impl(self, data):
         pass
 
     @staticmethod

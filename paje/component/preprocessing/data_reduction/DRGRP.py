@@ -39,14 +39,14 @@ class DRGRP(Component):
         self.att_labels = data.columns
 
 
-    def apply(self, n_components, eps = 0.1):
+    def apply_impl(self, n_components, eps = 0.1):
         rp = GaussianRandomProjection(n_components = n_components, eps = eps, random_state = 420)
         pc = rp.fit_transform(self.x)
 
         return Data(pc, self.y)
 
 
-    def use(self, data):
+    def use_impl(self, data):
         pass
 
     @staticmethod

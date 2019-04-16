@@ -51,13 +51,13 @@ class DRSVD(Component):
         self.x, self.y = data.xy()
         self.att_labels = data.columns
 
-    def apply(self, n_components):
+    def apply_impl(self, n_components):
         u, s, _ = svds(self.x, n_components)
         pc = u @ diag(s)  # If we use V^T in this operation, the pc will have the original dimension
 
         return Data(pc, self.y)
 
-    def use(self, data):
+    def use_impl(self, data):
         pass
 
     @staticmethod

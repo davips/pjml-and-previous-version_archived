@@ -6,7 +6,7 @@ from paje.component.component import Component
 
 
 class Classifier(Component, ABC):
-    def apply(self, data):
+    def apply_impl(self, data):
         if not self.__class__.show_warnings:
             np.warnings.filterwarnings('ignore')  # Mahalanobis in KNN needs to supress warnings due to NaN in linear algebra calculations. MLP is also verbose due to nonconvergence issues among other problems.
 
@@ -15,5 +15,5 @@ class Classifier(Component, ABC):
         if not self.__class__.show_warnings:
             np.warnings.filterwarnings('always')  # Mahalanobis in KNN needs to supress warnings due to NaN in linear algebra calculations. MLP is also verbose due to nonconvergence issues among other problems.
 
-    def use(self, data):
+    def use_impl(self, data):
         return self.model.predict(data.data_x)

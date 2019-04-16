@@ -23,7 +23,7 @@ class FilterChiSquare(Filter):
     def selected(self):
         return self.rank[0:self.nro_features]
 
-    def apply(self, data):
+    def apply_impl(self, data):
         X, y = data.xy()
         # TODO: verify if is possible implement this with numpy
         y = pd.Categorical(y).codes
@@ -32,9 +32,9 @@ class FilterChiSquare(Filter):
         self.rank = chi_square.feature_ranking(self.score)
         self.nro_features = math.ceil((self.ratio)*X.shape[1])
 
-        self.use(data)
+        self.use_impl(data)
 
-    def use(self, data):
+    def use_impl(self, data):
         data.data_x = data.data_x[:, self.selected()]
         return data
 

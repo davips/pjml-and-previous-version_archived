@@ -9,9 +9,9 @@ class SVM(Classifier):
     def __init__(self, **kwargs):
         self.model = NuSVC(**kwargs)
 
-    def apply(self, data):
+    def apply_impl(self, data):
         try:
-            super().apply(data)
+            super().apply_impl(data)
         except:
             if super().show_warnings:
                 print('Falling back to random classifier, if there are convergence problems (bad "nu" value, for instance).')

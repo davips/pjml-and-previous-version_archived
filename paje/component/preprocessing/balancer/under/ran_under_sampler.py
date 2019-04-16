@@ -9,12 +9,12 @@ class RanUnderSampler(Component):
         self.obj = RandomUnderSampler(sampling_strategy)
         self.newx = self.newy = None
 
-    def apply(self, data):
+    def apply_impl(self, data):
         X, y = data.xy()
         self.newx, self.newy = self.obj.fit_resample(X, y)
         data.data_x, data.data_y = self.newx, self.newy
 
-    def use(self, data):
+    def use_impl(self, data):
         return data
 
     @staticmethod

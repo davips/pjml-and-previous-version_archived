@@ -39,7 +39,7 @@ class DRFtAg(Component):
         self.x, self.y = data.xy()
         self.att_labels = data.columns
 
-    def apply(self, n_components, affinity='euclidean', linkage='ward'):
+    def apply_impl(self, n_components, affinity='euclidean', linkage='ward'):
         if (linkage == 'ward'):
             affinity = 'euclidean'
 
@@ -48,7 +48,7 @@ class DRFtAg(Component):
 
         return Data(pc, self.y)
 
-    def use(self, data):
+    def use_impl(self, data):
         pass
 
     @staticmethod

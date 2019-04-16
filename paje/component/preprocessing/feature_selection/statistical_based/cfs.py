@@ -14,7 +14,7 @@ class FilterCFS(Filter):
     def score(self):
         return self.__score
 
-    def apply(self, data):
+    def apply_impl(self, data):
         X, y = data.xy()
 
         # TODO: verify if is possible implement this with numpy
@@ -23,9 +23,9 @@ class FilterCFS(Filter):
         self.idx = self.idx[self.idx >= 0]
 
         # self.fit(data.data_x, data.data_y)
-        self.use(data)
+        self.use_impl(data)
 
-    def use(self, data):
+    def use_impl(self, data):
         data.data_x = data.data_x[:, self.idx]
 
     @staticmethod
