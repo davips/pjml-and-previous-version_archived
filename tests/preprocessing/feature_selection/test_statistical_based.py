@@ -1,13 +1,8 @@
-from paje.component.preprocessing.feature_selection import \
-    FilterChiSquare
-from paje.component.preprocessing.feature_selection import \
-    FilterCFS
-from paje.component.preprocessing.feature_selection import \
-    FilterFScore
-from paje.component.preprocessing.feature_selection import \
-    FilterGiniIndex
-from paje.component.preprocessing.feature_selection import \
-    FilterTScore
+from paje.module.preprocessing.feature_selection.statistical_based.cfs import FilterCFS
+from paje.module.preprocessing.feature_selection.statistical_based.chi_square import FilterChiSquare
+from paje.module.preprocessing.feature_selection.statistical_based.f_score import FilterFScore
+from paje.module.preprocessing.feature_selection.statistical_based.gini_index import FilterGiniIndex
+from paje.module.preprocessing.feature_selection.statistical_based.t_score import FilterTScore
 from skfeature.function.statistical_based import \
     chi_square, CFS, f_score, gini_index, t_score
 from paje.util.synthetic.dataset import ClassificationDataset

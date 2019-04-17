@@ -1,6 +1,6 @@
 from abc import ABC
 
-from paje.component.component import Component
+from paje.component import Component
 
 
 class AutoML(Component, ABC):

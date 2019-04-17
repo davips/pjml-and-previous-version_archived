@@ -1,19 +1,19 @@
 import numpy as np
 
 from paje.automl.automl import AutoML
-from paje.component.modelling.classifier.CB import CB
-from paje.component.modelling.classifier.DT import DT
-from paje.component.modelling.classifier.KNN import KNN
-from paje.component.modelling.classifier.MLP import MLP
-from paje.component.modelling.classifier.NB import NB
-from paje.component.modelling.classifier.RF import RF
-from paje.component.modelling.classifier.SVM import SVM
-from paje.component.preprocessing.balancer.over.ran_over_sampler import RanOverSampler
-from paje.component.preprocessing.balancer.under.ran_under_sampler import RanUnderSampler
-from paje.component.preprocessing.feature_selection.statistical_based.cfs import FilterCFS
-from paje.component.preprocessing.feature_selection.statistical_based.chi_square import FilterChiSquare
-from paje.component.preprocessing.scaler.equalization import Equalization
-from paje.component.preprocessing.scaler.standard import Standard
+from paje.module.modelling.classifier.CB import CB
+from paje.module.modelling.classifier.DT import DT
+from paje.module.modelling.classifier.KNN import KNN
+from paje.module.modelling.classifier.MLP import MLP
+from paje.module.modelling.classifier.NB import NB
+from paje.module.modelling.classifier.RF import RF
+from paje.module.modelling.classifier.SVM import SVM
+from paje.module.preprocessing.balancer.over.ran_over_sampler import RanOverSampler
+from paje.module.preprocessing.balancer.under.ran_under_sampler import RanUnderSampler
+from paje.module.preprocessing.feature_selection.statistical_based.cfs import FilterCFS
+from paje.module.preprocessing.feature_selection.statistical_based.chi_square import FilterChiSquare
+from paje.module.preprocessing.scaler.equalization import Equalization
+from paje.module.preprocessing.scaler.standard import Standard
 from paje.evaluator.evaluator import Evaluator
 from paje.evaluator.metrics import Metrics
 from paje.pipeline.pipeline import Pipeline
@@ -22,7 +22,7 @@ from paje.pipeline.pipeline import Pipeline
 class RadomSearchAutoML(AutoML):
     methods = ["all", "white_box", "gray_box", "black_box"]
 
-    def __init__(self, method="all", max_iter=30, fixed=True,
+    def init_impl(self, method="all", max_iter=30, fixed=True,
                  deep=5, repetitions=False, random_state=0):
         self.hps_preprocessing = self.hps_modelling = None
         self.prep_comp = self.mode_comp = None
@@ -137,7 +137,7 @@ class RadomSearchAutoML(AutoML):
         return confs
 
     def _objective(self, conf, data):
-        pipe = Pipeline(conf)
+        pipe = Pipeline(conf, show_warnings=False)
         perf = self.evaluator.eval(pipe, data)
         # print(np.mean(perf))
 

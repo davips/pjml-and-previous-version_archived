@@ -1,10 +1,10 @@
-from paje.component.component import Component
+from paje.component import Component
 
 
 class Pipeline(Component):
 
     # components is like this --> [(obj, {}), (obj, {}), (obj, {})]
-    def __init__(self, components):
+    def init_impl(self, components):
         self.components = components
         self.obj_comp = []
 

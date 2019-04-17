@@ -1,7 +1,7 @@
 from sklearn.externals import joblib
 
 from paje.data.data import Data
-from paje.component.modelling.classifier.RF import RF
+from paje.module.modelling.classifier.RF import RF
 import sklearn.metrics
 from sys import argv
 
