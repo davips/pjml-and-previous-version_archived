@@ -13,7 +13,7 @@ class ClassificationDataset(object):
             np.random.seed(random_state)
 
 
-    def new_dataset(self):
+    def new_dataset(self): #TODO: there is a synthetic dataset generator inside Data()
         X = np.random.rand(self.n_sample, self.n_attr)
         aux = np.argsort(np.sum(X, axis=1))
         idx = np.array_split(aux, self.n_class)
