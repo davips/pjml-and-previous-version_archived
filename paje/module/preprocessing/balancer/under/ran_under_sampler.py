@@ -17,8 +17,8 @@ class RanUnderSampler(Component):
     def use_impl(self, data):
         return data
 
-    @staticmethod
-    def hps_impl(data=None):
+    @classmethod
+    def hps_impl(cls, data=None):
         return HPTree(dic={
             'sampling_strategy': ['c', ['majority', 'not minority',
                                         'not majority', 'all']]

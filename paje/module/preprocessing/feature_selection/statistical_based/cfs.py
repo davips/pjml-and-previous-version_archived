@@ -23,11 +23,11 @@ class FilterCFS(Filter):
         self.idx = self.idx[self.idx >= 0]
 
         # self.fit(data.data_x, data.data_y)
-        self.use_impl(data)
+        self.use(data)
 
     def use_impl(self, data):
         data.data_x = data.data_x[:, self.idx]
 
-    @staticmethod
-    def hps_impl(data=None):
+    @classmethod
+    def hps_impl(cls, data=None):
         return HPTree(dic={}, children=[])

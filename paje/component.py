@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 
+import numpy as np
+
 from paje.util.auto_constructor import initializer
 
 
@@ -12,7 +14,7 @@ class Component(ABC):
         self.init_impl(*args, **kwargs)
 
     @abstractmethod
-    def init_impl(self, **kwargs):
+    def init_impl(self, *args, **kwargs):
         """Todo the doc string
         """
         pass
@@ -29,17 +31,25 @@ class Component(ABC):
         """
         pass
 
-    def apply(self, data):
-        """Todo the doc string
-        """
-        # code to switch between inplace and copying Data
-        self.apply_impl()
+    def suppres_warnings(self, f, data):
+        if not self.show_warnings:
+            np.warnings.filterwarnings('ignore')  # Mahalanobis in KNN needs to supress warnings due to NaN in linear algebra calculations. MLP is also verbose due to nonconvergence issues among other problems.
+        result = f(data)
+        if not self.show_warnings:
+            np.warnings.filterwarnings('always')  # Mahalanobis in KNN needs to supress warnings due to NaN in linear algebra calculations. MLP is also verbose due to nonconvergence issues among other problems.
+        return result
 
-    def use(self, data):
+    def apply(self, data=None):
         """Todo the doc string
         """
-        # code to switch between inplace and copying Data
-        self.apply_impl()
+        # code to switch between inplace and copying Data should be here
+        return self.suppres_warnings(self.apply_impl, data)
+
+    def use(self, data=None):
+        """Todo the doc string
+        """
+        # code to switch between inplace and copying Data should be here
+        return self.use_impl(data)
 
     # @abstractmethod
     # def explain(self, X):
@@ -70,7 +80,9 @@ class Component(ABC):
                     if len(dic[k]) != 3:
                         print('Real and integer hyperparameters need a limit with two values: ' + str(k))
                         exit(0)
-        except:
+        except Exception as e:
+            print(e)
+            print()
             print('Problems with hyperparameter space: ' + str(dic))
             exit(0)
         return hps

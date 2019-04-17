@@ -32,14 +32,14 @@ class FilterChiSquare(Filter):
         self.rank = chi_square.feature_ranking(self.score)
         self.nro_features = math.ceil((self.ratio)*X.shape[1])
 
-        self.use_impl(data)
+        self.use(data)
 
     def use_impl(self, data):
         data.data_x = data.data_x[:, self.selected()]
         return data
 
-    @staticmethod
-    def hps_impl(data):
+    @classmethod
+    def hps_impl(cls, data=None):
         return HPTree(
             dic={'ratio': ['r', 1e-05, 1]},
             children=[])

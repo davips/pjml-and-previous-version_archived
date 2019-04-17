@@ -32,9 +32,9 @@ else:
         x = int(round((pow(x0, 2))))
         model = RF(n_estimators=x)
         model.show_warnings = False
-        model.apply_impl(data_train)
-        resp0 = model.use_impl(data_train)
-        resp1 = model.use_impl(data_test)
+        model.apply(data_train)
+        resp0 = model.use(data_train)
+        resp1 = model.use(data_test)
         joblib.dump(model.model, model.__class__.__name__ +  str(x) + '.dump', compress=('bz2', 9))
 
         print(str(x) + "\t" + str(f(sklearn.metrics.accuracy_score(data_train.data_y, resp0))) + "\t" + str(f(sklearn.metrics.accuracy_score(data_test.data_y, resp1))))

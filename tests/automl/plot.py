@@ -37,10 +37,10 @@ else:
         model = MLP(activation='relu', hidden_layer_sizes=(x,), max_iter=1, verbose=False, early_stopping=False, validation_fraction=0, batch_size=500, solver='lbfgs') if argv[2] == 'rnd' \
             else MLP(random_state=1, activation='relu', hidden_layer_sizes=(x,), max_iter=10000, verbose=False, early_stopping=False, validation_fraction=0, batch_size=500, solver='lbfgs')
         model.show_warnings = False
-        model.apply_impl(data_train)
-        resp0 = model.use_impl(data_train)
-        resp1 = model.use_impl(data_test)
-        resp2 = model.use_impl(data_test2)
-        resp3 = model.use_impl(data_test3)
+        model.apply(data_train)
+        resp0 = model.use(data_train)
+        resp1 = model.use(data_test)
+        resp2 = model.use(data_test2)
+        resp3 = model.use(data_test3)
 
         print(str(x) + "\t" + str(f(sklearn.metrics.accuracy_score(data_train.data_y, resp0))) + "\t" + str(f(sklearn.metrics.accuracy_score(data_test.data_y, resp1))) + "\t" + str(f(sklearn.metrics.accuracy_score(data_test2.data_y, resp2))) + "\t" + str(f(sklearn.metrics.accuracy_score(data_test3.data_y, resp3))))

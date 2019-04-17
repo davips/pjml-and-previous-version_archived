@@ -1,3 +1,5 @@
+import traceback
+
 import numpy as np
 
 from paje.automl.automl import AutoML
@@ -33,7 +35,7 @@ class RadomSearchAutoML(AutoML):
         self.prep_comp = [FilterCFS, FilterChiSquare,
                           RanOverSampler, RanUnderSampler,
                           Standard, Equalization]
-        self.mode_comp = [RF, KNN, NB, DT, MLP, SVM, CB]
+        self.mode_comp = [RF, KNN] #, NB, DT, MLP, SVM, CB]
         self.comps = self.prep_comp + self.mode_comp
         self.random_state = random_state
 
@@ -66,7 +68,11 @@ class RadomSearchAutoML(AutoML):
                 elif space.dic[k][0] == 'z':
                     conf[k] = np.random.randint(space.dic[k][1],
                                                 space.dic[k][2], 1)[0]
-            except:
+            except Exception as e:
+                traceback.print_exc()
+                print()
+                print(e)
+                print()
                 print('Problems parsing HPTree:')
                 print(k)
                 print(space.dic.keys())
@@ -137,7 +143,7 @@ class RadomSearchAutoML(AutoML):
         return confs
 
     def _objective(self, conf, data):
-        pipe = Pipeline(conf, show_warnings=False)
+        pipe = Pipeline(conf)
         perf = self.evaluator.eval(pipe, data)
         # print(np.mean(perf))
 
@@ -162,6 +168,7 @@ class RadomSearchAutoML(AutoML):
         return best_value, best_conf
 
     def apply_impl(self, data):
+        print(data.n_instances(), ' <<<<<<<<<<<<<<<<<<<<<<<<<<<<<')
         self._build_hyperspace(data)
         self.evaluator = Evaluator(data, Metrics.error, "cv",
                                    3, self.random_state)
@@ -169,10 +176,11 @@ class RadomSearchAutoML(AutoML):
         print(best_conf)
         print(best_value)
         self.best_pipeline = Pipeline(best_conf)
-        self.best_pipeline.apply_impl(data)
+        self.best_pipeline.apply(data)
 
     def use_impl(self, data):
-        return self.best_pipeline.use_impl(data)
+        return self.best_pipeline.use(data)
 
-    def hps_impl(self, data):
+    @classmethod
+    def hps_impl(cls, data=None):
         raise NotImplementedError("Should it return the space of hyperspaces?")

@@ -11,14 +11,14 @@ class SVM(Classifier):
 
     def apply_impl(self, data):
         try:
-            super().apply_impl(data)
+            return super().apply_impl(data)
         except:
             if self.show_warnings:
                 print('Falling back to random classifier, if there are convergence problems (bad "nu" value, for instance).')
             self.model = DummyClassifier(strategy='uniform').fit(*data.xy())
 
     @classmethod
-    def hps_impl(cls, data):
+    def hps_impl(cls, data=None):
         cls.check_data(data)
         # todo: set random seed; set 'cache_size'
         max_iter = data.n_instances()

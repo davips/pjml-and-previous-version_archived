@@ -18,7 +18,7 @@ class CB(Classifier):
     #         self.model = DummyClassifier(strategy='uniform').fit(*data.xy())
 
     @classmethod
-    def hps_impl(cls, data):
+    def hps_impl(cls, data=None):
         cls.check_data(data)
         # todo: set random seed
         data_for_speed = {'iterations': ['z', 2, 1000]}  # Entre outros

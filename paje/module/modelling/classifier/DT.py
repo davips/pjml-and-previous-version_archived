@@ -11,7 +11,7 @@ class DT(Classifier):
         self.model = DecisionTreeClassifier(**kwargs)
 
     @classmethod
-    def hps_impl(cls, data):
+    def hps_impl(cls, data=None):
         #todo: set random seed
         cls.check_data(data)
         dic = {

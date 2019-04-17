@@ -70,8 +70,9 @@ class DRPCA(Component):
     def use_impl(self, data):
         pass
 
-    @staticmethod
-    def hps_impl(data):
+    @classmethod
+    def hps_impl(cls, data=None):
+        cls.check_data(data)
         return HPTree(
             dic={'n_components': ['z', list(range(1, data.n_attributes() + 1))]},
             children=[])

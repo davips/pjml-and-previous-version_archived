@@ -12,6 +12,7 @@ class KNN(Classifier):
         self.model = KNeighborsClassifier(**kwargs)
 
     def apply_impl(self, data):
+        print('>>>>>>>>>>>>>>>>>>>>>>> ', data.n_instances())
         if self.model.metric == 'mahalanobis':
             X = data.data_x
             self.model.algorithm = 'brute'
@@ -22,14 +23,16 @@ class KNN(Classifier):
             except:
                 # Uses a fake inverse of covariance matrix as fallback.
                 self.model.metric_params = {'VI': np.eye(len(X))}
-        super().apply_impl(data)
+        return super().apply_impl(data)
 
     @classmethod
     def hps_impl(cls, data=None):
+        print('> > > > > > > . > ', data.n_instances())
         cls.check_data(data)
-        kmax = floor(data.n_instances() / 2)  # Assumes worst case of k-fold CV, i.e. k=2.
+        kmax = floor(data.n_instances() / 2 - 1)  # Assumes worst case of k-fold CV, i.e. k=2.
+        print(kmax)
         dic = {
-            'n_neighbors': ['z', 1, kmax],
+            'n_neighbors': ['z', kmax-1, kmax],
             'metric': ['c', ['euclidean', 'manhattan', 'chebyshev', 'mahalanobis']],
             'weights': ['c', ['distance', 'uniform']]
         }

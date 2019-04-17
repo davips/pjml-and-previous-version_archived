@@ -13,16 +13,16 @@ class Pipeline(Component):
         for obj, param in self.components:
             # print(param)
             aux = obj(**param)
-            aux.apply_impl(data)
+            aux.apply(data)
             self.obj_comp.append(aux)
 
     def use_impl(self, data):
         aux = None
         for obj in self.obj_comp:
             # print(data)
-            aux = obj.use_impl(data)
+            aux = obj.use(data)
         return aux
 
-    @staticmethod
-    def hps_impl(data=None):
+    @classmethod
+    def hps_impl(cls, data=None):
         raise NotImplementedError("Method hps should be implemented!")
