@@ -44,16 +44,16 @@ class MLP(Classifier):
         }, children=[])
 
         one_hidden_layer = HPTree({
-            '@hidden_layer_size1': ['z', 1, max_free_parameters],  # @ indicates that this hyperparameter will be converted in constructor.
+            '@hidden_layer_size1': ['z', 1, max_free_parameters],  # @ indicates that this hyperparameter is auxiliary (will be converted in constructor)
             'activation': ['c', ['identity', 'logistic', 'tanh', 'relu']],  # Only used when there is at least one hidden layer
         }, children=[])
 
         two_hidden_layers = HPTree({
-            '@hidden_layer_size2': ['z', 1, max_free_parameters],  # @ indicates that this hyperparameter will be converted in constructor.
+            '@hidden_layer_size2': ['z', 1, max_free_parameters],  # @ indicates that this hyperparameter is auxiliary (will be converted in constructor)
         }, children=[one_hidden_layer])
 
         three_hidden_layers = HPTree({
-            '@hidden_layer_size3': ['z', 1, max_free_parameters],  # @ indicates that this hyperparameter will be converted in constructor.
+            '@hidden_layer_size3': ['z', 1, max_free_parameters],  # @ indicates that this hyperparameter is auxiliary (will be converted in constructor)
         }, children=[two_hidden_layers])
 
         layers = [zero_hidden_layers, one_hidden_layer, two_hidden_layers, three_hidden_layers]

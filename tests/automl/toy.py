@@ -1,10 +1,9 @@
-from paje.automl.random_search_based import RadomSearchAutoML
-from sklearn.model_selection import StratifiedShuffleSplit
-from paje.data.data import Data
-import numpy as np
-import sklearn.model_selection
-import sklearn.metrics
 from sys import argv
+
+import sklearn.metrics
+
+from paje.automl.random_search_based import RadomSearchAutoML
+from paje.data.data import Data
 
 if len(argv) != 2:
     print('Usage: \npython toy.py dataset.arff')

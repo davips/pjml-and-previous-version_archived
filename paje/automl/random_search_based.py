@@ -168,7 +168,7 @@ class RadomSearchAutoML(AutoML):
         return best_value, best_conf
 
     def apply_impl(self, data):
-        print(data.n_instances(), ' <<<<<<<<<<<<<<<<<<<<<<<<<<<<<')
+        print(data.n_instances(), ' <<<<<<<<<<<<<<<<<<<<<<<<<<<<< set size entering AutoML')
         self._build_hyperspace(data)
         self.evaluator = Evaluator(data, Metrics.error, "cv",
                                    3, self.random_state)
