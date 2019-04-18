@@ -35,7 +35,7 @@ class RadomSearchAutoML(AutoML):
         self.prep_comp = [FilterCFS, FilterChiSquare,
                           RanOverSampler, RanUnderSampler,
                           Standard, Equalization]
-        self.mode_comp = [RF, KNN] #, NB, DT, MLP, SVM, CB]
+        self.mode_comp = [RF, KNN, NB, DT, MLP, SVM, CB]
         self.comps = self.prep_comp + self.mode_comp
         self.random_state = random_state
 
@@ -168,7 +168,6 @@ class RadomSearchAutoML(AutoML):
         return best_value, best_conf
 
     def apply_impl(self, data):
-        print(data.n_instances(), ' <<<<<<<<<<<<<<<<<<<<<<<<<<<<< set size entering AutoML')
         self._build_hyperspace(data)
         self.evaluator = Evaluator(data, Metrics.error, "cv",
                                    3, self.random_state)
@@ -176,7 +175,7 @@ class RadomSearchAutoML(AutoML):
         print(best_conf)
         print(best_value)
         self.best_pipeline = Pipeline(best_conf)
-        self.best_pipeline.apply(data)
+        return self.best_pipeline.apply(data)
 
     def use_impl(self, data):
         return self.best_pipeline.use(data)

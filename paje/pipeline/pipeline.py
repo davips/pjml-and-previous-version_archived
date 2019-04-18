@@ -10,18 +10,19 @@ class Pipeline(Component):
 
     def apply_impl(self, data):
         self.obj_comp = []
+        # print(self.components)
         for obj, param in self.components:
             # print(param)
-            aux = obj(**param)
-            aux.apply(data)
+            aux = obj(**param)  # TODO: here it is possible to choose if obj handles Data as inplace or not
+            data = aux.apply(data)  # useless assignment if aux is set to be inplace
             self.obj_comp.append(aux)
+        return data
 
     def use_impl(self, data):
-        aux = None
         for obj in self.obj_comp:
             # print(data)
-            aux = obj.use(data)
-        return aux
+            data = obj.use(data)  # useless assignment if aux is set to be inplace
+        return data
 
     @classmethod
     def hps_impl(cls, data=None):

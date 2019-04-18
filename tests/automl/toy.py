@@ -19,7 +19,7 @@ else:
     data_train = Data(X_train, y_train)
     data_test = Data(X_test, y_test)
     automl_rs.apply(data_train)
-    resp = automl_rs.use(data_test)
+    resp = automl_rs.use(data_test).data_y
 
     # print(1 - np.sum(resp == data_test.data_y)/resp.shape[0])
     print("Accuracy score", sklearn.metrics.accuracy_score(data_test.data_y, resp))

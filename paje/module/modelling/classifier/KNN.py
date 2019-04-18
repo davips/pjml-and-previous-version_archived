@@ -11,7 +11,7 @@ from paje.util.distributions import exponential_integers
 class KNN(Classifier):
     def init_impl(self, **kwargs):
         # Extract n_instances from hps to be available to be used in apply() if neeeded.
-        self. n_instances = kwargs.get('@n_instances')
+        self.n_instances = kwargs.get('@n_instances')
         del kwargs['@n_instances']
         self.model = KNeighborsClassifier(**kwargs)
 

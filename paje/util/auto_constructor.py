@@ -1,4 +1,4 @@
-###  StdLib  ###
+###  From StackOverflow  ###
 from functools import wraps
 import inspect
 

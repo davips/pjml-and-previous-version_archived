@@ -15,5 +15,8 @@ class Scaler(Component, ABC):
         if not self.show_warnings:
             np.warnings.filterwarnings('always')
 
+        return self.use(data)
+
     def use_impl(self, data):
-        return self.model.transform(data.data_x)
+        data.data_x = self.model.transform(data.data_x)
+        return data

@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
+from paje.data.data import Data
 from paje.util.auto_constructor import initializer
 
 
@@ -11,6 +12,11 @@ class Component(ABC):
 
     @initializer
     def __init__(self, *args, in_place=False, show_warnings=True, **kwargs):
+        # print()
+        # print(type(self).__name__)
+        # print('args', args)
+        # print('kwargs', kwargs)
+        # print()
         self.init_impl(*args, **kwargs)
 
     @abstractmethod
@@ -39,15 +45,15 @@ class Component(ABC):
             np.warnings.filterwarnings('always')  # Mahalanobis in KNN needs to supress warnings due to NaN in linear algebra calculations. MLP is also verbose due to nonconvergence issues among other problems.
         return result
 
-    def handle_in_place(self, data):
+    def handle_in_place(self, data: Data):
         return data if data is None or self.in_place else data.copy()
 
-    def apply(self, data=None):
+    def apply(self, data: Data = None) -> Data:
         """Todo the doc string
         """
         return self.handle_warnings(self.apply_impl, self.handle_in_place(data)) # Switch between inplace and 'copying Data'.
 
-    def use(self, data=None):
+    def use(self, data: Data = None) -> Data:
         """Todo the doc string
         """
         return self.use_impl(self.handle_in_place(data)) # Switch between inplace and 'copying Data'.
