@@ -42,14 +42,12 @@ class Component(ABC):
     def apply(self, data=None):
         """Todo the doc string
         """
-        # code to switch between inplace and copying Data should be here
-        return self.suppres_warnings(self.apply_impl, data)
+        return self.suppres_warnings(self.apply_impl, data if self.in_place else data.copy()) # Switch between inplace and 'copying Data'.
 
     def use(self, data=None):
         """Todo the doc string
         """
-        # code to switch between inplace and copying Data should be here
-        return self.use_impl(data)
+        return self.use_impl(data if self.in_place else data.copy()) # Switch between inplace and 'copying Data'.
 
     # @abstractmethod
     # def explain(self, X):

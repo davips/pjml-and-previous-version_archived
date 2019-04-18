@@ -32,11 +32,12 @@ class KNN(Classifier):
             except:
                 # Uses a fake inverse of covariance matrix as fallback.
                 self.model.metric_params = {'VI': np.eye(len(X))}
+
         return super().apply_impl(data)
 
     @classmethod
     def hps_impl(cls, data=None):
-        # Assumes worst case of k-fold CV, i.e. k=2. Undersampling is another case handled by @n_instances.
+        # Assumes worst case of k-fold CV, i.e. k=2. Undersampling is another problem, handled by @n_instances.
         cls.check_data(data)
         kmax = floor(data.n_instances() / 2 - 1)
 
