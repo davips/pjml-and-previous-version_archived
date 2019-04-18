@@ -31,7 +31,7 @@ class Component(ABC):
         """
         pass
 
-    def suppres_warnings(self, f, data):
+    def handle_warnings(self, f, data):
         if not self.show_warnings:
             np.warnings.filterwarnings('ignore')  # Mahalanobis in KNN needs to supress warnings due to NaN in linear algebra calculations. MLP is also verbose due to nonconvergence issues among other problems.
         result = f(data)
@@ -39,15 +39,18 @@ class Component(ABC):
             np.warnings.filterwarnings('always')  # Mahalanobis in KNN needs to supress warnings due to NaN in linear algebra calculations. MLP is also verbose due to nonconvergence issues among other problems.
         return result
 
+    def handle_in_place(self, data):
+        return data if data is None or self.in_place else data.copy()
+
     def apply(self, data=None):
         """Todo the doc string
         """
-        return self.suppres_warnings(self.apply_impl, data if self.in_place else data.copy()) # Switch between inplace and 'copying Data'.
+        return self.handle_warnings(self.apply_impl, self.handle_in_place(data)) # Switch between inplace and 'copying Data'.
 
     def use(self, data=None):
         """Todo the doc string
         """
-        return self.use_impl(data if self.in_place else data.copy()) # Switch between inplace and 'copying Data'.
+        return self.use_impl(self.handle_in_place(data)) # Switch between inplace and 'copying Data'.
 
     # @abstractmethod
     # def explain(self, X):
