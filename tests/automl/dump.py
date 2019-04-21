@@ -6,6 +6,9 @@ import sklearn.metrics
 from sys import argv
 
 # Some tests to evaluate the resulting size of model dumps.
+from paje.module.preprocessing.feature_selection.statistical_based.cfs import FilterCFS
+from paje.pipeline.pipeline import Pipeline
+
 test_size = 1000
 
 
@@ -28,12 +31,12 @@ else:
     print('The scikit-learn version is {}.'.format(sklearn.__version__))
     np.random.seed(1234)
 
-    for x0 in range(1, 100):
-        x = int(round((pow(x0, 2))))
-        model = RF(n_estimators=x)
-        model.show_warnings = False
-        tr = model.apply(data_train).data_y
-        ts = model.use(data_test).data_y
-        joblib.dump(model.model, model.__class__.__name__ +  str(x) + '.dump', compress=('bz2', 9))
+    for x in [100, 100, 1000]:
+        pip = Pipeline([(FilterCFS, {}), (RF, {'n_estimators': x})])
+        pip.show_warnings = False
+        tr = pip.apply(data_train).data_y
+        ts = pip.use(data_test).data_y
+        joblib.dump(pip, pip.__class__.__name__ + str(x) + '.dump', compress=('bz2', 9))
+        joblib.dump(pip.obj_comp[1], pip.obj_comp[1].__class__.__name__ + str(x) + '.dump', compress=('bz2', 9))
 
         print(str(x) + "\t" + str(f(sklearn.metrics.accuracy_score(data_train.data_y, tr))) + "\t" + str(f(sklearn.metrics.accuracy_score(data_test.data_y, ts))))

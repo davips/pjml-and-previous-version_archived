@@ -4,6 +4,7 @@ from paje.base.component import Component
 class Pipeline(Component):
 
     # components is like this --> [(obj, {}), (obj, {}), (obj, {})]
+    # TODO: why can't components be passed already instantiated?
     def init_impl(self, components):
         self.components = components
         self.obj_comp = []

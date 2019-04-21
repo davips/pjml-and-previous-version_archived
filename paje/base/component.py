@@ -58,7 +58,9 @@ class Component(ABC):
     def apply(self, data: Data = None) -> Data:
         """Todo the doc string
         """
-        return self.handle_warnings(self.apply_impl, self.handle_in_place(data)) # Switch between inplace and 'copying Data'.
+
+        #TODO: If this result was already calculated before, recover if from Cache.
+        return self.handle_warnings(self.apply_impl, self.handle_in_place(data))
 
     def use(self, data: Data = None) -> Data:
         """Todo the doc string
