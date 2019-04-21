@@ -10,8 +10,10 @@ class Component(ABC):
     """Todo the docs string
     """
 
-    @initializer
     def __init__(self, *args, in_place=False, show_warnings=True, **kwargs):
+        self.model = None # Model here refers to classifiers, preprocessors and, possibly, some representation of pipelines or the autoML itself.
+        self.in_place = in_place
+        self.show_warnings = show_warnings
         # print()
         # print(type(self).__name__)
         # print('args', args)
@@ -46,6 +48,11 @@ class Component(ABC):
         return result
 
     def handle_in_place(self, data: Data):
+        """
+        Switch between inplace and 'copying Data'.
+        :param data: Data
+        :return: Data
+        """
         return data if data is None or self.in_place else data.copy()
 
     def apply(self, data: Data = None) -> Data:
@@ -56,7 +63,7 @@ class Component(ABC):
     def use(self, data: Data = None) -> Data:
         """Todo the doc string
         """
-        return self.use_impl(self.handle_in_place(data)) # Switch between inplace and 'copying Data'.
+        return self.use_impl(self.handle_in_place(data))
 
     # @abstractmethod
     # def explain(self, X):
