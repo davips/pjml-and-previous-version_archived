@@ -1,7 +1,4 @@
-from imblearn.under_sampling import RandomUnderSampler
-
-from paje.component import Component
-from paje.base.hps import HPTree
+from paje.base.component import Component
 
 
 class Resampler(Component):

@@ -1,4 +1,4 @@
-from paje.component import Component
+from paje.base.component import Component
 
 
 class Pipeline(Component):

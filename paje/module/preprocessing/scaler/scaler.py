@@ -2,7 +2,7 @@ from abc import ABC
 
 import numpy as np
 
-from paje.component import Component
+from paje.base.component import Component
 
 
 class Scaler(Component, ABC):

@@ -1,6 +1,6 @@
 from sklearn.decomposition import FactorAnalysis
 
-from paje.component import Component
+from paje.base.component import Component
 from paje.base.hps import HPTree
 from paje.data.data import Data
 

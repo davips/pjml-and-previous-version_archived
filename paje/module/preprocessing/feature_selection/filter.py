@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from paje.component import Component
+from paje.base.component import Component
 
 
 class Filter(Component, ABC):

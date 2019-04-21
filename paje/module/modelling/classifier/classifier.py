@@ -1,6 +1,6 @@
 from abc import ABC
 
-from paje.component import Component
+from paje.base.component import Component
 
 
 class Classifier(Component, ABC):

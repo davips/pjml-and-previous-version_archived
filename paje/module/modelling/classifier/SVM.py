@@ -14,10 +14,9 @@ class SVM(Classifier):
             return super().apply_impl(data)
         except:
             if self.show_warnings:
-                print('Falling back to random classifier, if there are convergence problems (bad "nu" value, for instance).')
+                print('Falling back to random classifier, possible due to convergence problems (bad "nu" value, for instance).')
             self.model = DummyClassifier(strategy='uniform')
             return super().apply_impl(data)
-
 
     @classmethod
     def hps_impl(cls, data=None):
