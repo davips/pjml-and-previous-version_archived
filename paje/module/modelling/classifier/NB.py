@@ -9,6 +9,6 @@ class NB(Classifier):
         self.model = GaussianNB()
 
     @classmethod
-    def hps_impl(cls, data=None):
+    def hyperpar_spaces_tree_impl(cls, data=None):
         dic = {}
         return HPTree(dic, children=[])

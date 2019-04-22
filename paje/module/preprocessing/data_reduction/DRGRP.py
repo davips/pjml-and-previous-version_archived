@@ -50,7 +50,7 @@ class DRGRP(Component):
         pass
 
     @classmethod
-    def hps_impl(cls, data=None):
+    def hyperpar_spaces_tree_impl(cls, data=None):
         cls.check_data(data)
         return HPTree(
             dic={'n_components': ['z', list(range(1, data.n_attributes() + 1))],

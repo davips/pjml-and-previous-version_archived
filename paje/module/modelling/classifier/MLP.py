@@ -28,7 +28,7 @@ class MLP(Classifier):
         self.model = MLPClassifier(**new_kwargs)
 
     @classmethod
-    def hps_impl(cls, data=None):
+    def hyperpar_spaces_tree_impl(cls, data=None):
         cls.check_data(data)
         # todo: set random seed
         max_free_parameters = data.n_instances() / (data.n_attributes() + data.n_classes())

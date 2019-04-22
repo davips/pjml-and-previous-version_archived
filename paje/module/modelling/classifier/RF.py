@@ -11,7 +11,7 @@ class RF(Classifier):
         self.model = RandomForestClassifier(**kwargs)
 
     @classmethod
-    def hps_impl(cls, data=None):
+    def hyperpar_spaces_tree_impl(cls, data=None):
         cls.check_data(data)
         n_estimators = min([500, floor(sqrt(data.n_instances() * data.n_attributes()))])
 

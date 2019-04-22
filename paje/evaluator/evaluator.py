@@ -20,7 +20,7 @@ class Evaluator():
             self.split = StratifiedShuffleSplit(n_splits=steps, test_size=0.30,
                                                 random_state=random_state)
 
-    def eval(self, pipe, data):
+    def eval(self, component, data):
         perfs = []
         for train_index, test_index \
                 in self.split.split(data.data_x, data.data_y):
@@ -28,8 +28,8 @@ class Evaluator():
                               data.data_y[train_index])
             data_test = Data(data.data_x[test_index],
                              data.data_y[test_index])
-            output_train = pipe.apply(data_train).data_y
-            output_test = pipe.use(data_test).data_y
+            output_train = component.apply(data_train).data_y
+            output_test = component.use(data_test).data_y
             perfs.append(self.metric(data_test, output_test))
 
         return perfs

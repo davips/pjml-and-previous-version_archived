@@ -1,30 +1,32 @@
+from typing import List, Dict
+
 from paje.base.component import Component
 
 
 class Pipeline(Component):
-
-    # components is like this --> [(obj, {}), (obj, {}), (obj, {})]
-    # TODO: why can't components be passed already instantiated?
-    def init_impl(self, components):
+    #TODO: An empty Pipeline may return perfect predictions.
+    def init_impl(self, components: List[Component], hyperpar_dicts: [Dict] = None):
         self.components = components
-        self.obj_comp = []
+        if hyperpar_dicts is None: hyperpar_dicts = [{} for _ in components]
+        zipped = zip(self.components, hyperpar_dicts)
+        self.instances = [component(**hyperpar_dict) for component, hyperpar_dict in zipped]
 
     def apply_impl(self, data):
-        self.obj_comp = []
-        # print(self.components)
-        for obj, param in self.components:
-            # print(param)
-            aux = obj(**param)  # TODO: here it is possible to choose if obj handles Data as inplace or not
-            data = aux.apply(data)  # useless assignment if aux is set to be inplace
-            self.obj_comp.append(aux)
+        for instance in self.instances:
+            data = instance.apply(data)  # useless assignment if aux is set to be inplace
         return data
 
     def use_impl(self, data):
-        for obj in self.obj_comp:
-            # print(data)
-            data = obj.use(data)  # useless assignment if aux is set to be inplace
+        for instance in self.instances:
+            data = instance.use(data)  # useless assignment if aux is set to be inplace
         return data
 
     @classmethod
-    def hps_impl(cls, data=None):
-        raise NotImplementedError("Method hps should be implemented!")
+    def hyperpar_spaces_tree_impl(cls, data=None):
+        raise NotImplementedError("Pipeline has no method hyper_spaces_tree() implemented,",
+                                  "because it would depend on the constructor parameters.",
+                                  "hyper_spaces_forest() should be called instead!")
+
+    def hyperpar_spaces_forest(self, data=None):
+        forests = [instance.hyperpar_spaces_forest(data) for instance in self.instances]
+        return sum(forests, [])  # flatten out the lists

@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
+from paje.base.hps import HPTree
 from paje.data.data import Data
 from paje.util.auto_constructor import initializer
 
@@ -11,7 +12,8 @@ class Component(ABC):
     """
 
     def __init__(self, *args, in_place=False, show_warnings=True, **kwargs):
-        self.model = None # Model here refers to classifiers, preprocessors and, possibly, some representation of pipelines or the autoML itself.
+        # print(self.__class__)
+        self.model = None  # Model here refers to classifiers, preprocessors and, possibly, some representation of pipelines or the autoML itself.
         self.in_place = in_place
         self.show_warnings = show_warnings
         # print()
@@ -59,7 +61,7 @@ class Component(ABC):
         """Todo the doc string
         """
 
-        #TODO: If this result was already calculated before, recover if from Cache.
+        # TODO: If this result was already calculated before, recover if from Cache.
         return self.handle_warnings(self.apply_impl, self.handle_in_place(data))
 
     def use(self, data: Data = None) -> Data:
@@ -75,15 +77,21 @@ class Component(ABC):
 
     @classmethod
     @abstractmethod
-    def hps_impl(cls, data=None):
+    def hyperpar_spaces_tree_impl(cls, data=None):
         """Todo the doc string
         """
         pass
 
     @classmethod
-    def hps(cls, data=None):
-        hps = cls.hps_impl(data)
-        dic = hps.dic
+    def hyper_spaces_tree(cls, data=None):
+        """
+        Only call this method instead of hyperpar_spaces_forest() if you know what you are doing!
+        :param data:
+        :return: tree
+        """
+        tree = cls.hyperpar_spaces_tree_impl(data)
+        dic = tree.dic
+        # TODO: check children also (recursively).
         try:
             for k in dic:
                 t = dic[k][0]
@@ -101,18 +109,27 @@ class Component(ABC):
             print()
             print('Problems with hyperparameter space: ' + str(dic))
             exit(0)
-        return hps
+        return tree
 
     @classmethod
-    def print_hps(cls, data=None, depth=''):
-        tree = cls.hps(data)
+    def print_hyper_spaces_tree(cls, data=None, depth=''):
+        tree = cls.hyper_spaces_tree(data)
         print(depth + str(tree.dic))
         depth += '     '
         for child in tree.children:
-            cls.print_hps(child, depth)
+            cls.print_hyper_spaces_tree(child, depth)
 
     @classmethod
     def check_data(cls, data):
         if data is None:
             print(cls.__name__ + ' needs a dataset to be able to estimate maximum values for some hyperparameters.')
             exit(0)
+
+    def hyperpar_spaces_forest(self, data=None) -> [HPTree]:
+        """
+        This method, hyperpar_spaces_forest(), should be preferred over hyper_spaces_tree(),
+        because not every Component can implement the latter. (See e.g. Pipeline)
+        :param data:
+        :return: [tree]
+        """
+        return [self.__class__.hyper_spaces_tree(data)]

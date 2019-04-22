@@ -9,7 +9,7 @@ class Equalization(Scaler):
         self.model = MinMaxScaler(**kwargs)
 
     @classmethod
-    def hps_impl(cls, data=None):
+    def hyperpar_spaces_tree_impl(cls, data=None):
         dic = {
             'feature_range': ['c', [(-1, 1), (0, 1)]],
         }

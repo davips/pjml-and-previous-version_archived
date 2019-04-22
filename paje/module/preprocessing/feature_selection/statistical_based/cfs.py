@@ -30,5 +30,5 @@ class FilterCFS(Filter):
         return data
 
     @classmethod
-    def hps_impl(cls, data=None):
+    def hyperpar_spaces_tree_impl(cls, data=None):
         return HPTree(dic={}, children=[])

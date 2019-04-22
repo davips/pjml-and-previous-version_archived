@@ -9,6 +9,6 @@ class RanOverSampler(Resampler):
         self.model = RandomOverSampler(**kwargs)
 
     @classmethod
-    def hps_impl(cls, data=None):
+    def hyperpar_spaces_tree_impl(cls, data=None):
         dic = {'sampling_strategy': ['c', ['not minority', 'not majority', 'all']]}
         return HPTree(dic, children=[])

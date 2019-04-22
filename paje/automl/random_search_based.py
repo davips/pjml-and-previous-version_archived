@@ -25,7 +25,7 @@ class RadomSearchAutoML(AutoML):
     methods = ["all", "white_box", "gray_box", "black_box"]
 
     def init_impl(self, method="all", max_iter=30, fixed=True,
-                 deep=5, repetitions=False, random_state=0):
+                  deep=5, repetitions=False, random_state=0):
         self.hps_preprocessing = self.hps_modelling = None
         self.prep_comp = self.mode_comp = None
         self.max_iter = max_iter
@@ -46,9 +46,9 @@ class RadomSearchAutoML(AutoML):
         self.best_pipeline = None
 
     def _build_hyperspace(self, data):
-        self.hps_prep = [pcomp.hps(data)
+        self.hps_prep = [pcomp.hyper_spaces_tree(data)
                          for pcomp in self.prep_comp]
-        self.hps_mode = [mcomp.hps(data)
+        self.hps_mode = [mcomp.hyper_spaces_tree(data)
                          for mcomp in self.mode_comp]
         self.comp_hps = self.hps_prep + self.hps_mode
 
@@ -181,5 +181,5 @@ class RadomSearchAutoML(AutoML):
         return self.best_pipeline.use(data)
 
     @classmethod
-    def hps_impl(cls, data=None):
+    def hyperpar_spaces_tree_impl(cls, data=None):
         raise NotImplementedError("Should it return the space of hyperspaces?")
