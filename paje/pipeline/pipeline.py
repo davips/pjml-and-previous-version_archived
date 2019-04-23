@@ -4,11 +4,12 @@ from paje.base.component import Component
 
 
 class Pipeline(Component):
-    #TODO: An empty Pipeline may return perfect predictions.
+    # TODO: An empty Pipeline may return perfect predictions.
     def init_impl(self, components: List[Component], hyperpar_dicts: [Dict] = None):
         self.components = components
-        if hyperpar_dicts is None: hyperpar_dicts = [{} for _ in components]
-        zipped = zip(self.components, hyperpar_dicts)
+        self.hyperpar_dicts = [{} for _ in components] if hyperpar_dicts is None else hyperpar_dicts
+
+        zipped = zip(self.components, self.hyperpar_dicts)
         self.instances = [component(**hyperpar_dict) for component, hyperpar_dict in zipped]
 
     def apply_impl(self, data):
@@ -34,4 +35,3 @@ class Pipeline(Component):
     def __str__(self):
         strs = [instance.__str__() for instance in self.instances]
         return "\n".join(str(x) for x in strs)
-

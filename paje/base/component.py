@@ -99,17 +99,14 @@ class Component(ABC):
                 v = dic[k][1]
                 if t == 'c' or t == 'o':
                     if not isinstance(v, list):
-                        print('Categorical and ordinal hyperparameters need a list of values: ' + str(k))
-                        exit(0)
+                        raise Exception('Categorical and ordinal hyperparameters need a list of values: ' + str(k))
                 else:
                     if len(v) != 2:
-                        print('Real and integer hyperparameters need a limit with two values: ' + str(k))
-                        exit(0)
+                        raise Exception('Real and integer hyperparameters need a limit with two values: ' + str(k))
         except Exception as e:
             print(e)
             print()
-            print('Problems with hyperparameter space: ' + str(dic))
-            exit(0)
+            raise Exception('Problems with hyperparameter space: ' + str(dic))
         return tree
 
     @classmethod

@@ -5,6 +5,8 @@ from paje.base.hps import HPTree
 from paje.data.data import Data
 
 # Data reduction by PCA
+from paje.module.preprocessing.data_reduction.reductor import Reductor
+
 '''
 This class is a PCA (principal component analysis) implementation for data reduction.
 
@@ -54,24 +56,13 @@ rd = pca.apply(2)
 '''
 
 
-class DRPCA(Component):
-    def init_impl(self, **kwargs):
+class DRPCA(Reductor):
+    def init_impl(self, *args, **kwargs):
         # TODO: if StandardScaler is obligatory for PCA use, we need to integrate this kind of requirement into the Pajé architecture
         # # standardize features: PCA is sensible to the measure scale
         # self.x = StandardScaler().fit_transform(self.x)
-
-        self.pca = PCA(**kwargs)
-
-    def apply_impl(self, data):
-        pc = self.pca.fit_transform(data.data_x)
-        return Data(pc, self.y)
-
-    def use_impl(self, data):
-        pass
+        self.model = PCA(**kwargs)
 
     @classmethod
-    def hyperpar_spaces_tree_impl(cls, data=None):
-        cls.check_data(data)
-        return HPTree(
-            dic={'n_components': ['z', list(range(1, data.n_attributes() + 1))]},
-            children=[])
+    def specific_dictionary(cls, data):
+        return {}

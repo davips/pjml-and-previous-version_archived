@@ -14,30 +14,37 @@ from paje.module.modelling.classifier.RF import RF
 from paje.module.modelling.classifier.SVM import SVM
 from paje.module.preprocessing.balancer.over.ran_over_sampler import RanOverSampler
 from paje.module.preprocessing.balancer.under.ran_under_sampler import RanUnderSampler
+from paje.module.preprocessing.data_reduction.DRPCA import DRPCA
 from paje.module.preprocessing.feature_selection.statistical_based.cfs import FilterCFS
 from paje.module.preprocessing.feature_selection.statistical_based.chi_square import FilterChiSquare
 from paje.module.preprocessing.scaler.equalization import Equalization
 from paje.module.preprocessing.scaler.standard import Standard
 from paje.pipeline.pipeline import Pipeline
 
+# TODO: Extract list of all modules automatically from the package module.
+# PCA = Pipeline([Standard, DRPCA]) #, Pipeline([Standard, DRPCA]).hyperpar_spaces_forest(data))
+default_preprocessors = [DRPCA, FilterCFS, FilterChiSquare, RanOverSampler,
+                         RanUnderSampler, Standard, Equalization]
+default_modelers = [RF, KNN, NB, DT, MLP, SVM, CB]
+
 
 class AutoML(Component, ABC):
-    def init_impl(self, preprocessors=None, modelers=None,
-                  method="all", max_iter=3, max_depth=5, random_state=0):
+    def init_impl(self, preprocessors=None, modelers=None, repetitions=False,
+                  method="all", max_iter=3, max_depth=5, fixed=True, random_state=0):
         self.random_state = random_state
-        self.modules = [Equalization, MLP]
         self.max_iter = max_iter
-        # self.preprocessors = [FilterCFS, FilterChiSquare, RanOverSampler, RanUnderSampler,
-        #                       Standard, Equalization] if preprocessors is None else preprocessors
-        # self.modelers = [RF, KNN, NB, DT, MLP, SVM, CB] if modelers is None else modelers
+        self.fixed = fixed
+        self.preprocessors = default_preprocessors if preprocessors is None else preprocessors
+        self.modelers = default_modelers if modelers is None else modelers
 
     def apply_impl(self, data):
-        # Defines search space (space of hyperparameter spaces).
-        self.forest = Pipeline(self.modules).hyperpar_spaces_forest(data)
-
-        # Chooses the best hyperparameterspace-hyperparametervalues combination.
         best_error = 9999999
         for i in range(self.max_iter):
+            # Defines search space (space of hyperparameter spaces).
+            self.modules = [DRPCA, MLP]
+            self.forest = Pipeline(self.modules).hyperpar_spaces_forest(data)
+
+            # Evaluates current hyperparameterspace-hyperparametervalues combination.
             pipe = Pipeline(self.modules, self.next_hyperpar_dicts())
             evaluator = Evaluator(data, Metrics.error, "cv", 3, self.random_state)
             error = np.mean(evaluator.eval(pipe, data))
