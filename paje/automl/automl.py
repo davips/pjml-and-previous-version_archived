@@ -24,26 +24,24 @@ from paje.pipeline.pipeline import Pipeline
 class AutoML(Component, ABC):
     def init_impl(self, preprocessors=None, modelers=None,
                   method="all", max_iter=3, max_deepth=5, random_state=0):
-        self.preprocessors = [FilterCFS, FilterChiSquare, RanOverSampler, RanUnderSampler,
-                              Standard, Equalization] if preprocessors is None else preprocessors
-        self.modelers = [RF, KNN, NB, DT, MLP, SVM, CB] if modelers is None else modelers
         self.random_state = random_state
         self.modules = [Equalization, MLP]
         self.max_iter = max_iter
+        # self.preprocessors = [FilterCFS, FilterChiSquare, RanOverSampler, RanUnderSampler,
+        #                       Standard, Equalization] if preprocessors is None else preprocessors
+        # self.modelers = [RF, KNN, NB, DT, MLP, SVM, CB] if modelers is None else modelers
 
     def apply_impl(self, data):
         # Defines search space (space of hyperparameter spaces).
         self.forest = Pipeline(self.modules).hyperpar_spaces_forest(data)
 
-        # Chooses the best hyperparameter space - hyperparameter values combination.
+        # Chooses the best hyperparameterspace-hyperparametervalues combination.
         best_error = 9999999
         for i in range(self.max_iter):
             pipe = Pipeline(self.modules, self.next_hyperpar_dicts())
             evaluator = Evaluator(data, Metrics.error, "cv", 3, self.random_state)
             error = np.mean(evaluator.eval(pipe, data))
-            print(pipe)
-            print('error: ', error)
-            print()
+            print(pipe, '\nerror: ', error, '\n')
             if error < best_error:
                 best_error = error
                 self.model = pipe
