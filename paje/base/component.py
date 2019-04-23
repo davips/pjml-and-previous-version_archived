@@ -21,6 +21,7 @@ class Component(ABC):
         # print('args', args)
         # print('kwargs', kwargs)
         # print()
+        self.dict = kwargs
         self.init_impl(*args, **kwargs)
 
     @abstractmethod
@@ -101,7 +102,7 @@ class Component(ABC):
                         print('Categorical and ordinal hyperparameters need a list of values: ' + str(k))
                         exit(0)
                 else:
-                    if len(dic[k]) != 3:
+                    if len(v) != 2:
                         print('Real and integer hyperparameters need a limit with two values: ' + str(k))
                         exit(0)
         except Exception as e:
@@ -133,3 +134,6 @@ class Component(ABC):
         :return: [tree]
         """
         return [self.__class__.hyper_spaces_tree(data)]
+
+    def __str__(self):
+        return self.dict

@@ -60,7 +60,8 @@ class DRSRP(Component):
         cls.check_data(data)
         return HPTree(
             dic={'n_components': ['z', list(range(1, data.n_attributes() + 1))], # TODO: check if data.n_attributes() is correct here and in the line below
-                 'density': ['r', [1 / sqrt(data.n_attributes()), 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]],
-                 'dense_output': ['c', False, True],
-                 'eps': ['r', [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]]},
+                 # TODO: WTF is this sqrt?
+                 'density': ['o', [1 / sqrt(data.n_attributes()), 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]],
+                 'dense_output': ['c', [False, True]],
+                 'eps': ['o', [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]]},
             children=[])

@@ -30,3 +30,8 @@ class Pipeline(Component):
     def hyperpar_spaces_forest(self, data=None):
         forests = [instance.hyperpar_spaces_forest(data) for instance in self.instances]
         return sum(forests, [])  # flatten out the lists
+
+    def __str__(self):
+        strs = [instance.__str__() for instance in self.instances]
+        return "\n".join(str(x) for x in strs)
+

@@ -42,5 +42,5 @@ class FilterChiSquare(Filter):
     @classmethod
     def hyperpar_spaces_tree_impl(cls, data=None):
         return HPTree(
-            dic={'ratio': ['r', 1e-05, 1]},
+            dic={'ratio': ['r', [1e-05, 1]]},
             children=[])

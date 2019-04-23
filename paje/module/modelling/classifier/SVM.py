@@ -24,13 +24,13 @@ class SVM(Classifier):
         # todo: set random seed; set 'cache_size'
         max_iter = data.n_instances()
         dic = {
-            'nu': ['r', 0.00000001, 1.0],
+            'nu': ['r', [0.00000001, 1.0]],
             'shrinking': ['c', [True, False]],
             'probability': ['c', [True, False]],
             'tol': ['o', [0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000]],
             # 'class_weight': [None],
             # 'verbose': [False],
-            'max_iter': ['z', 1, max_iter],
+            'max_iter': ['z', [1, max_iter]],
             'decision_function_shape': ['c', ['ovr', 'ovo']]
         }
 
@@ -38,17 +38,17 @@ class SVM(Classifier):
 
         kernel_poly = HPTree({
             'kernel': ['poly'],
-            'degree': ['z', 0, 10],
-            'coef0': ['r', 0.0, 100],
+            'degree': ['z', [0, 10]],
+            'coef0': ['r', [0.0, 100]],
         }, children=[])
 
         kernel_rbf = HPTree({'kernel': ['rbf']}, children=[])
 
         kernel_sigmoid = HPTree({
             'kernel': ['sigmoid'],
-            'coef0': ['r', 0.0, 100],
+            'coef0': ['r', [0.0, 100]],
         }, children=[])
 
-        kernel_nonlinear = HPTree({'gamma': ['r', 0.00001, 100]}, children=[kernel_poly, kernel_rbf, kernel_sigmoid])
+        kernel_nonlinear = HPTree({'gamma': ['r', [0.00001, 100]]}, children=[kernel_poly, kernel_rbf, kernel_sigmoid])
 
         return HPTree(dic, children=[kernel_linear, kernel_nonlinear])

@@ -28,7 +28,7 @@ class AutoML(Component, ABC):
                               Standard, Equalization] if preprocessors is None else preprocessors
         self.modelers = [RF, KNN, NB, DT, MLP, SVM, CB] if modelers is None else modelers
         self.random_state = random_state
-        self.modules = [Equalization, RF]
+        self.modules = [Equalization, MLP]
         self.max_iter = max_iter
 
     def apply_impl(self, data):
@@ -41,6 +41,9 @@ class AutoML(Component, ABC):
             pipe = Pipeline(self.modules, self.next_hyperpar_dicts())
             evaluator = Evaluator(data, Metrics.error, "cv", 3, self.random_state)
             error = np.mean(evaluator.eval(pipe, data))
+            print(pipe)
+            print('error: ', error)
+            print()
             if error < best_error:
                 best_error = error
                 self.model = pipe
@@ -56,4 +59,8 @@ class AutoML(Component, ABC):
 
     @abstractmethod
     def next_hyperpar_dicts(self):
+        """
+        This method defines the search heuristic and should be implemented by the child class.
+        :return: a dictionary
+        """
         pass

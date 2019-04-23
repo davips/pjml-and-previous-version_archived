@@ -21,16 +21,16 @@ class CB(Classifier):
     def hyperpar_spaces_tree_impl(cls, data=None):
         cls.check_data(data)
         # todo: set random seed
-        data_for_speed = {'iterations': ['z', 2, 1000]}  # Entre outros
+        data_for_speed = {'iterations': ['z', [2, 1000]]}  # Entre outros
         n_estimators = min([500, floor(sqrt(data.n_instances() * data.n_attributes()))])
 
         dic = {
             'iterations': ['c', [n_estimators]],  # Only to set the default, not for search.
-            'learning_rate': ['r', 0.000001, 1.0],
-            'depth': ['z', 1, 16],  # Docs says 32, but CatBoostError says 16
-            'l2_leaf_reg': ['r', 0.01, 99999],
+            'learning_rate': ['r', [0.000001, 1.0]],
+            'depth': ['z', [1, 16]],  # Docs says 32, but CatBoostError says 16
+            'l2_leaf_reg': ['r', [0.01, 99999]],
             'loss_function': ['c', ['MultiClass']],
-            'border_count': ['z', 1, 255],
+            'border_count': ['z', [1, 255]],
             'verbose': ['c', [False]],
             # 'ctr_border_count': ['z', [1,255]], # for categorical values
             # 'thread_count'
