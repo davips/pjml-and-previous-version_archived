@@ -23,7 +23,7 @@ from paje.pipeline.pipeline import Pipeline
 
 class AutoML(Component, ABC):
     def init_impl(self, preprocessors=None, modelers=None,
-                  method="all", max_iter=3, max_deepth=5, random_state=0):
+                  method="all", max_iter=3, max_depth=5, random_state=0):
         self.random_state = random_state
         self.modules = [Equalization, MLP]
         self.max_iter = max_iter
