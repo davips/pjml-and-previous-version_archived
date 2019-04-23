@@ -63,8 +63,7 @@ class DRPCA(Component):
         self.pca = PCA(**kwargs)
 
     def apply_impl(self, data):
-        self.pca.fit_transform(data.data_x)
-
+        pc = self.pca.fit_transform(data.data_x)
         return Data(pc, self.y)
 
     def use_impl(self, data):
