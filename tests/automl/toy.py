@@ -15,7 +15,7 @@ else:
         sklearn.model_selection.train_test_split(X, y, random_state=1)
 
     automl_rs = RandomAutoML(fixed=False, repetitions=True, show_warnings=False,
-                                  max_depth=5, max_iter=20, random_state=0)
+                                  max_depth=4, max_iter=1, random_state=0)
 
     data_train = Data(X_train, y_train)
     data_test = Data(X_test, y_test)

@@ -31,7 +31,7 @@ default_modelers = [RF, KNN, NB, DT, MLP, SVM, CB]
 
 class AutoML(Component, ABC):
     def init_impl(self, preprocessors=None, modelers=None, repetitions=False,
-                  method="all", max_iter=3, max_depth=5, fixed=True, random_state=0):
+                  method="all", max_iter=2, max_depth=5, fixed=True, random_state=0):
         self.random_state = random_state
         self.max_iter = max_iter
         self.fixed = fixed
