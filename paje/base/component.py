@@ -132,3 +132,10 @@ class Component(ABC):
         return self.__class__.__name__ + str(self.dict)
 
     __repr__ = __str__
+
+    def warning(self, msg):
+        if self.show_warnings:
+            print(msg)
+
+    def error(self, msg):
+        raise Exception(msg)
