@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from logging import warning
 
 import numpy as np
 
@@ -135,7 +136,7 @@ class Component(ABC):
 
     def warning(self, msg):
         if self.show_warnings:
-            print(msg)
+            warning(msg)
 
     def error(self, msg):
         raise Exception(msg)
