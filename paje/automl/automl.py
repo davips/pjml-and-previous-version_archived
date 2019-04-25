@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from pprint import pprint
 
 import numpy as np
 
@@ -41,11 +42,15 @@ class AutoML(Component, ABC):
         best_error = 9999999
         for i in range(self.max_iter):
             # Defines search space (space of hyperparameter spaces).
-            self.modules = [DRPCA, MLP]
-            self.forest = Pipeline(self.modules).hyperpar_spaces_forest(data)
+            self.modules = [Pipeline([Standard, DRPCA]), NB]
+            forest = Pipeline(self.modules).hyperpar_spaces_forest(data)
 
-            # Evaluates current hyperparameterspace-hyperparametervalues combination.
-            pipe = Pipeline(self.modules, self.next_hyperpar_dicts())
+            # Evaluates current hyperparameter (space-values) combination.
+            pipe = Pipeline(self.modules, self.next_hyperpar_dicts(forest))
+            # pipe = Pipeline([Pipeline(
+            #     [Standard, DRPCA],
+            #     [{'@with_mean/std': (True, False)}, {'n_components': 2}]
+            # )])
             evaluator = Evaluator(data, Metrics.error, "cv", 3, self.random_state)
             error = np.mean(evaluator.eval(pipe, data))
             print(pipe, '\nerror: ', error, '\n')
@@ -63,9 +68,9 @@ class AutoML(Component, ABC):
                                   " nor hyper_spaces_forest() (not so obviously) implemented!")
 
     @abstractmethod
-    def next_hyperpar_dicts(self):
+    def next_hyperpar_dicts(self, forest):
         """
         This method defines the search heuristic and should be implemented by the child class.
-        :return: a dictionary
+        :return: a list of dictionaries or list of nested lists of dictionaries
         """
         pass

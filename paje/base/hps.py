@@ -8,3 +8,12 @@ class HPTree(object):
 
     def expand(self) -> (Dict, List):
         return self.dic, self.children
+
+    def __str__(self, depth=''):
+        rows = [depth + str(self.dic) + '\n']
+        depth += '    '
+        for child in self.children:
+            rows.append(child.__str__(depth))
+        return ''.join(rows)
+
+    __repr__ = __str__

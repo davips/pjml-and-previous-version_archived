@@ -5,6 +5,6 @@ class DefaultAutoML(AutoML):
     """
     Always select default hyperparameters.
     """
-    def next_hyperpar_dicts(self):
-        dicts = [{} for _ in self.forest]
+    def next_hyperpar_dicts(self, forest):
+        dicts = [{} for _ in forest]
         return dicts

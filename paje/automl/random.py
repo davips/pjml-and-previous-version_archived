@@ -7,9 +7,14 @@ from paje.util.distributions import sample
 
 class RandomAutoML(AutoML):
 
-    def next_hyperpar_dicts(self):
-        dicts = [tree_to_dict(tree) for tree in self.forest]
-        return dicts
+    def next_hyperpar_dicts(self, forest):
+        dics = []
+        if isinstance(forest, list):
+            for item in forest:
+                dics.append(self.next_hyperpar_dicts(item))
+            return dics
+        else:
+            return tree_to_dict(forest)
 
 
 def tree_to_dict(tree: HPTree):
