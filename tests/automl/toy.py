@@ -3,8 +3,11 @@ from sys import argv
 import sklearn.metrics
 
 from paje.automl.random import RandomAutoML
-from paje.automl.random_search_based import RadomSearchAutoML
 from paje.data.data import Data
+from paje.module.modelling.classifier.RF import RF
+from paje.module.preprocessing.balancer.under.ran_under_sampler import RanUnderSampler
+from paje.module.preprocessing.data_reduction.DRPCA import DRPCA
+from paje.module.preprocessing.scaler.standard import Standard
 
 if len(argv) != 2:
     print('Usage: \npython toy.py dataset.arff')
@@ -14,8 +17,11 @@ else:
     X_train, X_test, y_train, y_test = \
         sklearn.model_selection.train_test_split(X, y, random_state=1)
 
-    automl_rs = RandomAutoML(fixed=False, repetitions=True, show_warnings=False,
-                                  max_depth=4, max_iter=1, random_state=0)
+    automl_rs = RandomAutoML(preprocessors=[DRPCA, RanUnderSampler, Standard], modelers=[RF],
+                             max_iter=2, static=True,
+                             fixed=True, max_depth=5,
+                             repetitions=0, method="all",
+                             random_state=0)
 
     data_train = Data(X_train, y_train)
     data_test = Data(X_test, y_test)

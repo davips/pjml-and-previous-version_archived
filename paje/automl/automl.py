@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from pprint import pprint
+import random
 
 import numpy as np
 
@@ -30,23 +30,57 @@ default_modelers = [RF, KNN, NB, DT, MLP, SVM, CB]
 
 
 class AutoML(Component, ABC):
-    def init_impl(self, preprocessors=None, modelers=None, repetitions=False,
-                  method="all", max_iter=2, max_depth=5, fixed=True, random_state=0):
+    def init_impl(self, preprocessors=None, modelers=None,
+                  max_iter=2, static=True,
+                  fixed=True, max_depth=5,
+                  repetitions=0, method="all",
+                  random_state=0):
+        """
+        AutoML
+        :param preprocessors: list of modules for balancing, noise removal, sampling etc.
+        :param modelers: list of modules for prediction (classification or regression etc.)
+        :param repetitions: how many times can a module appear in a pipeline
+        :param method: TODO
+        :param max_iter: maximum number of pipelines to evaluate
+        :param max_depth: maximum length of a pipeline
+        :param static: are the pipelines generated always exactly as given by the ordered list preprocessors + modelers?
+        :param fixed: are the pipelines generated always with length max(max_depth, len(preprocessors + modelers))?
+        :param random_state: TODO
+        :return:
+        """
+        if static and not fixed:
+            self.error('static and not fixed!')
+        if static and repetitions > 0:
+            self.error('static and repetitions > 0!')
         self.random_state = random_state
         self.max_iter = max_iter
+        self.max_depth = max_depth
+        self.static = static
         self.fixed = fixed
-        self.preprocessors = default_preprocessors if preprocessors is None else preprocessors
+        self.repetitions = repetitions
+        self.preprocessors = default_preprocessors \
+            if preprocessors is None else preprocessors
         self.modelers = default_modelers if modelers is None else modelers
+        if len(self.modelers) is 0:
+            self.warning('No modelers given')
+        if static:
+            if len(self.modelers) > 1:
+                self.warning('Multiple modelers given in static mode.')
+            self.static_pipeline = self.preprocessors + self.modelers
+
+    @abstractmethod
+    def choose_modules(self):
+        pass
 
     def apply_impl(self, data):
         best_error = 9999999
         for i in range(self.max_iter):
             # Defines search space (space of hyperparameter spaces).
-            self.modules = [Pipeline([Standard, DRPCA]), NB]
-            forest = Pipeline(self.modules).hyperpar_spaces_forest(data)
+            modules = self.static_pipeline if self.static else self.choose_modules()
+            forest = Pipeline(modules).hyperpar_spaces_forest(data)
 
             # Evaluates current hyperparameter (space-values) combination.
-            pipe = Pipeline(self.modules, self.next_hyperpar_dicts(forest))
+            pipe = Pipeline(modules, self.next_hyperpar_dicts(forest))
             # pipe = Pipeline([Pipeline(
             #     [Standard, DRPCA],
             #     [{'@with_mean/std': (True, False)}, {'n_components': 2}]

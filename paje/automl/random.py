@@ -16,6 +16,17 @@ class RandomAutoML(AutoML):
         else:
             return tree_to_dict(forest)
 
+    def choose_modules(self):
+        # TODO:
+        #  static ok
+        #  fixed ok
+        #  no repetitions ok
+        #  repetitions ok
+        take = min(self.max_depth, len(self.preprocessors)) \
+            if self.fixed else random.randint(1, self.max_depth)
+        preprocessors = self.preprocessors * (self.repetitions + 1)
+        return random.shuffle(preprocessors)[:take] + random.choice(self.modelers)
+
 
 def tree_to_dict(tree: HPTree):
     """
