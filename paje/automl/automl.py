@@ -24,7 +24,7 @@ from paje.pipeline.pipeline import Pipeline
 
 # TODO: Extract list of all modules automatically from the package module.
 # PCA = Pipeline([Standard, DRPCA]) #, Pipeline([Standard, DRPCA]).hyperpar_spaces_forest(data))
-default_preprocessors = [DRPCA, FilterCFS, FilterChiSquare, RanOverSampler,
+default_preprocessors = [DRPCA, FilterCFS, RanOverSampler,
                          RanUnderSampler, Standard, Equalization]
 default_modelers = [RF, KNN, NB, DT, MLP, SVM, CB]
 
@@ -67,6 +67,8 @@ class AutoML(Component, ABC):
             if len(self.modelers) > 1:
                 self.warning('Multiple modelers given in static mode.')
             self.static_pipeline = self.preprocessors + self.modelers
+            if max_depth < len (self.static_pipeline):
+                self.warning('max_depth lesser than given fixed pipeline!')
 
     @abstractmethod
     def choose_modules(self):
@@ -74,6 +76,10 @@ class AutoML(Component, ABC):
 
     def apply_impl(self, data):
         best_error = 9999999
+        print('------------------------------------------------------------------')
+        print('max_iter', self.max_iter, '  max_depth', self.max_depth,
+              '  static', self.static, '  fixed', self.fixed,
+              '  repetitions', self.repetitions)
         for i in range(self.max_iter):
             # Defines search space (space of hyperparameter spaces).
             modules = self.static_pipeline if self.static else self.choose_modules()

@@ -8,6 +8,10 @@ from paje.data.data import Data
 class Reductor(Component, ABC):
     def apply_impl(self, data):
         self.att_labels = data.columns
+        max_components = min(data.n_instances(), data.n_attributes())
+        if self.model.n_components > max_components:
+            self.warning(self.__class__.__name__ + '. Too many components to select from too few attributes or instances!')
+            self.model.n_components = max_components
         self.model.fit(data.data_x)
         data.data_x = self.model.transform(data.data_x)
         return data

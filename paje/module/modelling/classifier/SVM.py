@@ -34,10 +34,10 @@ class SVM(Classifier):
             'decision_function_shape': ['c', ['ovr', 'ovo']]
         }
 
-        kernel_linear = HPTree({'kernel': ['linear']}, children=[])
+        kernel_linear = HPTree({'kernel': ['c', ['linear']]}, children=[])
 
         kernel_poly = HPTree({
-            'kernel': ['poly'],
+            'kernel': ['c', ['poly']],
             'degree': ['z', [0, 10]],
             'coef0': ['r', [0.0, 100]],
         }, children=[])
@@ -45,7 +45,7 @@ class SVM(Classifier):
         kernel_rbf = HPTree({'kernel': ['rbf']}, children=[])
 
         kernel_sigmoid = HPTree({
-            'kernel': ['sigmoid'],
+            'kernel': ['c', ['sigmoid']],
             'coef0': ['r', [0.0, 100]],
         }, children=[])
 
