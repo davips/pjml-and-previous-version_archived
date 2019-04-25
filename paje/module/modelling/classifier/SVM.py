@@ -42,7 +42,7 @@ class SVM(Classifier):
             'coef0': ['r', [0.0, 100]],
         }, children=[])
 
-        kernel_rbf = HPTree({'kernel': ['rbf']}, children=[])
+        kernel_rbf = HPTree({'kernel': ['c', ['rbf']]}, children=[])
 
         kernel_sigmoid = HPTree({
             'kernel': ['c', ['sigmoid']],
