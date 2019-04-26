@@ -22,29 +22,31 @@ else:
     data_train = Data(X_train, y_train)
     data_test = Data(X_test, y_test)
 
+    n=2
+
     automl_rs = RandomAutoML(preprocessors=[Equalization, DRPCA,
                                             RanOverSampler, Standard],
-                             modelers=[RF], max_iter=2, static=True, fixed=True,
+                             modelers=[RF], max_iter=n, static=True, fixed=True,
                              max_depth=50, repetitions=0, method="all")
     automl_rs.apply(data_train)
     print("Accuracy score", sklearn.metrics.accuracy_score(data_test.data_y, automl_rs.use(data_test).data_y))
     print()
 
-    automl_rs = RandomAutoML(max_iter=2, static=False, fixed=True,
+    automl_rs = RandomAutoML(max_iter=n, static=False, fixed=True,
                              max_depth=4, repetitions=0, method="all")
     automl_rs.apply(data_train)
     resp = automl_rs.use(data_test).data_y
     print("Accuracy score", sklearn.metrics.accuracy_score(data_test.data_y, automl_rs.use(data_test).data_y))
     print()
 
-    automl_rs = RandomAutoML(max_iter=2, static=False, fixed=True,
+    automl_rs = RandomAutoML(max_iter=n, static=False, fixed=True,
                              max_depth=10, repetitions=2, method="all")
     automl_rs.apply(data_train)
     resp = automl_rs.use(data_test).data_y
     print("Accuracy score", sklearn.metrics.accuracy_score(data_test.data_y, automl_rs.use(data_test).data_y))
     print()
 
-    automl_rs = RandomAutoML(max_iter=2, static=False, fixed=False,
+    automl_rs = RandomAutoML(max_iter=n, static=False, fixed=False,
                              max_depth=8, repetitions=0, method="all")
     automl_rs.apply(data_train)
     resp = automl_rs.use(data_test).data_y
