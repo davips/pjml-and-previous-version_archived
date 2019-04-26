@@ -1,10 +1,10 @@
-from paje.module.preprocessing.feature_selection import Filter
-from skfeature.function.statistical_based import f_score
-from paje.util.check import check_float
+from paje.module.preprocessing.supervised.feature.selector.filter import Filter
+from skfeature.function.statistical_based import gini_index
+from paje.util.check import check_float, check_X_y
 import pandas as pd
 
 
-class FilterFScore(Filter):
+class FilterGiniIndex(Filter):
     """  """
 
     def __init__(self, ratio=0.8):
@@ -12,20 +12,20 @@ class FilterFScore(Filter):
         self.ratio = ratio
         self.__rank = self.__score = None
 
-    def apply(self, data):
-        X, y = data.xy()
+    def fit(self, X, y):
+        check_X_y(X, y)
 
-        # TODO: verify if it is possible implement this with numpy
+        # TODO: verify if is possible implement this with numpy
         y = pd.Categorical(y).codes
 
-        self.__score = f_score.f_score(X, y)
-        self.__rank = f_score.feature_ranking(self.__score)
+        self.__score = gini_index.gini_index(X, y)
+        self.__rank = gini_index.feature_ranking(self.__score)
         self.nro_features = int((self.ratio) * X.shape[1])
 
         return self
 
-    def use(self, data):
-        X, y = data.xy()
+    def transform(self, X, y):
+        check_X_y(X, y)
         return X[:, self.selected()], y
 
     def rank(self):

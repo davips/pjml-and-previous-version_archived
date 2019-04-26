@@ -1,11 +1,7 @@
 from sklearn.decomposition import PCA
 
-from paje.base.component import Component
-from paje.base.hps import HPTree
-from paje.data.data import Data
-
 # Data reduction by PCA
-from paje.module.preprocessing.data_reduction.reductor import Reductor
+from paje.module.preprocessing.unsupervised.feature.transformer.reductor import Reductor
 
 '''
 This class is a PCA (principal component analysis) implementation for data reduction.

@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 
 from paje.base.component import Component
 from paje.base.hps import HPTree
-from paje.data.data import Data
 
 
 class Reductor(Component, ABC):

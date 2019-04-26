@@ -1,22 +1,23 @@
-from paje.module.preprocessing.feature_selection import Filter
-from skfeature.function.statistical_based import t_score
-from paje.util.check import check_float, check_X_y
-import pandas as pd
-import numpy as np
 from itertools import combinations
+
+import numpy as np
+import pandas as pd
+
+from paje.module.preprocessing.supervised.feature.selector.filter import Filter
+from paje.util.check import check_float, check_X_y
+from skfeature.function.statistical_based import t_score
 
 
 class FilterTScore(Filter):
     """  """
+
     def __init__(self, ratio=0.8):
         check_float('ratio', ratio, 0.0, 1.0)
         self.ratio = ratio
         self.__rank = self.__score = None
 
-
-    def comb_idx(self, n,k):
+    def comb_idx(self, n, k):
         return np.array(list(combinations(range(n), k)))
-
 
     def apply_t_score(self, X, y):
         cat = np.unique(y)
@@ -35,7 +36,6 @@ class FilterTScore(Filter):
         self.__score = np.sum(aux, axis=0)
         self.__rank = np.argsort(self.__score)[::-1]
 
-
     def fit(self, X, y):
         check_X_y(X, y)
 
@@ -43,23 +43,19 @@ class FilterTScore(Filter):
         y = pd.Categorical(y).codes
 
         self.apply_t_score(X, y)
-        self.nro_features = int((self.ratio)*X.shape[1])
+        self.nro_features = int((self.ratio) * X.shape[1])
 
         return self
-
 
     def transform(self, X, y):
         check_X_y(X, y)
         return X[:, self.selected()], y
 
-
     def rank(self):
         return self.__rank
 
-
     def score(self):
         return self.__score
-
 
     def selected(self):
         return self.__rank[0:self.nro_features]

@@ -1,4 +1,4 @@
-from paje.module.preprocessing.feature_selection.filter import Filter
+from paje.module.preprocessing.supervised.feature.selector.filter import Filter
 from skfeature.function.statistical_based import chi_square
 from paje.util.check import check_float
 from paje.base.hps import HPTree

@@ -1,9 +1,7 @@
 from sklearn.decomposition import FactorAnalysis
 
-from paje.base.component import Component
-
 # Data reduction by factor analysis
-from paje.module.preprocessing.data_reduction.reductor import Reductor
+from paje.module.preprocessing.unsupervised.feature.transformer.feature_reductor import Reductor
 
 '''
 Factor analysis implementation

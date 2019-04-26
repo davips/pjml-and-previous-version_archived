@@ -1,12 +1,8 @@
 from numpy import diag
 from scipy.sparse.linalg import svds
 
-from paje.base.component import Component
-from paje.base.hps import HPTree
-from paje.data.data import Data
-
 # Data reduction by SVD
-from paje.module.preprocessing.data_reduction.reductor import Reductor
+from paje.module.preprocessing.unsupervised.feature.transformer.feature_reductor import Reductor
 
 '''
 Singular value decomposition

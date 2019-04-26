@@ -1,12 +1,8 @@
 from sklearn.random_projection import SparseRandomProjection
 from math import sqrt
 
-from paje.base.component import Component
-from paje.base.hps import HPTree
-from paje.data.data import Data
-
 # Data reduction by SRP
-from paje.module.preprocessing.data_reduction.reductor import Reductor
+from paje.module.preprocessing.unsupervised.feature.transformer.feature_reductor import Reductor
 
 '''
 This class is an sparse random projections implementation for data reduction.
