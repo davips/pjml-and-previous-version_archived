@@ -4,13 +4,11 @@ import sklearn.metrics
 
 from paje.automl.random import RandomAutoML
 from paje.data.data import Data
-from paje.module.modelling.classifier.RF import RF
-from paje.module.preprocessing.balancer.over.ran_over_sampler import RanOverSampler
-from paje.module.preprocessing.balancer.under.ran_under_sampler import RanUnderSampler
-from paje.module.preprocessing.data_reduction.DRPCA import DRPCA
-from paje.module.preprocessing.feature_selection.statistical_based.cfs import FilterCFS
-from paje.module.preprocessing.scaler.equalization import Equalization
-from paje.module.preprocessing.scaler.standard import Standard
+from paje.module.modelling.classifier.rf import RF
+from paje.module.preprocessing.supervised.instance.balancer.over.ran_over_sampler import RanOverSampler
+from paje.module.preprocessing.unsupervised.feature.transformer.drpca import DRPCA
+from paje.module.preprocessing.unsupervised.feature.scaler.equalization import Equalization
+from paje.module.preprocessing.unsupervised.feature.scaler.standard import Standard
 
 if len(argv) != 2:
     print('Usage: \npython toy.py dataset.arff')
