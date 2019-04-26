@@ -5,6 +5,8 @@ from paje.base.hps import HPTree
 from paje.data.data import Data
 
 # Data reduction by GRP
+from paje.module.preprocessing.data_reduction.reductor import Reductor
+
 '''
 This class is a Gaussian random projections implementation for data reduction.
 
@@ -33,26 +35,13 @@ grp = DRGRP(data)
 # apply GRP to reduce n to 2 collumns
 rd = grp.apply(2)
 '''
-class DRGRP(Component):
-    def __init__(self, data):
-        self.x, self.y = data.xy()
-        self.att_labels = data.columns
 
 
-    def apply_impl(self, n_components, eps = 0.1):
-        rp = GaussianRandomProjection(n_components = n_components, eps = eps, random_state = 420)
-        pc = rp.fit_transform(self.x)
-
-        return Data(pc, self.y)
-
-
-    def use_impl(self, data):
-        pass
+class DRGRP(Reductor):
+    def init_impl(self, *args, **kwargs):
+        rp = GaussianRandomProjection(**kwargs)
+        self.model = rp.fit_transform(self.x)
 
     @classmethod
-    def hyperpar_spaces_tree_impl(cls, data=None):
-        cls.check_data(data)
-        return HPTree(
-            dic={'n_components': ['z', list(range(1, data.n_attributes() + 1))],
-                 'eps': ['o', [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]]},
-            children=[])
+    def specific_dictionary(cls, data):
+        return {'eps': ['o', [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]]}

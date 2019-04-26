@@ -19,13 +19,15 @@ def exponential_integers(kmax, only_odd=True, exponent=1.5):
     return ks
 
 
-def sample(kind, interval):
+def sample(kind, interval=None):
     """
     Handles sampling according to the given type.
     :param kind:
     :param interval:
     :return:
     """
+    if interval is None:
+        raise Exception("'kind '" + kind + "' missing a list interval values!")
     # TODO: Add parameter to customize sampling strategy.
     if kind == 'c': return categoric_sample(interval)
     if kind == 'o': return ordinal_sample(interval)

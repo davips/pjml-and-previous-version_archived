@@ -6,6 +6,8 @@ from paje.base.hps import HPTree
 from paje.data.data import Data
 
 # Data reduction by SVD
+from paje.module.preprocessing.data_reduction.reductor import Reductor
+
 '''
 Singular value decomposition
 
@@ -46,23 +48,11 @@ rd = svd.apply(2)
 '''
 
 
-class DRSVD(Component):
-    def __init__(self, data):
-        self.x, self.y = data.xy()
-        self.att_labels = data.columns
-
-    def apply_impl(self, n_components):
-        u, s, _ = svds(self.x, n_components)
-        pc = u @ diag(s)  # If we use V^T in this operation, the pc will have the original dimension
-
-        return Data(pc, self.y)
-
-    def use_impl(self, data):
-        pass
+class DRSVD(Reductor):
+    def init_impl(self, *args, **kwargs):
+        u, s, _ = svds(self.x, **kwargs)
+        self.model = u @ diag(s)  # If we use V^T in this operation, the pc will have the original dimension
 
     @classmethod
-    def hyperpar_spaces_tree_impl(cls, data=None):
-        cls.check_data(data)
-        return HPTree(
-            dic={'n_components': ['z', list(range(1, data.n_attributes() + 1))]},
-            children=[])
+    def specific_dictionary(cls, data):
+        return {}

@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from logging import warning
 
 import numpy as np
 
@@ -99,41 +100,43 @@ class Component(ABC):
                 v = dic[k][1]
                 if t == 'c' or t == 'o':
                     if not isinstance(v, list):
-                        print('Categorical and ordinal hyperparameters need a list of values: ' + str(k))
-                        exit(0)
+                        raise Exception('Categorical and ordinal hyperparameters need a list of values: ' + str(k))
                 else:
                     if len(v) != 2:
-                        print('Real and integer hyperparameters need a limit with two values: ' + str(k))
-                        exit(0)
+                        raise Exception('Real and integer hyperparameters need a limit with two values: ' + str(k))
         except Exception as e:
             print(e)
             print()
-            print('Problems with hyperparameter space: ' + str(dic))
-            exit(0)
+            raise Exception('Problems with hyperparameter space: ' + str(dic))
         return tree
 
     @classmethod
-    def print_hyper_spaces_tree(cls, data=None, depth=''):
+    def print_hyper_spaces_tree(cls, data=None):
         tree = cls.hyper_spaces_tree(data)
-        print(depth + str(tree.dic))
-        depth += '     '
-        for child in tree.children:
-            cls.print_hyper_spaces_tree(child, depth)
+        print(tree)
 
     @classmethod
     def check_data(cls, data):
         if data is None:
-            print(cls.__name__ + ' needs a dataset to be able to estimate maximum values for some hyperparameters.')
-            exit(0)
+            raise Exception(cls.__name__ + ' needs a dataset to be able to estimate maximum values for some hyperparameters.')
 
-    def hyperpar_spaces_forest(self, data=None) -> [HPTree]:
+    def hyperpar_spaces_forest(self, data=None) -> HPTree:
         """
         This method, hyperpar_spaces_forest(), should be preferred over hyper_spaces_tree(),
         because not every Component can implement the latter. (See e.g. Pipeline)
         :param data:
         :return: [tree]
         """
-        return [self.__class__.hyper_spaces_tree(data)]
+        return self.__class__.hyper_spaces_tree(data)
 
-    def __str__(self):
-        return self.dict
+    def __str__(self, depth=''):
+        return self.__class__.__name__ + str(self.dict)
+
+    __repr__ = __str__
+
+    def warning(self, msg):
+        if self.show_warnings:
+            warning(msg)
+
+    def error(self, msg):
+        raise Exception(msg)

@@ -6,6 +6,8 @@ from paje.base.hps import HPTree
 from paje.data.data import Data
 
 # Data reduction by SRP
+from paje.module.preprocessing.data_reduction.reductor import Reductor
+
 '''
 This class is an sparse random projections implementation for data reduction.
 
@@ -36,32 +38,15 @@ rd = srp.apply(2)
 '''
 
 
-class DRSRP(Component):
-    def __init__(self, data):
-        self.x, self.y = data.xy()
-        self.att_labels = data.columns
-
-    def apply_impl(self, n_components, density='auto', eps=0.1, dense_output=True):
-        rp = SparseRandomProjection(n_components=n_components,
-                                    density=density,
-                                    eps=eps,
-                                    dense_output=dense_output,
-                                    random_state=0)
-
-        pc = rp.fit_transform(self.x)
-
-        return Data(pc, self.y)
-
-    def use_impl(self, data):
-        pass
+class DRSRP(Reductor):
+    def init_impl(self, *args, **kwargs):
+        self.model = SparseRandomProjection(**kwargs)
 
     @classmethod
-    def hyperpar_spaces_tree_impl(cls, data=None):
-        cls.check_data(data)
-        return HPTree(
-            dic={'n_components': ['z', list(range(1, data.n_attributes() + 1))], # TODO: check if data.n_attributes() is correct here and in the line below
-                 # TODO: WTF is this sqrt?
-                 'density': ['o', [1 / sqrt(data.n_attributes()), 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]],
-                 'dense_output': ['c', [False, True]],
-                 'eps': ['o', [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]]},
-            children=[])
+    def specific_dictionary(cls, data):
+        return {
+            # TODO: check if data.n_attributes() is correct here and in the line below
+            # TODO: WTF is this sqrt?
+            'density': ['o', [1 / sqrt(data.n_attributes()), 0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]],
+            'dense_output': ['c', [False, True]],
+            'eps': ['o', [0.01, 0.05, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]]}

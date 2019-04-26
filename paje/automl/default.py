@@ -2,6 +2,9 @@ from paje.automl.automl import AutoML
 
 
 class DefaultAutoML(AutoML):
-    def next_hyperpar_dicts(self):
-        dicts = [{} for _ in self.forest]
+    """
+    Always select default hyperparameters.
+    """
+    def next_hyperpar_dicts(self, forest):
+        dicts = [{} for _ in forest]
         return dicts

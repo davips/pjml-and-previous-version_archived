@@ -4,12 +4,12 @@ from paje.base.component import Component
 
 
 class Pipeline(Component):
-    #TODO: An empty Pipeline may return perfect predictions.
-    def init_impl(self, components: List[Component], hyperpar_dicts: [Dict] = None):
+    # TODO: An empty Pipeline may return perfect predictions.
+    def init_impl(self, components: List, hyperpar_dicts: [Dict] = None):
         self.components = components
-        if hyperpar_dicts is None: hyperpar_dicts = [{} for _ in components]
-        zipped = zip(self.components, hyperpar_dicts)
-        self.instances = [component(**hyperpar_dict) for component, hyperpar_dict in zipped]
+        self.hyperpar_dicts = [{} for _ in components] if hyperpar_dicts is None \
+            else hyperpar_dicts
+        self.instantiate_components()
 
     def apply_impl(self, data):
         for instance in self.instances:
@@ -28,10 +28,32 @@ class Pipeline(Component):
                                   "hyper_spaces_forest() should be called instead!")
 
     def hyperpar_spaces_forest(self, data=None):
-        forests = [instance.hyperpar_spaces_forest(data) for instance in self.instances]
-        return sum(forests, [])  # flatten out the lists
+        bigger_forest = []
+        self.instantiate_components(just_for_tree=True)
+        for instance in self.instances:
+            if isinstance(instance, Pipeline):
+                forest = list(map(
+                    lambda x: x.hyperpar_spaces_forest(data),
+                    instance.instances
+                ))
+            else:
+                forest = instance.hyperpar_spaces_forest(data)
+            bigger_forest.append(forest)
+        return bigger_forest
 
-    def __str__(self):
-        strs = [instance.__str__() for instance in self.instances]
-        return "\n".join(str(x) for x in strs)
+    def __str__(self, depth=''):
+        depth += '    '
+        strs = [instance.__str__(depth) for instance in self.instances]
+        return super().__str__() + "\n" + depth + ("\n" + depth).join(str(x) for x in strs)
 
+    def instantiate_components(self, just_for_tree=False):
+        self.instances = []
+        zipped = zip(self.components, self.hyperpar_dicts)
+        for component, hyperpar_dict in zipped:
+            if isinstance(component, Pipeline):
+                if not just_for_tree:
+                    component = Pipeline(component.components, hyperpar_dict)
+                instance = component
+            else:
+                instance = component(**hyperpar_dict)
+            self.instances.append(instance)

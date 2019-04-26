@@ -1,10 +1,10 @@
 from sklearn.cluster import FeatureAgglomeration
 
 from paje.base.component import Component
-from paje.base.hps import HPTree
-from paje.data.data import Data
 
 # Data reduction by feature agglomeration
+from paje.module.preprocessing.data_reduction.reductor import Reductor
+
 '''
 Feature agglomeration
 
@@ -34,28 +34,14 @@ rd = fa.apply(2)
 '''
 
 
-class DRFtAg(Component):
-    def __init__(self, data):
-        self.x, self.y = data.xy()
-        self.att_labels = data.columns
-
-    def apply_impl(self, n_components, affinity='euclidean', linkage='ward'):
-        if (linkage == 'ward'):
-            affinity = 'euclidean'
-
-        fa = FeatureAgglomeration(n_clusters=n_components, affinity='euclidean', linkage='ward')
-        pc = fa.fit_transform(self.x)
-
-        return Data(pc, self.y)
-
-    def use_impl(self, data):
-        pass
+class DRFtAg(Reductor):
+    def init_impl(self, *args, **kwargs):
+        if kwargs['linkage'] == 'ward':
+            kwargs['affinity'] = 'euclidean'
+        kwargs['n_clusters'] = kwargs.pop('n_components')  # Replace key name.
+        self.model = FeatureAgglomeration(**kwargs)
 
     @classmethod
-    def hyperpar_spaces_tree_impl(cls, data=None):
-        cls.check_data(data)
-        return HPTree(
-            dic={'n_components': ['z', list(range(1, data.n_attributes() + 1))],
-                 'affinity': ['c', ['euclidean', 'l1', 'l2', 'manhattan', 'cosine', 'precomputed']],
-                 'linkage': ['c', ['ward', 'complete', 'average', 'single']]},
-            children=[])
+    def specific_dictionary(cls, data):
+        return {'affinity': ['c', ['euclidean', 'l1', 'l2', 'manhattan', 'cosine', 'precomputed']],
+                'linkage': ['c', ['ward', 'complete', 'average', 'single']]}

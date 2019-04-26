@@ -58,5 +58,5 @@ class DRICA(Component):
     def hyperpar_spaces_tree_impl(cls, data=None):
         cls.check_data(data)
         return HPTree(
-            dic={'n_components': ['z', list(range(1, data.n_attributes() + 1))]},
+            dic={'n_components': ['z', [1, data.n_attributes()]]},
             children=[])
