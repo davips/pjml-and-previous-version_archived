@@ -70,3 +70,5 @@ class Data(object):
     def n_classes(self):
         # Unfortunately, it is impossible to memoize this calculation because Data() is promiscuous and accepts external changes to data_x and _y from everyone.
         return len(set(self.data_y))
+
+    __hash__ = None
