@@ -20,7 +20,7 @@ else:
     data_train = Data(X_train, y_train)
     data_test = Data(X_test, y_test)
 
-    n=2
+    n = 2
 
     automl_rs = RandomAutoML(preprocessors=[Equalization, DRPCA,
                                             RanOverSampler, Standard],
