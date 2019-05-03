@@ -1,7 +1,7 @@
 from sklearn.preprocessing import StandardScaler
 
 from paje.base.hps import HPTree
-from paje.module.preprocessing.scaler.scaler import Scaler
+from paje.module.preprocessing.unsupervised.feature.scaler.scaler import Scaler
 
 
 class Standard(Scaler):

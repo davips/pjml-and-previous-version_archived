@@ -1,9 +1,7 @@
 from sklearn.cluster import FeatureAgglomeration
 
-from paje.base.component import Component
-
 # Data reduction by feature agglomeration
-from paje.module.preprocessing.data_reduction.reductor import Reductor
+from paje.module.preprocessing.unsupervised.feature.transformer.feature_reductor import Reductor
 
 '''
 Feature agglomeration

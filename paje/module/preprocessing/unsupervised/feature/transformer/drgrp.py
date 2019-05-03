@@ -1,11 +1,7 @@
 from sklearn.random_projection import GaussianRandomProjection
 
-from paje.base.component import Component
-from paje.base.hps import HPTree
-from paje.data.data import Data
-
 # Data reduction by GRP
-from paje.module.preprocessing.data_reduction.reductor import Reductor
+from paje.module.preprocessing.unsupervised.feature.transformer.feature_reductor import Reductor
 
 '''
 This class is a Gaussian random projections implementation for data reduction.

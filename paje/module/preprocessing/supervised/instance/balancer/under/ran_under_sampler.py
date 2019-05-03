@@ -1,7 +1,7 @@
 from imblearn.under_sampling import RandomUnderSampler
 
 from paje.base.hps import HPTree
-from paje.module.preprocessing.balancer.resampler import Resampler
+from paje.module.preprocessing.supervised.instance.balancer.resampler import Resampler
 
 
 class RanUnderSampler(Resampler):

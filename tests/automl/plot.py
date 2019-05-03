@@ -1,5 +1,5 @@
 from paje.data.data import Data
-from paje.module.modelling.classifier.MLP import MLP
+from paje.module.modelling.classifier.mlp import MLP
 import sklearn.metrics
 from sys import argv
 

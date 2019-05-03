@@ -1,7 +1,7 @@
 from imblearn.over_sampling import RandomOverSampler
 
 from paje.base.hps import HPTree
-from paje.module.preprocessing.balancer.resampler import Resampler
+from paje.module.preprocessing.supervised.instance.balancer.resampler import Resampler
 
 
 class RanOverSampler(Resampler):

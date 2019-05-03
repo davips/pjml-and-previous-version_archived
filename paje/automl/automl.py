@@ -1,25 +1,23 @@
 from abc import ABC, abstractmethod
-import random
 
 import numpy as np
 
 from paje.base.component import Component
 from paje.evaluator.evaluator import Evaluator
 from paje.evaluator.metrics import Metrics
-from paje.module.modelling.classifier.CB import CB
-from paje.module.modelling.classifier.DT import DT
-from paje.module.modelling.classifier.KNN import KNN
-from paje.module.modelling.classifier.MLP import MLP
-from paje.module.modelling.classifier.NB import NB
-from paje.module.modelling.classifier.RF import RF
-from paje.module.modelling.classifier.SVM import SVM
-from paje.module.preprocessing.balancer.over.ran_over_sampler import RanOverSampler
-from paje.module.preprocessing.balancer.under.ran_under_sampler import RanUnderSampler
-from paje.module.preprocessing.data_reduction.DRPCA import DRPCA
-from paje.module.preprocessing.feature_selection.statistical_based.cfs import FilterCFS
-from paje.module.preprocessing.feature_selection.statistical_based.chi_square import FilterChiSquare
-from paje.module.preprocessing.scaler.equalization import Equalization
-from paje.module.preprocessing.scaler.standard import Standard
+from paje.module.modelling.classifier.cb import CB
+from paje.module.modelling.classifier.dt import DT
+from paje.module.modelling.classifier.knn import KNN
+from paje.module.modelling.classifier.mlp import MLP
+from paje.module.modelling.classifier.nb import NB
+from paje.module.modelling.classifier.rf import RF
+from paje.module.modelling.classifier.svm import SVM
+from paje.module.preprocessing.supervised.instance.balancer.over.ran_over_sampler import RanOverSampler
+from paje.module.preprocessing.supervised.instance.balancer.under.ran_under_sampler import RanUnderSampler
+from paje.module.preprocessing.unsupervised.feature.scaler.standard import Standard
+from paje.module.preprocessing.unsupervised.feature.transformer.drpca import DRPCA
+from paje.module.preprocessing.supervised.feature.selector.statistical.cfs import FilterCFS
+from paje.module.preprocessing.unsupervised.feature.scaler.equalization import Equalization
 from paje.pipeline.pipeline import Pipeline
 
 # TODO: Extract list of all modules automatically from the package module.
@@ -67,7 +65,7 @@ class AutoML(Component, ABC):
             if len(self.modelers) > 1:
                 self.warning('Multiple modelers given in static mode.')
             self.static_pipeline = self.preprocessors + self.modelers
-            if max_depth < len (self.static_pipeline):
+            if max_depth < len(self.static_pipeline):
                 self.warning('max_depth lesser than given fixed pipeline!')
 
     @abstractmethod

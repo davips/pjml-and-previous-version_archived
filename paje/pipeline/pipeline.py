@@ -55,5 +55,9 @@ class Pipeline(Component):
                     component = Pipeline(component.components, hyperpar_dict)
                 instance = component
             else:
-                instance = component(**hyperpar_dict)
+                try:
+                    instance = component(**hyperpar_dict)
+                except:
+                    self.error(component)
+
             self.instances.append(instance)
