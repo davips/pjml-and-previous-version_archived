@@ -1,3 +1,6 @@
+import zlib
+import json
+import hashlib
 from abc import ABC, abstractmethod
 from logging import warning
 
@@ -5,6 +8,8 @@ import numpy as np
 
 from paje.base.hps import HPTree
 from paje.data.data import Data
+from paje.result.sqlite import SQLite
+from paje.result.storage import uuid
 from paje.util.auto_constructor import initializer
 
 
@@ -12,17 +17,20 @@ class Component(ABC):
     """Todo the docs string
     """
 
-    def __init__(self, *args, in_place=False, show_warnings=True, **kwargs):
+    def __init__(self, *args, in_place=False, show_warnings=True, memoize=False, **kwargs):
         # print(self.__class__)
         self.model = None  # Model here refers to classifiers, preprocessors and, possibly, some representation of pipelines or the autoML itself.
         self.in_place = in_place
         self.show_warnings = show_warnings
+        self.memoize = memoize
+        if memoize: self.storage = SQLite()
         # print()
         # print(type(self).__name__)
         # print('args', args)
         # print('kwargs', kwargs)
         # print()
         self.dict = kwargs
+        self.already_serialized = None
         self.init_impl(*args, **kwargs)
 
     @abstractmethod
@@ -43,14 +51,6 @@ class Component(ABC):
         """
         pass
 
-    def handle_warnings(self, f, data):
-        if not self.show_warnings:
-            np.warnings.filterwarnings('ignore')  # Mahalanobis in KNN needs to supress warnings due to NaN in linear algebra calculations. MLP is also verbose due to nonconvergence issues among other problems.
-        result = f(data)
-        if not self.show_warnings:
-            np.warnings.filterwarnings('always')  # Mahalanobis in KNN needs to supress warnings due to NaN in linear algebra calculations. MLP is also verbose due to nonconvergence issues among other problems.
-        return result
-
     def handle_in_place(self, data: Data):
         """
         Switch between inplace and 'copying Data'.
@@ -59,12 +59,33 @@ class Component(ABC):
         """
         return data if data is None or self.in_place else data.copy()
 
+    def handle_storage(self, data):
+        """
+        Overload this method if your component has no internal model, or isn't fit to memoizing.
+        See how Pipeline do this.
+        :param data:
+        :return: data
+        """
+        if self.memoize:
+            if self.model is None:
+                self.error("This component cannot support storage, please implement a custom handle_storage to overcome this.")
+            return self.storage.get_or_else(self, data, self.apply_impl)
+        else:
+            return self.apply_impl(data)
+
     def apply(self, data: Data = None) -> Data:
         """Todo the doc string
         """
+        handled_data = self.handle_in_place(data)
 
-        # TODO: If this result was already calculated before, recover if from Cache.
-        return self.handle_warnings(self.apply_impl, self.handle_in_place(data))
+        if not self.show_warnings:
+            np.warnings.filterwarnings('ignore')  # Mahalanobis in KNN needs to supress warnings due to NaN in linear algebra calculations. MLP is also verbose due to nonconvergence issues among other problems.
+
+        result = self.handle_storage(handled_data)
+
+        if not self.show_warnings:
+            np.warnings.filterwarnings('always')  # Mahalanobis in KNN needs to supress warnings due to NaN in linear algebra calculations. MLP is also verbose due to nonconvergence issues among other problems.
+        return result
 
     def use(self, data: Data = None) -> Data:
         """Todo the doc string
@@ -140,3 +161,12 @@ class Component(ABC):
 
     def error(self, msg):
         raise Exception(msg)
+
+    def serialized(self):
+        if self.already_serialized is None:
+            self.already_serialized = zlib.compress(json.dumps(self.dict, sort_keys=True).encode())
+        return self.already_serialized
+
+    def __hash__(self):
+        return uuid(self.serialized())
+

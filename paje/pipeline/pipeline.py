@@ -49,15 +49,20 @@ class Pipeline(Component):
     def instantiate_components(self, just_for_tree=False):
         self.instances = []
         zipped = zip(self.components, self.hyperpar_dicts)
+        instance = None
         for component, hyperpar_dict in zipped:
             if isinstance(component, Pipeline):
                 if not just_for_tree:
-                    component = Pipeline(component.components, hyperpar_dict)
+                    component = Pipeline(component.components, hyperpar_dict, memoize=self.memoize)
                 instance = component
             else:
                 try:
-                    instance = component(**hyperpar_dict)
+                    instance = component(**hyperpar_dict, memoize=self.memoize)
                 except:
                     self.error(component)
 
             self.instances.append(instance)
+
+    def handle_storage(self, data):
+        # TODO: replicate this method to other nesting modules, not only Pipeline and AutoML
+        return self.apply_impl(data)

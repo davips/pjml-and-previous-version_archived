@@ -84,7 +84,7 @@ class AutoML(Component, ABC):
             forest = Pipeline(modules).hyperpar_spaces_forest(data)
 
             # Evaluates current hyperparameter (space-values) combination.
-            pipe = Pipeline(modules, self.next_hyperpar_dicts(forest))
+            pipe = Pipeline(modules, self.next_hyperpar_dicts(forest), memoize=self.memoize)
             # pipe = Pipeline([Pipeline(
             #     [Standard, DRPCA],
             #     [{'@with_mean/std': (True, False)}, {'n_components': 2}]
@@ -112,3 +112,7 @@ class AutoML(Component, ABC):
         :return: a list of dictionaries or list of nested lists of dictionaries
         """
         pass
+
+    def handle_storage(self, data):
+        # TODO: replicate this method to other nesting modules, not only Pipeline and AutoML
+        return self.apply_impl(data)
