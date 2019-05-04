@@ -15,6 +15,7 @@ setup(name='paje',
       packages=['paje'],
       install_requires=[
           "scipy",
+          "catboost",
           "numpy",
           "scikit-learn",
           "imbalanced-learn",
