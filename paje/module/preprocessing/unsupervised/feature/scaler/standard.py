@@ -5,7 +5,9 @@ from paje.module.preprocessing.unsupervised.feature.scaler.scaler import Scaler
 
 
 class Standard(Scaler):
-    def init_impl(self, **kwargs):
+    def __init__(self, in_place=False, memoize=False,
+                 show_warnings=True, **kwargs):
+        super().__init__(in_place, memoize, show_warnings, kwargs)
         mean_std = kwargs.get('@with_mean/std')
         if mean_std is None:
             with_mean, with_std = True, True

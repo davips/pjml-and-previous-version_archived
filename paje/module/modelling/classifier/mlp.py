@@ -6,7 +6,10 @@ from paje.module.modelling.classifier.classifier import Classifier
 
 
 class MLP(Classifier):
-    def init_impl(self, **kwargs):
+    def __init__(self, in_place=False, memoize=False,
+                 show_warnings=True, **kwargs):
+        super().__init__(in_place, memoize, show_warnings, kwargs)
+
         # Convert '@' hyperparameters to sklearn format.
         n_hidden_layers = 0
         new_kwargs = kwargs.copy()
@@ -31,7 +34,8 @@ class MLP(Classifier):
     def hyperpar_spaces_tree_impl(cls, data=None):
         cls.check_data(data)
         # todo: set random seed
-        max_free_parameters = data.n_instances() / (data.n_attributes() + data.n_classes())
+        max_free_parameters = int(data.n_instances() / (data.n_attributes() +
+                                                         data.n_classes()))
         dic = {
             'alpha': ['o', [0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000]],  # https://scikit-learn.org/stable/auto_examples/neural_networks/plot_mlp_alpha.html
             'max_iter': ['z', [1, 10000]],  # 'Number of epochs'/'gradient steps'.

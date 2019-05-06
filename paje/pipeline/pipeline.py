@@ -1,31 +1,38 @@
-from typing import List, Dict
-
 from paje.base.component import Component
 
 
 class Pipeline(Component):
     # TODO: An empty Pipeline may return perfect predictions.
-    def init_impl(self, components: List, hyperpar_dicts: [Dict] = None):
+    def __init__(self, components, hyperpar_dicts=None, in_place=False,
+                 memoize=False, show_warnings=True, **kwargs):
+        super().__init__(in_place, memoize, show_warnings, kwargs)
         self.components = components
-        self.hyperpar_dicts = [{} for _ in components] if hyperpar_dicts is None \
-            else hyperpar_dicts
+
+        if hyperpar_dicts is None:
+            self.hyperpar_dicts = [{} for _ in components]
+        else:
+            self.hyperpar_dicts = hyperpar_dicts
+
         self.instantiate_components()
 
     def apply_impl(self, data):
         for instance in self.instances:
-            data = instance.apply(data)  # useless assignment if aux is set to be inplace
+            # useless assignment if aux is set to be inplace
+            data = instance.apply(data)
         return data
 
     def use_impl(self, data):
         for instance in self.instances:
-            data = instance.use(data)  # useless assignment if aux is set to be inplace
+            data = instance.use(data)
         return data
 
     @classmethod
     def hyperpar_spaces_tree_impl(cls, data=None):
-        raise NotImplementedError("Pipeline has no method hyper_spaces_tree() implemented,",
-                                  "because it would depend on the constructor parameters.",
-                                  "hyper_spaces_forest() should be called instead!")
+        raise NotImplementedError("Pipeline has no method hyper_spaces_tree() \
+                                  implemented, because it would depend on the \
+                                  constructor parameters. \
+                                  hyper_spaces_forest() \
+                                  should be called instead!")
 
     def hyperpar_spaces_forest(self, data=None):
         bigger_forest = []
@@ -44,7 +51,8 @@ class Pipeline(Component):
     def __str__(self, depth=''):
         depth += '    '
         strs = [instance.__str__(depth) for instance in self.instances]
-        return super().__str__() + "\n" + depth + ("\n" + depth).join(str(x) for x in strs)
+        return super().__str__() + "\n" + depth + ("\n" + depth).join(
+            str(x) for x in strs)
 
     def instantiate_components(self, just_for_tree=False):
         self.instances = []
@@ -53,16 +61,20 @@ class Pipeline(Component):
         for component, hyperpar_dict in zipped:
             if isinstance(component, Pipeline):
                 if not just_for_tree:
-                    component = Pipeline(component.components, hyperpar_dict, memoize=self.memoize)
+                    component = Pipeline(component.components, hyperpar_dict,
+                                         memoize=self.memoize,
+                                         random_state=self.random_state)
                 instance = component
             else:
                 try:
-                    instance = component(**hyperpar_dict, memoize=self.memoize)
+                    instance = component(**hyperpar_dict, memoize=self.memoize,
+                                         random_state=self.random_state)
                 except:
                     self.error(component)
 
             self.instances.append(instance)
 
     def handle_storage(self, data):
-        # TODO: replicate this method to other nesting modules, not only Pipeline and AutoML
+        # TODO: replicate this method to other nesting modules, not only
+        # Pipeline and AutoML
         return self.apply_impl(data)

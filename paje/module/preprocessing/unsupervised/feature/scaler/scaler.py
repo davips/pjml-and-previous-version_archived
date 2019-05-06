@@ -1,19 +1,14 @@
-from abc import ABC
-
+""" Scaler Module
+"""
 import numpy as np
-
 from paje.base.component import Component
 
 
-class Scaler(Component, ABC):
+class Scaler(Component):
+
     def apply_impl(self, data):
-        if not self.show_warnings:
-            np.warnings.filterwarnings('ignore')
-
-        self.model.fit(*data.xy())  # self.model will be set in the child class
-
-        if not self.show_warnings:
-            np.warnings.filterwarnings('always')
+        # self.model will be set in the child class
+        self.model.fit(*data.xy())
 
         return self.use(data)
 

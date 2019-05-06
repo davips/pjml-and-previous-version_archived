@@ -3,12 +3,18 @@ from sys import argv
 import sklearn.metrics
 
 from paje.automl.random import RandomAutoML
+from paje.automl.default import DefaultAutoML
 from paje.data.data import Data
 from paje.module.modelling.classifier.rf import RF
-from paje.module.preprocessing.supervised.instance.balancer.over.ran_over_sampler import RanOverSampler
-from paje.module.preprocessing.unsupervised.feature.transformer.drpca import DRPCA
-from paje.module.preprocessing.unsupervised.feature.scaler.equalization import Equalization
-from paje.module.preprocessing.unsupervised.feature.scaler.standard import Standard
+from paje.module.modelling.classifier.mlp import MLP
+from paje.module.preprocessing.supervised.instance.balancer.over.\
+        ran_over_sampler import RanOverSampler
+from paje.module.preprocessing.unsupervised.feature.transformer.\
+        drpca import DRPCA
+from paje.module.preprocessing.unsupervised.feature.scaler.\
+        equalization import Equalization
+from paje.module.preprocessing.unsupervised.feature.scaler.\
+        standard import Standard
 
 if len(argv) != 2:
     print('Usage: \npython toy.py dataset.arff')
@@ -23,40 +29,43 @@ else:
     n=2
 
     automl_rs = RandomAutoML(memoize=False,
-                             preprocessors=[Equalization, DRPCA,
-                                            RanOverSampler, Standard],
-                             modelers=[RF], max_iter=n, static=True, fixed=True,
-                             max_depth=50, repetitions=0, method="all")
+                             preprocessors=[Equalization, Standard],
+                             modelers=[MLP], max_iter=100, static=False,
+                             fixed=False,
+                             max_depth=15, repetitions=2, method="all",
+                             show_warnings=False, random_state=1)
     automl_rs.apply(data_train)
-    print("Accuracy score", sklearn.metrics.accuracy_score(data_test.data_y, automl_rs.use(data_test).data_y))
+    print("Accuracy score",
+          sklearn.metrics.accuracy_score(data_test.data_y,
+                                         automl_rs.use(data_test).data_y))
     print()
 
-    automl_rs = RandomAutoML(max_iter=n, static=False, fixed=True,
-                             max_depth=4, repetitions=0, method="all")
-    automl_rs.apply(data_train)
-    resp = automl_rs.use(data_test).data_y
-    print("Accuracy score", sklearn.metrics.accuracy_score(data_test.data_y, automl_rs.use(data_test).data_y))
-    print()
-
-    automl_rs = RandomAutoML(max_iter=n, static=False, fixed=True,
-                             max_depth=10, repetitions=2, method="all")
-    automl_rs.apply(data_train)
-    resp = automl_rs.use(data_test).data_y
-    print("Accuracy score", sklearn.metrics.accuracy_score(data_test.data_y, automl_rs.use(data_test).data_y))
-    print()
-
-    automl_rs = RandomAutoML(max_iter=n, static=False, fixed=False,
-                             max_depth=8, repetitions=0, method="all")
-    automl_rs.apply(data_train)
-    resp = automl_rs.use(data_test).data_y
-    print("Accuracy score", sklearn.metrics.accuracy_score(data_test.data_y, automl_rs.use(data_test).data_y))
-    print()
-
-    automl_rs = RandomAutoML(max_iter=2, static=False, fixed=False,
-                             max_depth=10, repetitions=2, method="all")
-    automl_rs.apply(data_train)
-    resp = automl_rs.use(data_test).data_y
-    print("Accuracy score", sklearn.metrics.accuracy_score(data_test.data_y, automl_rs.use(data_test).data_y))
-    print()
+    # automl_rs = RandomAutoML(max_iter=n, static=False, fixed=True,
+    #                          max_depth=4, repetitions=0, method="all")
+    # automl_rs.apply(data_train)
+    # resp = automl_rs.use(data_test).data_y
+    # print("Accuracy score", sklearn.metrics.accuracy_score(data_test.data_y, automl_rs.use(data_test).data_y))
+    # print()
+    #
+    # automl_rs = RandomAutoML(max_iter=n, static=False, fixed=True,
+    #                          max_depth=10, repetitions=2, method="all")
+    # automl_rs.apply(data_train)
+    # resp = automl_rs.use(data_test).data_y
+    # print("Accuracy score", sklearn.metrics.accuracy_score(data_test.data_y, automl_rs.use(data_test).data_y))
+    # print()
+    #
+    # automl_rs = RandomAutoML(max_iter=n, static=False, fixed=False,
+    #                          max_depth=8, repetitions=0, method="all")
+    # automl_rs.apply(data_train)
+    # resp = automl_rs.use(data_test).data_y
+    # print("Accuracy score", sklearn.metrics.accuracy_score(data_test.data_y, automl_rs.use(data_test).data_y))
+    # print()
+    #
+    # automl_rs = RandomAutoML(max_iter=2, static=False, fixed=False,
+    #                          max_depth=10, repetitions=2, method="all")
+    # automl_rs.apply(data_train)
+    # resp = automl_rs.use(data_test).data_y
+    # print("Accuracy score", sklearn.metrics.accuracy_score(data_test.data_y, automl_rs.use(data_test).data_y))
+    # print()
 
     # print(1 - np.sum(resp == data_test.data_y)/resp.shape[0])

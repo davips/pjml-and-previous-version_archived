@@ -36,13 +36,15 @@ default_modelers = [RF, KNN, NB, DT, MLP, SVM, CB]
 
 class AutoML(Component, ABC):
 
-    def init_impl(self, preprocessors=None, modelers=None, random_state=0):
-        self.random_state = random_state
+    def __init__(self, preprocessors=None, modelers=None, random_state=0,
+                 in_place=False, memoize=False, show_warnings=True, **kwargs):
+        super().__init__(in_place, memoize, show_warnings, **kwargs)
         self.preprocessors = default_preprocessors \
             if preprocessors is None else preprocessors
         self.modelers = default_modelers if modelers is None else modelers
         if self.modelers is None:
             self.warning('No modelers given')
+        self.random_state = random_state
 
     def apply_impl(self, data):
         print('--------------------------------------------------------------')

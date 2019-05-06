@@ -7,8 +7,10 @@ from paje.module.modelling.classifier.classifier import Classifier
 
 
 class RF(Classifier):
-    def init_impl(self, **kwargs):
-        self.model = RandomForestClassifier(**kwargs)
+    def __init__(self, in_place=False, memoize=False,
+                 show_warnings=True, **kwargs):
+        super().__init__(in_place, memoize, show_warnings, kwargs)
+        self.model = RandomForestClassifier(n_jobs=2, **kwargs)
 
     @classmethod
     def hyperpar_spaces_tree_impl(cls, data=None):
@@ -25,7 +27,7 @@ class RF(Classifier):
                'min_samples_split': ['z', [2, floor(data.n_instances() / 2)]],  # Same reason as min_samples_leaf
                'max_depth': ['z', [2, data.n_instances()]],
                'criterion': ['c', ['gini', 'entropy']],  # Docs say that this parameter is tree-specific, but we cannot choose the tree.
-               'n_estimators': ['c', [n_estimators]]  # Only to set the default, not for search.
+               'n_estimators': ['c', [n_estimators]],  # Only to set the default, not for search.
                # See DT.py for more details about other settings.
                }
         return HPTree(dic, children=[])

@@ -1,7 +1,7 @@
-from paje.automl.automl import AutoML
+from paje.automl.random import RandomAutoML
 
 
-class DefaultAutoML(AutoML):
+class DefaultAutoML(RandomAutoML):
     """
     Always select default hyperparameters.
     """
