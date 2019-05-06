@@ -53,7 +53,9 @@ rd = pca.apply(2)
 
 
 class DRPCA(Reductor):
-    def init_impl(self, *args, **kwargs):
+    def __init__(self, in_place=False, memoize=False,
+                 show_warnings=True, **kwargs):
+        super().__init__(in_place, memoize, show_warnings, kwargs)
         # TODO: if StandardScaler is obligatory for PCA use, we need to integrate this kind of requirement into the Pajé architecture
         # # standardize features: PCA is sensible to the measure scale
         # self.x = StandardScaler().fit_transform(self.x)

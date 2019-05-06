@@ -1,7 +1,7 @@
 from sklearn.decomposition import FactorAnalysis
 
 # Data reduction by factor analysis
-from paje.module.preprocessing.unsupervised.feature.transformer.feature_reductor import Reductor
+from paje.module.preprocessing.unsupervised.feature.transformer.reductor import Reductor
 
 '''
 Factor analysis implementation
@@ -105,7 +105,9 @@ rd = fa.apply(2)
 
 
 class DRFA(Reductor):
-    def init_impl(self, *args, **kwargs):
+    def __init__(self, in_place=False, memoize=False,
+                 show_warnings=True, **kwargs):
+        super().__init__(in_place, memoize, show_warnings, kwargs)
         self.model = FactorAnalysis(**kwargs)
 
     @classmethod

@@ -2,7 +2,7 @@ from sklearn.random_projection import SparseRandomProjection
 from math import sqrt
 
 # Data reduction by SRP
-from paje.module.preprocessing.unsupervised.feature.transformer.feature_reductor import Reductor
+from paje.module.preprocessing.unsupervised.feature.transformer.reductor import Reductor
 
 '''
 This class is an sparse random projections implementation for data reduction.
@@ -35,7 +35,9 @@ rd = srp.apply(2)
 
 
 class DRSRP(Reductor):
-    def init_impl(self, *args, **kwargs):
+    def __init__(self, in_place=False, memoize=False,
+                 show_warnings=True, **kwargs):
+        super().__init__(in_place, memoize, show_warnings, kwargs)
         self.model = SparseRandomProjection(**kwargs)
 
     @classmethod

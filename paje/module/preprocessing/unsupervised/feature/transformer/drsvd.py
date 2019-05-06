@@ -2,7 +2,7 @@ from numpy import diag
 from scipy.sparse.linalg import svds
 
 # Data reduction by SVD
-from paje.module.preprocessing.unsupervised.feature.transformer.feature_reductor import Reductor
+from paje.module.preprocessing.unsupervised.feature.transformer.reductor import Reductor
 
 '''
 Singular value decomposition
@@ -45,7 +45,9 @@ rd = svd.apply(2)
 
 
 class DRSVD(Reductor):
-    def init_impl(self, *args, **kwargs):
+    def __init__(self, in_place=False, memoize=False,
+                 show_warnings=True, **kwargs):
+        super().__init__(in_place, memoize, show_warnings, kwargs)
         u, s, _ = svds(self.x, **kwargs)
         self.model = u @ diag(s)  # If we use V^T in this operation, the pc will have the original dimension
 
