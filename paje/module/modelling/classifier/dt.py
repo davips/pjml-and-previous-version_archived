@@ -7,7 +7,11 @@ from paje.module.modelling.classifier.classifier import Classifier
 
 
 class DT(Classifier):
-    def init_impl(self, **kwargs):
+
+    def __init__(self, in_place=False, memoize=False,
+                 show_warnings=True, **kwargs):
+        super().__init__(in_place, memoize, show_warnings, kwargs)
+
         self.model = DecisionTreeClassifier(**kwargs)
 
     @classmethod

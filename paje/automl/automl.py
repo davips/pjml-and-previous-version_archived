@@ -85,17 +85,11 @@ class AutoML(Component, ABC):
     def next_pipelines(self):
         pass
 
-    @classmethod
-    def hyperpar_spaces_tree_impl(cls, data=None):
-        raise NotImplementedError("AutoML has neither hyper_spaces_tree()\
-                                  (obviously)",
-                                  " nor hyper_spaces_forest()\
-                                  (not so obviously) implemented!")
-
     @abstractmethod
     def next_hyperpar_dicts(self, forest):
         """
-        This method defines the search heuristic and should be implemented by the child class.
+        This method defines the search heuristic and should be implemented by
+        the child class.
         :return: a list of dictionaries or list of nested lists of dictionaries
         """
         pass
@@ -103,3 +97,10 @@ class AutoML(Component, ABC):
     def handle_storage(self, data):
         # TODO: replicate this method to other nesting modules, not only Pipeline and AutoML
         return self.apply_impl(data)
+
+    @classmethod
+    def hyperpar_spaces_tree_impl(cls, data=None):
+        raise NotImplementedError("AutoML has neither hyper_spaces_tree()\
+                                  (obviously)",
+                                  " nor hyper_spaces_forest()\
+                                  (not so obviously) implemented!")

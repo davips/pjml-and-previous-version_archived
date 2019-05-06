@@ -3,11 +3,14 @@ from math import *
 from sklearn.ensemble import AdaBoostClassifier
 
 from paje.base.hps import HPTree
-from paje.module.modelling.classifier import Classifier
+from paje.module.modelling.classifier.classifier import Classifier
 
 
 class AB(Classifier):
-    def init_impl(self, **kwargs):
+    def __init__(self, in_place=False, memoize=False,
+                 show_warnings=True, **kwargs):
+        super().__init__(in_place, memoize, show_warnings, kwargs)
+
         self.model = AdaBoostClassifier(**kwargs)
 
     @classmethod

@@ -6,7 +6,7 @@ from paje.pipeline.pipeline import Pipeline
 class RandomAutoML(AutoML):
 
     def __init__(self, preprocessors=None, modelers=None,
-                 max_iter=2, static=True, fixed=True, max_depth=5,
+                 max_iter=5, static=True, fixed=True, max_depth=5,
                  repetitions=0, method="all", random_state=0,
                  in_place=False, memoize=False, show_warnings=True):
         """

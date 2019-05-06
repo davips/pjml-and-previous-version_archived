@@ -9,8 +9,12 @@ from paje.util.distributions import exponential_integers
 
 
 class KNN(Classifier):
-    def init_impl(self, **kwargs):
-        # Extract n_instances from hps to be available to be used in apply() if neeeded.
+    def __init__(self, in_place=False, memoize=False,
+                 show_warnings=True, **kwargs):
+        super().__init__(in_place, memoize, show_warnings, kwargs)
+
+        # Extract n_instances from hps to be available to be used in apply()
+        # if neeeded.
         self.n_instances = kwargs.get('@n_instances')
         if self.n_instances is not None:
             del kwargs['@n_instances']
@@ -18,9 +22,9 @@ class KNN(Classifier):
 
     def apply_impl(self, data):
         # If data underwent undersampling, rescale k as if its original interval of values was stretched to fit into the new size.
-        if data.n_instances() < self.n_instances:
-            pct = self.model.n_neighbors / self.n_instances
-            self.model.n_neighbors = floor(pct * data.n_instances()) + 1
+        # if data.n_instances() < self.n_instances:
+        #     pct = self.model.n_neighbors / self.n_instances
+        #     self.model.n_neighbors = floor(pct * data.n_instances()) + 1
 
         # Handle complicated distance measures.
         if self.model.metric == 'mahalanobis':
