@@ -44,7 +44,7 @@ class Pipeline(Component):
                     instance.instances
                 ))
             else:
-                forest = instance.hyperpar_spaces_forest(data)
+                forest = instance.hyper_spaces_tree(data)
             bigger_forest.append(forest)
         return bigger_forest
 
@@ -67,8 +67,11 @@ class Pipeline(Component):
                 instance = component
             else:
                 try:
-                    instance = component(**hyperpar_dict, memoize=self.memoize,
-                                         random_state=self.random_state)
+                    if not just_for_tree:
+                        instance = component(**hyperpar_dict, memoize=self.memoize,
+                                             random_state=self.random_state)
+                    else:
+                        instance = component # gambiarra para evitar instanciar sem argumentos (DRFTAG quebra, por exemplo)
                 except:
                     self.error(component)
 
