@@ -19,9 +19,10 @@ from paje.module.preprocessing.unsupervised.feature.scaler. \
 from paje.module.preprocessing.unsupervised.feature import transformer
 from paje.module.modelling import classifier
 
-if len(argv) != 2:
-    print('Usage: \npython toy.py dataset.arff')
+if len(argv) < 2 or len(argv)>3:
+    print('Usage: \npython toy.py dataset.arff [memoize? True/False]')
 else:
+    memoize = False if len(argv) < 3 else bool(argv[2])
     data = Data.read_arff(argv[1], "class")
     X, y = data.data_x, data.data_y
     X_train, X_test, y_train, y_test = \
@@ -31,7 +32,7 @@ else:
 
     n = 2
 
-    automl_rs = RandomAutoML(memoize=False,
+    automl_rs = RandomAutoML(memoize=memoize,
                              preprocessors=default_preprocessors,
                              modelers=default_modelers, max_iter=100, static=False,
                              fixed=False,
