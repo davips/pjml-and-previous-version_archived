@@ -3,7 +3,7 @@ from paje.base.component import Component
 
 class Pipeline(Component):
     # TODO: An empty Pipeline may return perfect predictions.
-    def __init__(self, components, hyperpar_dicts=None, in_place=False,
+    def __init__(self, components, hyperpar_dicts=None, just_for_tree=False, in_place=False,
                  memoize=False, show_warnings=True, **kwargs):
         super().__init__(in_place, memoize, show_warnings, kwargs)
         self.components = components
@@ -12,12 +12,13 @@ class Pipeline(Component):
             self.hyperpar_dicts = [{} for _ in components]
         else:
             self.hyperpar_dicts = hyperpar_dicts
-
+        self.just_for_tree = just_for_tree
         self.instantiate_components()
 
     def apply_impl(self, data):
         for instance in self.instances:
             # useless assignment if aux is set to be inplace
+            print(instance)
             data = instance.apply(data)
         return data
 
@@ -36,7 +37,6 @@ class Pipeline(Component):
 
     def hyperpar_spaces_forest(self, data=None):
         bigger_forest = []
-        self.instantiate_components(just_for_tree=True)
         for instance in self.instances:
             if isinstance(instance, Pipeline):
                 forest = list(map(
@@ -54,20 +54,21 @@ class Pipeline(Component):
         return super().__str__() + "\n" + depth + ("\n" + depth).join(
             str(x) for x in strs)
 
-    def instantiate_components(self, just_for_tree=False):
+    def instantiate_components(self):
         self.instances = []
         zipped = zip(self.components, self.hyperpar_dicts)
         instance = None
+        [print(*z) for z in zip(self.components, self.hyperpar_dicts)]
         for component, hyperpar_dict in zipped:
             if isinstance(component, Pipeline):
-                if not just_for_tree:
+                if not self.just_for_tree:
                     component = Pipeline(component.components, hyperpar_dict,
                                          memoize=self.memoize,
                                          random_state=self.random_state)
                 instance = component
             else:
                 try:
-                    if not just_for_tree:
+                    if not self.just_for_tree:
                         instance = component(**hyperpar_dict, memoize=self.memoize,
                                              random_state=self.random_state)
                     else:
