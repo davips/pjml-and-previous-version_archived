@@ -76,7 +76,7 @@ class RandomAutoML(AutoML):
         return preprocessors[:take] + [random.choice(self.modelers)]
 
     def process(self, errors):
-        if errors[0] < self.best_error:
+        if errors[0] is not None and errors[0] < self.best_error:
             self.best_error = errors[0]
             self.best_pipe = self.curr_pipe
 

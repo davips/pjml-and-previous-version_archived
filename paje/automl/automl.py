@@ -38,7 +38,12 @@ class AutoML(Component, ABC):
             errors = []
             for pipe in pipelines:
                 # TODO:pq passamos data denovo ? OMG
-                error = np.mean(evaluator.eval(pipe, data))
+                try:
+                    error = np.mean(evaluator.eval(pipe, data))
+                except Exception as e:
+                    error = None
+                    print(e)
+                    print()
                 errors.append(error)
                 print(pipe, '\nerror: ', error, '\n')
 
@@ -59,7 +64,7 @@ class AutoML(Component, ABC):
         return self.model.use(data)
 
     @abstractmethod
-    def next_pipelines(self):
+    def next_pipelines(self, data):
         pass
 
     @abstractmethod
