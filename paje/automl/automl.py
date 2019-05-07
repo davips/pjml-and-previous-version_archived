@@ -38,12 +38,7 @@ class AutoML(Component, ABC):
             errors = []
             for pipe in pipelines:
                 # TODO:pq passamos data denovo ? OMG
-                try:
-                    error = np.mean(evaluator.eval(pipe, data))
-                except Exception as e:
-                    error = None
-                    print(e)
-                    print()
+                error = np.mean(evaluator.eval(pipe, data))
                 errors.append(error)
                 print(pipe, '\nerror: ', error, '\n')
 
