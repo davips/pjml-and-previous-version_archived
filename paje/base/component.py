@@ -1,9 +1,9 @@
 """ Component module.
 """
-from abc import ABC, abstractmethod
-from logging import warning
 import json
 import zlib
+from abc import ABC, abstractmethod
+from logging import warning
 
 import numpy as np
 
@@ -42,8 +42,6 @@ class Component(ABC):
         else:
             self.random_state = 0
         np.random.seed(self.random_state)
-
-
 
     @abstractmethod
     def apply_impl(self, data):
@@ -112,7 +110,7 @@ class Component(ABC):
 
     @classmethod
     @abstractmethod
-    def tree_impl(cls, data=None): # previously known as hyper_spaces_tree_impl
+    def tree_impl(cls, data=None):  # previously known as hyper_spaces_tree_impl
         """Todo the doc string
         """
         pass
@@ -125,37 +123,8 @@ class Component(ABC):
         :param data:
         :return: tree
         """
-        try:
-            tree = cls.tree_impl(data)
-            dic = tree.dic
-        except Exception as e:
-            print(e)
-            print()
-            print(cls.__name__, ' <- problematic class')
-            print()
-            raise Exception('Problems with hyperparameter space')
-
-        # TODO: check children also (recursively).
-        try:
-            for k in dic:
-                t = dic[k][0]
-                v = dic[k][1]
-                if t == 'c' or t == 'o':
-                    if not isinstance(v, list):
-                        raise Exception('Categorical and ordinal \
-                                        hyperparameters need a list of \
-                                        values: ' + str(k))
-                else:
-                    if len(v) != 2:
-                        raise Exception('Real and integer hyperparameters \
-                                        need a limit with two \
-                                        values: ' + str(k))
-        except Exception as e:
-            print(e)
-            print()
-            print(cls.__name__)
-            print()
-            raise Exception('Problems with hyperparameter space: ' + str(dic))
+        tree = cls.tree_impl(data)
+        cls.check(tree)
         return tree
 
     @classmethod
@@ -201,3 +170,37 @@ class Component(ABC):
     def __hash__(self):
         return uuid(self.serialized())
 
+    @classmethod
+    def check(cls, tree):
+        try:
+            dic = tree.dic
+        except Exception as e:
+            print(e)
+            print()
+            print(cls.__name__, ' <- problematic class')
+            print()
+            raise Exception('Problems with hyperparameter space')
+
+        try:
+            for k in dic:
+                t = dic[k][0]
+                v = dic[k][1]
+                if t == 'c' or t == 'o':
+                    if not isinstance(v, list):
+                        raise Exception('Categorical and ordinal \
+                                        hyperparameters need a list of \
+                                        values: ' + str(k))
+                else:
+                    if len(v) != 2:
+                        raise Exception('Real and integer hyperparameters \
+                                        need a limit with two \
+                                        values: ' + str(k))
+        except Exception as e:
+            print(e)
+            print()
+            print(cls.__name__)
+            print()
+            raise Exception('Problems with hyperparameter space: ' + str(dic))
+
+        for child in tree.children:
+            cls.check(child)
