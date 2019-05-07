@@ -2,6 +2,7 @@ import numpy as np
 from paje.base.component import Component
 from paje.evaluator.evaluator import Evaluator
 from paje.evaluator.metrics import Metrics
+from paje.module.modelling.classifier.ab import AB
 from paje.module.modelling.classifier.cb import CB
 from paje.module.modelling.classifier.dt import DT
 from paje.module.modelling.classifier.knn import KNN
@@ -29,10 +30,11 @@ from paje.module.preprocessing.unsupervised.feature.transformer.drsrp import DRS
 from paje.module.preprocessing.unsupervised.feature.transformer.drsvd import DRSVD
 from paje.pipeline.pipeline import Pipeline
 
-# TODO: Extract list of all modules automatically from the package module.
-ready_transformers = [DRPCA, DRFA,  DRGRP,  DRPCA, DRSRP]  #TODO: add DRFtAg, DRICA when try/catch is implemented in pipeline execution
+# TODO: Extract list of all modules automatically from the root package module?
+# TODO: add DRFtAg, DRICA when try/catch is implemented in pipeline execution
+ready_classifiers = [CB, DT, KNN, MLP, NB, RF, SVM] # TODO: AB is not ready
+ready_transformers = [DRPCA, DRFA,  DRGRP,  DRPCA, DRSRP]
 ready_scalers = [Equalization, Standard]
-ready_classifiers = [RF, MLP]
 
 default_preprocessors = ready_transformers + ready_scalers
 default_modelers = ready_classifiers
