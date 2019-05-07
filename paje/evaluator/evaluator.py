@@ -6,8 +6,7 @@ from sklearn.model_selection import StratifiedShuffleSplit
 
 
 class Evaluator():
-    def __init__(self, data, metric, split="cv",
-                 steps=10, random_state=0):
+    def __init__(self, metric, split="cv", steps=10, random_state=0):
 
         self.metric = metric
         if split == "cv":

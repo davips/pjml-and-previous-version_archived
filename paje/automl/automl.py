@@ -28,7 +28,7 @@ class AutoML(Component, ABC):
         print('max_iter', self.max_iter, '  max_depth', self.max_depth,
               '  static', self.static, '  fixed', self.fixed,
               '  repetitions', self.repetitions)
-        evaluator = Evaluator(data, Metrics.error, "cv", 3,
+        evaluator = Evaluator(Metrics.error, "cv", 3,
                               self.random_state)
 
         for i in range(self.max_iter):
