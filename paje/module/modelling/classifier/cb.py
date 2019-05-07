@@ -6,8 +6,11 @@ from paje.module.modelling.classifier.classifier import Classifier
 
 
 class CB(Classifier):
-    def init_impl(self, **kwargs):
-        self.model = CatBoostClassifier(**kwargs)
+    def __init__(self, in_place=False, memoize=False,
+                 show_warnings=True, verbose=False, **kwargs):
+        super().__init__(in_place, memoize, show_warnings, kwargs)
+
+        self.model = CatBoostClassifier(**kwargs, verbose=verbose)
 
     # def apply(self, data):
     #     try:
@@ -25,13 +28,13 @@ class CB(Classifier):
         n_estimators = min([500, floor(sqrt(data.n_instances() * data.n_attributes()))])
 
         dic = {
-            'iterations': ['c', [n_estimators]],  # Only to set the default, not for search.
+            'iterations': ['c', [n_estimators]], # Only to set the default, not for search.
             'learning_rate': ['r', [0.000001, 1.0]],
-            'depth': ['z', [1, 16]],  # Docs says 32, but CatBoostError says 16
+            'depth': ['z', [1, 15]],  # Docs says 32, but CatBoostError says 16( but is 15? )
             'l2_leaf_reg': ['r', [0.01, 99999]],
             'loss_function': ['c', ['MultiClass']],
             'border_count': ['z', [1, 255]],
-            'verbose': ['c', [False]],
+            # 'verbose': ['c', [False]],
             # 'ctr_border_count': ['z', [1,255]], # for categorical values
             # 'thread_count'
         }
