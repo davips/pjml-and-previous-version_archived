@@ -50,7 +50,7 @@ class RandomAutoML(AutoML):
         forest = Pipeline(modules, just_for_tree=True).hyperpar_spaces_forest(data)
 
         self.curr_pipe = Pipeline(modules, self.next_hyperpar_dicts(forest),
-                                  random_state=self.random_state)
+                                  random_state=self.random_state, memoize=self.memoize)
         return [self.curr_pipe]
 
     def next_hyperpar_dicts(self, forest):

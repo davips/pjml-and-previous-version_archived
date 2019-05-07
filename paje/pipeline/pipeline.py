@@ -7,12 +7,14 @@ class Pipeline(Component):
                  memoize=False, show_warnings=True, **kwargs):
         super().__init__(in_place, memoize, show_warnings, kwargs)
         self.components = components
+        self.memoize = memoize
 
         if hyperpar_dicts is None:
             self.hyperpar_dicts = [{} for _ in components]
         else:
             self.hyperpar_dicts = hyperpar_dicts
         self.just_for_tree = just_for_tree
+        self.instances = []
         self.instantiate_components()
 
     def apply_impl(self, data):
@@ -54,7 +56,8 @@ class Pipeline(Component):
             str(x) for x in strs)
 
     def instantiate_components(self):
-        self.instances = []
+        if not self.instances :
+            raise Exception('instances list should be empty!')
         zipped = zip(self.components, self.hyperpar_dicts)
         instance = None
         for component, hyperpar_dict in zipped:
