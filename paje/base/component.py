@@ -121,7 +121,7 @@ class Component(ABC):
     def hyper_spaces_tree(cls, data=None):
         """
         Only call this method instead of hyperpar_spaces_forest() if you know
-        what you are doing!
+        what you are doing! (E.g. calling from a classifier)
         :param data:
         :return: tree
         """

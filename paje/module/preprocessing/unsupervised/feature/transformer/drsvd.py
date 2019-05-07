@@ -47,9 +47,16 @@ rd = svd.apply(2)
 class DRSVD(Reductor):
     def __init__(self, in_place=False, memoize=False,
                  show_warnings=True, **kwargs):
+        raise Exception("this module is broken")
         super().__init__(in_place, memoize, show_warnings, kwargs)
-        u, s, _ = svds(self.x, **kwargs)
+        self.model = None  # TODO: this module is broken
+        self.kwargs = kwargs
+
+    def apply_impl(self, data):
+        u, s, _ = svds(data.data_x, **self.kwargs)
         self.model = u @ diag(s)  # If we use V^T in this operation, the pc will have the original dimension
+        data.data_x = self.model  # TODO: this module is broken
+        return data
 
     @classmethod
     def specific_dictionary(cls, data):
