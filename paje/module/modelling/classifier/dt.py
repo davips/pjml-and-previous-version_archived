@@ -15,7 +15,7 @@ class DT(Classifier):
         self.model = DecisionTreeClassifier(**kwargs)
 
     @classmethod
-    def hyperpar_spaces_tree_impl(cls, data=None):
+    def tree_impl(cls, data=None):
         #todo: set random seed
         cls.check_data(data)
         dic = {

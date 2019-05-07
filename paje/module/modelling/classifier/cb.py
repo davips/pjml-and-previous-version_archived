@@ -21,7 +21,7 @@ class CB(Classifier):
     #         self.model = DummyClassifier(strategy='uniform').fit(*data.xy())
 
     @classmethod
-    def hyperpar_spaces_tree_impl(cls, data=None):
+    def tree_impl(cls, data=None):
         #todo: incompatible pipelines: All features are either constant or ignored.
         cls.check_data(data)
         # todo: set random seed

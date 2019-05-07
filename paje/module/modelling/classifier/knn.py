@@ -41,7 +41,7 @@ class KNN(Classifier):
         return super().apply_impl(data)
 
     @classmethod
-    def hyperpar_spaces_tree_impl(cls, data=None):
+    def tree_impl(cls, data=None):
         # Assumes worst case of k-fold CV, i.e. k=2. Undersampling is another problem, handled by @n_instances.
         cls.check_data(data)
         kmax = floor(data.n_instances() / 2 - 1)

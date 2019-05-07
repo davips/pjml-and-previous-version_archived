@@ -30,7 +30,7 @@ class Reductor(Component, ABC):
         return data
 
     @classmethod
-    def hyperpar_spaces_tree_impl(cls, data=None):
+    def tree_impl(cls, data=None):
         cls.check_data(data)
         # TODO: set random_state
         dic = {'n_components': ['z', [1, data.n_attributes()]]}

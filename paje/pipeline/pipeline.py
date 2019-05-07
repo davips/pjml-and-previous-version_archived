@@ -29,23 +29,23 @@ class Pipeline(Component):
         return data
 
     @classmethod
-    def hyperpar_spaces_tree_impl(cls, data=None):
+    def tree_impl(cls, data=None):
         raise NotImplementedError("Pipeline has no method hyper_spaces_tree() \
                                   implemented, because it would depend on the \
                                   constructor parameters. \
                                   hyper_spaces_forest() \
                                   should be called instead!")
 
-    def hyperpar_spaces_forest(self, data=None):
+    def forest(self, data=None): # previously known as hyperpar_spaces_forest
         bigger_forest = []
         for instance in self.instances:
             if isinstance(instance, Pipeline):
                 forest = list(map(
-                    lambda x: x.hyperpar_spaces_forest(data),
+                    lambda x: x.forest(data),
                     instance.instances
                 ))
             else:
-                forest = instance.hyper_spaces_tree(data)
+                forest = instance.tree(data)
             bigger_forest.append(forest)
         return bigger_forest
 

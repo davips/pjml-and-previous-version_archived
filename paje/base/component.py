@@ -55,7 +55,7 @@ class Component(ABC):
         """Todo the doc string
         """
 
-    def handle_in_place(self, data: Data):
+    def handle_inplace(self, data: Data):
         """
         Switch between inplace and 'copying Data'.
         :param data: Data
@@ -83,7 +83,7 @@ class Component(ABC):
     def apply(self, data: Data = None) -> Data:
         """Todo the doc string
         """
-        handled_data = self.handle_in_place(data)
+        handled_data = self.handle_inplace(data)
 
         # Mahalanobis in KNN needs to supress warnings due to NaN in linear
         # algebra calculations. MLP is also verbose due to nonconvergence
@@ -101,7 +101,7 @@ class Component(ABC):
     def use(self, data: Data = None) -> Data:
         """Todo the doc string
         """
-        return self.use_impl(self.handle_in_place(data))
+        return self.use_impl(self.handle_inplace(data))
 
     # @abstractmethod
     # def explain(self, X):
@@ -112,13 +112,13 @@ class Component(ABC):
 
     @classmethod
     @abstractmethod
-    def hyperpar_spaces_tree_impl(cls, data=None):
+    def tree_impl(cls, data=None): # previously known as hyper_spaces_tree_impl
         """Todo the doc string
         """
         pass
 
     @classmethod
-    def hyper_spaces_tree(cls, data=None):
+    def tree(cls, data=None):  # previously known as hyper_spaces_tree
         """
         Only call this method instead of hyperpar_spaces_forest() if you know
         what you are doing! (E.g. calling from a classifier)
@@ -126,7 +126,7 @@ class Component(ABC):
         :return: tree
         """
         try:
-            tree = cls.hyperpar_spaces_tree_impl(data)
+            tree = cls.tree_impl(data)
             dic = tree.dic
         except Exception as e:
             print(e)
@@ -159,8 +159,8 @@ class Component(ABC):
         return tree
 
     @classmethod
-    def print_hyper_spaces_tree(cls, data=None):
-        tree = cls.hyper_spaces_tree(data)
+    def print_tree(cls, data=None):  # previously known as print_hyper_spaces_tree
+        tree = cls.tree(data)
         print(tree)
 
     @classmethod
@@ -169,7 +169,7 @@ class Component(ABC):
             raise Exception(cls.__name__ + ' needs a dataset to be able to \
                             estimate maximum values for some hyperparameters.')
 
-    def hyperpar_spaces_forest(self, data=None) -> HPTree:
+    def forest(self, data=None) -> HPTree:  # previously known as hyperpar_spaces_forest
         """
         This method, hyperpar_spaces_forest(), should be preferred over
         hyper_spaces_tree(),
@@ -178,7 +178,7 @@ class Component(ABC):
         :param data:
         :return: [tree]
         """
-        return self.__class__.hyper_spaces_tree(data)
+        return self.__class__.tree(data)
 
     def __str__(self, depth=''):
         return self.__class__.__name__ + str(self.dict)

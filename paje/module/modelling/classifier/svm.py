@@ -23,7 +23,7 @@ class SVM(Classifier):
             return super().apply_impl(data)
 
     @classmethod
-    def hyperpar_spaces_tree_impl(cls, data=None):
+    def tree_impl(cls, data=None):
         cls.check_data(data)
         # todo: set random seed; set 'cache_size'
         max_iter = data.n_instances()

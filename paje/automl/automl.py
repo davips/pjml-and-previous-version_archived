@@ -68,7 +68,7 @@ class AutoML(Component, ABC):
         pass
 
     @abstractmethod
-    def next_hyperpar_dicts(self, forest):
+    def next_dicts(self, forest):
         """
         This method defines the search heuristic and should be implemented by
         the child class.
@@ -81,7 +81,7 @@ class AutoML(Component, ABC):
         return self.apply_impl(data)
 
     @classmethod
-    def hyperpar_spaces_tree_impl(cls, data=None):
+    def tree_impl(cls, data=None):
         raise NotImplementedError("AutoML has neither hyper_spaces_tree()\
                                   (obviously)",
                                   " nor hyper_spaces_forest()\
