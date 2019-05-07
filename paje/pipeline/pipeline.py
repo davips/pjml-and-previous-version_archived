@@ -17,8 +17,7 @@ class Pipeline(Component):
 
     def apply_impl(self, data):
         for instance in self.instances:
-            # useless assignment if aux is set to be inplace
-            print(instance)
+            # useless assignment if it is set to be inplace
             data = instance.apply(data)
         return data
 
@@ -58,7 +57,6 @@ class Pipeline(Component):
         self.instances = []
         zipped = zip(self.components, self.hyperpar_dicts)
         instance = None
-        [print(*z) for z in zip(self.components, self.hyperpar_dicts)]
         for component, hyperpar_dict in zipped:
             if isinstance(component, Pipeline):
                 if not self.just_for_tree:
