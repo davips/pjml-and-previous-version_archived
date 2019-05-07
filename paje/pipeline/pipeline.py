@@ -56,7 +56,8 @@ class Pipeline(Component):
             str(x) for x in strs)
 
     def instantiate_components(self):
-        if not self.instances :
+        if len(self.instances) > 0:
+            print(self.instances)
             raise Exception('instances list should be empty!')
         zipped = zip(self.components, self.hyperpar_dicts)
         instance = None
@@ -73,7 +74,7 @@ class Pipeline(Component):
                         instance = component(**hyperpar_dict, memoize=self.memoize,
                                              random_state=self.random_state)
                     else:
-                        instance = component # gambiarra para evitar instanciar sem argumentos (DRFTAG quebra, por exemplo)
+                        instance = component  # gambiarra para evitar instanciar sem argumentos (DRFTAG quebra, por exemplo)
                 except:
                     self.error(component)
 

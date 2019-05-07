@@ -57,7 +57,7 @@ class AutoML(Component, ABC):
         pass
 
     @abstractmethod
-    def process(self):
+    def process(self, errors):
         pass
 
     def use_impl(self, data):
