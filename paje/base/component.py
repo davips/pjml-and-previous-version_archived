@@ -125,8 +125,16 @@ class Component(ABC):
         :param data:
         :return: tree
         """
-        tree = cls.hyperpar_spaces_tree_impl(data)
-        dic = tree.dic
+        try:
+            tree = cls.hyperpar_spaces_tree_impl(data)
+            dic = tree.dic
+        except Exception as e:
+            print(e)
+            print()
+            print(cls.__name__, ' <- problematic class')
+            print()
+            raise Exception('Problems with hyperparameter space')
+
         # TODO: check children also (recursively).
         try:
             for k in dic:
@@ -144,6 +152,8 @@ class Component(ABC):
                                         values: ' + str(k))
         except Exception as e:
             print(e)
+            print()
+            print(cls.__name__)
             print()
             raise Exception('Problems with hyperparameter space: ' + str(dic))
         return tree
