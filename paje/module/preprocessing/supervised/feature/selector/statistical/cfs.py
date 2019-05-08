@@ -5,7 +5,10 @@ import pandas as pd
 
 
 class FilterCFS(Filter):
-    def init_impl(self):
+    def __init__(self, in_place=False, memoize=False,
+                 show_warnings=True, **kwargs):
+        super().__init__(in_place, memoize, show_warnings, kwargs)
+
         self.__rank = self.__score = self.idx = None
 
     def rank(self):

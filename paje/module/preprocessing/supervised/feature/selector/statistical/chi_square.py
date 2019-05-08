@@ -8,8 +8,10 @@ import math
 
 class FilterChiSquare(Filter):
     """  """
+    def __init__(self, ratio=0.8, in_place=False, memoize=False,
+                 show_warnings=True, **kwargs):
+        super().__init__(in_place, memoize, show_warnings, kwargs)
 
-    def init_impl(self, ratio=0.8):
         check_float('ratio', ratio, 0.0, 1.0)
         self.ratio = ratio
         self.rank = self.score = None
