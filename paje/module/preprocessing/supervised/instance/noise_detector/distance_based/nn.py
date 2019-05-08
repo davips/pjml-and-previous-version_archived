@@ -4,6 +4,7 @@ import numpy as np
 from collections import Counter
 from sklearn.neighbors import KNeighborsClassifier
 
+# TODO: port this to Pajé
 def ENN(X, y, k):
 
     neigh = KNeighborsClassifier(n_neighbors=k, weights='uniform', 
