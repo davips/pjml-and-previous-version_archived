@@ -3,11 +3,14 @@ from paje.base.component import Component
 
 class Pipeline(Component):
     # TODO: An empty Pipeline may return perfect predictions.
-    def __init__(self, components, hyperpar_dicts=None, just_for_tree=False, in_place=False,
-                 memoize=False, show_warnings=True, **kwargs):
+    def __init__(self, components=None, hyperpar_dicts=None, just_for_tree=False,
+                 in_place=False, memoize=False, show_warnings=True, **kwargs):
         super().__init__(in_place, memoize, show_warnings, kwargs)
+        if components is None:
+            components = []
         self.components = components
         self.memoize = memoize
+        self.random_state = kwargs['random_state'] if 'random_state' in kwargs else 0
 
         if hyperpar_dicts is None:
             self.hyperpar_dicts = [{} for _ in components]
@@ -36,7 +39,7 @@ class Pipeline(Component):
                                   hyper_spaces_forest() \
                                   should be called instead!")
 
-    def forest(self, data=None): # previously known as hyperpar_spaces_forest
+    def forest(self, data=None):  # previously known as hyperpar_spaces_forest
         bigger_forest = []
         for instance in self.instances:
             if isinstance(instance, Pipeline):

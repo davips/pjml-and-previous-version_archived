@@ -35,7 +35,7 @@ class MLP(Classifier):
         cls.check_data(data)
         # todo: set random seed
         max_free_parameters = int(data.n_instances() / (data.n_attributes() +
-                                                         data.n_classes()))
+                                                        data.n_classes()))
         dic = {
             'alpha': ['o', [0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000]],  # https://scikit-learn.org/stable/auto_examples/neural_networks/plot_mlp_alpha.html
             'max_iter': ['z', [1, 10000]],  # 'Number of epochs'/'gradient steps'.
@@ -112,4 +112,3 @@ class MLP(Classifier):
         tree = HPTree(dic, children=[solver_non_newton, solver_lbfgs])
 
         return tree
-

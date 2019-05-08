@@ -55,3 +55,6 @@ class KNN(Classifier):
             '@n_instances': ['c', [data.n_instances()]]
         }
         return HPTree(dic, children=[])
+
+    def isdeterministic(self):
+        return True

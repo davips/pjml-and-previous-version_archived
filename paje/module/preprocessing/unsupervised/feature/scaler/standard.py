@@ -22,3 +22,6 @@ class Standard(Scaler):
             '@with_mean/std': ['c', [(True, False), (False, True), (True, True)]]  # (False, False) seems to be useless
         }
         return HPTree(dic, children=[])
+
+    def isdeterministic(self):
+        return True

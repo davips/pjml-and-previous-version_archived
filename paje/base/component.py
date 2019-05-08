@@ -36,12 +36,8 @@ class Component(ABC):
         self.dict = kwargs
         self.already_serialized = None
 
-        if 'random_state' in kwargs:
-            self.random_state = kwargs['random_state']
+        if 'random_state' in kwargs and self.isdeterministic():
             del kwargs['random_state']
-        else:
-            self.random_state = 0
-        np.random.seed(self.random_state)
 
     @abstractmethod
     def apply_impl(self, data):
@@ -204,3 +200,10 @@ class Component(ABC):
 
         for child in tree.children:
             cls.check(child)
+
+    def isdeterministic(self):
+        """
+        Whether this class will brake if a random_state is given.
+        :return:
+        """
+        return False

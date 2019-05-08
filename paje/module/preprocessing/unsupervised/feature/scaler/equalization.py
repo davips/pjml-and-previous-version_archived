@@ -16,3 +16,6 @@ class Equalization(Scaler):
             'feature_range': ['c', [(-1, 1), (0, 1)]],
         }
         return HPTree(dic, children=[])
+
+    def isdeterministic(self):
+        return True
