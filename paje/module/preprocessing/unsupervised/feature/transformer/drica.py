@@ -39,12 +39,8 @@ rd = ica.apply(2)
 
 
 class DRICA(Reductor):
-    def __init__(self, in_place=False, memoize=False,
-                 show_warnings=True, **kwargs):
-        super().__init__(in_place, memoize, show_warnings, kwargs)
-        print('sadfsad alguma-----------------------------------')
-
-        self.model = FastICA(**kwargs)
+    def instantiate_impl(self):
+        self.model = FastICA(**self.dic)
 
     @classmethod
     def specific_dictionary(cls, data):

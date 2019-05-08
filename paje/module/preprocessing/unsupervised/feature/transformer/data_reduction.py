@@ -109,8 +109,8 @@ return: redimensioned table of features
 
 Example:
 import [main folder name in which data_reduction.py is localized].preprocessing
-.data_reduction as dr # Ex.: from AutoGenMR.preprocessing import data_reduction as dr
-import pandas as pd
+.data_reduction as dr # Ex.: from AutoGenMR.preprocessing import data_reduction
+ as dr import pandas as pd
 
 col_names = 
 ['sepal length', 'sepal width', 'petal length', 'petal width', 'target']
@@ -228,8 +228,8 @@ return: redimensioned table of features
 
 Example:
 import [main folder name in which data_reduction.py is localized].preprocessing
-.data_reduction as dr # Ex.: from AutoGenMR.preprocessing import data_reduction as dr
-import pandas as pd
+.data_reduction as dr # Ex.: from AutoGenMR.preprocessing import data_reduction
+ as dr import pandas as pd
 
 col_names = 
 ['sepal length', 'sepal width', 'petal length', 'petal width', 'target']
@@ -276,8 +276,8 @@ return: redimensioned table of features
 
 Example:
 import [main folder name in which data_reduction.py is localized].preprocessing
-.data_reduction as dr # Ex.: from AutoGenMR.preprocessing import data_reduction as dr
-import pandas as pd
+.data_reduction as dr # Ex.: from AutoGenMR.preprocessing import data_reduction
+ as dr import pandas as pd
 
 col_names = 
 ['sepal length', 'sepal width', 'petal length', 'petal width', 'target']
@@ -325,8 +325,8 @@ return: redimensioned table of features
 
 Example:
 import [main folder name in which data_reduction.py is localized].preprocessing
-.data_reduction as dr # Ex.: from AutoGenMR.preprocessing import data_reduction as dr
-import pandas as pd
+.data_reduction as dr # Ex.: from AutoGenMR.preprocessing import data_reduction
+ as dr import pandas as pd
 
 col_names = 
 ['sepal length', 'sepal width', 'petal length', 'petal width', 'target']
@@ -372,8 +372,8 @@ return: redimensioned table of features
 
 Example:
 import [main folder name in which data_reduction.py is localized].preprocessing
-.data_reduction as dr # Ex.: from AutoGenMR.preprocessing import data_reduction as dr
-import pandas as pd
+.data_reduction as dr # Ex.: from AutoGenMR.preprocessing import data_reduction
+ as dr import pandas as pd
 
 col_names = 
 ['sepal length', 'sepal width', 'petal length', 'petal width', 'target']

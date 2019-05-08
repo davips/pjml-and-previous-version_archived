@@ -1,8 +1,8 @@
 from sklearn.cluster import FeatureAgglomeration
 
 # Data reduction by feature agglomeration
-from paje.module.preprocessing.unsupervised.feature.transformer.reductor import Reductor
-
+from paje.module.preprocessing.unsupervised.feature.transformer.reductor import \
+    Reductor
 
 '''
 Feature agglomeration
@@ -34,15 +34,15 @@ rd = fa.apply(2)
 
 
 class DRFtAg(Reductor):
-    def __init__(self, in_place=False, memoize=False,
-                 show_warnings=True, **kwargs):
-        super().__init__(in_place, memoize, show_warnings, kwargs)
-        if kwargs['linkage'] == 'ward':
-            kwargs['affinity'] = 'euclidean'
-        kwargs['n_clusters'] = kwargs.pop('n_components')  # Replace key name.
-        self.model = FeatureAgglomeration(**kwargs)
+    def instantiate_impl(self):
+        newdic = self.dic.copy()
+        if newdic['linkage'] == 'ward':
+            newdic['affinity'] = 'euclidean'
+        newdic['n_clusters'] = newdic.pop('n_components')  # Replace key name.
+        self.model = FeatureAgglomeration(**newdic)
 
     @classmethod
     def specific_dictionary(cls, data):
-        return {'affinity': ['c', ['euclidean', 'l1', 'l2', 'manhattan', 'cosine', 'precomputed']],
+        dists = ['euclidean', 'l1', 'l2', 'manhattan', 'cosine', 'precomputed']
+        return {'affinity': ['c', dists],
                 'linkage': ['c', ['ward', 'complete', 'average', 'single']]}

@@ -13,17 +13,19 @@ class Reductor(Component, ABC):
         if self.model.n_components > max_components:
             self.warning(self.__class__.__name__ + '. Too many components ' +
                          str(self.model.n_components) +
-                         ' to select from too few attributes or instances ' + str(max_components))
+                         ' to select from too few attributes or instances ' +
+                         str(max_components))
             self.model.n_components = max_components
             if hasattr(self.model, 'n_clusters'):  # DRFTAG changes terminology
                 self.model.n_clusters = max_components
 
-        # TODO: DRFTAG breaks when: Found array with 1 feature(s) (shape=(49, 1)) while a minimum of 2 is required by FeatureAgglomeration.
+        # TODO: DRFTAG breaks when: Found array with 1 feature(s)
+        #  (shape=(49, 1)) while a minimum of 2 is required by
+        #  FeatureAgglomeration.
         # TODO: DRICA ValueError: array must not contain infs or NaNs
 
         self.model.fit(data.data_x)
-        data.data_x = self.model.transform(data.data_x)
-        return data
+        return self.use(data)
 
     def use_impl(self, data):
         data.data_x = self.model.transform(data.data_x)

@@ -1,7 +1,8 @@
 from sklearn.decomposition import PCA
 
 # Data reduction by PCA
-from paje.module.preprocessing.unsupervised.feature.transformer.reductor import Reductor
+from paje.module.preprocessing.unsupervised.feature.transformer.reductor import \
+    Reductor
 
 '''
 This class is a PCA (principal component analysis) implementation for data reduction.
@@ -53,23 +54,19 @@ rd = pca.apply(2)
 
 
 class DRPCA(Reductor):
-    def __init__(self, in_place=False, memoize=False,
-                 show_warnings=True, **kwargs):
-        super().__init__(in_place, memoize, show_warnings, kwargs)
-        # TODO: if StandardScaler is obligatory for PCA use,
-        #  we need to integrate this kind of requirement into the Pajé architecture
-        #  or define a PCA = pipeline(Standard, DRPCA)
+    # TODO: if StandardScaler is obligatory for PCA use,
+    #  we need to integrate this kind of requirement into the Pajé architecture
+    #  or define a PCA = pipeline(Standard, DRPCA)
 
-        # # standardize features: PCA is sensible to the measure scale
-        # self.x = StandardScaler().fit_transform(self.x)
+    # # standardize features: PCA is sensible to the measure scale
+    # self.x = StandardScaler().fit_transform(self.x)
+
+    def instantiate_impl(self):
+        # TODO: check if random_state is useful for PCA
+        newdic = self.dic.copy()
+        del newdic['random_state']
+        self.model = PCA(**newdic)
 
     @classmethod
     def specific_dictionary(cls, data):
         return {}
-
-    def isdeterministic(self):
-        # TODO: check if random_state is useful for PCA
-        return True
-
-    def instantiate_model(self):
-        self.model = PCA(**self.dict)

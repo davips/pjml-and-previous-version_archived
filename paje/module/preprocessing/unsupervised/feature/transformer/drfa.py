@@ -105,10 +105,8 @@ rd = fa.apply(2)
 
 
 class DRFA(Reductor):
-    def __init__(self, in_place=False, memoize=False,
-                 show_warnings=True, **kwargs):
-        super().__init__(in_place, memoize, show_warnings, kwargs)
-        self.model = FactorAnalysis(**kwargs)
+    def instantiate_impl(self):
+        self.model = FactorAnalysis(**self.dic)
 
     @classmethod
     def specific_dictionary(cls, data):
