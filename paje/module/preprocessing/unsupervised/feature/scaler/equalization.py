@@ -5,9 +5,10 @@ from paje.module.preprocessing.unsupervised.feature.scaler.scaler import Scaler
 
 
 class Equalization(Scaler):
-    def __init__(self, in_place=False, memoize=False,
-                 show_warnings=True, **kwargs):
-        super().__init__(in_place, memoize, show_warnings, kwargs)
+    def instantiate_impl(self):
+        newdic = self.dic.copy()
+        del newdic['random_state']
+        self.model = MinMaxScaler(**newdic)
 
     @classmethod
     def tree_impl(cls, data=None):
@@ -15,9 +16,3 @@ class Equalization(Scaler):
             'feature_range': ['c', [(-1, 1), (0, 1)]],
         }
         return HPTree(dic, children=[])
-
-    def isdeterministic(self):
-        return True
-
-    def instantiate_model(self):
-        self.model = MinMaxScaler(**self.dict)

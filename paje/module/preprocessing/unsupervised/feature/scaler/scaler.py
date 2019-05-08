@@ -1,15 +1,14 @@
 """ Scaler Module
 """
-import numpy as np
+from abc import ABC
+
 from paje.base.component import Component
 
 
-class Scaler(Component):
-
+class Scaler(Component, ABC):
     def apply_impl(self, data):
         # self.model will be set in the child class
         self.model.fit(*data.xy())
-
         return self.use(data)
 
     def use_impl(self, data):
