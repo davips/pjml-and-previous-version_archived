@@ -8,8 +8,6 @@ from paje.module.modelling.classifier.classifier import Classifier
 class MLP(Classifier):
     def __init__(self, in_place=False, memoize=False,
                  show_warnings=True, **kwargs):
-        super().__init__(in_place, memoize, show_warnings, kwargs)
-
         # Convert '@' hyperparameters to sklearn format.
         n_hidden_layers = 0
         new_kwargs = kwargs.copy()
@@ -28,7 +26,7 @@ class MLP(Classifier):
             values = (l[1], l[2], l[3])
         if sum(l) > 0:
             new_kwargs['hidden_layer_sizes'] = values
-        self.model = MLPClassifier(**new_kwargs)
+        super().__init__(in_place, memoize, show_warnings, new_kwargs)
 
     @classmethod
     def tree_impl(cls, data=None):
@@ -112,3 +110,6 @@ class MLP(Classifier):
         tree = HPTree(dic, children=[solver_non_newton, solver_lbfgs])
 
         return tree
+
+    def instantiate_model(self):
+        self.model = MLPClassifier(**self.dict)

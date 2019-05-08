@@ -8,7 +8,6 @@ class Equalization(Scaler):
     def __init__(self, in_place=False, memoize=False,
                  show_warnings=True, **kwargs):
         super().__init__(in_place, memoize, show_warnings, kwargs)
-        self.model = MinMaxScaler(**kwargs)
 
     @classmethod
     def tree_impl(cls, data=None):
@@ -19,3 +18,6 @@ class Equalization(Scaler):
 
     def isdeterministic(self):
         return True
+
+    def instantiate_model(self):
+        self.model = MinMaxScaler(**self.dict)

@@ -114,10 +114,10 @@ class SQLite(Cache):
             # Processing and inserting a new combination.
             train_hash = train.__hash__() # These two lines must be done, because train can be mutable during f().
             train_dump = SQLite.pack(train)
-            trainout = f(train)
             if not self.setexists(train):
                 self.query("insert into dset values (?, ?)",
                            [train_hash, train_dump])
+            trainout = f(train)
             if not self.argsexist(component):
                 self.query("insert into args values (?, ?)",
                            [component.__hash__(), component.serialized()])

@@ -20,7 +20,7 @@ class Component(ABC):
     def __init__(self, in_place=False, memoize=False,
                  show_warnings=True, kwargs={}):
 
-        # Model here refers to classifiers, preprocessors and, possibly, some
+        # self.model here refers to classifiers, preprocessors and, possibly, some
         # representation of pipelines or the autoML itself.
         self.model = None
 
@@ -38,6 +38,8 @@ class Component(ABC):
 
         if 'random_state' in kwargs and self.isdeterministic():
             del kwargs['random_state']
+
+        self.instantiate_model()
 
     @abstractmethod
     def apply_impl(self, data):
@@ -207,3 +209,7 @@ class Component(ABC):
         :return:
         """
         return False
+
+    @abstractmethod
+    def instantiate_model(self):
+        pass

@@ -11,8 +11,6 @@ class SVM(Classifier):
                  show_warnings=True, **kwargs):
         super().__init__(in_place, memoize, show_warnings, kwargs)
 
-        self.model = NuSVC(**kwargs)
-
     def apply_impl(self, data):
         try:
             return super().apply_impl(data)
@@ -56,3 +54,8 @@ class SVM(Classifier):
         kernel_nonlinear = HPTree({'gamma': ['r', [0.00001, 100]]}, children=[kernel_poly, kernel_rbf, kernel_sigmoid])
 
         return HPTree(dic, children=[kernel_linear, kernel_nonlinear])
+
+    def instantiate_model(self):
+        self.model = NuSVC(**self.dict)
+
+

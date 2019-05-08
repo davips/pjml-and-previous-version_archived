@@ -81,3 +81,6 @@ class AutoML(Component, ABC):
                                   (obviously)",
                                   " nor hyper_spaces_forest()\
                                   (not so obviously) implemented!")
+
+    def instantiate_model(self):
+        self.model = None

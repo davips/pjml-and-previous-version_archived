@@ -87,3 +87,6 @@ class Pipeline(Component):
         # TODO: replicate this method to other nesting modules, not only
         # Pipeline and AutoML
         return self.apply_impl(data)
+
+    def instantiate_model(self):
+        self.model = None

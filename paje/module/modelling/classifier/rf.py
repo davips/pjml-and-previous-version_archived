@@ -10,7 +10,6 @@ class RF(Classifier):
     def __init__(self, in_place=False, memoize=False,
                  show_warnings=True, **kwargs):
         super().__init__(in_place, memoize, show_warnings, kwargs)
-        self.model = RandomForestClassifier(n_jobs=2, **kwargs)
 
     @classmethod
     def tree_impl(cls, data=None):
@@ -31,3 +30,6 @@ class RF(Classifier):
                # See DT.py for more details about other settings.
                }
         return HPTree(dic, children=[])
+
+    def instantiate_model(self):
+        self.model = RandomForestClassifier(n_jobs=2, **self.dict)
