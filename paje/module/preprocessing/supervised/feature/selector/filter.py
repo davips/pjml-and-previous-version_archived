@@ -1,17 +1,31 @@
-from abc import ABC, abstractmethod
+from abc import ABC
 
 from paje.base.component import Component
+from paje.base.hps import HPTree
 
 
 class Filter(Component, ABC):
     """ Filter base class"""
+    def instantiate_impl(self):
+        self.ratio = self.dic['ratio']
+        self.rank = self.score = self.nro_features = None
 
-    @abstractmethod
+    def use_impl(self, data):
+        data.data_x = data.data_x[:, self.selected()]
+        return data
+
     def rank(self):
-        """Todo the docs string
-        """
+        return self.__rank
 
-    @abstractmethod
     def score(self):
-        """Todo the docs string
-        """
+        return self.__score
+
+    def selected(self):
+        return self.__rank[0:self.nro_features]
+
+    @classmethod
+    def tree_impl(cls, data=None):
+        return HPTree(
+            # TODO: check if it would be better to adopt a 'z' hyperparameter
+            dic={'ratio': ['r', [1e-05, 1]]},
+            children=[])
