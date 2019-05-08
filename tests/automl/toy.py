@@ -30,11 +30,9 @@ else:
     data_train = Data(X_train, y_train)
     data_test = Data(X_test, y_test)
 
-    n = 2
-
     automl_rs = RandomAutoML(memoize=memoize,
                              preprocessors=default_preprocessors,
-                             modelers=default_modelers, max_iter=100, static=False,
+                             modelers=default_modelers, max_iter=10, static=False,
                              fixed=False,
                              max_depth=15, repetitions=2, method="all",
                              show_warnings=False, random_state=1)
