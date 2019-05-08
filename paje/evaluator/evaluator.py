@@ -35,7 +35,8 @@ class Evaluator():
                 # TODO: we are assuming that eval is minimizing an error measure
                 error = 9999
                 print(e)
-                print()
+                print(component)
+                raise e
             perfs.append(error)
 
         return perfs

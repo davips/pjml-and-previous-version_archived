@@ -107,7 +107,7 @@ class SQLite(Cache):
         model = self.get_model(component, train)
         if model is not None:
             # Restoring from database.
-            print('# Restoring from database.')
+            # print('# Restoring from database.')
             component.model = model
             res = component.use(train)
         else:

@@ -12,8 +12,8 @@ class KNN(Classifier):
     def instantiate_impl(self):
         # Extract n_instances from hps to be available to be used in apply()
         # if neeeded.
+        del self.dic['random_state']
         newdic = self.dic.copy()
-        del newdic['random_state']
         self.n_instances = newdic.get('@n_instances')
         if self.n_instances is not None:
             del newdic['@n_instances']
