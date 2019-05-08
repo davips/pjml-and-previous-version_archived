@@ -11,8 +11,6 @@ class SVM(Classifier):
                  show_warnings=True, **kwargs):
         super().__init__(in_place, memoize, show_warnings, kwargs)
 
-        self.model = NuSVC(**kwargs)
-
     def apply_impl(self, data):
         try:
             return super().apply_impl(data)
@@ -23,7 +21,7 @@ class SVM(Classifier):
             return super().apply_impl(data)
 
     @classmethod
-    def hyperpar_spaces_tree_impl(cls, data=None):
+    def tree_impl(cls, data=None):
         cls.check_data(data)
         # todo: set random seed; set 'cache_size'
         max_iter = data.n_instances()
@@ -56,3 +54,8 @@ class SVM(Classifier):
         kernel_nonlinear = HPTree({'gamma': ['r', [0.00001, 100]]}, children=[kernel_poly, kernel_rbf, kernel_sigmoid])
 
         return HPTree(dic, children=[kernel_linear, kernel_nonlinear])
+
+    def instantiate_model(self):
+        self.model = NuSVC(**self.dict)
+
+

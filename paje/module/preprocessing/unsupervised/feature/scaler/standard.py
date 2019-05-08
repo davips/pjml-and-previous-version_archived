@@ -17,8 +17,11 @@ class Standard(Scaler):
         self.model = StandardScaler(with_mean, with_std, **kwargs)
 
     @classmethod
-    def hyperpar_spaces_tree_impl(cls, data=None):
+    def tree_impl(cls, data=None):
         dic = {
             '@with_mean/std': ['c', [(True, False), (False, True), (True, True)]]  # (False, False) seems to be useless
         }
         return HPTree(dic, children=[])
+
+    def isdeterministic(self):
+        return True

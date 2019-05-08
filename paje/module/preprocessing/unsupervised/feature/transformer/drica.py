@@ -1,10 +1,8 @@
 from sklearn.decomposition import FastICA
 
-from paje.base.component import Component
-from paje.base.hps import HPTree
-from paje.data.data import Data
-
 # Data reduction by ICA
+from paje.module.preprocessing.unsupervised.feature.transformer.reductor import Reductor
+
 '''
 This class is a ICA (independent component analysis) implementation for data reduction.
 
@@ -40,23 +38,14 @@ rd = ica.apply(2)
 '''
 
 
-class DRICA(Component):
-    def __init__(self, data):
-        self.x, self.y = data.xy()
-        self.att_labels = data.columns
+class DRICA(Reductor):
+    def __init__(self, in_place=False, memoize=False,
+                 show_warnings=True, **kwargs):
+        super().__init__(in_place, memoize, show_warnings, kwargs)
+        print('sadfsad alguma-----------------------------------')
 
-    def apply_impl(self, n_components):
-        ica = FastICA(n_components=n_components, random_state=0)
-        pc = ica.fit_transform(self.x)
-
-        return Data(pc, self.y)
-
-    def use_impl(self, data):
-        pass
+        self.model = FastICA(**kwargs)
 
     @classmethod
-    def hyperpar_spaces_tree_impl(cls, data=None):
-        cls.check_data(data)
-        return HPTree(
-            dic={'n_components': ['z', [1, data.n_attributes()]]},
-            children=[])
+    def specific_dictionary(cls, data):
+        return {}

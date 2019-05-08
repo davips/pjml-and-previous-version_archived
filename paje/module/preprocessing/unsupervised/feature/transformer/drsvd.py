@@ -2,7 +2,8 @@ from numpy import diag
 from scipy.sparse.linalg import svds
 
 # Data reduction by SVD
-from paje.module.preprocessing.unsupervised.feature.transformer.feature_reductor import Reductor
+from paje.module.preprocessing.unsupervised.feature.transformer.reductor \
+    import Reductor
 
 '''
 Singular value decomposition
@@ -45,9 +46,19 @@ rd = svd.apply(2)
 
 
 class DRSVD(Reductor):
-    def init_impl(self, *args, **kwargs):
-        u, s, _ = svds(self.x, **kwargs)
-        self.model = u @ diag(s)  # If we use V^T in this operation, the pc will have the original dimension
+    def __init__(self, in_place=False, memoize=False,
+                 show_warnings=True, **kwargs):
+        raise Exception("this module is broken")
+        super().__init__(in_place, memoize, show_warnings, kwargs)
+        self.model = None  # TODO: this module is broken
+        self.kwargs = kwargs
+
+    def apply_impl(self, data):
+        u, s, _ = svds(data.data_x, **self.kwargs)
+        # If we use V^T in this operation, pc will have the original dimension
+        self.model = u @ diag(s)
+        data.data_x = self.model  # TODO: this module is broken
+        return data
 
     @classmethod
     def specific_dictionary(cls, data):

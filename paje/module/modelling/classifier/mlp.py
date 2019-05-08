@@ -8,8 +8,6 @@ from paje.module.modelling.classifier.classifier import Classifier
 class MLP(Classifier):
     def __init__(self, in_place=False, memoize=False,
                  show_warnings=True, **kwargs):
-        super().__init__(in_place, memoize, show_warnings, kwargs)
-
         # Convert '@' hyperparameters to sklearn format.
         n_hidden_layers = 0
         new_kwargs = kwargs.copy()
@@ -28,14 +26,14 @@ class MLP(Classifier):
             values = (l[1], l[2], l[3])
         if sum(l) > 0:
             new_kwargs['hidden_layer_sizes'] = values
-        self.model = MLPClassifier(**new_kwargs)
+        super().__init__(in_place, memoize, show_warnings, new_kwargs)
 
     @classmethod
-    def hyperpar_spaces_tree_impl(cls, data=None):
+    def tree_impl(cls, data=None):
         cls.check_data(data)
         # todo: set random seed
         max_free_parameters = int(data.n_instances() / (data.n_attributes() +
-                                                         data.n_classes()))
+                                                        data.n_classes()))
         dic = {
             'alpha': ['o', [0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000, 10000]],  # https://scikit-learn.org/stable/auto_examples/neural_networks/plot_mlp_alpha.html
             'max_iter': ['z', [1, 10000]],  # 'Number of epochs'/'gradient steps'.
@@ -113,3 +111,5 @@ class MLP(Classifier):
 
         return tree
 
+    def instantiate_model(self):
+        self.model = MLPClassifier(**self.dict)

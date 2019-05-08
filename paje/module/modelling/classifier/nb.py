@@ -9,9 +9,10 @@ class NB(Classifier):
                  show_warnings=True, **kwargs):
         super().__init__(in_place, memoize, show_warnings, kwargs)
 
-        self.model = GaussianNB()
-
     @classmethod
-    def hyperpar_spaces_tree_impl(cls, data=None):
+    def tree_impl(cls, data=None):
         dic = {}
         return HPTree(dic, children=[])
+
+    def instantiate_model(self):
+        self.model = GaussianNB()

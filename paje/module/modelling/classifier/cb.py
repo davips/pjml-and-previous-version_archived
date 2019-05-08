@@ -8,9 +8,8 @@ from paje.module.modelling.classifier.classifier import Classifier
 class CB(Classifier):
     def __init__(self, in_place=False, memoize=False,
                  show_warnings=True, verbose=False, **kwargs):
+        self.verbose = verbose
         super().__init__(in_place, memoize, show_warnings, kwargs)
-
-        self.model = CatBoostClassifier(**kwargs, verbose=verbose)
 
     # def apply(self, data):
     #     try:
@@ -20,15 +19,19 @@ class CB(Classifier):
     #             print('Falling back to random classifier, if there are convergence problems (bad "nu" value, for instance).')
     #         self.model = DummyClassifier(strategy='uniform').fit(*data.xy())
 
+    def instantiate_model(self):
+        self.model = CatBoostClassifier(**self.dict, verbose=self.verbose)
+
     @classmethod
-    def hyperpar_spaces_tree_impl(cls, data=None):
+    def tree_impl(cls, data=None):
+        # todo: inconsistent pipelines: All features are either constant or ignored.
         cls.check_data(data)
         # todo: set random seed
         data_for_speed = {'iterations': ['z', [2, 1000]]}  # Entre outros
         n_estimators = min([500, floor(sqrt(data.n_instances() * data.n_attributes()))])
 
         dic = {
-            'iterations': ['c', [n_estimators]], # Only to set the default, not for search.
+            'iterations': ['c', [n_estimators]],  # Only to set the default, not for search.
             'learning_rate': ['r', [0.000001, 1.0]],
             'depth': ['z', [1, 15]],  # Docs says 32, but CatBoostError says 16( but is 15? )
             'l2_leaf_reg': ['r', [0.01, 99999]],

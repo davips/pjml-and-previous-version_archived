@@ -3,6 +3,7 @@ import random
 from paje.automl.automl import AutoML
 from paje.pipeline.pipeline import Pipeline
 
+
 class RandomAutoML(AutoML):
 
     def __init__(self, preprocessors=None, modelers=None,
@@ -44,20 +45,20 @@ class RandomAutoML(AutoML):
         random.seed(self.random_state)
 
     def next_pipelines(self, data):
-        modules = self.static_pipeline\
-                if self.static else self.choose_modules()
-        forest = Pipeline(modules).hyperpar_spaces_forest(data)
+        modules = self.static_pipeline \
+            if self.static else self.choose_modules()
+        forest = Pipeline(modules, just_for_tree=True).forest(data)
 
-        self.curr_pipe = Pipeline(modules, self.next_hyperpar_dicts(forest),
-                                  self.random_state)
+        self.curr_pipe = Pipeline(modules, self.next_dicts(forest),
+                                  random_state=self.random_state, memoize=self.memoize)
         return [self.curr_pipe]
 
-    def next_hyperpar_dicts(self, forest):
+    def next_dicts(self, forest): # previously known as next_hyperpar_dicts
         # Defines search space (space of hyperparameter spaces).
         dics = []
         if isinstance(forest, list):
             for item in forest:
-                dics.append(self.next_hyperpar_dicts(item))
+                dics.append(self.next_dicts(item))
             return dics
         else:
             return forest.tree_to_dict()
@@ -68,14 +69,14 @@ class RandomAutoML(AutoML):
         #  fixed ok
         #  no repetitions ok
         #  repetitions ok
-        take = self.max_depth\
-                if self.fixed else random.randint(0, self.max_depth)
+        take = self.max_depth \
+            if self.fixed else random.randint(0, self.max_depth)
         preprocessors = self.preprocessors * (self.repetitions + 1)
         random.shuffle(preprocessors)
         return preprocessors[:take] + [random.choice(self.modelers)]
 
     def process(self, errors):
-        if errors[0] < self.best_error:
+        if errors[0] is not None and errors[0] < self.best_error:
             self.best_error = errors[0]
             self.best_pipe = self.curr_pipe
 

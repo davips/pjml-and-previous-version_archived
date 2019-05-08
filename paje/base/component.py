@@ -1,9 +1,9 @@
 """ Component module.
 """
-from abc import ABC, abstractmethod
-from logging import warning
 import json
 import zlib
+from abc import ABC, abstractmethod
+from logging import warning
 
 import numpy as np
 
@@ -20,7 +20,7 @@ class Component(ABC):
     def __init__(self, in_place=False, memoize=False,
                  show_warnings=True, kwargs={}):
 
-        # Model here refers to classifiers, preprocessors and, possibly, some
+        # self.model here refers to classifiers, preprocessors and, possibly, some
         # representation of pipelines or the autoML itself.
         self.model = None
 
@@ -36,14 +36,10 @@ class Component(ABC):
         self.dict = kwargs
         self.already_serialized = None
 
-        if 'random_state' in kwargs:
-            self.random_state = kwargs['random_state']
+        if 'random_state' in kwargs and self.isdeterministic():
             del kwargs['random_state']
-        else:
-            self.random_state = 0
-        np.random.seed(self.random_state)
 
-
+        self.instantiate_model()
 
     @abstractmethod
     def apply_impl(self, data):
@@ -55,7 +51,7 @@ class Component(ABC):
         """Todo the doc string
         """
 
-    def handle_in_place(self, data: Data):
+    def handle_inplace(self, data: Data):
         """
         Switch between inplace and 'copying Data'.
         :param data: Data
@@ -83,7 +79,7 @@ class Component(ABC):
     def apply(self, data: Data = None) -> Data:
         """Todo the doc string
         """
-        handled_data = self.handle_in_place(data)
+        handled_data = self.handle_inplace(data)
 
         # Mahalanobis in KNN needs to supress warnings due to NaN in linear
         # algebra calculations. MLP is also verbose due to nonconvergence
@@ -101,7 +97,7 @@ class Component(ABC):
     def use(self, data: Data = None) -> Data:
         """Todo the doc string
         """
-        return self.use_impl(self.handle_in_place(data))
+        return self.use_impl(self.handle_inplace(data))
 
     # @abstractmethod
     # def explain(self, X):
@@ -112,45 +108,26 @@ class Component(ABC):
 
     @classmethod
     @abstractmethod
-    def hyperpar_spaces_tree_impl(cls, data=None):
+    def tree_impl(cls, data=None):  # previously known as hyper_spaces_tree_impl
         """Todo the doc string
         """
         pass
 
     @classmethod
-    def hyper_spaces_tree(cls, data=None):
+    def tree(cls, data=None):  # previously known as hyper_spaces_tree
         """
         Only call this method instead of hyperpar_spaces_forest() if you know
-        what you are doing!
+        what you are doing! (E.g. calling from a classifier)
         :param data:
         :return: tree
         """
-        tree = cls.hyperpar_spaces_tree_impl(data)
-        dic = tree.dic
-        # TODO: check children also (recursively).
-        try:
-            for k in dic:
-                t = dic[k][0]
-                v = dic[k][1]
-                if t == 'c' or t == 'o':
-                    if not isinstance(v, list):
-                        raise Exception('Categorical and ordinal \
-                                        hyperparameters need a list of \
-                                        values: ' + str(k))
-                else:
-                    if len(v) != 2:
-                        raise Exception('Real and integer hyperparameters \
-                                        need a limit with two \
-                                        values: ' + str(k))
-        except Exception as e:
-            print(e)
-            print()
-            raise Exception('Problems with hyperparameter space: ' + str(dic))
+        tree = cls.tree_impl(data)
+        cls.check(tree)
         return tree
 
     @classmethod
-    def print_hyper_spaces_tree(cls, data=None):
-        tree = cls.hyper_spaces_tree(data)
+    def print_tree(cls, data=None):  # previously known as print_hyper_spaces_tree
+        tree = cls.tree(data)
         print(tree)
 
     @classmethod
@@ -159,7 +136,7 @@ class Component(ABC):
             raise Exception(cls.__name__ + ' needs a dataset to be able to \
                             estimate maximum values for some hyperparameters.')
 
-    def hyperpar_spaces_forest(self, data=None) -> HPTree:
+    def forest(self, data=None) -> HPTree:  # previously known as hyperpar_spaces_forest
         """
         This method, hyperpar_spaces_forest(), should be preferred over
         hyper_spaces_tree(),
@@ -168,7 +145,7 @@ class Component(ABC):
         :param data:
         :return: [tree]
         """
-        return self.__class__.hyper_spaces_tree(data)
+        return self.__class__.tree(data)
 
     def __str__(self, depth=''):
         return self.__class__.__name__ + str(self.dict)
@@ -191,3 +168,48 @@ class Component(ABC):
     def __hash__(self):
         return uuid(self.serialized())
 
+    @classmethod
+    def check(cls, tree):
+        try:
+            dic = tree.dic
+        except Exception as e:
+            print(e)
+            print()
+            print(cls.__name__, ' <- problematic class')
+            print()
+            raise Exception('Problems with hyperparameter space')
+
+        try:
+            for k in dic:
+                t = dic[k][0]
+                v = dic[k][1]
+                if t == 'c' or t == 'o':
+                    if not isinstance(v, list):
+                        raise Exception('Categorical and ordinal \
+                                        hyperparameters need a list of \
+                                        values: ' + str(k))
+                else:
+                    if len(v) != 2:
+                        raise Exception('Real and integer hyperparameters \
+                                        need a limit with two \
+                                        values: ' + str(k))
+        except Exception as e:
+            print(e)
+            print()
+            print(cls.__name__)
+            print()
+            raise Exception('Problems with hyperparameter space: ' + str(dic))
+
+        for child in tree.children:
+            cls.check(child)
+
+    def isdeterministic(self):
+        """
+        Whether this class will brake if a random_state is given.
+        :return:
+        """
+        return False
+
+    @abstractmethod
+    def instantiate_model(self):
+        pass

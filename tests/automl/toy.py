@@ -1,24 +1,28 @@
 from sys import argv
 
 import sklearn.metrics
-
+import inspect
 from paje.automl.random import RandomAutoML
 from paje.automl.default import DefaultAutoML
 from paje.data.data import Data
 from paje.module.modelling.classifier.rf import RF
 from paje.module.modelling.classifier.mlp import MLP
-from paje.module.preprocessing.supervised.instance.balancer.over.\
-        ran_over_sampler import RanOverSampler
-from paje.module.preprocessing.unsupervised.feature.transformer.\
-        drpca import DRPCA
-from paje.module.preprocessing.unsupervised.feature.scaler.\
-        equalization import Equalization
-from paje.module.preprocessing.unsupervised.feature.scaler.\
-        standard import Standard
+from paje.module.modules import default_preprocessors, default_modelers
+from paje.module.preprocessing.supervised.instance.balancer.over. \
+    ran_over_sampler import RanOverSampler
+from paje.module.preprocessing.unsupervised.feature.transformer. \
+    drpca import DRPCA
+from paje.module.preprocessing.unsupervised.feature.scaler. \
+    equalization import Equalization
+from paje.module.preprocessing.unsupervised.feature.scaler. \
+    standard import Standard
+from paje.module.preprocessing.unsupervised.feature import transformer
+from paje.module.modelling import classifier
 
-if len(argv) != 2:
-    print('Usage: \npython toy.py dataset.arff')
+if len(argv) < 2 or len(argv)>3:
+    print('Usage: \npython toy.py dataset.arff [memoize? True/False]')
 else:
+    memoize = False if len(argv) < 3 else bool(argv[2])
     data = Data.read_arff(argv[1], "class")
     X, y = data.data_x, data.data_y
     X_train, X_test, y_train, y_test = \
@@ -26,14 +30,12 @@ else:
     data_train = Data(X_train, y_train)
     data_test = Data(X_test, y_test)
 
-    n=2
-
-    automl_rs = RandomAutoML(memoize=False,
-                             preprocessors=[Equalization, Standard],
-                             modelers=[MLP], max_iter=100, static=False,
+    automl_rs = RandomAutoML(memoize=memoize,
+                             preprocessors=default_preprocessors,
+                             modelers=default_modelers, max_iter=100, static=False,
                              fixed=False,
-                             max_depth=15, repetitions=2, method="all",
-                             show_warnings=False, random_state=1)
+                             max_depth=10, repetitions=2, method="all",
+                             show_warnings=False, random_state=2)
     automl_rs.apply(data_train)
     print("Accuracy score",
           sklearn.metrics.accuracy_score(data_test.data_y,

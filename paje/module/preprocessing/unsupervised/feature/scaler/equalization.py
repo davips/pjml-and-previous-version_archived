@@ -8,11 +8,16 @@ class Equalization(Scaler):
     def __init__(self, in_place=False, memoize=False,
                  show_warnings=True, **kwargs):
         super().__init__(in_place, memoize, show_warnings, kwargs)
-        self.model = MinMaxScaler(**kwargs)
 
     @classmethod
-    def hyperpar_spaces_tree_impl(cls, data=None):
+    def tree_impl(cls, data=None):
         dic = {
             'feature_range': ['c', [(-1, 1), (0, 1)]],
         }
         return HPTree(dic, children=[])
+
+    def isdeterministic(self):
+        return True
+
+    def instantiate_model(self):
+        self.model = MinMaxScaler(**self.dict)

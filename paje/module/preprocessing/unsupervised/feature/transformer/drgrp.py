@@ -1,7 +1,7 @@
 from sklearn.random_projection import GaussianRandomProjection
 
 # Data reduction by GRP
-from paje.module.preprocessing.unsupervised.feature.transformer.feature_reductor import Reductor
+from paje.module.preprocessing.unsupervised.feature.transformer.reductor import Reductor
 
 '''
 This class is a Gaussian random projections implementation for data reduction.
@@ -34,9 +34,10 @@ rd = grp.apply(2)
 
 
 class DRGRP(Reductor):
-    def init_impl(self, *args, **kwargs):
-        rp = GaussianRandomProjection(**kwargs)
-        self.model = rp.fit_transform(self.x)
+    def __init__(self, in_place=False, memoize=False,
+                 show_warnings=True, **kwargs):
+        super().__init__(in_place, memoize, show_warnings, kwargs)
+        self.model = GaussianRandomProjection(**kwargs)
 
     @classmethod
     def specific_dictionary(cls, data):
