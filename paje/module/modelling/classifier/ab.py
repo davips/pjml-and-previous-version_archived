@@ -7,11 +7,9 @@ from paje.module.modelling.classifier.classifier import Classifier
 
 
 class AB(Classifier):
-    def __init__(self, in_place=False, memoize=False,
-                 show_warnings=True, **kwargs):
-        super().__init__(in_place, memoize, show_warnings, kwargs)
-
-        self.model = AdaBoostClassifier(**kwargs)
+    def instantiate_impl(self):
+        self.model = AdaBoostClassifier(**self.dic)
+        raise Exception('Working in progress... AB still with RF hyperparameters.')
 
     @classmethod
     def hps_impl(cls, data=None):

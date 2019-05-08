@@ -9,16 +9,14 @@ from paje.util.distributions import exponential_integers
 
 
 class KNN(Classifier):
-    def __init__(self, in_place=False, memoize=False,
-                 show_warnings=True, **kwargs):
-        super().__init__(in_place, memoize, show_warnings, kwargs)
-
+    def instantiate_impl(self):
         # Extract n_instances from hps to be available to be used in apply()
         # if neeeded.
-        self.n_instances = kwargs.get('@n_instances')
+        newdic = self.dic.copy()
+        self.n_instances = newdic.get('@n_instances')
         if self.n_instances is not None:
-            del kwargs['@n_instances']
-        self.model = KNeighborsClassifier(**kwargs)
+            del newdic['@n_instances']
+        self.model = KNeighborsClassifier(**newdic)
 
     def apply_impl(self, data):
         # If data underwent undersampling, rescale k as if its original interval of values was stretched to fit into the new size.
@@ -32,7 +30,8 @@ class KNN(Classifier):
             self.model.algorithm = 'brute'
             try:
                 cov = np.cov(X)
-                inv = np.linalg.pinv(cov)  # pinv is the same as inv for invertible matrices
+                inv = np.linalg.pinv(
+                    cov)  # pinv is the same as inv for invertible matrices
                 self.model.metric_params = {'VI': inv}
             except:
                 # Uses a fake inverse of covariance matrix as fallback.
@@ -48,13 +47,11 @@ class KNN(Classifier):
 
         dic = {
             'n_neighbors': ['c', exponential_integers(kmax)],
-            'metric': ['c', ['euclidean', 'manhattan', 'chebyshev', 'mahalanobis']],
+            'metric': ['c',
+                       ['euclidean', 'manhattan', 'chebyshev', 'mahalanobis']],
             'weights': ['c', ['distance', 'uniform']],
 
             # Auxiliary - will used to calculate pct, only when the training set size happens to be smaller than kmax (probably due to under sampling).
             '@n_instances': ['c', [data.n_instances()]]
         }
         return HPTree(dic, children=[])
-
-    def isdeterministic(self):
-        return True

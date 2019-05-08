@@ -5,14 +5,10 @@ from paje.module.modelling.classifier.classifier import Classifier
 
 
 class NB(Classifier):
-    def __init__(self, in_place=False, memoize=False,
-                 show_warnings=True, **kwargs):
-        super().__init__(in_place, memoize, show_warnings, kwargs)
+    def instantiate_impl(self):
+        self.model = GaussianNB()
 
     @classmethod
     def tree_impl(cls, data=None):
         dic = {}
         return HPTree(dic, children=[])
-
-    def instantiate_model(self):
-        self.model = GaussianNB()
