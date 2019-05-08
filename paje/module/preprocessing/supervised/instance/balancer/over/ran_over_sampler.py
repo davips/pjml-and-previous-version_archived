@@ -5,8 +5,8 @@ from paje.module.preprocessing.supervised.instance.balancer.resampler import Res
 
 
 class RanOverSampler(Resampler):
-    def init_impl(self, **kwargs):
-        self.model = RandomOverSampler(**kwargs)
+    def instantiate_impl(self):
+        self.model = RandomOverSampler(**self.dic)
 
     @classmethod
     def tree_impl(cls, data=None):

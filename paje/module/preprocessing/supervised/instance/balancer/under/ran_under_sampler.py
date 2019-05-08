@@ -6,8 +6,8 @@ from paje.module.preprocessing.supervised.instance.balancer.resampler \
 
 
 class RanUnderSampler(Resampler):
-    def init_impl(self, **kwargs):
-        self.model = RandomUnderSampler(**kwargs)
+    def instantiate_impl(self):
+        self.model = RandomUnderSampler(**self.dic)
 
     @classmethod
     def tree_impl(cls, data=None):
