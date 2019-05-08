@@ -9,7 +9,7 @@ class RandomAutoML(AutoML):
     def __init__(self, preprocessors=None, modelers=None,
                  max_iter=5, static=True, fixed=True, max_depth=5,
                  repetitions=0, method="all", random_state=0,
-                 in_place=False, memoize=False, show_warnings=True):
+                 in_place=False, memoize=False, show_warns=True):
         """
         AutoML
         :param preprocessors: list of modules for balancing, noise removal, sampling etc.
@@ -24,7 +24,7 @@ class RandomAutoML(AutoML):
         :return:
         """
         AutoML.__init__(self, preprocessors, modelers, random_state,
-                        in_place, memoize, show_warnings)
+                        in_place, memoize, show_warns)
 
         self.best_error = 9999999
         if static and not fixed:
@@ -50,10 +50,11 @@ class RandomAutoML(AutoML):
         forest = Pipeline(modules, just_for_tree=True).forest(data)
 
         self.curr_pipe = Pipeline(modules, self.next_dicts(forest),
-                                  random_state=self.random_state, memoize=self.memoize)
+                                  random_state=self.random_state,
+                                  memoize=self.memoize)
         return [self.curr_pipe]
 
-    def next_dicts(self, forest): # previously known as next_hyperpar_dicts
+    def next_dicts(self, forest):  # previously known as next_hyperpar_dicts
         # Defines search space (space of hyperparameter spaces).
         dics = []
         if isinstance(forest, list):

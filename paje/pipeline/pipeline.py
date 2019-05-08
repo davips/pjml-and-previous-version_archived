@@ -3,14 +3,16 @@ from paje.base.component import Component
 
 class Pipeline(Component):
     # TODO: An empty Pipeline may return perfect predictions.
-    def __init__(self, components=None, hyperpar_dicts=None, just_for_tree=False,
-                 in_place=False, memoize=False, show_warnings=True, **kwargs):
-        super().__init__(in_place, memoize, show_warnings, kwargs)
+    def __init__(self, components=None, hyperpar_dicts=None,
+                 just_for_tree=False,
+                 in_place=False, memoize=False, show_warns=True, **kwargs):
+        super().__init__(in_place, memoize, show_warns)
         if components is None:
             components = []
         self.components = components
         self.memoize = memoize
-        self.random_state = kwargs['random_state'] if 'random_state' in kwargs else 0
+        self.random_state = kwargs[
+            'random_state'] if 'random_state' in kwargs else 0
 
         if hyperpar_dicts is None:
             self.hyperpar_dicts = [{} for _ in components]
@@ -19,6 +21,11 @@ class Pipeline(Component):
         self.just_for_tree = just_for_tree
         self.instances = []
         self.instantiate_components()
+
+    def instantiate_impl(self):
+        # TODO: simplify this class, transfering almost all code from init to
+        #  here
+        pass
 
     def apply_impl(self, data):
         for instance in self.instances:
@@ -74,10 +81,13 @@ class Pipeline(Component):
             else:
                 try:
                     if not self.just_for_tree:
-                        instance = component(**hyperpar_dict, memoize=self.memoize,
+                        instance = component(**hyperpar_dict,
+                                             memoize=self.memoize,
                                              random_state=self.random_state)
                     else:
-                        instance = component  # gambiarra para evitar instanciar sem argumentos (DRFTAG quebra, por exemplo)
+                        # gambiarra para evitar instanciar sem argumentos
+                        # (DRFTAG quebra, por exemplo)
+                        instance = component
                 except:
                     self.error(component)
 
@@ -85,8 +95,5 @@ class Pipeline(Component):
 
     def handle_storage(self, data):
         # TODO: replicate this method to other nesting modules, not only
-        # Pipeline and AutoML
+        #  Pipeline and AutoML
         return self.apply_impl(data)
-
-    def instantiate_model(self):
-        self.model = None

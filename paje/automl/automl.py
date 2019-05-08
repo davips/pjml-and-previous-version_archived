@@ -14,14 +14,19 @@ from paje.module.modules import default_preprocessors, default_modelers
 class AutoML(Component, ABC):
 
     def __init__(self, preprocessors=None, modelers=None, random_state=0,
-                 in_place=False, memoize=False, show_warnings=True, **kwargs):
-        super().__init__(in_place, memoize, show_warnings, **kwargs)
+                 in_place=False, memoize=False, show_warns=True, **kwargs):
+        super().__init__(in_place, memoize, show_warns, **kwargs)
         self.preprocessors = default_preprocessors \
             if preprocessors is None else preprocessors
         self.modelers = default_modelers if modelers is None else modelers
         if self.modelers is None:
             self.warning('No modelers given')
         self.random_state = random_state
+
+    def instantiate_impl(self):
+        # TODO: uncomment:
+        # raise Exception('It is not clear if this class is instantiable yet.')
+        pass
 
     def apply_impl(self, data):
         print('--------------------------------------------------------------')
@@ -72,15 +77,14 @@ class AutoML(Component, ABC):
         pass
 
     def handle_storage(self, data):
-        # TODO: replicate this method to other nesting modules, not only Pipeline and AutoML
+        # TODO: replicate this method to other nesting modules,
+        #  not only Pipeline and AutoML
         return self.apply_impl(data)
 
     @classmethod
     def tree_impl(cls, data=None):
+        pass
         raise NotImplementedError("AutoML has neither hyper_spaces_tree()\
                                   (obviously)",
                                   " nor hyper_spaces_forest()\
                                   (not so obviously) implemented!")
-
-    def instantiate_model(self):
-        self.model = None

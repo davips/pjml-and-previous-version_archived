@@ -35,7 +35,7 @@ else:
                              modelers=default_modelers, max_iter=100, static=False,
                              fixed=False,
                              max_depth=10, repetitions=2, method="all",
-                             show_warnings=False, random_state=2)
+                             show_warns=False, random_state=2)
     automl_rs.apply(data_train)
     print("Accuracy score",
           sklearn.metrics.accuracy_score(data_test.data_y,

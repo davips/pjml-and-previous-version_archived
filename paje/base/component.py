@@ -17,29 +17,31 @@ class Component(ABC):
     """Todo the docs string
     """
 
-    def __init__(self, in_place=False, memoize=False,
-                 show_warnings=True, kwargs={}):
+    def __init__(self, in_place=False, memoize=False, show_warns=True, **dic):
 
-        # self.model here refers to classifiers, preprocessors and, possibly, some
-        # representation of pipelines or the autoML itself.
+        # self.model here refers to classifiers, preprocessors and, possibly,
+        # some representation of pipelines or the autoML itself.
+        # Another possibility is to generalize modules to a new class Module()
+        # that has self.model.
         self.model = None
 
-        # if True no one copy was be made
+        # if True no copy will be made
         self.in_place = in_place
         # if True show warnings
-        self.show_warnings = show_warnings
+        self.show_warnings = show_warns
 
         self.memoize = memoize
         if memoize:
             self.storage = SQLite()
 
-        self.dict = kwargs
         self.already_serialized = None
 
-        if 'random_state' in kwargs and self.isdeterministic():
-            del kwargs['random_state']
+        # TODO: call this from outside, in autoML/evaluator, before apply()
+        self.instantiate(dic)
 
-        self.instantiate_model()
+    @abstractmethod
+    def instantiate_impl(self):
+        pass
 
     @abstractmethod
     def apply_impl(self, data):
@@ -76,29 +78,6 @@ class Component(ABC):
 
         return self.apply_impl(data)
 
-    def apply(self, data: Data = None) -> Data:
-        """Todo the doc string
-        """
-        handled_data = self.handle_inplace(data)
-
-        # Mahalanobis in KNN needs to supress warnings due to NaN in linear
-        # algebra calculations. MLP is also verbose due to nonconvergence
-        # issues among other problems.
-        if not self.show_warnings:
-            np.warnings.filterwarnings('ignore')
-
-        result = self.handle_storage(handled_data)
-
-        if not self.show_warnings:
-            np.warnings.filterwarnings('always')
-
-        return result
-
-    def use(self, data: Data = None) -> Data:
-        """Todo the doc string
-        """
-        return self.use_impl(self.handle_inplace(data))
-
     # @abstractmethod
     # def explain(self, X):
     #     """Explain prediction/transformation for the given instances.
@@ -126,7 +105,8 @@ class Component(ABC):
         return tree
 
     @classmethod
-    def print_tree(cls, data=None):  # previously known as print_hyper_spaces_tree
+    def print_tree(cls,
+                   data=None):  # previously known as print_hyper_spaces_tree
         tree = cls.tree(data)
         print(tree)
 
@@ -136,7 +116,7 @@ class Component(ABC):
             raise Exception(cls.__name__ + ' needs a dataset to be able to \
                             estimate maximum values for some hyperparameters.')
 
-    def forest(self, data=None) -> HPTree:  # previously known as hyperpar_spaces_forest
+    def forest(self, data=None):  # previously known as hyperpar_spaces_forest
         """
         This method, hyperpar_spaces_forest(), should be preferred over
         hyper_spaces_tree(),
@@ -148,7 +128,7 @@ class Component(ABC):
         return self.__class__.tree(data)
 
     def __str__(self, depth=''):
-        return self.__class__.__name__ + str(self.dict)
+        return self.__class__.__name__ + str(self.dic)
 
     __repr__ = __str__
 
@@ -162,7 +142,7 @@ class Component(ABC):
     def serialized(self):
         if self.already_serialized is None:
             self.already_serialized = zlib.compress(
-                json.dumps(self.dict, sort_keys=True).encode())
+                json.dumps(self.dic, sort_keys=True).encode())
         return self.already_serialized
 
     def __hash__(self):
@@ -203,13 +183,29 @@ class Component(ABC):
         for child in tree.children:
             cls.check(child)
 
-    def isdeterministic(self):
-        """
-        Whether this class will brake if a random_state is given.
-        :return:
-        """
-        return False
+    def instantiate(self, dic):
+        self.dic = dic
+        self.instantiate_impl()
 
-    @abstractmethod
-    def instantiate_model(self):
-        pass
+    def apply(self, data: Data = None) -> Data:
+        """Todo the doc string
+        """
+        handled_data = self.handle_inplace(data)
+
+        # Mahalanobis in KNN needs to supress warnings due to NaN in linear
+        # algebra calculations. MLP is also verbose due to nonconvergence
+        # issues among other problems.
+        if not self.show_warnings:
+            np.warnings.filterwarnings('ignore')
+
+        result = self.handle_storage(handled_data)
+
+        if not self.show_warnings:
+            np.warnings.filterwarnings('always')
+
+        return result
+
+    def use(self, data: Data = None) -> Data:
+        """Todo the doc string
+        """
+        return self.use_impl(self.handle_inplace(data))

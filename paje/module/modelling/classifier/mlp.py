@@ -23,8 +23,10 @@ class MLP(Classifier):
             values = (l[1], l[2])
         elif n_hidden_layers == 3:
             values = (l[1], l[2], l[3])
+        elif n_hidden_layers == 0:
+            values = None
         else:
-            raise Exception('unexpected number of layers')
+            raise Exception('unexpected number of layers', n_hidden_layers)
         if sum(l) > 0:
             new_kwargs['hidden_layer_sizes'] = values
         self.model = MLPClassifier(**new_kwargs)
