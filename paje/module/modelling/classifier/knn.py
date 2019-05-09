@@ -12,7 +12,6 @@ class KNN(Classifier):
     def instantiate_impl(self):
         # Extract n_instances from hps to be available to be used in apply()
         # if neeeded.
-        del self.dic['random_state']
         newdic = self.dic.copy()
         self.n_instances = newdic.get('@n_instances')
         if self.n_instances is not None:
@@ -39,6 +38,9 @@ class KNN(Classifier):
                 self.model.metric_params = {'VI': np.eye(len(X))}
 
         return super().apply_impl(data)
+
+    def isdeterministic(self):
+        return True
 
     @classmethod
     def tree_impl(cls, data=None):

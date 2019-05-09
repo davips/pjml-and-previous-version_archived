@@ -4,6 +4,7 @@ import json
 import zlib
 from abc import ABC, abstractmethod
 from logging import warning
+import copy
 
 import numpy as np
 
@@ -36,6 +37,9 @@ class Component(ABC):
             self.storage = SQLite()
 
         self.already_serialized = None
+
+    def isdeterministic(self):
+        return False
 
     @abstractmethod
     def instantiate_impl(self):
@@ -126,8 +130,7 @@ class Component(ABC):
         return self.__class__.tree(data)
 
     def __str__(self, depth=''):
-        return self.__class__.__name__ + str(self.dic)
-
+        return self.__class__.__name__ + " " + str(self.dic)
     __repr__ = __str__
 
     def warning(self, msg):
@@ -182,8 +185,12 @@ class Component(ABC):
             cls.check(child)
 
     def instantiate(self, **dic):
+        if self.isdeterministic() and "random_state" in dic:
+            del dic["random_state"]
         self.dic = dic
         self.instantiate_impl()
+
+        return copy.copy(self)
 
     def apply(self, data: Data = None) -> Data:
         """Todo the doc string

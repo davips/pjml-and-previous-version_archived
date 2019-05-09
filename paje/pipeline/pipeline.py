@@ -23,10 +23,11 @@ class Pipeline(Component):
         if 'random_state' in self.dic:
             self.random_state = self.dic['random_state']
 
-        zipped = zip(self.components, dics)
-        for component, dic in zipped:
+        zipped = zip(range(0, len(self.components)), dics)
+        for idx, dic in zipped:
             dic['random_state'] = self.random_state
-            component.instantiate(**dic)
+            self.components[idx] = self.components[idx].instantiate(**dic)
+            # component.instantiate(**dic)
 
     def apply_impl(self, data):
         for component in self.components:
@@ -63,8 +64,8 @@ class Pipeline(Component):
     def __str__(self, depth=''):
         depth += '    '
         strs = [component.__str__(depth) for component in self.components]
-        return super().__str__() + "\n" + depth + ("\n" + depth).join(
-            str(x) for x in strs)
+        return "Pipeline {\n" + depth + ("\n" + depth).join(
+            str(x) for x in strs) + "\n}\n"
 
     def handle_storage(self, data):
         # TODO: replicate this method to other nesting modules (Chooser...),

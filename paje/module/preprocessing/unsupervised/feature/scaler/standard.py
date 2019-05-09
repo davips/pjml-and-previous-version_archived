@@ -6,7 +6,6 @@ from paje.module.preprocessing.unsupervised.feature.scaler.scaler import Scaler
 
 class Standard(Scaler):
     def instantiate_impl(self):
-        del self.dic['random_state']
         newdic = self.dic.copy()
         mean_std = newdic.get('@with_mean/std')
         if mean_std is None:

@@ -63,8 +63,6 @@ class DRPCA(Reductor):
 
     def instantiate_impl(self):
         # TODO: check if random_state is useful for PCA
-        print('pca', self.dic)
-        del self.dic['random_state']
         newdic = self.dic.copy()
         self.model = PCA(**newdic)
 

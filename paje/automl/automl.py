@@ -13,8 +13,9 @@ from paje.module.modules import default_preprocessors, default_modelers
 
 class AutoML(Component, ABC):
 
-    def __init__(self, preprocessors=None, modelers=None, random_state=0,
-                 in_place=False, memoize=False, show_warns=True, **kwargs):
+    def __init__(self, preprocessors=None, modelers=None, verbose=True,
+                 random_state=0, in_place=False, memoize=False,
+                 show_warns=True, **kwargs):
         super().__init__(in_place, memoize, show_warns, **kwargs)
         self.preprocessors = default_preprocessors \
             if preprocessors is None else preprocessors
@@ -22,6 +23,7 @@ class AutoML(Component, ABC):
         if self.modelers is None:
             self.warning('No modelers given')
         self.random_state = random_state
+        self.verbose = verbose
 
     def instantiate_impl(self):
         # TODO: uncomment:
@@ -30,9 +32,9 @@ class AutoML(Component, ABC):
 
     def apply_impl(self, data):
         print('--------------------------------------------------------------')
-        print('max_iter', self.max_iter, '  max_depth', self.max_depth,
-              '  static', self.static, '  fixed', self.fixed,
-              '  repetitions', self.repetitions)
+        # print('max_iter', self.max_iter, '  max_depth', self.max_depth,
+        #       '  static', self.static, '  fixed', self.fixed,
+        #       '  repetitions', self.repetitions)
         evaluator = Evaluator(Metrics.error, "cv", 3, self.random_state)
 
         for i in range(self.max_iter):
@@ -41,11 +43,16 @@ class AutoML(Component, ABC):
 
             errors = []
             for pipe in pipelines:
+                if self.verbose:
+                    print(pipe)
                 error = np.mean(evaluator.eval(pipe, data))
                 errors.append(error)
-                print(pipe, '\nerror: ', error, '\n')
-
             self.process(errors)
+            if self.verbose:
+                print("Current Error: ", error)
+                print("Best Error: ", self.best_error, '\n')
+
+
 
         self.model = self.best()
         return self.model.apply(data)

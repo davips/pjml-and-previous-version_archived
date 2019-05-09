@@ -14,3 +14,6 @@ class Scaler(Component, ABC):
     def use_impl(self, data):
         data.data_x = self.model.transform(data.data_x)
         return data
+
+    def isdeterministic(self):
+        return True

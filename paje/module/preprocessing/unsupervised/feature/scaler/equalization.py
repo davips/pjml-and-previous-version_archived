@@ -6,7 +6,6 @@ from paje.module.preprocessing.unsupervised.feature.scaler.scaler import Scaler
 
 class Equalization(Scaler):
     def instantiate_impl(self):
-        del self.dic['random_state']
         newdic = self.dic.copy()
         self.model = MinMaxScaler(**newdic)
 

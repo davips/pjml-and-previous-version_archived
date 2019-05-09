@@ -8,7 +8,7 @@ class RandomAutoML(AutoML):
 
     def __init__(self, preprocessors=None, modelers=None,
                  max_iter=5, static=True, fixed=True, max_depth=5,
-                 repetitions=0, method="all", random_state=0,
+                 repetitions=0, method="all", verbose=True, random_state=0,
                  in_place=False, memoize=False, show_warns=True):
         """
         AutoML
@@ -23,8 +23,10 @@ class RandomAutoML(AutoML):
         :param random_state: TODO
         :return:
         """
-        AutoML.__init__(self, preprocessors, modelers, random_state,
-                        in_place, memoize, show_warns)
+        AutoML.__init__(self, preprocessors=preprocessors, modelers=modelers,
+                        verbose=verbose,
+                        random_state=random_state, in_place=in_place,
+                        memoize=memoize, show_warns=show_warns)
 
         self.best_error = 9999999
         if static and not fixed:
