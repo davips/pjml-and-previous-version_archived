@@ -47,11 +47,12 @@ class RandomAutoML(AutoML):
     def next_pipelines(self, data):
         modules = self.static_pipeline \
             if self.static else self.choose_modules()
-        forest = Pipeline(modules, just_for_tree=True).forest(data)
-
-        self.curr_pipe = Pipeline(modules, self.next_dicts(forest),
-                                  random_state=self.random_state,
-                                  memoize=self.memoize)
+        self.curr_pipe = Pipeline(modules, in_place=self.in_place,
+                                  memoize=self.memoize,
+                                  show_warns=self.show_warnings)
+        forest = self.curr_pipe.forest(data)
+        self.curr_pipe.instantiate(dics=self.next_dicts(forest),
+                                   random_state=self.random_state)
         return [self.curr_pipe]
 
     def next_dicts(self, forest):  # previously known as next_hyperpar_dicts

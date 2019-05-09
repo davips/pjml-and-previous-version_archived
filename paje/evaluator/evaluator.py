@@ -25,8 +25,7 @@ class Evaluator():
                 in self.split.split(data.data_x, data.data_y):
             data_train = Data(data.data_x[train_index],
                               data.data_y[train_index])
-            data_test = Data(data.data_x[test_index],
-                             data.data_y[test_index])
+            data_test = Data(data.data_x[test_index], data.data_y[test_index])
             try:
                 output_train = component.apply(data_train).data_y
                 output_test = component.use(data_test).data_y

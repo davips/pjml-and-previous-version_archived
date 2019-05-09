@@ -17,13 +17,14 @@ class Component(ABC):
     """Todo the docs string
     """
 
-    def __init__(self, in_place=False, memoize=False, show_warns=True, **dic):
+    def __init__(self, in_place=False, memoize=False, show_warns=True):
 
         # self.model here refers to classifiers, preprocessors and, possibly,
         # some representation of pipelines or the autoML itself.
         # Another possibility is to generalize modules to a new class Module()
         # that has self.model.
         self.model = None
+        self.dic = None
 
         # if True no copy will be made
         self.in_place = in_place
@@ -35,9 +36,6 @@ class Component(ABC):
             self.storage = SQLite()
 
         self.already_serialized = None
-
-        # TODO: call this from outside, in autoML/evaluator, before apply()
-        self.instantiate(dic)
 
     @abstractmethod
     def instantiate_impl(self):
@@ -183,7 +181,7 @@ class Component(ABC):
         for child in tree.children:
             cls.check(child)
 
-    def instantiate(self, dic):
+    def instantiate(self, **dic):
         self.dic = dic
         self.instantiate_impl()
 
