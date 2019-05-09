@@ -1,6 +1,7 @@
 from paje.base.component import Component
 from paje.base.hps import HPTree
 
+
 class Pipeline(Component):
     # TODO: An empty Pipeline may return perfect predictions.
     def __init__(self, components=None, in_place=False, memoize=False,
@@ -25,8 +26,9 @@ class Pipeline(Component):
 
         zipped = zip(range(0, len(self.components)), dics)
         for idx, dic in zipped:
+            if isinstance(self.components[idx], Pipeline):
+                dic = {'dics': dic.copy()}
             dic['random_state'] = self.random_state
-            print(dic)
             self.components[idx] = self.components[idx].instantiate(**dic)
             # component.instantiate(**dic)
 
@@ -57,11 +59,12 @@ class Pipeline(Component):
                     lambda x: x.forest(data),
                     component.components
                 ))
-                tree = HPTree({'dics': ['c', [aux]]}, [])
+                tree = aux
             else:
                 tree = component.tree(data)
             forest.append(tree)
         return forest
+
     def __str__(self, depth=''):
         depth += '    '
         strs = [component.__str__(depth) for component in self.components]
