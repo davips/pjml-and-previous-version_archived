@@ -52,7 +52,9 @@ class AutoML(Component, ABC):
                 print("Current Error: ", error)
                 print("Best Error: ", self.best_error, '\n')
 
-
+        if self.verbose:
+            print("Best pipeline found:")
+            print(pipe)
 
         self.model = self.best()
         return self.model.apply(data)

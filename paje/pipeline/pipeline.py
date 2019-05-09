@@ -1,5 +1,5 @@
 from paje.base.component import Component
-
+from paje.base.hps import HPTree
 
 class Pipeline(Component):
     # TODO: An empty Pipeline may return perfect predictions.
@@ -26,6 +26,7 @@ class Pipeline(Component):
         zipped = zip(range(0, len(self.components)), dics)
         for idx, dic in zipped:
             dic['random_state'] = self.random_state
+            print(dic)
             self.components[idx] = self.components[idx].instantiate(**dic)
             # component.instantiate(**dic)
 
@@ -49,18 +50,18 @@ class Pipeline(Component):
                                       should be called instead!")
 
     def forest(self, data=None):  # previously known as hyperpar_spaces_forest
-        bigger_forest = []
+        forest = []
         for component in self.components:
             if isinstance(component, Pipeline):
-                forest = list(map(
+                aux = list(map(
                     lambda x: x.forest(data),
                     component.components
                 ))
+                tree = HPTree({'dics': ['c', [aux]]}, [])
             else:
-                forest = component.tree(data)
-            bigger_forest.append(forest)
-        return bigger_forest
-
+                tree = component.tree(data)
+            forest.append(tree)
+        return forest
     def __str__(self, depth=''):
         depth += '    '
         strs = [component.__str__(depth) for component in self.components]

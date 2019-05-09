@@ -214,3 +214,6 @@ class Component(ABC):
         """Todo the doc string
         """
         return self.use_impl(self.handle_inplace(data))
+
+    def print_forest(self, data=None):
+        print(self.forest(data))

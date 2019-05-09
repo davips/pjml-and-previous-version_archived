@@ -38,5 +38,16 @@ ready_classifiers = [CB(), DT(), KNN(), MLP(), NB(), RF(), SVM()] # TODO: AB is
 ready_transformers = [DRPCA(), DRFA(),  DRGRP(),  DRPCA(), DRSRP()]
 ready_scalers = [Equalization(), Standard()]
 
-default_preprocessors = ready_transformers + ready_scalers
-default_modelers = ready_classifiers
+
+pca = Pipeline(components=[Standard(), DRPCA()])
+# mlp = Pipeline(components=[pca, MLP])
+
+# def_pipelines = [
+#     pca,
+#     Pipeline(components=[FilterCFS(), mlp])
+# ]
+
+# default_preprocessors = ready_transformers + ready_scalers + [pca]
+default_preprocessors = [pca]
+default_modelers = [KNN()]
+
