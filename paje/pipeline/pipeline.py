@@ -1,59 +1,78 @@
-from typing import List, Dict
-
 from paje.base.component import Component
+from paje.base.hps import HPTree
 
 
 class Pipeline(Component):
     # TODO: An empty Pipeline may return perfect predictions.
-    def init_impl(self, components: List, hyperpar_dicts: [Dict] = None):
+    def __init__(self, components=None, in_place=False, memoize=False,
+                 show_warns=True):
+        super().__init__(in_place, memoize, show_warns)
+        if components is None:
+            components = []
         self.components = components
-        self.hyperpar_dicts = [{} for _ in components] if hyperpar_dicts is None \
-            else hyperpar_dicts
-        self.instantiate_components()
+        self.random_state = 0
+
+    def instantiate_impl(self):
+        """
+        The only parameter is dics with the dic of each component.
+        :param dics
+        :return:
+        """
+        dics = [{} for _ in self.components]  # Default value
+        if 'dics' in self.dic:
+            dics = self.dic['dics']
+        if 'random_state' in self.dic:
+            self.random_state = self.dic['random_state']
+
+        zipped = zip(range(0, len(self.components)), dics)
+        for idx, dic in zipped:
+            if isinstance(self.components[idx], Pipeline):
+                dic = {'dics': dic.copy()}
+            dic['random_state'] = self.random_state
+            self.components[idx] = self.components[idx].instantiate(**dic)
+            # component.instantiate(**dic)
 
     def apply_impl(self, data):
-        for instance in self.instances:
-            data = instance.apply(data)  # useless assignment if aux is set to be inplace
+        for component in self.components:
+            # useless assignment if it is set to be inplace
+            data = component.apply(data)
         return data
 
     def use_impl(self, data):
-        for instance in self.instances:
-            data = instance.use(data)  # useless assignment if aux is set to be inplace
+        for component in self.components:
+            data = component.use(data)
         return data
 
     @classmethod
-    def hyperpar_spaces_tree_impl(cls, data=None):
-        raise NotImplementedError("Pipeline has no method hyper_spaces_tree() implemented,",
-                                  "because it would depend on the constructor parameters.",
-                                  "hyper_spaces_forest() should be called instead!")
+    def tree_impl(cls, data=None):
+        raise NotImplementedError("Pipeline has no method tree() \
+                                      implemented, because it would depend on the \
+                                      constructor parameters. \
+                                      forest() \
+                                      should be called instead!")
 
-    def hyperpar_spaces_forest(self, data=None):
-        bigger_forest = []
-        self.instantiate_components(just_for_tree=True)
-        for instance in self.instances:
-            if isinstance(instance, Pipeline):
-                forest = list(map(
-                    lambda x: x.hyperpar_spaces_forest(data),
-                    instance.instances
+    def forest(self, data=None):  # previously known as hyperpar_spaces_forest
+        forest = []
+        for component in self.components:
+            if isinstance(component, Pipeline):
+                aux = list(map(
+                    lambda x: x.forest(data),
+                    component.components
                 ))
+                tree = aux
             else:
-                forest = instance.hyperpar_spaces_forest(data)
-            bigger_forest.append(forest)
-        return bigger_forest
+                tree = component.tree(data)
+            forest.append(tree)
+        return forest
 
     def __str__(self, depth=''):
         depth += '    '
-        strs = [instance.__str__(depth) for instance in self.instances]
-        return super().__str__() + "\n" + depth + ("\n" + depth).join(str(x) for x in strs)
+        strs = [component.__str__(depth) for component in self.components]
+        return "Pipeline {\n" + depth + ("\n" + depth).join(
+            str(x) for x in strs) + "\n}\n"
 
-    def instantiate_components(self, just_for_tree=False):
-        self.instances = []
-        zipped = zip(self.components, self.hyperpar_dicts)
-        for component, hyperpar_dict in zipped:
-            if isinstance(component, Pipeline):
-                if not just_for_tree:
-                    component = Pipeline(component.components, hyperpar_dict)
-                instance = component
-            else:
-                instance = component(**hyperpar_dict)
-            self.instances.append(instance)
+    def handle_storage(self, data):
+        # TODO: replicate this method to other nesting modules (Chooser...),
+        #  not only
+        #  Pipeline and AutoML
+        return self.apply_impl(data)

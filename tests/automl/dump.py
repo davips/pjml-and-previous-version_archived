@@ -1,12 +1,12 @@
 from sklearn.externals import joblib
 
 from paje.data.data import Data
-from paje.module.modelling.classifier.RF import RF
+from paje.module.modelling.classifier.rf import RF
 import sklearn.metrics
 from sys import argv
 
 # Some tests to evaluate the resulting size of model dumps.
-from paje.module.preprocessing.feature_selection.statistical_based.cfs import FilterCFS
+from paje.module.preprocessing.supervised.feature.selector.statistical.cfs import FilterCFS
 from paje.pipeline.pipeline import Pipeline
 
 test_size = 1000

@@ -6,8 +6,7 @@ from sklearn.model_selection import StratifiedShuffleSplit
 
 
 class Evaluator():
-    def __init__(self, data, metric, split="cv",
-                 steps=10, random_state=0):
+    def __init__(self, metric, split="cv", steps=10, random_state=0):
 
         self.metric = metric
         if split == "cv":
@@ -26,10 +25,17 @@ class Evaluator():
                 in self.split.split(data.data_x, data.data_y):
             data_train = Data(data.data_x[train_index],
                               data.data_y[train_index])
-            data_test = Data(data.data_x[test_index],
-                             data.data_y[test_index])
-            output_train = component.apply(data_train).data_y
-            output_test = component.use(data_test).data_y
-            perfs.append(self.metric(data_test, output_test))
+            data_test = Data(data.data_x[test_index], data.data_y[test_index])
+            try:
+                output_train = component.apply(data_train).data_y
+                output_test = component.use(data_test).data_y
+                error = self.metric(data_test, output_test)
+            except Exception as e:
+                # TODO: we are assuming that eval is minimizing an error measure
+                error = 9999
+                print(e)
+                print(component)
+                raise e
+            perfs.append(error)
 
         return perfs

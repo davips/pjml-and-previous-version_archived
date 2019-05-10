@@ -1,10 +1,16 @@
+import zlib
 import copy
+import json
+import hashlib
 
 import arff
 import numpy as np
 import pandas as pd
 import sklearn.datasets as ds
 from sklearn.utils import check_X_y
+
+from paje.result.sqlite import SQLite
+from paje.result.storage import uuid
 
 
 class Data(object):
@@ -15,6 +21,8 @@ class Data(object):
 
         self.is_supervised = False
         self.is_unsupervised = False
+
+        self.already_serialized = None
 
         check_X_y(data_x, data_y)
         # TODO
@@ -30,8 +38,12 @@ class Data(object):
             else:
                 self.is_clusterization = True
 
+        self.p = None  # Predicted probabilities
+        self.v = None  # x of unlabeled set
+        self.w = None  # y of unlabeled set
         self.data_x = data_x
         self.data_y = data_y
+        self.z = None
         self.columns = columns
 
     @staticmethod
@@ -58,6 +70,9 @@ class Data(object):
     def xy(self):
         return self.data_x, self.data_y
 
+    def pvwxyz(self):
+        return self.p, self.v, self.w, self.data_x, self.data_y, self.z
+
     def copy(self):
         return copy.deepcopy(self)
 
@@ -68,5 +83,15 @@ class Data(object):
         return len(self.data_x[0])
 
     def n_classes(self):
-        # Unfortunately, it is impossible to memoize this calculation because Data() is promiscuous and accepts external changes to data_x and _y from everyone.
+        # Unfortunately, it is impossible to memoize this calculation because Data() is promiscuously mutable and accepts external changes to data_x and _y from everyone.
         return len(set(self.data_y))
+
+    def serialized(self):
+        # TODO: should Data be immutable, we could memoize everything
+        # if self.already_serialized is None:    ## already_serialized cannot be part of self, because of copy() nao aceitando memoryview() (but memoryview is not used anymore)
+        already_serialized = SQLite.pack(self.pvwxyz())
+        # self.already_serialized = zlib.compress(json.dumps(self.pvwxyz(), sort_keys=True).encode())
+        return already_serialized
+
+    def __hash__(self):
+        return uuid(self.serialized())

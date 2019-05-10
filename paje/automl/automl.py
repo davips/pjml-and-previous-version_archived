@@ -1,116 +1,97 @@
+""" Automl Module
+"""
+
 from abc import ABC, abstractmethod
-import random
 
 import numpy as np
 
 from paje.base.component import Component
 from paje.evaluator.evaluator import Evaluator
 from paje.evaluator.metrics import Metrics
-from paje.module.modelling.classifier.CB import CB
-from paje.module.modelling.classifier.DT import DT
-from paje.module.modelling.classifier.KNN import KNN
-from paje.module.modelling.classifier.MLP import MLP
-from paje.module.modelling.classifier.NB import NB
-from paje.module.modelling.classifier.RF import RF
-from paje.module.modelling.classifier.SVM import SVM
-from paje.module.preprocessing.balancer.over.ran_over_sampler import RanOverSampler
-from paje.module.preprocessing.balancer.under.ran_under_sampler import RanUnderSampler
-from paje.module.preprocessing.data_reduction.DRPCA import DRPCA
-from paje.module.preprocessing.feature_selection.statistical_based.cfs import FilterCFS
-from paje.module.preprocessing.feature_selection.statistical_based.chi_square import FilterChiSquare
-from paje.module.preprocessing.scaler.equalization import Equalization
-from paje.module.preprocessing.scaler.standard import Standard
-from paje.pipeline.pipeline import Pipeline
-
-# TODO: Extract list of all modules automatically from the package module.
-# PCA = Pipeline([Standard, DRPCA]) #, Pipeline([Standard, DRPCA]).hyperpar_spaces_forest(data))
-default_preprocessors = [DRPCA, FilterCFS, RanOverSampler,
-                         RanUnderSampler, Standard, Equalization]
-default_modelers = [RF, KNN, NB, DT, MLP, SVM, CB]
+from paje.module.modules import default_preprocessors, default_modelers
 
 
 class AutoML(Component, ABC):
-    def init_impl(self, preprocessors=None, modelers=None,
-                  max_iter=2, static=True,
-                  fixed=True, max_depth=5,
-                  repetitions=0, method="all",
-                  random_state=0):
-        """
-        AutoML
-        :param preprocessors: list of modules for balancing, noise removal, sampling etc.
-        :param modelers: list of modules for prediction (classification or regression etc.)
-        :param repetitions: how many times can a module appear in a pipeline
-        :param method: TODO
-        :param max_iter: maximum number of pipelines to evaluate
-        :param max_depth: maximum length of a pipeline
-        :param static: are the pipelines generated always exactly as given by the ordered list preprocessors + modelers?
-        :param fixed: are the pipelines generated always with length max(max_depth, len(preprocessors + modelers))?
-        :param random_state: TODO
-        :return:
-        """
-        if static and not fixed:
-            self.error('static and not fixed!')
-        if static and repetitions > 0:
-            self.error('static and repetitions > 0!')
-        self.random_state = random_state
-        self.max_iter = max_iter
-        self.max_depth = max_depth
-        self.static = static
-        self.fixed = fixed
-        self.repetitions = repetitions
+
+    def __init__(self, preprocessors=None, modelers=None, verbose=True,
+                 random_state=0, in_place=False, memoize=False,
+                 show_warns=True, **kwargs):
+        super().__init__(in_place, memoize, show_warns, **kwargs)
         self.preprocessors = default_preprocessors \
             if preprocessors is None else preprocessors
         self.modelers = default_modelers if modelers is None else modelers
-        if len(self.modelers) is 0:
+        if self.modelers is None:
             self.warning('No modelers given')
-        if static:
-            if len(self.modelers) > 1:
-                self.warning('Multiple modelers given in static mode.')
-            self.static_pipeline = self.preprocessors + self.modelers
-            if max_depth < len (self.static_pipeline):
-                self.warning('max_depth lesser than given fixed pipeline!')
+        self.random_state = random_state
+        self.verbose = verbose
 
-    @abstractmethod
-    def choose_modules(self):
+    def instantiate_impl(self):
+        # TODO: uncomment:
+        # raise Exception('It is not clear if this class is instantiable yet.')
         pass
 
     def apply_impl(self, data):
-        best_error = 9999999
-        print('------------------------------------------------------------------')
-        print('max_iter', self.max_iter, '  max_depth', self.max_depth,
-              '  static', self.static, '  fixed', self.fixed,
-              '  repetitions', self.repetitions)
-        for i in range(self.max_iter):
-            # Defines search space (space of hyperparameter spaces).
-            modules = self.static_pipeline if self.static else self.choose_modules()
-            forest = Pipeline(modules).hyperpar_spaces_forest(data)
+        print('--------------------------------------------------------------')
+        # print('max_iter', self.max_iter, '  max_depth', self.max_depth,
+        #       '  static', self.static, '  fixed', self.fixed,
+        #       '  repetitions', self.repetitions)
+        evaluator = Evaluator(Metrics.error, "cv", 3, self.random_state)
 
+        for i in range(self.max_iter):
             # Evaluates current hyperparameter (space-values) combination.
-            pipe = Pipeline(modules, self.next_hyperpar_dicts(forest))
-            # pipe = Pipeline([Pipeline(
-            #     [Standard, DRPCA],
-            #     [{'@with_mean/std': (True, False)}, {'n_components': 2}]
-            # )])
-            evaluator = Evaluator(data, Metrics.error, "cv", 3, self.random_state)
-            error = np.mean(evaluator.eval(pipe, data))
-            print(pipe, '\nerror: ', error, '\n')
-            if error < best_error:
-                best_error = error
-                self.model = pipe
+            pipelines = self.next_pipelines(data)
+
+            errors = []
+            for pipe in pipelines:
+                if self.verbose:
+                    print(pipe)
+                error = np.mean(evaluator.eval(pipe, data))
+                errors.append(error)
+            self.process(errors)
+            if self.verbose:
+                print("Current Error: ", error)
+                print("Best Error: ", self.best_error, '\n')
+
+        if self.verbose:
+            print("Best pipeline found:")
+            print(pipe)
+
+        self.model = self.best()
         return self.model.apply(data)
+
+    @abstractmethod
+    def best(self):
+        pass
+
+    @abstractmethod
+    def process(self, errors):
+        pass
 
     def use_impl(self, data):
         return self.model.use(data)
 
-    @classmethod
-    def hyperpar_spaces_tree_impl(cls, data=None):
-        raise NotImplementedError("AutoML has neither hyper_spaces_tree() (obviously)",
-                                  " nor hyper_spaces_forest() (not so obviously) implemented!")
+    @abstractmethod
+    def next_pipelines(self, data):
+        pass
 
     @abstractmethod
-    def next_hyperpar_dicts(self, forest):
+    def next_dicts(self, forest):
         """
-        This method defines the search heuristic and should be implemented by the child class.
+        This method defines the search heuristic and should be implemented by
+        the child class.
         :return: a list of dictionaries or list of nested lists of dictionaries
         """
         pass
+
+    def handle_storage(self, data):
+        # TODO: replicate this method to other nesting modules,
+        #  not only Pipeline and AutoML
+        return self.apply_impl(data)
+
+    @classmethod
+    def tree_impl(cls, data=None):
+        pass
+        raise NotImplementedError("AutoML has neither hyper_spaces_tree()\
+                                  (obviously)",
+                                  " nor hyper_spaces_forest()\
+                                  (not so obviously) implemented!")

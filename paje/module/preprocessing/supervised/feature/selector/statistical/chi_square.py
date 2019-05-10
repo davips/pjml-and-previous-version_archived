@@ -1,0 +1,21 @@
+from paje.module.preprocessing.supervised.feature.selector.filter import Filter
+from skfeature.function.statistical_based import chi_square
+from paje.util.check import check_float
+from paje.base.hps import HPTree
+import pandas as pd
+import math
+
+
+class FilterChiSquare(Filter):
+    """  """
+    def apply_impl(self, data):
+        X, y = data.xy()
+        # TODO: verify if is possible implement this with numpy
+        y = pd.Categorical(y).codes
+
+        self.score = chi_square.chi_square(X,
+                                           y)  # Input X must be non-negative. <- This happens when some scaler generates negative values.
+        self.rank = chi_square.feature_ranking(self.score)
+        self.nro_features = math.ceil((self.ratio) * X.shape[1])
+
+        return self.use(data)

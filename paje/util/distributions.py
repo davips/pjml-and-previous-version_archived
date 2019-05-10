@@ -1,12 +1,13 @@
 import random
 
-import numpy as np
 from math import floor
 
 
 def exponential_integers(kmax, only_odd=True, exponent=1.5):
     """
-    Generates a list of odd ks increasing exponentially according to x^1.5: [1, 3, 5, 9, 11, 15, 19, ..., 37, 43, 47, 53, ..., 83, 89, 97, 103, ..., 955, 971, 985, ...]
+    Generates a list of odd ks increasing exponentially according to x^1.5:
+        [1, 3, 5, 9, 11, 15, 19, ..., 37, 43, 47, 53, ..., 83, 89, 97, 103,
+        ..., 955, 971, 985, ...]
     :param kmax: maximum allowed number
     :param only_odd: odd numbers only
     :param exponent: level of increase
@@ -33,7 +34,8 @@ def sample(kind, interval=None):
     if kind == 'o': return ordinal_sample(interval)
     if kind == 'r': return real_sample(interval[0], interval[1])
     if kind == 'z': return integer_sample(interval[0], interval[1])
-    raise Exception('Unknown kind of interval: ', kind, ' Interval: ', interval)
+    raise Exception('Unknown kind of interval: ', kind,
+                    ' Interval: ', interval)
 
 
 def categoric_sample(values):
@@ -41,7 +43,7 @@ def categoric_sample(values):
 
 
 def integer_sample(min, max):
-    return np.random.randint(min, max + 1)
+    return random.randint(min, max + 1)
 
 
 def ordinal_sample(values):
@@ -49,4 +51,4 @@ def ordinal_sample(values):
 
 
 def real_sample(min, max):
-    return ((max - min) * np.random.ranf()) + min
+    return ((max - min) * random.random()) + min
