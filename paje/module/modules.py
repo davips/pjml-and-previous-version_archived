@@ -33,8 +33,7 @@ from paje.pipeline.pipeline import Pipeline
 # TODO: Extract list of all modules automatically from the root package module?
 # TODO: add DRFtAg, DRICA when try/catch is implemented in pipeline execution
 ready_classifiers = [CB(), DT(), KNN(), MLP(), NB(), RF(), SVM()] # TODO: AB is
-# not
-# ready
+# not ready
 ready_transformers = [DRPCA(), DRFA(),  DRGRP(),  DRPCA(), DRSRP()]
 ready_scalers = [Equalization(), Standard()]
 
