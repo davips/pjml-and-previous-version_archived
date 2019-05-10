@@ -66,10 +66,12 @@ class Pipeline(Component):
         return forest
 
     def __str__(self, depth=''):
-        depth += '    '
-        strs = [component.__str__(depth) for component in self.components]
-        return "Pipeline {\n" + depth + ("\n" + depth).join(
-            str(x) for x in strs) + "\n}\n"
+        newdepth = depth + '    '
+        strs = [component.__str__(newdepth) for component in
+                self.components]
+        return "Pipeline {\n" + \
+               newdepth + ("\n" + newdepth).join(str(x) for x in strs) + '\n' + \
+               depth + "}"
 
     def handle_storage(self, data):
         # TODO: replicate this method to other nesting modules (Chooser...),
