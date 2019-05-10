@@ -1,3 +1,4 @@
+import copy
 import random
 
 from paje.automl.automl import AutoML
@@ -47,8 +48,7 @@ class RandomAutoML(AutoML):
         random.seed(self.random_state)
 
     def next_pipelines(self, data):
-        modules = self.static_pipeline \
-            if self.static else self.choose_modules()
+        modules = self.static_pipeline if self.static else self.choose_modules()
         self.curr_pipe = Pipeline(modules, in_place=self.in_place,
                                   memoize=self.memoize,
                                   show_warns=self.show_warnings)
@@ -78,6 +78,12 @@ class RandomAutoML(AutoML):
         preprocessors = self.preprocessors * (self.repetitions + 1)
         random.shuffle(preprocessors)
         return preprocessors[:take] + [random.choice(self.modelers)]
+        # tmp = []
+        # for preprocessor in self.preprocessors:
+        #     for _ in range(0, self.repetitions):
+        #         tmp.append(copy.deepcopy(preprocessor))
+        # random.shuffle(tmp)
+        # return tmp[:take] + [random.choice(self.modelers)]
 
     def process(self, errors):
         if errors[0] is not None and errors[0] < self.best_error:
