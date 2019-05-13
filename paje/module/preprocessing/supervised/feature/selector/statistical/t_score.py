@@ -7,7 +7,7 @@ from paje.base.hps import HPTree
 from paje.module.preprocessing.supervised.feature.selector.filter import Filter
 from paje.util.check import check_float, check_X_y
 from skfeature.function.statistical_based import t_score
-
+import math
 
 class FilterTScore(Filter):
     """  """
@@ -18,7 +18,7 @@ class FilterTScore(Filter):
         y = pd.Categorical(y).codes
 
         self.apply_t_score(X, y)
-        self.nro_features = int(self.ratio * X.shape[1])
+        self._nro_features = math.ceil(self.ratio * X.shape[1])
 
         return self.use(data)
 
@@ -30,7 +30,7 @@ class FilterTScore(Filter):
         cat_len = len(cat)
         idx_cat = [y == i for i in cat]
         aux = []
-        rank_point = np.zeros(X.shape[1])
+        # rank_point = np.zeros(X.shape[1])
 
         for a, b in self.comb_idx(cat_len, 2):
             idx = np.logical_or(idx_cat[a], idx_cat[b])
@@ -39,8 +39,8 @@ class FilterTScore(Filter):
 
         # If there is more one class we compute the rank by the average
         # of the score
-        self.__score = np.sum(aux, axis=0)
-        self.__rank = np.argsort(self.__score)[::-1]
+        self._score = np.sum(aux, axis=0)
+        self._rank = np.argsort(self._score)[::-1]
 
 
 

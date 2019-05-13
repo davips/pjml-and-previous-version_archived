@@ -13,9 +13,11 @@ class FilterChiSquare(Filter):
         # TODO: verify if is possible implement this with numpy
         y = pd.Categorical(y).codes
 
-        self.score = chi_square.chi_square(X,
-                                           y)  # Input X must be non-negative. <- This happens when some scaler generates negative values.
-        self.rank = chi_square.feature_ranking(self.score)
-        self.nro_features = math.ceil((self.ratio) * X.shape[1])
+        self._score = chi_square.chi_square(X, y)
+        # Input X must be non-negative. <- This happens when some scaler
+        # generates negative values.
+
+        self._rank = chi_square.feature_ranking(self._score)
+        self._nro_features = math.ceil((self.ratio) * X.shape[1])
 
         return self.use(data)

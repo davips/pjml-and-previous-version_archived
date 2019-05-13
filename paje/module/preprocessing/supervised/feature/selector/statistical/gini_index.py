@@ -2,7 +2,7 @@ import pandas as pd
 
 from paje.module.preprocessing.supervised.feature.selector.filter import Filter
 from skfeature.function.statistical_based import gini_index
-
+import math
 
 class FilterGiniIndex(Filter):
     """  """
@@ -11,8 +11,8 @@ class FilterGiniIndex(Filter):
         X, y = data.xy()
         y = pd.Categorical(y).codes
 
-        self.__score = gini_index.gini_index(X, y)
-        self.__rank = gini_index.feature_ranking(self.__score)
-        self.nro_features = int(self.ratio * X.shape[1])
+        self._score = gini_index.gini_index(X, y)
+        self._rank = gini_index.feature_ranking(self._score)
+        self._nro_features = math.ceil(self.ratio * X.shape[1])
 
         return self.use(data)

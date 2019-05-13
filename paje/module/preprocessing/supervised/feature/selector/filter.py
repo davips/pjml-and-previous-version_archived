@@ -8,20 +8,20 @@ class Filter(Component, ABC):
     """ Filter base class"""
     def instantiate_impl(self):
         self.ratio = self.dic['ratio']
-        self.rank = self.score = self.nro_features = None
+        self._rank = self._score = self._nro_features = None
 
     def use_impl(self, data):
         data.data_x = data.data_x[:, self.selected()]
         return data
 
     def rank(self):
-        return self.__rank
+        return self._rank
 
     def score(self):
-        return self.__score
+        return self._score
 
     def selected(self):
-        return self.__rank[0:self.nro_features]
+        return self._rank[0:self._nro_features].copy()
 
     @classmethod
     def tree_impl(cls, data=None):

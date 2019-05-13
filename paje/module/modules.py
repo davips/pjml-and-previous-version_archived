@@ -24,18 +24,34 @@ from paje.module.preprocessing.unsupervised.feature.transformer.drpca \
     import DRPCA
 from paje.module.preprocessing.supervised.feature.selector.statistical.cfs \
     import FilterCFS
+from paje.module.preprocessing.supervised.feature.selector.statistical.\
+        chi_square import FilterChiSquare
+from paje.module.preprocessing.supervised.feature.selector.statistical.\
+        f_score import FilterFScore
+from paje.module.preprocessing.supervised.feature.selector.statistical.\
+        gini_index import FilterGiniIndex
+from paje.module.preprocessing.supervised.feature.selector.statistical.\
+        t_score import FilterTScore
 from paje.module.preprocessing.unsupervised.feature.scaler.equalization \
     import Equalization
 from paje.module.preprocessing.unsupervised.feature.transformer.drsrp import DRSRP
 from paje.module.preprocessing.unsupervised.feature.transformer.drsvd import DRSVD
 from paje.pipeline.pipeline import Pipeline
-
+from paje.base.freeze import Freeze
 # TODO: Extract list of all modules automatically from the root package module?
 # TODO: add DRFtAg, DRICA when try/catch is implemented in pipeline execution
 ready_classifiers = [CB(), DT(), KNN(), MLP(), NB(), RF(), SVM()] # TODO: AB is
 # not ready
 ready_transformers = [DRPCA(), DRFA(),  DRGRP(),  DRPCA(), DRSRP()]
 ready_scalers = [Equalization(), Standard()]
+pip_chi_squared = [Pipeline(components=[
+    Freeze(Equalization(), feature_range=(0,1)),
+    FilterChiSquare()
+])]
+ready_filters = [FilterCFS(), FilterFScore(), FilterGiniIndex(),
+                 FilterTScore()] + pip_chi_squared
+ready_balancing = [RanOverSampler(), RanUnderSampler()]
+
 
 pca = DRPCA()
 std = Standard()
@@ -51,6 +67,9 @@ mlp = Pipeline(components=[pca, MLP()])
 # ]
 
 # default_preprocessors = ready_transformers + ready_scalers + [pca]
-default_preprocessors = [pipe_pca, pipe2, std, pca]
+default_preprocessors = ready_transformers + ready_scalers + ready_balancing +\
+        ready_filters
+
+# default_modelers = [knn, knn2, mlp] + ready_classifiers
 default_modelers = [knn, knn2, mlp]
 
