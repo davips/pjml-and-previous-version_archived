@@ -14,6 +14,8 @@ from paje.module.preprocessing.supervised.instance.balancer.over. \
     ran_over_sampler import RanOverSampler
 from paje.module.preprocessing.supervised.instance.balancer.under. \
     ran_under_sampler import RanUnderSampler
+from paje.module.preprocessing.supervised.instance.noise_detector.distance_based.nn import \
+    NRNN
 from paje.module.preprocessing.unsupervised.feature.scaler.standard \
     import Standard
 from paje.module.preprocessing.unsupervised.feature.transformer.drfa import DRFA
@@ -68,7 +70,7 @@ mlp = Pipeline(components=[pca, MLP()])
 
 # default_preprocessors = ready_transformers + ready_scalers + [pca]
 default_preprocessors = ready_transformers + ready_scalers + ready_balancing +\
-        ready_filters
+        ready_filters + [NRNN()]
 
 # default_modelers = [knn, knn2, mlp] + ready_classifiers
 default_modelers = [knn, knn2, mlp]

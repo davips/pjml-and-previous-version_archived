@@ -23,6 +23,11 @@ class KNN(Classifier):
         #     pct = self.model.n_neighbors / self.n_instances
         #     self.model.n_neighbors = floor(pct * data.n_instances()) + 1
 
+        #TODO: decide how to handle this
+        if self.model.n_neighbors > data.n_instances():
+            self.warning('excess of neighbors!')
+            self.model.n_neighbors = data.n_instances()
+
         # Handle complicated distance measures.
         if self.model.metric == 'mahalanobis':
             X = data.data_x
