@@ -6,12 +6,13 @@ from paje.automl.random import RandomAutoML
 from paje.data.data import Data
 from paje.module.modules import default_preprocessors, default_modelers
 
-if len(argv) < 2 or len(argv) > 4:
+if len(argv) < 2 or len(argv) > 5:
     print('Usage: \npython toy.py dataset.arff '
-          '[memoize? True/False] [iterations]')
+          '[memoize? True/False] [iterations] [seed]')
 else:
     memoize = False if len(argv) < 3 else bool(argv[2])
     iterations = 10 if len(argv) < 4 else int(argv[3])
+    random_state = 0 if len(argv) < 5 else int(argv[4])
     data = Data.read_arff(argv[1], "class")
     X, y = data.data_x, data.data_y
     X_train, X_test, y_train, y_test = \
@@ -23,8 +24,8 @@ else:
                              preprocessors=default_preprocessors,
                              modelers=default_modelers, max_iter=iterations,
                              static=False, fixed=False,
-                             max_depth=10, repetitions=2, method="all",
-                             show_warns=False, random_state=2)
+                             max_depth=10, repetitions=1, method="all",
+                             show_warns=False, random_state=random_state)
     automl_rs.apply(data_train)
     print("Accuracy score",
           sklearn.metrics.accuracy_score(data_test.data_y,
