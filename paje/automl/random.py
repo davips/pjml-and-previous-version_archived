@@ -53,8 +53,8 @@ class RandomAutoML(AutoML):
                                   memoize=self.memoize,
                                   show_warns=self.show_warnings)
         forest = self.curr_pipe.forest(data)
-        self.curr_pipe.instantiate(dics=self.next_dicts(forest),
-                                   random_state=self.random_state)
+        self.curr_pipe = self.curr_pipe.instantiate(
+            dics=self.next_dicts(forest), random_state=self.random_state)
         return [self.curr_pipe]
 
     def next_dicts(self, forest):  # previously known as next_hyperpar_dicts

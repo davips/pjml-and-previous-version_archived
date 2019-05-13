@@ -21,9 +21,9 @@ class Pipeline(Component):
         dics = [{} for _ in self.components]  # Default value
         if 'dics' in self.dic:
             dics = self.dic['dics']
-        if 'random_state' in self.dic:
-            self.random_state = self.dic['random_state']
-
+        # if 'random_state' in self.dic:
+        #     self.random_state = self.dic['random_state']
+        self.components = self.components.copy()
         zipped = zip(range(0, len(self.components)), dics)
         for idx, dic in zipped:
             if isinstance(self.components[idx], Pipeline):

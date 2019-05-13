@@ -7,7 +7,6 @@ from paje.base.hps import HPTree
 from paje.module.modelling.classifier.classifier import Classifier
 from paje.util.distributions import exponential_integers
 
-
 class KNN(Classifier):
     def instantiate_impl(self):
         # Extract n_instances from hps to be available to be used in apply()

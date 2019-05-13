@@ -11,7 +11,7 @@ if len(argv) < 2 or len(argv) > 5:
           '[memoize? True/False] [iterations] [seed]')
 else:
     memoize = False if len(argv) < 3 else bool(argv[2])
-    iterations = 10 if len(argv) < 4 else int(argv[3])
+    iterations = 30 if len(argv) < 4 else int(argv[3])
     random_state = 0 if len(argv) < 5 else int(argv[4])
     data = Data.read_arff(argv[1], "class")
     X, y = data.data_x, data.data_y

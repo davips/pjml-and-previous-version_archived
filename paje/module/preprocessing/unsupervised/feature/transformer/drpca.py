@@ -3,7 +3,6 @@ from sklearn.decomposition import PCA
 # Data reduction by PCA
 from paje.module.preprocessing.unsupervised.feature.transformer.reductor import \
     Reductor
-
 '''
 This class is a PCA (principal component analysis) implementation for data reduction.
 

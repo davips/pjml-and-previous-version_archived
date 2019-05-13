@@ -38,6 +38,8 @@ class Component(ABC):
 
         self.already_serialized = None
 
+
+
     def isdeterministic(self):
         return False
 
@@ -185,12 +187,16 @@ class Component(ABC):
             cls.check(child)
 
     def instantiate(self, **dic):
-        if self.isdeterministic() and "random_state" in dic:
-            del dic["random_state"]
+        self = copy.copy(self)
         self.dic = dic
+        if self.isdeterministic() and "random_state" in self.dic:
+            del self.dic["random_state"]
         self.instantiate_impl()
+        return self
+        #
+        # return self.__class__(self.in_place, self.memoize, self.show_warnings,
+        #                       **dic)
 
-        return copy.copy(self)
 
     def apply(self, data: Data = None) -> Data:
         """Todo the doc string
