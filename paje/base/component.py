@@ -8,6 +8,7 @@ import copy
 
 import numpy as np
 
+from paje.base.exceptions import ExceptionInApply
 from paje.base.hps import HPTree
 from paje.data.data import Data
 from paje.result.sqlite import SQLite
@@ -80,7 +81,10 @@ class Component(ABC):
                            overcome this.")
             return self.storage.get_or_else(self, data, self.apply_impl)
 
-        return self.apply_impl(data)
+        try:
+            return self.apply_impl(data)
+        except Exception as e:
+            raise ExceptionInApply(e)
 
     # @abstractmethod
     # def explain(self, X):

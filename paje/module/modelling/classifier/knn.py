@@ -34,8 +34,8 @@ class KNN(Classifier):
             self.model.algorithm = 'brute'
             try:
                 cov = np.cov(X)
-                inv = np.linalg.pinv(
-                    cov)  # pinv is the same as inv for invertible matrices
+                # pinv is the same as inv for invertible matrices
+                inv = np.linalg.pinv(cov)
                 self.model.metric_params = {'VI': inv}
             except:
                 # Uses a fake inverse of covariance matrix as fallback.
