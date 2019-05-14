@@ -1,5 +1,6 @@
 import sqlite3
 
+from paje.base.exceptions import ExceptionInApply
 from paje.result.storage import Cache
 
 
@@ -117,7 +118,13 @@ class SQLite(Cache):
             if not self.setexists(train):
                 self.query("insert into dset values (?, ?)",
                            [train_hash, train_dump])
-            trainout = f(train)
+
+            # apply()
+            try:
+                trainout = f(train)
+            except Exception as e:
+                raise ExceptionInApply(e)
+
             if not self.argsexist(component):
                 self.query("insert into args values (?, ?)",
                            [component.__hash__(), component.serialized()])

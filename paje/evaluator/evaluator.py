@@ -1,4 +1,6 @@
 from sklearn.model_selection import StratifiedShuffleSplit
+
+from paje.base.exceptions import ExceptionInApply
 from paje.data.data import Data
 from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import LeaveOneOut
@@ -30,12 +32,11 @@ class Evaluator():
                 output_train = component.apply(data_train).data_y
                 output_test = component.use(data_test).data_y
                 error = self.metric(data_test, output_test)
-            except Exception as e:
+            except ExceptionInApply as e:
                 # TODO: we are assuming that eval is minimizing an error measure
-                error = 9999
+                error = 999666
                 print(e)
-                print(component)
-                raise e
+                # raise e
             perfs.append(error)
 
         return perfs
