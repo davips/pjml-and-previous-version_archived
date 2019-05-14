@@ -54,7 +54,7 @@ class AutoML(Component, ABC):
 
         if self.verbose:
             print("Best pipeline found:")
-            print(pipe)
+            print(self.best())
 
         self.model = self.best()
         return self.model.apply(data)
@@ -90,7 +90,6 @@ class AutoML(Component, ABC):
 
     @classmethod
     def tree_impl(cls, data=None):
-        pass
         raise NotImplementedError("AutoML has neither hyper_spaces_tree()\
                                   (obviously)",
                                   " nor hyper_spaces_forest()\

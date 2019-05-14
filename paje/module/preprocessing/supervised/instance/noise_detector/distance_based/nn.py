@@ -43,8 +43,13 @@ class NRNN(Component, ABC):
             if pred[i] != y[i]:
                 noise.append(i)
 
-        X = np.delete(X, noise, axis=0)
-        y = np.delete(y, noise)
+        # Xtmp = np.delete(X, noise, axis=0)
+        ytmp = np.delete(y, noise)
+        if len(set(ytmp)) < 2:
+            self.warning('lacking classes!')
+        else:
+            X = np.delete(X, noise, axis=0)
+            y = np.delete(y, noise)
 
         return X, y
 
@@ -126,8 +131,13 @@ class NRNN(Component, ABC):
         votes = np.asarray(votes)
 
         noise = getattr(self, self.vote)(votes, X, y)
-        X = np.delete(X, noise, axis=0)
-        y = np.delete(y, noise)
+
+        ytmp = np.delete(y, noise)
+        if len(set(ytmp)) < 2:
+            self.warning('lacking classes!')
+        else:
+            X = np.delete(X, noise, axis=0)
+            y = np.delete(y, noise)
 
         return X, y
 

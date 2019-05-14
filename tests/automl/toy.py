@@ -24,7 +24,7 @@ else:
                              preprocessors=default_preprocessors,
                              modelers=default_modelers, max_iter=iterations,
                              static=False, fixed=False,
-                             max_depth=10, repetitions=1, method="all",
+                             max_depth=3, repetitions=1, method="all",
                              show_warns=False, random_state=random_state)
     automl_rs.apply(data_train)
     print("Accuracy score",

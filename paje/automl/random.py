@@ -2,7 +2,7 @@ import copy
 import random
 
 from paje.automl.automl import AutoML
-from paje.pipeline.pipeline import Pipeline
+from paje.composer.pipeline import Pipeline
 
 
 class RandomAutoML(AutoML):
