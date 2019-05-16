@@ -7,6 +7,9 @@ from paje.base.hps import HPTree
 class Filter(Component, ABC):
     """ Filter base class"""
     def build_impl(self):
+        # TODO: forcing to recalculate, since there is no self.model.
+        self.memoize = False
+
         self.ratio = self.dic['ratio']
         self._rank = self._score = self._nro_features = None
 
@@ -29,3 +32,4 @@ class Filter(Component, ABC):
             # TODO: check if it would be better to adopt a 'z' hyperparameter
             dic={'ratio': ['r', [1e-05, 1]]},
             children=[])
+

@@ -93,7 +93,6 @@ class SQLite(Cache):
             exit(0)
 
     def get_or_else(self, component, train, f, test=None):
-        print('memoizing...')
         # TODO: Repeated calls to this function with the same parameters can be memoized.
         # TODO: use test set for something
 
@@ -120,6 +119,8 @@ class SQLite(Cache):
             component.model = model
             res = component.use(train)
         else:
+            print('memoizing...')
+
             # Processing and inserting a new combination.
             train_hash = train.__hash__()  # These two lines must be done, because train can be mutable during f().
             train_dump = SQLite.pack(train)

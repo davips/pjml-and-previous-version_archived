@@ -27,14 +27,15 @@ class Component(ABC):
         self.model = None
         self.dic = {}
 
+        # Store apply() results in disk?
+        self.memoize = memoize
+        self.storage = None  # Defined in build().
+
         # if True no copy will be made
         self.in_place = in_place
+
         # if True show warnings
         self.show_warns = show_warns
-
-        self.memoize = memoize
-        if memoize:
-            self.storage = SQLite()
 
         self.already_serialized = None
 
@@ -73,9 +74,9 @@ class Component(ABC):
         """
         if self.memoize:
             if self.model is None:
-                self.error("This component cannot support storage, \
-                           please implement a custom handle_storage to \
-                           overcome this.")
+                self.error("This component " + self.__class__.__name__ +
+                           " cannot support storage, please implement a " +
+                           "custom handle_storage to overcome this.")
             return self.storage.get_or_else(self, data, self.apply_impl)
 
         try:
@@ -178,6 +179,8 @@ class Component(ABC):
 
     def build(self, **dic):
         self = copy.copy(self)
+        if self.memoize:
+            self.storage = SQLite()
         self.dic = dic
         if self.isdeterministic() and "random_state" in self.dic:
             del self.dic["random_state"]

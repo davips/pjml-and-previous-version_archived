@@ -6,6 +6,9 @@ import pandas as pd
 
 class FilterCFS(Filter):
     def build_impl(self):
+        # TODO: forcing to recalculate, since there is no self.model.
+        self.memoize = False
+
         self.__rank = self.__score = self._selected = None
 
     def apply_impl(self, data):

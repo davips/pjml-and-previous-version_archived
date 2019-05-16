@@ -13,6 +13,9 @@ from paje.base.hps import HPTree
 
 class NRNN(Component, ABC):
     def build_impl(self):
+        # TODO: forcing to recalculate, since there is no self.model.
+        self.memoize = False
+
         self.vote = self.dic['vote']
         self.algorithm = self.dic['algorithm']
         self.k = self.dic['k']

@@ -2,7 +2,7 @@ from paje.base.component import Component
 
 
 class Composer(Component):
-    # TODO: An empty Pipeline may return perfect predictions.
+    # TODO: An empty Pipeline/composer may return perfect predictions.
     def __init__(self, components=None, in_place=False, memoize=False,
                  show_warns=True):
         super().__init__(in_place, memoize, show_warns)
@@ -23,16 +23,7 @@ class Composer(Component):
             data = component.use(data)
         return data
 
-    @classmethod
-    def tree_impl(cls, data=None):
-        raise NotImplementedError(
-            """ Composer has no method tree() implemented, because it would
-            depend on the constructor parameters.
-            forest() should be called instead!"
-            """)
-
     def handle_storage(self, data):
-        # TODO: replicate this method to other nesting modules (Chooser...),
-        #  not only
-        #  Pipeline and AutoML
+        # TODO: replicate this method to other nesting modules, if any,
+        #  not only Composer and AutoML
         return self.apply_impl(data)

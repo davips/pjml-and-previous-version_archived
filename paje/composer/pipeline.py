@@ -46,7 +46,7 @@ class Pipeline(Composer):
             # if tree.name is not 'EndPipeline':
             tree.children.append(f())
 
-    def tree(self, data=None):  # previously known as hyperpar_spaces_forest
+    def tree_impl(self, data=None):
         # forest = []
         if self.myforest is None:
             # for component in self.components:
