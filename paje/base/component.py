@@ -1,15 +1,14 @@
 """ Component module.
 """
+import copy
 import json
 import zlib
 from abc import ABC, abstractmethod
 from logging import warning
-import copy
 
 import numpy as np
 
 from paje.base.exceptions import ExceptionInApply
-from paje.base.hps import HPTree
 from paje.data.data import Data
 from paje.result.sqlite import SQLite
 from paje.result.storage import uuid
@@ -26,7 +25,7 @@ class Component(ABC):
         # Another possibility is to generalize modules to a new class Module()
         # that has self.model.
         self.model = None
-        self.dic = None
+        self.dic = {}
 
         # if True no copy will be made
         self.in_place = in_place
@@ -38,8 +37,6 @@ class Component(ABC):
             self.storage = SQLite()
 
         self.already_serialized = None
-
-
 
     def isdeterministic(self):
         return False
@@ -133,10 +130,13 @@ class Component(ABC):
         :param data:
         :return: [tree]
         """
-        return self.__class__.tree(data)
+        tree = self.__class__.tree(data)
+        tree.name = self.__class__.__name__
+        return tree
 
     def __str__(self, depth=''):
         return self.__class__.__name__ + " " + str(self.dic)
+
     __repr__ = __str__
 
     def warning(self, msg):
@@ -200,7 +200,6 @@ class Component(ABC):
         #
         # return self.__class__(self.in_place, self.memoize, self.show_warnings,
         #                       **dic)
-
 
     def apply(self, data: Data = None) -> Data:
         """Todo the doc string

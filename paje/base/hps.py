@@ -5,26 +5,13 @@ from paje.util.distributions import sample
 
 
 class HPTree(object):
-    def __init__(self, dic, children):
+    def __init__(self, dic, children, name=''):
         self.dic = dic
         self.children = children
-        self.name = None
+        self.name = name
 
     def expand(self) -> (Dict, List):
         return self.dic, self.children
-
-    # def __str__(self, depth=''):
-    #     rows = [depth + str(self.dic) + '\n']
-    #     depth += '    '
-    #     for child in self.children:
-    #         # if isinstance(child, list):
-    #         #     for child_list in child:
-    #         #         rows.append(child_list.__str__())
-    #         # else:
-    #         rows.append(child.__str__(depth))
-    #     return ''.join(rows)
-    #
-    # __repr__ = __str__
 
     def tree_to_dict(self):
         """
@@ -34,21 +21,57 @@ class HPTree(object):
         :param tree:
         :return: kwargs for Component constructor
         """
-        final_dic = {}
-        tree = self
-        # print(tree.children)
-        while True:
-            if tree.name is not None:
-                dic = {}
-                final_dic[tree.name] = dic
-            else:
-                dic = final_dic
-            tree_dic, tree_children = tree.expand()
-            for k, kind_interval in tree_dic.items():
-                dic[k] = sample(*kind_interval)
-            if len(tree_children) == 0:
+        return self.pipeline_to_dic_rec(self)[0]
+
+    def moduletree_to_dic(self, tree):
+        args = {'name': tree.name}
+        for k, kind_interval in tree.dic.items():
+            args[k] = sample(*kind_interval)
+        if tree.children:
+            child = random.choice(tree.children)
+            # if tree.name is 'EndPipeline':
+            #     return {'name': ''}, tree
+            if child.name == '':
+                dic, tree = self.moduletree_to_dic(child)
+                del dic['name']
+                args.update(dic)
+        return args, tree
+
+    # TODO: A hyperParameter (?) 'p' can be used to define the probabilities
+    #  to weight each node.
+    #  It could be defined during the construction of the tree according to
+    #  the size of its subtrees.
+
+    def pipeline_to_dic_rec(self, tree):
+        # ignoring dic of pipline, assumes it is empty
+        argss = []
+        args, children = tree.expand()
+        if len(children) != 1:
+            raise Exception(
+                "Each pipeline should have only one child. Not " +
+                str(children))
+        while children:
+            tree = random.choice(children)
+            if tree.name is 'EndPipeline':
                 break
-            tree = random.choice(tree_children)
-            # TODO: Parameter 'p' can be set to weight probabilities
-            #  to each child according to the size of its subtree.
-        return final_dic
+            if tree.name is 'Pipeline':
+                args, children = self.pipeline_to_dic_rec(tree)
+            else:
+                args, last = self.moduletree_to_dic(tree)
+                children = last.children
+            argss.append(args)
+        return {'dics': argss}, tree.children
+
+    def __str__(self, depth=''):
+        rows = [str(self.dic)]
+        for child in self.children:
+            # print(child.name, ' <- child')
+            # if isinstance(child, list):
+            #     for child_list in child:
+            #         rows.append(child_list.__str__())
+            # else:
+            if child.name is not 'EndPipeline':
+                rows.append(child.__str__(depth + '   '))
+        return depth + self.name + '\n'.join(rows)
+
+    __repr__ = __str__

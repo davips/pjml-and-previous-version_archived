@@ -74,14 +74,14 @@ class AutoML(Component, ABC):
     def next_pipelines(self, data):
         pass
 
-    @abstractmethod
-    def next_dicts(self, forest):
-        """
-        This method defines the search heuristic and should be implemented by
-        the child class.
-        :return: a list of dictionaries or list of nested lists of dictionaries
-        """
-        pass
+    # @abstractmethod
+    # def next_dicts(self, forest):
+    #     """
+    #     This method defines the search heuristic and should be implemented by
+    #     the child class.
+    #     :return: a list of dictionaries or list of nested lists of dictionaries
+    #     """
+    #     pass
 
     def handle_storage(self, data):
         # TODO: replicate this method to other nesting modules,

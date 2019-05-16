@@ -2,6 +2,7 @@ from paje.composer.composer import Composer
 from paje.base.hps import HPTree
 import copy
 
+
 class Pipeline(Composer):
 
     def instantiate_impl(self):
@@ -18,24 +19,28 @@ class Pipeline(Composer):
         #     self.random_state = self.dic['random_state']
         self.components = self.components.copy()
         print(dics)
+        exit(0)
         zipped = zip(range(0, len(self.components)), dics.keys())
         for idx, dic in zipped:
             # if isinstance(self.components[idx], Composer):
             #     dic = {'dics': dic.copy()}
             # dic['random_state'] = self.random_state
-            
+
             dic = dics[dic].copy()
             print(dic)
             self.components[idx] = self.components[idx].instantiate(
                 **dic)
             # component.instantiate(**dic)
 
-    def set_leaf(self, tree, value):
+    def set_leaf(self, tree, f):
+        # TODO: verify why there is a excess of EndPipelines
+        # print('setleaf',tree.name)
         if len(tree.children) > 0:
-            for i in tree.children:
-                self.set_leaf(i, value)
+            for child in tree.children:
+                self.set_leaf(child, f)
         else:
-            tree.children.append(value)
+            # if tree.name is not 'EndPipeline':
+            tree.children.append(f())
 
     def forest(self, data=None):  # previously known as hyperpar_spaces_forest
         # forest = []
@@ -46,13 +51,13 @@ class Pipeline(Composer):
             # trees = [copy.deepcopy(i.forest(data)) for i in self.components]
             trees = []
             for i in range(0, len(self.components)):
-                tree = copy.deepcopy(self.components[i].forest(data))
-                tree.name = "{0}_{1}".format(
-                    i, self.components[i].__class__.__name__)
+                tree = copy.deepcopy(self.components[i]).forest(data)
+                # tree.name = "{0}_{1}".format(
+                #     i, self.components[i].__class__.__name__)
                 trees.append(tree)
 
             for i in reversed(range(1, len(trees))):
-                self.set_leaf(trees[i-1], trees[i])
+                self.set_leaf(trees[i - 1], lambda: trees[i])
 
                 # if isinstance(component, Pipeline):
                 #     aux = list(map(
@@ -63,15 +68,14 @@ class Pipeline(Composer):
                 # else:
                 # tree = component.forest(data)
                 # forest.append(tree)
-            self.myforest = trees[0]
+            self.myforest = HPTree({}, [trees[0]], self.__class__.__name__)
+            self.set_leaf(trees[len(trees) - 1], lambda: HPTree({}, [],
+                                                                'EndPipeline'))
         return self.myforest
 
     def __str__(self, depth=''):
         newdepth = depth + '    '
-        strs = [component.__str__(newdepth) for component in
-                self.components]
+        strs = [component.__str__(newdepth) for component in self.components]
         return "Pipeline {\n" + \
-               newdepth + ("\n" + newdepth).join(str(x) for x in strs) + '\n'\
+               newdepth + ("\n" + newdepth).join(str(x) for x in strs) + '\n' \
                + depth + "}"
-
-

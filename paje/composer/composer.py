@@ -1,5 +1,4 @@
 from paje.base.component import Component
-from paje.base.hps import HPTree
 
 
 class Composer(Component):
@@ -37,5 +36,3 @@ class Composer(Component):
         #  not only
         #  Pipeline and AutoML
         return self.apply_impl(data)
-
-

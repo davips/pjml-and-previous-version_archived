@@ -59,13 +59,13 @@ class RandomAutoML(AutoML):
 
     def next_dicts(self, forest):  # previously known as next_hyperpar_dicts
         # Defines search space (space of hyperparameter spaces).
-        dics = []
-        if isinstance(forest, list):
-            for item in forest:
-                dics.append(self.next_dicts(item))
-            return dics
-        else:
-            return forest.tree_to_dict()
+        # dics = []
+        # if isinstance(forest, list):
+        #     for item in forest:
+        #         dics.append(self.next_dicts(item))
+        #     return dics
+        # else:
+        return forest.tree_to_dict()
 
     def choose_modules(self):
         # DONE:
