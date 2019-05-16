@@ -1,26 +1,20 @@
 from paje.base.component import Component
 from paje.base.hps import HPTree
+from paje.composer.composer import Composer
 
-class Freeze(Component):
+
+class Freeze(Composer):
     def __init__(self, component, in_place=False, memoize=False,
                  show_warns=True, **kwargs):
         super().__init__(in_place, memoize, show_warns)
 
-        self.component = component
+        self.components = [component]
         self.params = kwargs
 
     def build_impl(self):
-        self.component = self.component.build(**self.params)
-
-    def apply_impl(self, data):
-        return self.component.apply(data)
-
-    def use_impl(self, data):
-        return self.component.use(data)
-
-    @classmethod
-    def tree_impl(cls, data=None):
-        raise NotImplementedError("Not implemented")
+        # TODO: paramos de setar rnd_state?
+        self.components[0].memoize = self.memoize
+        self.components[0] = self.components[0].build(**self.dic)
 
     def freeze_hptree(self):
         aux = {}
@@ -29,5 +23,5 @@ class Freeze(Component):
         print(aux)
         return aux
 
-    def tree(self, data=None):
+    def tree_impl(self, data=None):
         return HPTree(dic=self.freeze_hptree(), children=[])
