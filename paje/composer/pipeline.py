@@ -32,7 +32,7 @@ class Pipeline(Composer):
             # print('dic', dic)
             # TODO: decide if its worth to keep memozing only inside modules or
             #  only in pipeline.
-            self.components[idx].memoize = self.memoize
+            # self.components[idx].memoize = self.memoize
             self.components[idx] = self.components[idx].build(**dic)
             # component.instantiate(**dic)
 

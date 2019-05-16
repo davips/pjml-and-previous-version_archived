@@ -75,8 +75,8 @@ class Component(ABC):
         if self.memoize:
             if self.model is None:
                 self.error("This component " + self.__class__.__name__ +
-                           " cannot support storage, please implement a " +
-                           "custom handle_storage to overcome this.")
+                           " cannot support storage, please implement a" +
+                           " custom handle_storage to overcome this.")
             return self.storage.get_or_else(self, data, self.apply_impl)
 
         try:

@@ -154,10 +154,7 @@ class SQLite(Cache):
         self.connection.close()
         return res
 
-    def get_results_or_else(self, component, train, test, f):
-        # TODO: Repeated calls to this function with the same parameters can
-        #  be memoized, to avoid network delays, for instance.
-        # TODO insert time spent
+    def start_database(self):
         # TODO: check if it is possible to put this creation part inside
         #  __init__ without locking database
         self.connection = sqlite3.connect(self.database)
@@ -166,18 +163,19 @@ class SQLite(Cache):
             "create table if not exists args (hash BLOB, dic BLOB)")
         self.cursor.execute(
             "create table if not exists dset (hash BLOB, data BLOB)")
-        self.cursor.execute(
-            "create table if not exists model (name STRING, args BLOB, train BLOB, dump BLOB)")
-        # self.cursor.execute("create table if not exists result (pipeline BLOB, train BLOB, test BLOB, prediction JSON)")
-        # TODO: check if the size of the database is too big with dumps
-        # TODO: replicability/cache of results: save testset and predictions
-        self.cursor.execute(
-            "create table if not exists out (name STRING, args BLOB, setin BLOB, setout BLOB)")
+        self.cursor.execute("create table if not exists model " +
+                            "(name STRING, args BLOB, train BLOB, dump BLOB)")
+        self.cursor.execute("create table if not exists out " +
+                            "(name STRING, args BLOB, setin BLOB, setout BLOB)")
 
+    def get_results_or_else(self, component, train, test, f):
+        # TODO: Repeated calls to this function with the same parameters can
+        #  be memoized, to avoid network delays, for instance.
+        # TODO insert time spent
+        self.start_database()
         model = self.get_model(component, train)
         if model is not None:
             # Restoring from database.
-            # print('# Restoring from database.')
             component.model = model
             res = component.use(train)
         else:
