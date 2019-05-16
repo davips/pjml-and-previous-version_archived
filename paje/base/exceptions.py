@@ -1,2 +1,2 @@
-class ExceptionInApply(Exception):
+class ExceptionInApplyOrUse(Exception):
     pass

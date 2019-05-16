@@ -49,24 +49,18 @@ class RandomAutoML(AutoML):
 
     def next_pipelines(self, data):
         modules = self.static_pipeline if self.static else self.choose_modules()
+        # Not passing memoize to Pipeline, since it is not used there anymore.
         self.curr_pipe = Pipeline(modules, in_place=self.in_place,
-                                  memoize=self.memoize,
                                   show_warns=self.show_warns)
         forest = self.curr_pipe.tree(data)
-        # print('fores\n', forest)
-        # print(' to dic\n', self.next_args(forest))
-        self.curr_pipe = self.curr_pipe.build(**self.next_args(forest),
-                                              random_state=self.random_state)
+        # print('fores...\n', forest)
+        # print(' to dic...\n', self.next_args(forest))
+        args = self.next_args(forest)
+        args.update(random_state=self.random_state)
+        self.curr_pipe = self.curr_pipe.build(**args)
         return [self.curr_pipe]
 
-    def next_args(self, forest):  # previously known as next_hyperpar_dicts
-        # Defines search space (space of hyperparameter spaces).
-        # dics = []
-        # if isinstance(forest, list):
-        #     for item in forest:
-        #         dics.append(self.next_dicts(item))
-        #     return dics
-        # else:
+    def next_args(self, forest):
         return forest.tree_to_dict()
 
     def choose_modules(self):

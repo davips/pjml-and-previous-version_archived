@@ -1,13 +1,14 @@
 import sqlite3
 
-from paje.base.exceptions import ExceptionInApply
+from paje.base.exceptions import ExceptionInApplyOrUse
 from paje.result.storage import Cache
 
 
 class SQLite(Cache):
 
-    def __init__(self, database='/tmp/paje.db'):
+    def __init__(self, database='/tmp/paje.db', debug=False):
         self.database = database
+        self.debug = debug
 
     def get_set(self, data_hash):
         """
@@ -35,8 +36,13 @@ class SQLite(Cache):
         :param data:
         :return:
         """
-        self.query("select count(1) from dset where hash=?", [data_hash])
+        self.query("select 1 from dset where hash=?", [data_hash],
+                   debug=self.debug)
         rows = self.cursor.fetchall()
+        if self.debug and rows is not None:
+            print('Rows:')
+            for row in rows:
+                print(row)
         return rows is not None and len(rows) > 0
 
     def argsexist(self, component):
@@ -50,7 +56,31 @@ class SQLite(Cache):
         rows = self.cursor.fetchall()
         return rows is not None and len(rows) > 0
 
-    def get_model(self, component, train):
+    def getsetout(self, component, train_hash, setin_hash):
+        """
+        Look for model in database.
+        :param component:
+        :param train:
+        :return:
+        """
+        self.query("select setout from out " +
+                   "where name=? and args=? and train=? and setin=?",
+                   [type(component.__class__()).__name__, component.__hash__(),
+                    train_hash, setin_hash], debug=self.debug)
+        rows = self.cursor.fetchall()
+        if rows is None or len(rows) == 0:
+            return None
+        else:
+            if len(rows) is not 1:
+                for r in rows:
+                    print(r)
+                print('get_model: saindo do sqlite...')
+                exit(0)
+                # TODO: use general error handling
+
+            return self.get_set(rows[0][0])
+
+    def get_model(self, component, train_hash):
         """
         Extract model from database.
         :param component:
@@ -60,7 +90,7 @@ class SQLite(Cache):
         self.query(
             "select name, args, dump from model where name=? and args=? and train=?",
             [type(component.__class__()).__name__, component.__hash__(),
-             train.__hash__()],
+             train_hash],
             debug=False)
         rows = self.cursor.fetchall()
         if rows is None or len(rows) == 0:
@@ -123,7 +153,7 @@ class SQLite(Cache):
             try:
                 trainout = f(train)
             except Exception as e:
-                raise ExceptionInApply(e)
+                raise ExceptionInApplyOrUse(e)
 
             if not self.argsexist(component):
                 self.query("insert into args values (?, ?)",
@@ -166,63 +196,42 @@ class SQLite(Cache):
         self.cursor.execute("create table if not exists model " +
                             "(name STRING, args BLOB, train BLOB, dump BLOB)")
         self.cursor.execute("create table if not exists out " +
-                            "(name STRING, args BLOB, setin BLOB, setout BLOB)")
+                            "(name STRING, args BLOB, train BLOB, setin BLOB, "
+                            "setout BLOB)")
 
-    def get_results_or_else(self, component, train, test, f):
+    def get_results_or_else(self, component, train, setin, f):
         # TODO: Repeated calls to this function with the same parameters can
         #  be memoized, to avoid network delays, for instance.
         # TODO insert time spent
+        train_hash = train.__hash__()
+        setin_hash = setin.__hash__()
         self.start_database()
-        model = self.get_model(component, train)
-        if model is not None:
-            # Restoring from database.
-            component.model = model
-            res = component.use(train)
-        else:
-            print('memoizing...')
+        setout = self.getsetout(component, train_hash, setin_hash)
+        if setout is None:
+            print('memoizing results...')
+            # TODO: is it useful to store the dump of the sets?
 
-            # Processing and inserting a new combination.
-            # These two lines must be done, because train can be mutable during f().
-            train_hash = train.__hash__()
-            train_dump = SQLite.pack(train)
-            if not self.setexists(train_hash):
-                self.query("insert into dset values (?, ?)",
-                           [train_hash, train_dump])
-
-            # apply()
+            # Apply f()
             try:
-                trainout = f(train)
+                setout = f(setin)
+                setout_hash = setout.__hash__()
             except Exception as e:
-                raise ExceptionInApply(e)
+                raise ExceptionInApplyOrUse(e)
 
-            if not self.argsexist(component):
-                self.query("insert into args values (?, ?)",
-                           [component.__hash__(), component.serialized()])
-
-            # Store model.
-            dump = SQLite.pack(component.model)
-            self.query("insert into model values (?, ?, ?, ?)",
-                       [type(component.__class__()).__name__,
-                        component.__hash__(),
-                        train_hash, dump], debug=False)
-
-            # Store result of training data.
-            if not self.setexists(trainout.__hash__()):
+            # Store result.
+            # TODO: create insertset()
+            if not self.setexists(setout_hash):
+                setoutdump = SQLite.pack(setout)
                 self.query("insert into dset values (?, ?)",
-                           [trainout.__hash__(), SQLite.pack(trainout)])
-            # if test is not None:
-            #     test_dump = SQLite.pack(test)
-            #     self.cursor.execute("insert into set values (?, ?)",
-            #                         [test.__hash__(), test_dump])
-            self.query("insert into out values (?, ?, ?, ?)",
+                           [setout_hash, setoutdump], debug=self.debug)
+            self.query("insert into out values (?, ?, ?, ?, ?)",
                        [type(component.__class__()).__name__,
-                        component.__hash__(), train_hash, trainout.__hash__()])
+                        component.__hash__(), train_hash, setin_hash,
+                        setout_hash], debug=self.debug)
 
             self.connection.commit()
-            res = trainout
-
         self.connection.close()
-        return res
+        return setout
 
     # def __del__(self):
     #     pass
@@ -236,4 +245,4 @@ class SQLite(Cache):
             print(e)
             print()
             print(sql, args)
-            exit(0)
+            raise e

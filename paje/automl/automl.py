@@ -9,6 +9,7 @@ from paje.base.component import Component
 from paje.evaluator.evaluator import Evaluator
 from paje.evaluator.metrics import Metrics
 from paje.module.modules import default_preprocessors, default_modelers
+from paje.result.sqlite import SQLite
 
 
 class AutoML(Component, ABC):
@@ -35,7 +36,10 @@ class AutoML(Component, ABC):
         # print('max_iter', self.max_iter, '  max_depth', self.max_depth,
         #       '  static', self.static, '  fixed', self.fixed,
         #       '  repetitions', self.repetitions)
-        evaluator = Evaluator(Metrics.error, "cv", 3, self.random_state)
+        if self.memoize:
+            self.storage = SQLite('/tmp/paje-results.db', debug=False)
+        evaluator = Evaluator(Metrics.error, "cv", 3, storage=self.storage,
+                              random_state=self.random_state)
 
         for i in range(self.max_iter):
             # Evaluates current hyperparameter (space-values) combination.
@@ -57,6 +61,9 @@ class AutoML(Component, ABC):
             print(self.best())
 
         self.model = self.best()
+        # TODO: activate memoize also here? Perhaps its a good place to
+        #  employ dump memoization, since it is a single pipeline for the
+        #  entire automl process.
         return self.model.apply(data)
 
     @abstractmethod
@@ -68,6 +75,8 @@ class AutoML(Component, ABC):
         pass
 
     def use_impl(self, data):
+        # TODO: activate memoize also here? Perhaps its a good place to
+        #  employ dump memoization.
         return self.model.use(data)
 
     @abstractmethod
@@ -84,8 +93,9 @@ class AutoML(Component, ABC):
     #     pass
 
     def handle_storage(self, data):
-        # TODO: replicate this method to other nesting modules,
-        #  not only Pipeline and AutoML
+        # TODO: activate memoize also here? Perhaps its a good place to
+        #  employ dump memoization, since it is a single pipeline for the
+        #  entire automl process.
         return self.apply_impl(data)
 
     @classmethod

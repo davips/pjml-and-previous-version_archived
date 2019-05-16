@@ -8,7 +8,7 @@ from logging import warning
 
 import numpy as np
 
-from paje.base.exceptions import ExceptionInApply
+from paje.base.exceptions import ExceptionInApplyOrUse
 from paje.data.data import Data
 from paje.result.sqlite import SQLite
 from paje.result.storage import uuid
@@ -29,7 +29,7 @@ class Component(ABC):
 
         # Store apply() results in disk?
         self.memoize = memoize
-        self.storage = None  # Defined in build().
+        self.storage = None  # Defined in build() when needed, to avoid locking.
 
         # if True no copy will be made
         self.in_place = in_place
@@ -82,7 +82,7 @@ class Component(ABC):
         try:
             return self.apply_impl(data)
         except Exception as e:
-            raise ExceptionInApply(e)
+            raise ExceptionInApplyOrUse(e)
 
     # @abstractmethod
     # def explain(self, X):
@@ -203,7 +203,8 @@ class Component(ABC):
         if not self.show_warns:
             np.warnings.filterwarnings('ignore')
 
-        result = self.handle_storage(handled_data)
+        # TODO: decide and correct dump storage: self.handle_storage(handled_data)
+        result = self.apply_impl(data)
 
         if not self.show_warns:
             np.warnings.filterwarnings('always')

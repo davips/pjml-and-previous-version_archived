@@ -10,7 +10,7 @@ if len(argv) < 2 or len(argv) > 5:
     print('Usage: \npython toy.py dataset.arff '
           '[memoize? True/False] [iterations] [seed]')
 else:
-    memoize = False if len(argv) < 3 else bool(argv[2])
+    memoize = False if len(argv) < 3 else argv[2] == 'True'
     iterations = 30 if len(argv) < 4 else int(argv[3])
     random_state = 0 if len(argv) < 5 else int(argv[4])
     data = Data.read_arff(argv[1], "class")
