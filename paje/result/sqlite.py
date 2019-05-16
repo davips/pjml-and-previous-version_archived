@@ -25,7 +25,8 @@ class SQLite(Cache):
                     print(r)
                 print('get_set: saindo do sqlite...')
                 exit(0)
-                # raise Exception('Excess of rows!')  # TODO: use general error handling
+                # TODO: use general error handling
+                # raise Exception('Excess of rows!')
             return SQLite.unpack(rows[0][0])
 
     def setexists(self, data):
@@ -44,7 +45,8 @@ class SQLite(Cache):
         :param component:
         :return:
         """
-        self.query("select count(1) from args where hash=?", [component.__hash__()])
+        self.query("select count(1) from args where hash=?",
+                   [component.__hash__()])
         rows = self.cursor.fetchall()
         return rows is not None and len(rows) > 0
 
@@ -55,9 +57,11 @@ class SQLite(Cache):
         :param train:
         :return:
         """
-        self.query("select name, args, dump from model where name=? and args=? and train=?",
-                   [type(component.__class__()).__name__, component.__hash__(), train.__hash__()],
-                   debug=False)
+        self.query(
+            "select name, args, dump from model where name=? and args=? and train=?",
+            [type(component.__class__()).__name__, component.__hash__(),
+             train.__hash__()],
+            debug=False)
         rows = self.cursor.fetchall()
         if rows is None or len(rows) == 0:
             return None
@@ -88,8 +92,8 @@ class SQLite(Cache):
             print(sql, args)
             exit(0)
 
-
     def get_or_else(self, component, train, f, test=None):
+        print('memoizing...')
         # TODO: Repeated calls to this function with the same parameters can be memoized.
         # TODO: use test set for something
 
@@ -97,13 +101,17 @@ class SQLite(Cache):
         # TODO insert time spent
         self.connection = sqlite3.connect(self.database)
         self.cursor = self.connection.cursor()
-        self.cursor.execute("create table if not exists args (hash BLOB, dic BLOB)")
-        self.cursor.execute("create table if not exists dset (hash BLOB, data BLOB)")
-        self.cursor.execute("create table if not exists model (name STRING, args BLOB, train BLOB, dump BLOB)")
+        self.cursor.execute(
+            "create table if not exists args (hash BLOB, dic BLOB)")
+        self.cursor.execute(
+            "create table if not exists dset (hash BLOB, data BLOB)")
+        self.cursor.execute(
+            "create table if not exists model (name STRING, args BLOB, train BLOB, dump BLOB)")
         # self.cursor.execute("create table if not exists result (pipeline BLOB, train BLOB, test BLOB, prediction JSON)")
         # TODO: check if the size of the database is too big with dumps
         # TODO: replicability/cache of results: save testset and predictions
-        self.cursor.execute("create table if not exists out (name STRING, args BLOB, setin BLOB, setout BLOB)")
+        self.cursor.execute(
+            "create table if not exists out (name STRING, args BLOB, setin BLOB, setout BLOB)")
 
         model = self.get_model(component, train)
         if model is not None:
@@ -113,7 +121,7 @@ class SQLite(Cache):
             res = component.use(train)
         else:
             # Processing and inserting a new combination.
-            train_hash = train.__hash__() # These two lines must be done, because train can be mutable during f().
+            train_hash = train.__hash__()  # These two lines must be done, because train can be mutable during f().
             train_dump = SQLite.pack(train)
             if not self.setexists(train):
                 self.query("insert into dset values (?, ?)",
@@ -132,7 +140,8 @@ class SQLite(Cache):
             # Store model.
             dump = SQLite.pack(component.model)
             self.query("insert into model values (?, ?, ?, ?)",
-                       [type(component.__class__()).__name__, component.__hash__(),
+                       [type(component.__class__()).__name__,
+                        component.__hash__(),
                         train_hash, dump], debug=False)
 
             # Store result of training data.

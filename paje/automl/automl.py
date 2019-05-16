@@ -90,7 +90,4 @@ class AutoML(Component, ABC):
 
     @classmethod
     def tree_impl(cls, data=None):
-        raise NotImplementedError("AutoML has neither hyper_spaces_tree()\
-                                  (obviously)",
-                                  " nor hyper_spaces_forest()\
-                                  (not so obviously) implemented!")
+        raise NotImplementedError("AutoML has no tree() implemented!")

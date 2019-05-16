@@ -21,6 +21,8 @@ class Pipeline(Composer):
         # exit(0)
         zipped = zip(range(0, len(self.components)), dics)
         for idx, dic in zipped:
+            # TODO: paramos de setar rnd_state?
+            #  setar inplace e showwarns?
             # if isinstance(self.components[idx], Composer):
             #     dic = {'dics': dic.copy()}
             # dic['random_state'] = self.random_state
@@ -28,6 +30,9 @@ class Pipeline(Composer):
             dic = dic.copy()
             # print('comp',self.components[idx])
             # print('dic', dic)
+            # TODO: decide if its worth to keep memozing only inside modules or
+            #  only in pipeline.
+            self.components[idx].memoize = self.memoize
             self.components[idx] = self.components[idx].build(**dic)
             # component.instantiate(**dic)
 

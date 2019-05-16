@@ -43,8 +43,8 @@ from paje.composer.switch import Switch
 from paje.base.freeze import Freeze
 # TODO: Extract list of all modules automatically from the root package module?
 # TODO: add DRFtAg, DRICA when try/catch is implemented in pipeline execution
-ready_classifiers = [CB(), DT(), KNN(), MLP(), NB(), RF(), SVM()] # TODO: AB is
-# not ready
+ready_classifiers = [DT(), KNN(), MLP(), NB(), RF(), SVM()]
+# TODO: AB is not ready and CB is too heavy
 ready_transformers = [DRPCA(), DRFA(),  DRGRP(),  DRPCA(), DRSRP()]
 ready_scalers = [Equalization(), Standard()]
 pip_chi_squared = [Pipeline(components=[
@@ -56,8 +56,6 @@ ready_filters = [FilterCFS(), FilterFScore(), FilterGiniIndex(),
 ready_balancing = [RanOverSampler(), RanUnderSampler()]
 
 
-# knn2 = Pipeline(components=[pipe2, knn])
-# mlp = Pipeline(components=[pca, MLP()])
 
 knn = KNN()
 pca = DRPCA()
@@ -65,21 +63,23 @@ std = Standard()
 eq = Equalization()
 pipe_pca = Pipeline(components=[eq, pca])
 pipe2 = Pipeline(components=[pipe_pca, std, pca])
+knn2 = Pipeline(components=[pipe2, knn])
+mlp = Pipeline(components=[pca, MLP()])
 
 # def_pipelines = [
 #     pca,
 #     Pipeline(components=[FilterCFS(), mlp])
 # ]
 
-# default_preprocessors = ready_transformers + ready_scalers + [pca]
-# default_preprocessors = ready_transformers + ready_scalers + ready_balancing +\
-#         ready_filters + [NRNN()]
+default_preprocessors = ready_transformers + ready_scalers + [pca]
+default_preprocessors = ready_transformers + ready_scalers + ready_balancing +\
+        ready_filters + [NRNN()]
 
 # switch = Switch(components=[Equalization(), Standard()])
 # switch2 = Switch(components=[switch, pipe2, pipe_pca])
 # default_preprocessors = [pipe_pca, pipe2, switch, switch2]
-default_preprocessors = [pipe_pca, pca, pipe2]
+# default_preprocessors = [pipe_pca, pca, pipe2]
 
-# default_modelers = [knn, knn2, mlp] + ready_classifiers
-default_modelers = [knn]
+default_modelers = [knn, knn2, mlp] + ready_classifiers
+# default_modelers = [knn]
 

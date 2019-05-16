@@ -36,7 +36,7 @@ else:
         x = int(round((pow(x0, 2)))) if argv[2] == 'heu' else 12
         model = MLP(activation='relu', hidden_layer_sizes=(x,), max_iter=1, verbose=False, early_stopping=False, validation_fraction=0, batch_size=500, solver='lbfgs') if argv[2] == 'rnd' \
             else MLP(random_state=1, activation='relu', hidden_layer_sizes=(x,), max_iter=10000, verbose=False, early_stopping=False, validation_fraction=0, batch_size=500, solver='lbfgs')
-        model.show_warnings = False
+        model.show_warns = False
         tr = model.apply(data_train).data_y
         ts1 = model.use(data_test).data_y
         ts2 = model.use(data_test2).data_y

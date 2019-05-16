@@ -30,7 +30,7 @@ class Component(ABC):
         # if True no copy will be made
         self.in_place = in_place
         # if True show warnings
-        self.show_warnings = show_warns
+        self.show_warns = show_warns
 
         self.memoize = memoize
         if memoize:
@@ -126,7 +126,7 @@ class Component(ABC):
     __repr__ = __str__
 
     def warning(self, msg):
-        if self.show_warnings:
+        if self.show_warns:
             warning(msg)
 
     def error(self, msg):
@@ -197,12 +197,12 @@ class Component(ABC):
         # Mahalanobis in KNN needs to supress warnings due to NaN in linear
         # algebra calculations. MLP is also verbose due to nonconvergence
         # issues among other problems.
-        if not self.show_warnings:
+        if not self.show_warns:
             np.warnings.filterwarnings('ignore')
 
         result = self.handle_storage(handled_data)
 
-        if not self.show_warnings:
+        if not self.show_warns:
             np.warnings.filterwarnings('always')
 
         return result

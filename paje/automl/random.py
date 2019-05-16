@@ -51,7 +51,7 @@ class RandomAutoML(AutoML):
         modules = self.static_pipeline if self.static else self.choose_modules()
         self.curr_pipe = Pipeline(modules, in_place=self.in_place,
                                   memoize=self.memoize,
-                                  show_warns=self.show_warnings)
+                                  show_warns=self.show_warns)
         forest = self.curr_pipe.tree(data)
         # print('fores\n', forest)
         # print(' to dic\n', self.next_args(forest))

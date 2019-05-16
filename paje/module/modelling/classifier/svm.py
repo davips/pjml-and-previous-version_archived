@@ -13,7 +13,7 @@ class SVM(Classifier):
         try:
             return super().apply_impl(data)
         except:
-            if self.show_warnings:
+            if self.show_warns:
                 print(
                     'Falling back to random classifier, possible due to '
                     'convergence problems (bad "nu" value, for instance).')
