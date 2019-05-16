@@ -55,7 +55,8 @@ class Pipeline(Composer):
             # trees = [copy.deepcopy(i.forest(data)) for i in self.components]
             trees = []
             for i in range(0, len(self.components)):
-                tree = copy.deepcopy(self.components[i]).tree(data)
+                # TODO: Why were we using deepcopy here?
+                tree = copy.copy(self.components[i]).tree(data)
                 # tree.name = "{0}_{1}".format(
                 #     i, self.components[i].__class__.__name__)
                 trees.append(tree)
