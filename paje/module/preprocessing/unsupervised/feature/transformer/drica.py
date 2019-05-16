@@ -39,7 +39,7 @@ rd = ica.apply(2)
 
 
 class DRICA(Reductor):
-    def instantiate_impl(self):
+    def build_impl(self):
         self.model = FastICA(**self.dic)
 
     @classmethod

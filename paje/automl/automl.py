@@ -25,7 +25,7 @@ class AutoML(Component, ABC):
         self.random_state = random_state
         self.verbose = verbose
 
-    def instantiate_impl(self):
+    def build_impl(self):
         # TODO: uncomment:
         # raise Exception('It is not clear if this class is instantiable yet.')
         pass

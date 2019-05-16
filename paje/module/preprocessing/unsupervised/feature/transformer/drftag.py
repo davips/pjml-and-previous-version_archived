@@ -34,7 +34,7 @@ rd = fa.apply(2)
 
 
 class DRFtAg(Reductor):
-    def instantiate_impl(self):
+    def build_impl(self):
         newdic = self.dic.copy()
         if newdic['linkage'] == 'ward':
             newdic['affinity'] = 'euclidean'

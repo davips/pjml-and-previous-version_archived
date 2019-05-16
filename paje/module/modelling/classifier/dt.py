@@ -7,7 +7,7 @@ from paje.module.modelling.classifier.classifier import Classifier
 
 
 class DT(Classifier):
-    def instantiate_impl(self):
+    def build_impl(self):
         self.model = DecisionTreeClassifier(**self.dic)
 
     @classmethod

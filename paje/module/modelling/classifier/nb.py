@@ -5,7 +5,7 @@ from paje.module.modelling.classifier.classifier import Classifier
 
 
 class NB(Classifier):
-    def instantiate_impl(self):
+    def build_impl(self):
         self.model = GaussianNB()
 
     @classmethod

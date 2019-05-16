@@ -52,12 +52,14 @@ class RandomAutoML(AutoML):
         self.curr_pipe = Pipeline(modules, in_place=self.in_place,
                                   memoize=self.memoize,
                                   show_warns=self.show_warnings)
-        forest = self.curr_pipe.forest(data)
-        self.curr_pipe = self.curr_pipe.instantiate(
-            dics=self.next_dicts(forest), random_state=self.random_state)
+        forest = self.curr_pipe.tree(data)
+        # print('fores\n', forest)
+        # print(' to dic\n', self.next_args(forest))
+        self.curr_pipe = self.curr_pipe.build(**self.next_args(forest),
+                                              random_state=self.random_state)
         return [self.curr_pipe]
 
-    def next_dicts(self, forest):  # previously known as next_hyperpar_dicts
+    def next_args(self, forest):  # previously known as next_hyperpar_dicts
         # Defines search space (space of hyperparameter spaces).
         # dics = []
         # if isinstance(forest, list):

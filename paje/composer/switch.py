@@ -4,7 +4,7 @@ from paje.base.hps import HPTree
 
 class Switch(Composer):
 
-    def instantiate_impl(self):
+    def build_impl(self):
         """
         The only parameter is dics with the dic of each component.
         :param dics
@@ -23,7 +23,7 @@ class Switch(Composer):
         del dic["component"]
         print(dic)
 
-        self.components = [self.components[component_idx].instantiate(**dic)]
+        self.components = [self.components[component_idx].build(**dic)]
 
         # zipped = zip(range(0, len(self.components)), dics)
         # for idx, dic in zipped:
@@ -32,7 +32,7 @@ class Switch(Composer):
         #     dic['random_state'] = self.random_state
         #     self.components[idx] = self.components[idx].instantiate(**dic)
 
-    def forest(self, data=None):  # previously known as hyperpar_spaces_forest
+    def tree(self, data=None):  # previously known as hyperpar_spaces_forest
         forest = []
         idx = -1
         for component in self.components:
@@ -44,7 +44,7 @@ class Switch(Composer):
             #     ))
             #     tree = aux
             # else:
-            tree = component.forest(data)
+            tree = component.tree(data)
             comp_hptree = HPTree({"component": ['c', ["{0}_{1}".format(
                 idx, component.__class__.__name__)]]}, [tree])
             forest.append(comp_hptree)

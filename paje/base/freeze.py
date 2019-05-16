@@ -9,8 +9,8 @@ class Freeze(Component):
         self.component = component
         self.params = kwargs
 
-    def instantiate_impl(self):
-        self.component = self.component.instantiate(**self.params)
+    def build_impl(self):
+        self.component = self.component.build(**self.params)
 
     def apply_impl(self, data):
         return self.component.apply(data)
@@ -29,5 +29,5 @@ class Freeze(Component):
         print(aux)
         return aux
 
-    def forest(self, data=None):
+    def tree(self, data=None):
         return HPTree(dic=self.freeze_hptree(), children=[])

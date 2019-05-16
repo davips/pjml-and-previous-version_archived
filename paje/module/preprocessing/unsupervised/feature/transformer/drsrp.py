@@ -36,7 +36,7 @@ rd = srp.apply(2)
 
 
 class DRSRP(Reductor):
-    def instantiate_impl(self):
+    def build_impl(self):
         self.model = SparseRandomProjection(**self.dic)
 
     @classmethod

@@ -6,7 +6,7 @@ from paje.base.hps import HPTree
 
 class Filter(Component, ABC):
     """ Filter base class"""
-    def instantiate_impl(self):
+    def build_impl(self):
         self.ratio = self.dic['ratio']
         self._rank = self._score = self._nro_features = None
 

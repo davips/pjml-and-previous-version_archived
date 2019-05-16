@@ -5,7 +5,7 @@ import pandas as pd
 
 
 class FilterCFS(Filter):
-    def instantiate_impl(self):
+    def build_impl(self):
         self.__rank = self.__score = self._selected = None
 
     def apply_impl(self, data):

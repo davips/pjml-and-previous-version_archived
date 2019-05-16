@@ -6,7 +6,7 @@ from paje.module.preprocessing.supervised.instance.balancer.resampler \
 
 
 class RanUnderSampler(Resampler):
-    def instantiate_impl(self):
+    def build_impl(self):
         self.model = RandomUnderSampler(**self.dic)
 
     @classmethod

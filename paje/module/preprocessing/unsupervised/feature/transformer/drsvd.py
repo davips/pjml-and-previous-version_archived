@@ -46,7 +46,7 @@ rd = svd.apply(2)
 
 
 class DRSVD(Reductor):
-    def instantiate_impl(self):
+    def build_impl(self):
         raise Exception("this module is broken")
         # TODO: this module is broken
 

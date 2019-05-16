@@ -6,7 +6,7 @@ from paje.module.modelling.classifier.classifier import Classifier
 
 
 class MLP(Classifier):
-    def instantiate_impl(self):
+    def build_impl(self):
         # Convert '@' hyperparameters to sklearn format.
         n_hidden_layers = 0
         new_kwargs = self.dic.copy()

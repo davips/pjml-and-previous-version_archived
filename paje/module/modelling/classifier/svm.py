@@ -6,7 +6,7 @@ from paje.module.modelling.classifier.classifier import Classifier
 
 
 class SVM(Classifier):
-    def instantiate_impl(self):
+    def build_impl(self):
         self.model = NuSVC(**self.dic)
 
     def apply_impl(self, data):

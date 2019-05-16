@@ -42,7 +42,7 @@ class Component(ABC):
         return False
 
     @abstractmethod
-    def instantiate_impl(self):
+    def build_impl(self):
         pass
 
     @abstractmethod
@@ -90,24 +90,11 @@ class Component(ABC):
     #     raise NotImplementedError("Should it return probability\
     #                                distributions, rules?")
 
-    @classmethod
     @abstractmethod
     def tree_impl(cls, data=None):  # previously known as hyper_spaces_tree_impl
         """Todo the doc string
         """
         pass
-
-    @classmethod
-    def tree(cls, data=None):  # previously known as hyper_spaces_tree
-        """
-        Only call this method instead of hyperpar_spaces_forest() if you know
-        what you are doing! (E.g. calling from a classifier)
-        :param data:
-        :return: tree
-        """
-        tree = cls.tree_impl(data)
-        cls.check(tree)
-        return tree
 
     @classmethod
     def print_tree(cls,
@@ -121,16 +108,15 @@ class Component(ABC):
             raise Exception(cls.__name__ + ' needs a dataset to be able to \
                             estimate maximum values for some hyperparameters.')
 
-    def forest(self, data=None):  # previously known as hyperpar_spaces_forest
+    def tree(self, data=None):  # previously known as hyperpar_spaces_forest
         """
-        This method, hyperpar_spaces_forest(), should be preferred over
-        hyper_spaces_tree(),
-        because not every Component can implement the latter.
-        (See e.g. Pipeline)
         :param data:
         :return: [tree]
         """
-        tree = self.__class__.tree(data)
+        # TODO: all child classes mark tree_impl as classmethod, turn it onto
+        # instance method?
+        tree = self.tree_impl(data)
+        self.check(tree)
         tree.name = self.__class__.__name__
         return tree
 
@@ -190,12 +176,14 @@ class Component(ABC):
         for child in tree.children:
             cls.check(child)
 
-    def instantiate(self, **dic):
+    def build(self, **dic):
         self = copy.copy(self)
         self.dic = dic
         if self.isdeterministic() and "random_state" in self.dic:
             del self.dic["random_state"]
-        self.instantiate_impl()
+        if 'name' in self.dic:
+            del self.dic['name']
+        self.build_impl()
         return self
         #
         # return self.__class__(self.in_place, self.memoize, self.show_warnings,
@@ -225,4 +213,4 @@ class Component(ABC):
         return self.use_impl(self.handle_inplace(data))
 
     def print_forest(self, data=None):
-        print(self.forest(data))
+        print(self.tree(data))

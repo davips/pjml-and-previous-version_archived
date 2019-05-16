@@ -11,7 +11,7 @@ class CB(Classifier):
         self.verbose = verbose
         super().__init__(in_place, memoize, show_warns)
 
-    def instantiate_impl(self):
+    def build_impl(self):
         self.model = CatBoostClassifier(**self.dic, verbose=self.verbose)
 
     # def apply(self, data):

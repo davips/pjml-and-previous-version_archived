@@ -5,7 +5,7 @@ from paje.module.preprocessing.supervised.instance.balancer.resampler import Res
 
 
 class RanOverSampler(Resampler):
-    def instantiate_impl(self):
+    def build_impl(self):
         self.model = RandomOverSampler(**self.dic)
 
     @classmethod

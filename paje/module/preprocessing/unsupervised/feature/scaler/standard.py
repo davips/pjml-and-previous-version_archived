@@ -4,7 +4,7 @@ from paje.base.hps import HPTree
 from paje.module.preprocessing.unsupervised.feature.scaler.scaler import Scaler
 
 class Standard(Scaler):
-    def instantiate_impl(self):
+    def build_impl(self):
         newdic = self.dic.copy()
         mean_std = newdic.get('@with_mean/std')
         if mean_std is None:

@@ -5,7 +5,7 @@ import copy
 
 class Pipeline(Composer):
 
-    def instantiate_impl(self):
+    def build_impl(self):
         """
         The only parameter is dics with the dic of each component.
         :param dics
@@ -18,18 +18,17 @@ class Pipeline(Composer):
         # if 'random_state' in self.dic:
         #     self.random_state = self.dic['random_state']
         self.components = self.components.copy()
-        print(dics)
-        exit(0)
-        zipped = zip(range(0, len(self.components)), dics.keys())
+        # exit(0)
+        zipped = zip(range(0, len(self.components)), dics)
         for idx, dic in zipped:
             # if isinstance(self.components[idx], Composer):
             #     dic = {'dics': dic.copy()}
             # dic['random_state'] = self.random_state
 
-            dic = dics[dic].copy()
-            print(dic)
-            self.components[idx] = self.components[idx].instantiate(
-                **dic)
+            dic = dic.copy()
+            # print('comp',self.components[idx])
+            # print('dic', dic)
+            self.components[idx] = self.components[idx].build(**dic)
             # component.instantiate(**dic)
 
     def set_leaf(self, tree, f):
@@ -42,7 +41,7 @@ class Pipeline(Composer):
             # if tree.name is not 'EndPipeline':
             tree.children.append(f())
 
-    def forest(self, data=None):  # previously known as hyperpar_spaces_forest
+    def tree(self, data=None):  # previously known as hyperpar_spaces_forest
         # forest = []
         if self.myforest is None:
             # for component in self.components:
@@ -51,7 +50,7 @@ class Pipeline(Composer):
             # trees = [copy.deepcopy(i.forest(data)) for i in self.components]
             trees = []
             for i in range(0, len(self.components)):
-                tree = copy.deepcopy(self.components[i]).forest(data)
+                tree = copy.deepcopy(self.components[i]).tree(data)
                 # tree.name = "{0}_{1}".format(
                 #     i, self.components[i].__class__.__name__)
                 trees.append(tree)

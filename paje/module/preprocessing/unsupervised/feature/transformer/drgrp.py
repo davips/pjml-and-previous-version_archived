@@ -34,7 +34,7 @@ rd = grp.apply(2)
 
 
 class DRGRP(Reductor):
-    def instantiate_impl(self):
+    def build_impl(self):
         self.model = GaussianRandomProjection(**self.dic)
 
     @classmethod

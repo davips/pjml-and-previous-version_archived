@@ -7,7 +7,7 @@ from paje.module.modelling.classifier.classifier import Classifier
 
 
 class AB(Classifier):
-    def instantiate_impl(self):
+    def build_impl(self):
         self.model = AdaBoostClassifier(**self.dic)
         raise Exception('Working in progress... AB still with RF hyperparameters.')
 

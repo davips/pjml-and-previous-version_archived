@@ -60,7 +60,7 @@ class DRPCA(Reductor):
     # # standardize features: PCA is sensible to the measure scale
     # self.x = StandardScaler().fit_transform(self.x)
 
-    def instantiate_impl(self):
+    def build_impl(self):
         # TODO: check if random_state is useful for PCA
         newdic = self.dic.copy()
         self.model = PCA(**newdic)

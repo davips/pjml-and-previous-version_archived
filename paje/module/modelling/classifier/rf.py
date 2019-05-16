@@ -6,7 +6,7 @@ from paje.module.modelling.classifier.classifier import Classifier
 
 
 class RF(Classifier):
-    def instantiate_impl(self):
+    def build_impl(self):
         # TODO: set n_jobs in constructor
         self.model = RandomForestClassifier(**self.dic)
 

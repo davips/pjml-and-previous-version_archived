@@ -105,7 +105,7 @@ rd = fa.apply(2)
 
 
 class DRFA(Reductor):
-    def instantiate_impl(self):
+    def build_impl(self):
         self.model = FactorAnalysis(**self.dic)
 
     @classmethod

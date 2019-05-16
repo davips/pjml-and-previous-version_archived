@@ -56,7 +56,6 @@ ready_filters = [FilterCFS(), FilterFScore(), FilterGiniIndex(),
 ready_balancing = [RanOverSampler(), RanUnderSampler()]
 
 
-# pipe2 = Pipeline(components=[pipe_pca, std, pca])
 # knn2 = Pipeline(components=[pipe2, knn])
 # mlp = Pipeline(components=[pca, MLP()])
 
@@ -65,6 +64,7 @@ pca = DRPCA()
 std = Standard()
 eq = Equalization()
 pipe_pca = Pipeline(components=[eq, pca])
+pipe2 = Pipeline(components=[pipe_pca, std, pca])
 
 # def_pipelines = [
 #     pca,
@@ -78,8 +78,8 @@ pipe_pca = Pipeline(components=[eq, pca])
 # switch = Switch(components=[Equalization(), Standard()])
 # switch2 = Switch(components=[switch, pipe2, pipe_pca])
 # default_preprocessors = [pipe_pca, pipe2, switch, switch2]
-default_preprocessors = [pipe_pca]
+default_preprocessors = [pipe_pca, pca, pipe2]
 
 # default_modelers = [knn, knn2, mlp] + ready_classifiers
-default_modelers = [knn, knn]
+default_modelers = [knn]
 

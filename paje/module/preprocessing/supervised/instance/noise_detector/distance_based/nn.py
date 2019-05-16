@@ -12,7 +12,7 @@ from paje.base.hps import HPTree
 
 
 class NRNN(Component, ABC):
-    def instantiate_impl(self):
+    def build_impl(self):
         self.vote = self.dic['vote']
         self.algorithm = self.dic['algorithm']
         self.k = self.dic['k']
