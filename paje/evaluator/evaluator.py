@@ -33,16 +33,25 @@ class Evaluator():
             try:
                 if self.storage is not None:
                     # TODO: failed apply/use should store fake bad predictions
+
+                    # TODO: make Data imutable,
+                    #  so we avoid this unnecessary kind of copy()
+                    original_data_train = data_train.copy()
+
                     output_train = self.storage.get_results_or_else(
                         component, data_train, data_train, component.apply
                     ).data_y
+
                     output_test = self.storage.get_results_or_else(
-                        component, data_train, data_test, component.use
+                        component, original_data_train, data_test, component.use
                     ).data_y
+
                 else:
                     output_train = component.apply(data_train).data_y
                     output_test = component.use(data_test).data_y
+
                 error = self.metric(data_test, output_test)
+
             except ExceptionInApplyOrUse as e:
                 # TODO: we are assuming that eval is minimizing an error measure
                 error = 999666
