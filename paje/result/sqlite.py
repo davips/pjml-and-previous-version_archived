@@ -112,6 +112,25 @@ class SQLite(Cache):
             # print('SQLite.unpack(rows[0][2]): ', SQLite.unpack(rows[0][2]))
             return SQLite.unpack(rows[0][2])
 
+    def start_database(self):
+        # TODO: check if it is possible to put this creation part inside
+        #  __init__ without locking database
+        self.connection = sqlite3.connect(self.database)
+        self.cursor = self.connection.cursor()
+        self.cursor.execute(
+            "create table if not exists args (hash BLOB, dic BLOB)")
+        self.cursor.execute(
+            "create table if not exists dset (hash BLOB, data BLOB)")
+        self.cursor.execute("create table if not exists model " +
+                            "(name STRING, args BLOB, train BLOB, dump BLOB)")
+        self.cursor.execute("create table if not exists out " +
+                            "(name STRING, args BLOB, train BLOB, setin BLOB, "
+                            "setout BLOB)")
+        self.cursor.execute(
+            "CREATE INDEX if not exists idx2 ON dset (hash)")
+        self.cursor.execute(
+            "CREATE INDEX if not exists idx ON out (name, args, train, setin)")
+
     def get_or_else(self, component, train, f):
         # TODO: Repeated calls to this function with the same parameters can be
         #  memoized.
@@ -180,21 +199,6 @@ class SQLite(Cache):
             self.connection.commit()
             res = trainout
         return res
-
-    def start_database(self):
-        # TODO: check if it is possible to put this creation part inside
-        #  __init__ without locking database
-        self.connection = sqlite3.connect(self.database)
-        self.cursor = self.connection.cursor()
-        self.cursor.execute(
-            "create table if not exists args (hash BLOB, dic BLOB)")
-        self.cursor.execute(
-            "create table if not exists dset (hash BLOB, data BLOB)")
-        self.cursor.execute("create table if not exists model " +
-                            "(name STRING, args BLOB, train BLOB, dump BLOB)")
-        self.cursor.execute("create table if not exists out " +
-                            "(name STRING, args BLOB, train BLOB, setin BLOB, "
-                            "setout BLOB)")
 
     # @profile
     def get_results_or_else(self, component, train, setin, f):

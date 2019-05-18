@@ -18,7 +18,7 @@ class Component(ABC):
     """Todo the docs string
     """
 
-    def __init__(self, in_place=False, memoize=False, show_warns=True):
+    def __init__(self, memoize=False, show_warns=True):
 
         # self.model here refers to classifiers, preprocessors and, possibly,
         # some representation of pipelines or the autoML itself.
@@ -31,9 +31,6 @@ class Component(ABC):
         # Store apply() results in disk?
         self.memoize = memoize
         self.storage = None  # Defined in build() when needed, to avoid locking.
-
-        # if True no copy will be made
-        self.in_place = in_place
 
         # if True show warnings
         self.show_warns = show_warns
@@ -184,9 +181,6 @@ class Component(ABC):
             del self.dic['name']
         self.build_impl()
         return self
-        #
-        # return self.__class__(self.in_place, self.memoize, self.show_warnings,
-        #                       **dic)
 
     # @profile
     def apply(self, data=None):

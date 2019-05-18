@@ -22,7 +22,7 @@ class Pipeline(Composer):
         # exit(0)
         zipped = zip(range(0, len(self.components)), dics)
         for idx, dic in zipped:
-            # TODO: setar inplace e showwarns?
+            # TODO: setar showwarns?
             # if isinstance(self.components[idx], Composer):
             #     dic = {'dics': dic.copy()}
 

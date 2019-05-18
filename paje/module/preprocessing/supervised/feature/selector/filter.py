@@ -26,8 +26,7 @@ class Filter(Component, ABC):
     def selected(self):
         return self._rank[0:self._nro_features].copy()
 
-    @classmethod
-    def tree_impl(cls, data=None):
+    def tree_impl(cls, data):
         return HPTree(
             # TODO: check if it would be better to adopt a 'z' hyperparameter
             dic={'ratio': ['r', [1e-05, 1]]},

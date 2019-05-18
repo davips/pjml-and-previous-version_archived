@@ -10,7 +10,7 @@ class RandomAutoML(AutoML):
     def __init__(self, preprocessors=None, modelers=None,
                  max_iter=5, static=True, fixed=True, max_depth=5,
                  repetitions=0, method="all", verbose=True, random_state=0,
-                 in_place=False, memoize=False, show_warns=True):
+                 memoize=False, show_warns=True):
         """
         AutoML
         :param preprocessors: list of modules for balancing, noise removal, sampling etc.
@@ -26,7 +26,7 @@ class RandomAutoML(AutoML):
         """
         AutoML.__init__(self, preprocessors=preprocessors, modelers=modelers,
                         verbose=verbose,
-                        random_state=random_state, in_place=in_place,
+                        random_state=random_state,
                         memoize=memoize, show_warns=show_warns)
 
         self.best_error = 9999999
@@ -50,8 +50,7 @@ class RandomAutoML(AutoML):
     def next_pipelines(self, data):
         modules = self.static_pipeline if self.static else self.choose_modules()
         # Not passing memoize to Pipeline, since it is not used there anymore.
-        self.curr_pipe = Pipeline(modules, in_place=self.in_place,
-                                  show_warns=self.show_warns)
+        self.curr_pipe = Pipeline(modules, show_warns=self.show_warns)
         forest = self.curr_pipe.tree(data)
         # print('fores...\n', forest)
         # print(' to dic...\n', self.next_args(forest))

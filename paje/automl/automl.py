@@ -15,9 +15,9 @@ from paje.result.sqlite import SQLite
 class AutoML(Component, ABC):
 
     def __init__(self, preprocessors=None, modelers=None, verbose=True,
-                 random_state=0, in_place=False, memoize=False,
+                 random_state=0, memoize=False,
                  show_warns=True, **kwargs):
-        super().__init__(in_place, memoize, show_warns, **kwargs)
+        super().__init__(memoize, show_warns, **kwargs)
         self.preprocessors = default_preprocessors \
             if preprocessors is None else preprocessors
         self.modelers = default_modelers if modelers is None else modelers

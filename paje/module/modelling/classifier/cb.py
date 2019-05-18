@@ -6,10 +6,10 @@ from paje.module.modelling.classifier.classifier import Classifier
 
 
 class CB(Classifier):
-    def __init__(self, verbose=False, in_place=False, memoize=False,
+    def __init__(self, verbose=False, memoize=False,
                  show_warns=True):
         self.verbose = verbose
-        super().__init__(in_place, memoize, show_warns)
+        super().__init__(memoize, show_warns)
 
     def build_impl(self):
         self.model = CatBoostClassifier(**self.dic, verbose=self.verbose)

@@ -25,6 +25,5 @@ class FilterCFS(Filter):
     def selected(self):
         return self._selected
 
-    @classmethod
     def tree_impl(cls, data):
         return HPTree(dic={}, children=[])
