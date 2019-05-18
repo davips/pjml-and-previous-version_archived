@@ -17,10 +17,10 @@ class DT(Classifier):
         dic = {
             'criterion': ['c', ['gini', 'entropy']],
             'splitter': ['c', ['best', 'random']],
-            'max_depth': ['z', [2, data.n_instances()]],
-            'min_samples_split': ['z', [2, floor(data.n_instances() / 2)]],
+            'max_depth': ['z', [2, data.n_instances]],
+            'min_samples_split': ['z', [2, floor(data.n_instances / 2)]],
             # Same reason as min_samples_leaf
-            'min_samples_leaf': ['z', [1, floor(data.n_instances() / 2)]],
+            'min_samples_leaf': ['z', [1, floor(data.n_instances / 2)]],
             # Int (# of instances) is better than float (proportion of instances) because different floats can collide to a same int, making intervals of useless real values.
             'min_weight_fraction_leaf': ['r', [0, 0.5]],
             # According to ValueError exception (tested only with RF).

@@ -12,12 +12,14 @@ class Composer(Component):
         self.random_state = 0
         self.myforest = None
 
+    # @profile
     def apply_impl(self, data):
         for component in self.components:
             # useless assignment if it is set to be inplace
             data = component.apply(data)
         return data
 
+    # @profile
     def use_impl(self, data):
         for component in self.components:
             data = component.use(data)

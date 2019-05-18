@@ -6,6 +6,7 @@ from paje.base.hps import HPTree
 
 class Filter(Component, ABC):
     """ Filter base class"""
+
     def build_impl(self):
         # TODO: forcing to recalculate, since there is no self.model.
         self.memoize = False
@@ -14,8 +15,7 @@ class Filter(Component, ABC):
         self._rank = self._score = self._nro_features = None
 
     def use_impl(self, data):
-        data.data_x = data.data_x[:, self.selected()]
-        return data
+        return data.update(X=data.X[:, self.selected()])
 
     def rank(self):
         return self._rank
@@ -32,4 +32,3 @@ class Filter(Component, ABC):
             # TODO: check if it would be better to adopt a 'z' hyperparameter
             dic={'ratio': ['r', [1e-05, 1]]},
             children=[])
-

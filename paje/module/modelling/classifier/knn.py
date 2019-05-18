@@ -19,18 +19,18 @@ class KNN(Classifier):
 
     def apply_impl(self, data):
         # If data underwent undersampling, rescale k as if its original interval of values was stretched to fit into the new size.
-        # if data.n_instances() < self.n_instances:
+        # if data.n_instances < self.n_instances:
         #     pct = self.model.n_neighbors / self.n_instances
-        #     self.model.n_neighbors = floor(pct * data.n_instances()) + 1
+        #     self.model.n_neighbors = floor(pct * data.n_instances) + 1
 
         #TODO: decide how to handle this
-        if self.model.n_neighbors > data.n_instances():
+        if self.model.n_neighbors > data.n_instances:
             self.warning('excess of neighbors!')
-            self.model.n_neighbors = data.n_instances()
+            self.model.n_neighbors = data.n_instances
 
         # Handle complicated distance measures.
         if self.model.metric == 'mahalanobis':
-            X = data.data_x
+            X = data.X
             self.model.algorithm = 'brute'
             try:
                 cov = np.cov(X)
@@ -50,7 +50,7 @@ class KNN(Classifier):
     def tree_impl(cls, data=None):
         # Assumes worst case of k-fold CV, i.e. k=2. Undersampling is another problem, handled by @n_instances.
         cls.check_data(data)
-        kmax = floor(data.n_instances() / 2 - 1)
+        kmax = floor(data.n_instances / 2 - 1)
 
         dic = {
             'n_neighbors': ['c', exponential_integers(kmax)],
@@ -59,6 +59,6 @@ class KNN(Classifier):
             'weights': ['c', ['distance', 'uniform']],
 
             # Auxiliary - will used to calculate pct, only when the training set size happens to be smaller than kmax (probably due to under sampling).
-            '@n_instances': ['c', [data.n_instances()]]
+            '@n_instances': ['c', [data.n_instances]]
         }
         return HPTree(dic, children=[])

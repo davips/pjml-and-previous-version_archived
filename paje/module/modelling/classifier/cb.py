@@ -20,16 +20,16 @@ class CB(Classifier):
     #     except:
     #         if super().show_warnings:
     #             print('Falling back to random classifier, if there are convergence problems (bad "nu" value, for instance).')
-    #         self.model = DummyClassifier(strategy='uniform').fit(*data.xy())
+    #         self.model = DummyClassifier(strategy='uniform').fit(*data.xy)
 
     @classmethod
-    def tree_impl(cls, data=None):
+    def tree_impl(cls, data):
         # todo: inconsistent pipelines: All features are either constant or ignored.
         cls.check_data(data)
         # todo: set random seed
         data_for_speed = {'iterations': ['z', [2, 1000]]}  # Entre outros
         n_estimators = min(
-            [500, floor(sqrt(data.n_instances() * data.n_attributes()))])
+            [500, floor(sqrt(data.n_instances * data.n_attributes))])
 
         dic = {
             'iterations': ['c', [n_estimators]],

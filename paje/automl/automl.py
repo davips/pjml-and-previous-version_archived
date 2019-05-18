@@ -31,6 +31,7 @@ class AutoML(Component, ABC):
         # raise Exception('It is not clear if this class is instantiable yet.')
         pass
 
+    # @profile
     def apply_impl(self, data):
         print('--------------------------------------------------------------')
         # print('max_iter', self.max_iter, '  max_depth', self.max_depth,

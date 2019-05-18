@@ -35,8 +35,8 @@ class MLP(Classifier):
     def tree_impl(cls, data=None):
         cls.check_data(data)
         # todo: set random seed
-        max_free_parameters = int(data.n_instances() / (data.n_attributes() +
-                                                        data.n_classes()))
+        max_free_parameters = int(data.n_instances / (data.n_attributes +
+                                                        data.n_classes))
         dic = {
             'alpha': ['o',
                       [0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100,
@@ -123,8 +123,8 @@ class MLP(Classifier):
         solver_non_newton = HPTree({
             'n_iter_no_change': ['z', [2, 1000]],
             # Only effective when solver=’sgd’ or ‘adam’.
-            'batch_size': ['z', [min(10, floor(data.n_instances() / 2) - 1),
-                                 min([1000, floor(data.n_instances() / 2)])]],
+            'batch_size': ['z', [min(10, floor(data.n_instances / 2) - 1),
+                                 min([1000, floor(data.n_instances / 2)])]],
             # useless for solver lbfgs
             'learning_rate_init': ['r', [0.000001, 0.5]],
             # Only used when solver=’sgd’ or ‘adam’

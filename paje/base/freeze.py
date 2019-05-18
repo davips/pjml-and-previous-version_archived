@@ -13,6 +13,8 @@ class Freeze(Composer):
 
     def build_impl(self):
         # TODO: paramos de setar rnd_state?
+        self.components = self.components.copy()
+        self.params = self.params.copy()
         self.components[0].memoize = self.memoize
         self.components[0] = self.components[0].build(**self.dic)
 

@@ -9,6 +9,7 @@ from sklearn.neighbors import KNeighborsClassifier
 
 from paje.base.component import Component
 from paje.base.hps import HPTree
+from paje.base.data import Data
 
 
 class NRNN(Component, ABC):
@@ -21,10 +22,10 @@ class NRNN(Component, ABC):
         self.k = self.dic['k']
 
     def apply_impl(self, data):
-        if self.k > data.n_instances():
-            self.k = data.n_instances()
-        data.data_x, data.data_y = getattr(self, self.algorithm)(*data.xy())
-        return data
+        if self.k > data.n_instances:
+            self.k = data.n_instances
+        X, y = getattr(self, self.algorithm)(*data.xy)
+        return data.update(X=X, y=y)
 
     def use_impl(self, data):
         # TODO: check with LPaulo
@@ -148,7 +149,7 @@ class NRNN(Component, ABC):
         # Assumes worst case of k-fold CV, i.e. k=2. Undersampling is another
         # problem, handled by @n_instances.
         cls.check_data(data)
-        kmax = floor(data.n_instances() / 2 - 1)
+        kmax = floor(data.n_instances / 2 - 1)
 
         dic = {
             # TODO: implement 'minority'

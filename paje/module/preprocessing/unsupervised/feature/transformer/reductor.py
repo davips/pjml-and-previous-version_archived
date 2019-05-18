@@ -7,7 +7,7 @@ from paje.base.hps import HPTree
 class Reductor(Component, ABC):
     def apply_impl(self, data):
         self.att_labels = data.columns
-        max_components = min(data.n_instances(), data.n_attributes())
+        max_components = min(data.n_instances, data.n_attributes)
         if hasattr(self.model, 'n_clusters'):  # DRFTAG changes terminology
             self.model.n_components = self.model.n_clusters
         if self.model.n_components > max_components:
@@ -24,18 +24,17 @@ class Reductor(Component, ABC):
         #  FeatureAgglomeration.
         # TODO: DRICA ValueError: array must not contain infs or NaNs
 
-        self.model.fit(data.data_x)
+        self.model.fit(data.X)
         return self.use(data)
 
     def use_impl(self, data):
-        data.data_x = self.model.transform(data.data_x)
-        return data
+        return data.update(X=self.model.transform(data.X))
 
     @classmethod
-    def tree_impl(cls, data=None):
+    def tree_impl(cls, data):
         cls.check_data(data)
         # TODO: set random_state
-        dic = {'n_components': ['z', [1, data.n_attributes()]]}
+        dic = {'n_components': ['z', [1, data.n_attributes]]}
         dic.update(cls.specific_dictionary(data))
         return HPTree(dic, children=[])
 

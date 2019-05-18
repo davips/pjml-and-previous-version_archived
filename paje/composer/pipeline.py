@@ -5,6 +5,7 @@ import copy
 
 class Pipeline(Composer):
 
+    # @profile
     def build_impl(self):
         """
         The only parameter is dics with the dic of each component.
@@ -33,6 +34,7 @@ class Pipeline(Composer):
             self.components[idx] = self.components[idx].build(**dic)
             # component.instantiate(**dic)
 
+    # @profile
     def set_leaf(self, tree, f):
         # TODO: verify why there is a excess of EndPipelines
         # print('setleaf',tree.name)
@@ -43,6 +45,7 @@ class Pipeline(Composer):
             # if tree.name is not 'EndPipeline':
             tree.children.append(f())
 
+    # @profile
     def tree_impl(self, data=None):
         # forest = []
         if self.myforest is None:

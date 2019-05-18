@@ -9,7 +9,7 @@ import math
 class FilterFScore(Filter):
     """  """
     def apply_impl(self, data):
-        X, y = data.xy()
+        X, y = data.xy
 
         # TODO: verify if it is possible implement this with numpy
         y = pd.Categorical(y).codes

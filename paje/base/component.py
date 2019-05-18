@@ -9,7 +9,7 @@ from logging import warning
 import numpy as np
 
 from paje.base.exceptions import ExceptionInApplyOrUse
-from paje.data.data import Data
+from paje.base.data import Data
 from paje.result.sqlite import SQLite
 from paje.result.storage import uuid
 
@@ -25,6 +25,7 @@ class Component(ABC):
         # Another possibility is to generalize modules to a new class Module()
         # that has self.model.
         self.model = None
+        self.uuid = None  # UUID will be known only after build()
         self.dic = {}
 
         # Store apply() results in disk?
@@ -56,14 +57,6 @@ class Component(ABC):
         """Todo the doc string
         """
 
-    def handle_inplace(self, data: Data):
-        """
-        Switch between inplace and 'copying Data'.
-        :param data: Data
-        :return: Data
-        """
-        return data if data is None or self.in_place else data.copy()
-
     def handle_storage(self, data):
         """
         Overload this method if your component has no internal model, or isn't
@@ -72,6 +65,9 @@ class Component(ABC):
         :param data:
         :return: data
         """
+        self.error('not implemented!')
+        # TODO: decide and correct dump storage: self.handle_storage(data)
+
         if self.memoize:
             if self.model is None:
                 self.error("This component " + self.__class__.__name__ +
@@ -91,8 +87,7 @@ class Component(ABC):
     #     raise NotImplementedError("Should it return probability\
     #                                distributions, rules?")
 
-    @abstractmethod
-    def tree_impl(cls, data=None):  # previously known as hyper_spaces_tree_impl
+    def tree_impl(cls, data):  # previously known as hyper_spaces_tree_impl
         """Todo the doc string
         """
         pass
@@ -114,8 +109,8 @@ class Component(ABC):
         :param data:
         :return: [tree]
         """
-        # TODO: all child classes mark tree_impl as classmethod, turn it onto
-        # instance method?
+        # TODO: all child classes mark tree_impl as classmethod, turn it into
+        #  instance method?
         tree = self.tree_impl(data)
         self.check(tree)
         tree.name = self.__class__.__name__
@@ -138,9 +133,6 @@ class Component(ABC):
             self.already_serialized = zlib.compress(
                 json.dumps(self.dic, sort_keys=True).encode())
         return self.already_serialized
-
-    def __hash__(self):
-        return uuid(self.serialized())
 
     @classmethod
     def check(cls, tree):
@@ -178,12 +170,16 @@ class Component(ABC):
             cls.check(child)
 
     def build(self, **dic):
+        # Check if build has already been called.
+        if self.uuid is not None:
+            self.error('Build cannot be called twice!')
         self = copy.copy(self)
         if self.memoize:
             self.storage = SQLite()
         self.dic = dic
         if self.isdeterministic() and "random_state" in self.dic:
             del self.dic["random_state"]
+        self.uuid = uuid(self.serialized())
         if 'name' in self.dic:
             del self.dic['name']
         self.build_impl()
@@ -192,18 +188,16 @@ class Component(ABC):
         # return self.__class__(self.in_place, self.memoize, self.show_warnings,
         #                       **dic)
 
-    def apply(self, data: Data = None) -> Data:
+    # @profile
+    def apply(self, data=None):
         """Todo the doc string
         """
-        handled_data = self.handle_inplace(data)
-
         # Mahalanobis in KNN needs to supress warnings due to NaN in linear
         # algebra calculations. MLP is also verbose due to nonconvergence
         # issues among other problems.
         if not self.show_warns:
             np.warnings.filterwarnings('ignore')
 
-        # TODO: decide and correct dump storage: self.handle_storage(handled_data)
         result = self.apply_impl(data)
 
         if not self.show_warns:
@@ -214,7 +208,7 @@ class Component(ABC):
     def use(self, data: Data = None) -> Data:
         """Todo the doc string
         """
-        return self.use_impl(self.handle_inplace(data))
+        return self.use_impl(data)
 
     def print_forest(self, data=None):
         print(self.tree(data))

@@ -21,10 +21,10 @@ class SVM(Classifier):
             return super().apply_impl(data)
 
     @classmethod
-    def tree_impl(cls, data=None):
+    def tree_impl(cls, data):
         cls.check_data(data)
         # todo: set random seed; set 'cache_size'
-        max_iter = data.n_instances()
+        max_iter = data.n_instances
         dic = {
             'nu': ['r', [0.00000001, 1.0]],
             'shrinking': ['c', [True, False]],
