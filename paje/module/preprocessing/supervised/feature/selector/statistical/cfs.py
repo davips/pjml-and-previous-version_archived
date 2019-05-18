@@ -10,6 +10,8 @@ class FilterCFS(Filter):
         self.memoize = False
 
         self.__rank = self.__score = self._selected = None
+        self.model = 42
+
 
     def apply_impl(self, data):
         X, y = data.xy
