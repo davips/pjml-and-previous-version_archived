@@ -66,7 +66,11 @@ class SQLite(Cache):
         :param train:
         :return:
         """
-        self.query("select setout from out " +                   "where name=? and args=? and train=? and setin=?",                   [type(component.__class__()).__name__, component.uuid,                    train_hash, setin_hash], debug=self.debug)
+        self.query(
+            "select setout from out where " +
+            "name=? and args=? and train=? and setin=?",
+            [type(component.__class__()).__name__, component.uuid, train_hash,
+             setin_hash], debug=self.debug)
         rows = self.cursor.fetchall()
         if rows is None or len(rows) == 0:
             return None

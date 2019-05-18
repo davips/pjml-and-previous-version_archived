@@ -188,7 +188,8 @@ class Component(ABC):
         """Todo the doc string
         """
         if self.model is None:
-            self.error('build() should be called before apply()')
+            raise ApplyWithoutBuild('build() should be called before '
+                                    'apply() <-' + self.__class__.__name__)
         # Mahalanobis in KNN needs to supress warnings due to NaN in linear
         # algebra calculations. MLP is also verbose due to nonconvergence
         # issues among other problems.
@@ -207,8 +208,17 @@ class Component(ABC):
         """Todo the doc string
         """
         if self.unfit:
-            self.error('apply() should be called before use()')
+            raise UseWithoutApply('apply() should be called before '
+                                  'use() <-'+ self.__class__.__name__)
         return self.use_impl(data)
 
     def print_forest(self, data=None):
         print(self.tree(data))
+
+
+class UseWithoutApply(Exception):
+    pass
+
+
+class ApplyWithoutBuild(Exception):
+    pass

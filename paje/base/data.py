@@ -8,6 +8,7 @@ from paje.result.sqlite import SQLite
 from paje.result.storage import uuid
 
 
+# TODO: convert in dataclass
 class Data:
     """
             self.z = z  # Predictions
@@ -42,19 +43,18 @@ class Data:
             'uuid': uuid(serialized)
         })
 
-        # self._set('is_classification', False)
-        # self._set('is_regression', False)
-        # self._set('is_clusterization', False)
-        #
-        # self.is_supervised = False
-        # self.is_unsupervised = False
-
         # TODO
         # check if exits dtype indefined == object
         # check dimensions of all matrices and vectors
 
         # TODO: WTF is this for?
         #  Could we check this through Noneness of z,u,v,w?
+        # self._set('is_classification', False)
+        # self._set('is_regression', False)
+        # self._set('is_clusterization', False)
+        #
+        # self.is_supervised = False
+        # self.is_unsupervised = False
         # if X is not None:
         #     if y is not None:
         #         self.is_supervised = True

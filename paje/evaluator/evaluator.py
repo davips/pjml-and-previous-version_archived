@@ -37,18 +37,18 @@ class Evaluator():
                     output_train = self.storage.get_results_or_else(
                         component, data_train, data_train,
                         component.apply
-                    ).z
+                    )
 
                     output_test = self.storage.get_results_or_else(
-                        component, data_train, data_test.update(y=None),
+                        component, data_train, data_test,
                         component.use
-                    ).z
+                    )
 
                 else:
-                    output_train = component.apply(data_train).z
-                    output_test = component.use(data_test.update(y=None)).z
+                    output_train = component.apply(data_train)
+                    output_test = component.use(data_test)
 
-                error = self.metric(data_test, output_test)
+                error = self.metric(output_test)
 
             except ExceptionInApplyOrUse as e:
                 # TODO: we are assuming that eval is minimizing an error measure
