@@ -13,6 +13,7 @@ class Filter(Component, ABC):
 
         self.ratio = self.dic['ratio']
         self._rank = self._score = self._nro_features = None
+        self.model = 42
 
     def use_impl(self, data):
         return data.update(X=data.X[:, self.selected()])

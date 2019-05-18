@@ -24,6 +24,7 @@ class Component(ABC):
         # some representation of pipelines or the autoML itself.
         # Another possibility is to generalize modules to a new class Module()
         # that has self.model.
+        self.unfit = True
         self.model = None
         self.uuid = None  # UUID will be known only after build()
         self.dic = {}
@@ -186,12 +187,15 @@ class Component(ABC):
     def apply(self, data=None):
         """Todo the doc string
         """
+        if self.model is None:
+            self.error('build() should be called before apply()')
         # Mahalanobis in KNN needs to supress warnings due to NaN in linear
         # algebra calculations. MLP is also verbose due to nonconvergence
         # issues among other problems.
         if not self.show_warns:
             np.warnings.filterwarnings('ignore')
 
+        self.unfit = False
         result = self.apply_impl(data)
 
         if not self.show_warns:
@@ -202,6 +206,8 @@ class Component(ABC):
     def use(self, data: Data = None) -> Data:
         """Todo the doc string
         """
+        if self.unfit:
+            self.error('apply() should be called before use()')
         return self.use_impl(data)
 
     def print_forest(self, data=None):

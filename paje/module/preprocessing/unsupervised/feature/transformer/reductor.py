@@ -23,7 +23,6 @@ class Reductor(Component, ABC):
         #  (shape=(49, 1)) while a minimum of 2 is required by
         #  FeatureAgglomeration.
         # TODO: DRICA ValueError: array must not contain infs or NaNs
-
         self.model.fit(data.X)
         return self.use(data)
 

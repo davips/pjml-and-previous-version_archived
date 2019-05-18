@@ -10,6 +10,7 @@ class Composer(Component):
         self.components = components
         self.random_state = 0
         self.myforest = None
+        self.model = 42
 
     # @profile
     def apply_impl(self, data):

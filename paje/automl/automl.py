@@ -25,6 +25,7 @@ class AutoML(Component, ABC):
             self.warning('No modelers given')
         self.random_state = random_state
         self.verbose = verbose
+        self.model = 42
 
     def build_impl(self):
         # TODO: uncomment:
