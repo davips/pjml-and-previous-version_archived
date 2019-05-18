@@ -45,7 +45,7 @@ class Evaluator():
                     ).z
 
                 else:
-                    output_train = component.apply(data_train.update(y=None)).z
+                    output_train = component.apply(data_train).z
                     output_test = component.use(data_test.update(y=None)).z
 
                 error = self.metric(data_test, output_test)

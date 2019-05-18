@@ -17,6 +17,9 @@ def main():
         iterations = 30 if len(argv) < 4 else int(argv[3])
         random_state = 0 if len(argv) < 5 else int(argv[4])
         data = Data.read_arff(argv[1], "class")
+        for a in argv:
+            print(a)
+        print('seed=',random_state)
         X, y = data.xy
         X_train, X_test, y_train, y_test = \
             sklearn.model_selection.train_test_split(X, y, random_state=1)
