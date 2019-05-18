@@ -12,13 +12,13 @@ class SQLite(Cache):
         self.start_database()
 
     # @profile
-    def get_set(self, data_hash):
+    def get_set(self, data):
         """
         Extract data from database.
         :param data:
         :return:
         """
-        self.query("select data from dset where hash=?", [data_hash])
+        self.query("select data from dset where hash=?", [data.uuid])
         rows = self.cursor.fetchall()
         if rows is None or len(rows) == 0:
             return None
@@ -32,14 +32,13 @@ class SQLite(Cache):
                 # raise Exception('Excess of rows!')
             return SQLite.unpack(rows[0][0])
 
-    def setexists(self, data_hash):
+    def setexists(self, data):
         """
         Check if data already exists in database.
         :param data:
         :return:
         """
-        self.query("select 1 from dset where hash=?", [data_hash],
-                   debug=self.debug)
+        self.query("select 1 from dset where hash=?", [data.uuid])
         rows = self.cursor.fetchall()
         if self.debug and rows is not None:
             print('Rows:')
@@ -59,7 +58,7 @@ class SQLite(Cache):
         return rows is not None and len(rows) > 0
 
     # @profile
-    def getsetout(self, component, train_hash, setin_hash):
+    def getsetout(self, component, train, setin):
         """
         Look for model in database.
         :param component:
@@ -69,8 +68,8 @@ class SQLite(Cache):
         self.query(
             "select setout from out where " +
             "name=? and args=? and train=? and setin=?",
-            [type(component.__class__()).__name__, component.uuid, train_hash,
-             setin_hash], debug=self.debug)
+            [type(component.__class__()).__name__, component.uuid, train.uuid,
+             setin.uuid])
         rows = self.cursor.fetchall()
         if rows is None or len(rows) == 0:
             return None
@@ -84,7 +83,7 @@ class SQLite(Cache):
 
             return self.get_set(rows[0][0])
 
-    def get_model(self, component, train_hash):
+    def get_model(self, component, train):
         """
         Extract model from database.
         :param component:
@@ -92,10 +91,9 @@ class SQLite(Cache):
         :return:
         """
         self.query(
-            "select name, args, dump from model where name=? and args=? and train=?",
-            [type(component.__class__()).__name__, component.uuid,
-             train_hash],
-            debug=False)
+            "select name, args, dump from model where " +
+            "name=? and args=? and train=?",
+            [type(component.__class__()).__name__, component.uuid, train.uuid])
         rows = self.cursor.fetchall()
         if rows is None or len(rows) == 0:
             return None
@@ -135,77 +133,8 @@ class SQLite(Cache):
         self.cursor.execute(
             "CREATE INDEX if not exists idx ON out (name, args, train, setin)")
 
-    def get_or_else(self, component, train, f):
-        # TODO: Repeated calls to this function with the same parameters can be
-        #  memoized.
-
-        # TODO: check if it is possible to put this creation part inside
-        #  __init__ without locking database
-        # TODO insert time spent
-        self.connection = sqlite3.connect(self.database)
-        self.cursor = self.connection.cursor()
-        self.cursor.execute(
-            "create table if not exists args (hash BLOB, dic BLOB)")
-        self.cursor.execute(
-            "create table if not exists dset (hash BLOB, data BLOB)")
-        self.cursor.execute(
-            "create table if not exists model (name STRING, args BLOB, train BLOB, dump BLOB)")
-        # self.cursor.execute("create table if not exists result (pipeline BLOB, train BLOB, test BLOB, prediction JSON)")
-        # TODO: check if the size of the database is too big with dumps
-        # TODO: replicability/cache of results: save testset and predictions
-        self.cursor.execute(
-            "create table if not exists out (name STRING, args BLOB, setin BLOB, setout BLOB)")
-
-        model = self.get_model(component, train)
-        if model is not None:
-            # Restoring from database.
-            # print('# Restoring from database.')
-            component.model = model
-            res = component.use(train)
-        else:
-            print('memoizing...')
-
-            # Processing and inserting a new combination.
-            train_dump = SQLite.pack(train)
-            if not self.setexists(train.uuid):
-                self.query("insert into dset values (?, ?)",
-                           [train.uuid, train_dump])
-
-            # apply()
-            try:
-                trainout = f(train)
-            except Exception as e:
-                raise ExceptionInApplyOrUse(e)
-
-            if not self.argsexist(component):
-                self.query("insert into args values (?, ?)",
-                           [component.uuid, component.serialized()])
-
-            # Store model.
-            dump = SQLite.pack(component.model)
-            self.query("insert into model values (?, ?, ?, ?)",
-                       [type(component.__class__()).__name__,
-                        component.uuid,
-                        train.uuid, dump], debug=False)
-
-            # Store result of training data.
-            if not self.setexists(trainout.uuid):
-                self.query("insert into dset values (?, ?)",
-                           [trainout.uuid, SQLite.pack(trainout)])
-            # if test is not None:
-            #     test_dump = SQLite.pack(test)
-            #     self.cursor.execute("insert into set values (?, ?)",
-            #                         [test.uuid, test_dump])
-            self.query("insert into out values (?, ?, ?, ?)",
-                       [type(component.__class__()).__name__,
-                        component.uuid, train.uuid, trainout.uuid])
-
-            self.connection.commit()
-            res = trainout
-        return res
-
     # @profile
-    def get_results_or_else(self, component, train, setin, f):
+    def get_or_else(self, component, train, setin, f):
         # TODO: Repeated calls to this function with the same parameters can
         #  be memoized, to avoid network delays, for instance.
         # TODO insert time spent
@@ -225,15 +154,25 @@ class SQLite(Cache):
                 raise ExceptionInApplyOrUse(e)
 
             # Store result.
-            # TODO: create insertset()
+            # TODO: insert setout
             if not self.setexists(setout_hash):
                 setoutdump = SQLite.pack(setout)
                 self.query("insert into dset values (?, ?)",
-                           [setout_hash, setoutdump], debug=self.debug)
+                           [setout_hash, setoutdump])
             self.query("insert into out values (?, ?, ?, ?, ?)",
                        [type(component.__class__()).__name__,
                         component.uuid, train.uuid, setin.uuid,
-                        setout_hash], debug=self.debug)
+                        setout_hash])
+
+            # # Store model.
+            # if not self.argsexist(component):
+            #     self.query("insert into args values (?, ?)",
+            #                [component.uuid, component.serialized()])
+            #
+            # dump = SQLite.pack(component.model)
+            # self.query("insert into model values (?, ?, ?, ?)",
+            #            [type(component.__class__()).__name__, component.uuid,
+            #             train.uuid, dump])
 
             self.connection.commit()
         return setout
@@ -241,8 +180,8 @@ class SQLite(Cache):
     # def __del__(self):
     #     pass
 
-    def query(self, sql, args, debug=False):
-        if debug:
+    def query(self, sql, args):
+        if self.debug:
             print(sql, args)
         try:
             self.cursor.execute(sql, args)

@@ -34,7 +34,7 @@ class Evaluator():
             try:
                 if self.storage is not None:
                     # TODO: failed apply/use should store fake bad predictions
-                    output_train = self.storage.get_results_or_else(
+                    output_train = self.storage.get_or_else(
                         component, data_train, data_train,
                         component.apply
                     )
