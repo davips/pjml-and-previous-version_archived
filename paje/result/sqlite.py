@@ -12,13 +12,13 @@ class SQLite(Cache):
         self.start_database()
 
     # @profile
-    def get_set(self, data):
+    def get_set(self, data_uuid):
         """
         Extract data from database.
         :param data:
         :return:
         """
-        self.query("select data from dset where hash=?", [data.uuid])
+        self.query("select data from dset where hash=?", [data_uuid])
         rows = self.cursor.fetchall()
         if rows is None or len(rows) == 0:
             return None
@@ -138,7 +138,7 @@ class SQLite(Cache):
         # TODO: Repeated calls to this function with the same parameters can
         #  be memoized, to avoid network delays, for instance.
         # TODO insert time spent
-        setout = self.getsetout(component, train.uuid, setin.uuid)
+        setout = self.getsetout(component, train, setin)
         if setout is None:
             print('memoizing results...')
             # TODO: is it useful to store the dump of the sets?
@@ -146,7 +146,6 @@ class SQLite(Cache):
             # Apply f()
             try:
                 setout = f(setin)
-                setout_hash = setout.uuid
             except Exception as e:
                 print('function:', f)
                 print('shape train:', train.X.shape, train.y.shape)
@@ -155,14 +154,14 @@ class SQLite(Cache):
 
             # Store result.
             # TODO: insert setout
-            if not self.setexists(setout_hash):
+            if not self.setexists(setout):
                 setoutdump = SQLite.pack(setout)
                 self.query("insert into dset values (?, ?)",
-                           [setout_hash, setoutdump])
+                           [setout.uuid, setoutdump])
             self.query("insert into out values (?, ?, ?, ?, ?)",
                        [type(component.__class__()).__name__,
                         component.uuid, train.uuid, setin.uuid,
-                        setout_hash])
+                        setout.uuid])
 
             # # Store model.
             # if not self.argsexist(component):
