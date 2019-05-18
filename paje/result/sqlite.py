@@ -215,6 +215,9 @@ class SQLite(Cache):
                 setout = f(setin)
                 setout_hash = setout.uuid
             except Exception as e:
+                print('function:', f)
+                print('shape train:', train.X.shape, train.y.shape)
+                print('shape setin:', setin.X.shape, setin.y.shape)
                 raise ExceptionInApplyOrUse(e)
 
             # Store result.

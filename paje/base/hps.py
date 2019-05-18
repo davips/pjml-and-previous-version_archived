@@ -52,9 +52,9 @@ class HPTree(object):
                 str(children))
         while children:
             tree = random.choice(children)
-            if tree.name is 'EndPipeline':
+            if tree.name == 'EndPipeline':
                 break
-            if tree.name is 'Pipeline':
+            if tree.name == 'Pipeline':
                 args, children = self.pipeline_to_dic_rec(tree)
             else:
                 args, last = self.moduletree_to_dic(tree)
@@ -70,7 +70,7 @@ class HPTree(object):
             #     for child_list in child:
             #         rows.append(child_list.__str__())
             # else:
-            if child.name is not 'EndPipeline':
+            if child.name != 'EndPipeline':
                 rows.append(child.__str__(depth + '   '))
         return depth + self.name + '\n'.join(rows)
 
