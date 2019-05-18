@@ -39,9 +39,19 @@ class Evaluator():
                         component.apply
                     )
 
+                    # Just in case the results are stored for apply(),
+                    #  but not for use()...
+                    def use(setin):
+                        if component.unfit:
+                            print("only apply()'s result was stored," +
+                                  " not use()'s; completing process...")
+                            # Unneeded to get output_train again.
+                            component.apply(data_train)
+                        return component.use(setin)
+
                     output_test = self.storage.get_results_or_else(
                         component, data_train, data_test,
-                        component.use
+                        use
                     )
 
                 else:
