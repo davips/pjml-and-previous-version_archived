@@ -19,9 +19,8 @@ class Data:
         self.q = q  # Predicted probabilities for unlabeled set
     """
 
-    def __init__(self, X, y=None, z=None,
-                 U=None, v=None, w=None,
-                 p=None, q=None, columns=None):
+    def __init__(self, X=None, y=None, z=None, p=None,
+                 U=None, v=None, w=None, q=None, columns=None):
         # Init instance vars and dic to factory new instances in the future.
         args = {k: v for k, v in locals().items() if k != 'self'}
         self.__dict__.update(args)
@@ -32,11 +31,17 @@ class Data:
             check_X_y(X, y)
 
         alldata = X, y, z, U, v, w, p, q
-        serialized = SQLite.pack(alldata)
+        serialized = pack(alldata)
+
+        # Consider the first non None list in the args for extracting metadata.
+        n_classes = len(set(list(filter(None.__ne__, [y, v, z, w]))[0]))
+        n_instances = len(list(filter(None.__ne__, alldata))[0])
+        n_attributes = len(list(filter(None.__ne__, [X, U]))[0][0])
+
         self.__dict__.update({
-            'n_classes': 0 if y is None else len(set(y)),
-            'n_instances': len(X),
-            'n_attributes': len(X[0]),
+            'n_classes': n_classes,
+            'n_instances': n_instances,
+            'n_attributes': n_attributes,
             'xy': (X, y),
             'all': alldata,
             'serialized': serialized,
