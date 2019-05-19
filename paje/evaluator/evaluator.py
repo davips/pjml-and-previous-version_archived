@@ -28,9 +28,9 @@ class Evaluator():
         perfs = []
         for train_index, test_index \
                 in self.split.split(*data.xy):
-            data_train = data.update(X=data.X[train_index],
+            data_train = data.updated(X=data.X[train_index],
                                      y=data.y[train_index])
-            data_test = data.update(X=data.X[test_index], y=data.y[test_index])
+            data_test = data.updated(X=data.X[test_index], y=data.y[test_index])
             try:
                 if self.storage is not None:
                     # TODO: failed apply/use should store fake bad predictions
@@ -49,7 +49,7 @@ class Evaluator():
                             component.apply(data_train)
                         return component.use(setin)
 
-                    output_test = self.storage.get_results_or_else(
+                    output_test = self.storage.get_or_else(
                         component, data_train, data_test,
                         use
                     )

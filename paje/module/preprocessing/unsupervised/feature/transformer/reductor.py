@@ -27,7 +27,7 @@ class Reductor(Component, ABC):
         return self.use(data)
 
     def use_impl(self, data):
-        return data.update(X=self.model.transform(data.X))
+        return data.updated(X=self.model.transform(data.X))
 
     @classmethod
     def tree_impl(cls, data):

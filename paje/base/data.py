@@ -4,8 +4,7 @@ import pandas as pd
 import sklearn.datasets as ds
 from sklearn.utils import check_X_y
 
-from paje.result.sqlite import SQLite
-from paje.result.storage import uuid
+from paje.result.storage import uuid, pack
 
 
 # TODO: convert in dataclass
@@ -34,9 +33,14 @@ class Data:
         serialized = pack(alldata)
 
         # Consider the first non None list in the args for extracting metadata.
-        n_classes = len(set(list(filter(None.__ne__, [y, v, z, w]))[0]))
-        n_instances = len(list(filter(None.__ne__, alldata))[0])
-        n_attributes = len(list(filter(None.__ne__, [X, U]))[0][0])
+        def get_first_non_none(l):
+            filtered = list(filter(None.__ne__, l))
+            return [] if filtered==[] else filtered[0]
+
+        n_classes = len(set(get_first_non_none([y, v, z, w])))
+        n_instances = len(get_first_non_none(alldata))
+        atts = get_first_non_none([X, U])
+        n_attributes = None if len(atts) == 0 else len(atts[0])
 
         self.__dict__.update({
             'n_classes': n_classes,
@@ -95,7 +99,7 @@ class Data:
     def read_csv(self, file, target):
         raise NotImplementedError("Method read_csv should be implement!")
 
-    def update(self, **kwargs):
+    def updated(self, **kwargs):
         dic = self._dic.copy()
         dic.update(kwargs)
         return Data(**dic)
