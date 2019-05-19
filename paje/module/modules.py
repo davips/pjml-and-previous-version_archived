@@ -59,8 +59,7 @@ pip_chi_squared = [Pipeline(components=[
 ])]
 # TODO: FilterCFS() broken when called after  DRSRP {'n_components': 15,
 #  'density': 0.05, 'dense_output': False, 'eps': 0.7, 'random_state': 0}
-#    :  float division by zero, testar
-#  com versão anterior do git.
+#    :  float division by zero, testar com versão anterior do git.
 #  já estava quebrando? ficava escondido pelo try/catch?
 ready_filters = [FilterFScore(), FilterGiniIndex(),
                  FilterTScore()] + pip_chi_squared
