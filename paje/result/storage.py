@@ -27,44 +27,45 @@ class Cache(ABC):
     """
 
     @abstractmethod
-    def get_setout(self, component, train, setin):
+    def get_result(self, component, train, test):
         pass
 
     @abstractmethod
-    def store(self, component, train, setin, setout):
+    def store(self, component, train, test, trainout, testout):
         pass
 
-    def get_or_else(self, component, train, setin, f):
+    def get_or_else(self, component, train, test):
         """
         Results memoization: only output Data is stored for now
         :param component:
         :param train:
-        :param setin:
+        :param test:
         :param f:
         :return:
         """
         # TODO: Repeated calls to this function with the same parameters can
         #  be memoized, to avoid network delays, for instance.
-        # TODO insert time spent
-        setout = self.get_setout(component, train, setin)
-        if setout is None:
+        # TODO: insert time spent
+        trainout, testout = self.get_result(component, train, test)
+        if trainout is None:
             print('memoizing results...')
-            # TODO: is it useful to store the dump of the sets?
+            # TODO: is it useful to store the dump of the component?
 
-            # Apply f()
+            # storing only (test and train) predictions: 5kB / row
+            # (1 pipeline w/ 3-fold CV = 6 rows)
             try:
-                setout = f(setin)
+                # TODO: failed pipeline should store fake bad predictions
+                component.apply(train)
+                trainout, testout = component.use(train), component.use(test)
             except Exception as e:
-                print('function:', f)
                 print('shape train:', train.X.shape, train.y.shape)
-                print('shape setin:', setin.X.shape, setin.y.shape)
+                print('shape test:', test.X.shape, test.y.shape)
                 raise ExceptionInApplyOrUse(e)
 
             # Store result.
-            # TODO: insert setout
-            self.store(component, train, setin, setout)
+            self.store(component, train, test, trainout, testout)
 
-        return setout
+        return trainout, testout
 
     # @abstractmethod
     # def get_model(self, component, train):
@@ -74,7 +75,3 @@ class Cache(ABC):
     #     :param train:
     #     :return:
     #     """
-
-    # @abstractmethod
-    # def setexists(self, data):
-    #     pass
