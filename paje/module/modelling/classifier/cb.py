@@ -11,6 +11,12 @@ class CB(Classifier):
         self.verbose = verbose
         super().__init__(memoize, show_warns)
 
+    def use_impl(self, data):
+        # TODO: catboost seems to return a matrix instead of a vector; check
+        #  if this solution applies; Saulo Guedes says it might be predicting
+        #  for each tree.
+        return data.updated(z=self.model.predict(data.X).flatten())
+
     def build_impl(self):
         self.model = CatBoostClassifier(**self.dic, verbose=self.verbose)
 
@@ -24,9 +30,9 @@ class CB(Classifier):
 
     @classmethod
     def tree_impl(cls, data):
-        # todo: inconsistent pipelines: All features are either constant or ignored.
+        # todo: inconsistent pipelines, error:
+        #  'All features are either constant or ignored.'
         cls.check_data(data)
-        # todo: set random seed
         data_for_speed = {'iterations': ['z', [2, 1000]]}  # Entre outros
         n_estimators = min(
             [500, floor(sqrt(data.n_instances * data.n_attributes))])
