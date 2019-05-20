@@ -42,7 +42,7 @@ class SQLite(Cache):
         self.query(
             "select trainout, testout, model from result where "
             "idcomp=? and idtrain=? and idtest=?",
-            [component.uuid(), train.uuid, test.uuid])
+            [component.uuid, train.uuid, test.uuid])
         rows = self.cursor.fetchall()
         if rows is None or len(rows) == 0:
             return None, None
