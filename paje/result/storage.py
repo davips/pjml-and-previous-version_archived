@@ -69,8 +69,6 @@ class Cache(ABC):
                 component.apply(train)
                 trainout, testout = component.use(train), component.use(test)
             except Exception as e:
-                traceback.print_exc()
-
                 # Fake predictions for curated errors.
                 print('Trying to circumvent exception: >' + str(e) + '<')
                 msgs = ['All features are either constant or ignored.',  # CB
@@ -86,6 +84,7 @@ class Cache(ABC):
                     trainout, testout = train.updated(z=zr), test.updated(z=zs)
                     component.warning(e)
                 else:
+                    traceback.print_exc()
                     raise ExceptionInApplyOrUse(e)
 
             # Store result.
