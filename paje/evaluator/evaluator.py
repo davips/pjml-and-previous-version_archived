@@ -31,24 +31,17 @@ class Evaluator():
             data_train = data.updated(X=data.X[train_index],
                                       y=data.y[train_index])
             data_test = data.updated(X=data.X[test_index], y=data.y[test_index])
-            try:
-                if self.storage is not None:
-                    output_train, output_test = self.storage.get_or_run(
-                        component, data_train, data_test)
-                else:
-                    # TODO: if output_train is needed, it should come from
-                    #  component.use(), not from component.apply()!
-                    component.apply(data_train)
-                    output_test = component.use(data_test)
 
-                error = self.metric(output_test)
+            if self.storage is not None:
+                output_train, output_test = self.storage.get_or_run(
+                    component, data_train, data_test)
+            else:
+                # TODO: if output_train is needed, it should come from
+                #  component.use(), not from component.apply()!
+                component.apply(data_train)
+                output_test = component.use(data_test)
 
-            except ExceptionInApplyOrUse as e:
-                # TODO: we are assuming that eval is minimizing an error measure
-                error = 999666
-                traceback.print_exc()
-                print(e)
-                exit(0)
+            error = self.metric(output_test)
             perfs.append(error)
 
         return perfs
