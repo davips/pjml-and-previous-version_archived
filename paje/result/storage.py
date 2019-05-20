@@ -54,12 +54,13 @@ class Cache(ABC):
         trainout, testout = self.get_result(component, train, test)
         if trainout is None:
             print('memoizing results...')
-            # TODO: is it useful to store the dump of the component?
-
             # storing only (test and train) predictions: 5kB / row
-            # (1 pipeline w/ 3-fold CV = 6 rows) = 30kb / pipe
-            # storing complete test and train data and model: 83kb / row
-            # = 500kb / pipe
+            # (1 pipeline w/ 3-fold CV = 6 rows) = 30kB / pipe
+            # storing complete test and train data and model: 83kB / row
+            # = 500kB / pipe
+
+            # storing also args and sets: 1MB / pipe
+            # same as above, but storing nothing as model: 720kB / pipe
             try:
                 # TODO: failed pipeline should store fake bad predictions
                 start = time.clock()

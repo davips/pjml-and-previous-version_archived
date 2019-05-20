@@ -46,7 +46,7 @@ class SQLite(Cache):
         :return:
         """
         self.query(
-            "select trainout, testout, model from result where "
+            "select trainout, testout from result where "
             "idcomp=? and idtrain=? and idtest=?",
             [component.uuid(), train.uuid, test.uuid])
         rows = self.cursor.fetchall()
