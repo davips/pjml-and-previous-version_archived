@@ -2,7 +2,10 @@ import codecs
 import hashlib
 import pickle
 import time
+import traceback
 from abc import ABC, abstractmethod
+
+from sklearn.dummy import DummyClassifier
 
 from paje.base.exceptions import ExceptionInApplyOrUse
 
@@ -61,18 +64,32 @@ class Cache(ABC):
 
             # storing also args and sets: 1MB / pipe
             # same as above, but storing nothing as model: 720kB / pipe
+            start = time.clock()
             try:
-                # TODO: failed pipeline should store fake bad predictions
-                start = time.clock()
                 component.apply(train)
                 trainout, testout = component.use(train), component.use(test)
-                end = time.clock()
             except Exception as e:
-                print('shape train:', train.X.shape, train.y.shape)
-                print('shape test:', test.X.shape, test.y.shape)
-                raise ExceptionInApplyOrUse(e)
+                traceback.print_exc()
+
+                # Fake predictions for curated errors.
+                print('Trying to circumvent exception: >' + str(e) + '<')
+                msgs = ['All features are either constant or ignored.',  # CB
+                        'be between 0 and min(n_samples, n_features)',  # DR*
+
+                        ]
+                if any([str(e).__contains__(msg) for msg in msgs]):
+                    # We suppose here that all pipelines are for classification.
+                    model = DummyClassifier(strategy='uniform')
+                    model.fit(*train.xy)
+                    zr = model.predict(train.y)
+                    zs = model.predict(test.y)
+                    trainout, testout = train.updated(z=zr), test.updated(z=zs)
+                    component.warning(e)
+                else:
+                    raise ExceptionInApplyOrUse(e)
 
             # Store result.
+            end = time.clock()
             self.store(component, train, test, trainout, testout, end - start)
 
         return trainout, testout
