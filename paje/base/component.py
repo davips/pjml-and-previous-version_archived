@@ -128,8 +128,12 @@ class Component(ABC):
 
     def serialized(self):
         if self.already_serialized is None:
-            self.already_serialized = zlib.compress(
-                json.dumps(self.dic, sort_keys=True).encode())
+            if self.model is None:
+                raise ApplyWithoutBuild('build() should be called before '
+                                        'serialized() <-' + self.__class__.__name__)
+            self.already_serialized = json.dumps(self.dic, sort_keys=True).encode()
+            # self.already_serialized = zlib.compress(
+            #     json.dumps(self.dic, sort_keys=True).encode())
         return self.already_serialized
 
     @classmethod
@@ -154,9 +158,8 @@ class Component(ABC):
                                         values: ' + str(k))
                 else:
                     if len(v) != 2:
-                        raise Exception('Real and integer hyperparameters \
-                                        need a limit with two \
-                                        values: ' + str(k))
+                        raise Exception('Real and integer hyperparameters need'
+                                        ' a limit with two values: ' + str(k))
         except Exception as e:
             print(e)
             print()
