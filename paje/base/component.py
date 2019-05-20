@@ -26,7 +26,7 @@ class Component(ABC):
         # that has self.model.
         self.unfit = True
         self.model = None
-        self.uuid = None  # UUID will be known only after build()
+        self.already_uuid = None  # UUID will be known only after build()
         self.dic = {}
 
         # Store apply() results in disk?
@@ -128,12 +128,8 @@ class Component(ABC):
 
     def serialized(self):
         if self.already_serialized is None:
-            if self.model is None:
-                raise ApplyWithoutBuild('build() should be called before '
-                                        'serialized() <-' + self.__class__.__name__)
-            self.already_serialized = json.dumps(self.dic, sort_keys=True).encode()
-            # self.already_serialized = zlib.compress(
-            #     json.dumps(self.dic, sort_keys=True).encode())
+            raise ApplyWithoutBuild('build() should be called before '
+                                    'serialized() <-' + self.__class__.__name__)
         return self.already_serialized
 
     @classmethod
@@ -172,7 +168,7 @@ class Component(ABC):
 
     def build(self, **dic):
         # Check if build has already been called.
-        if self.uuid is not None:
+        if self.already_uuid is not None:
             self.error('Build cannot be called twice!')
         self = copy.copy(self)
         if self.memoize:
@@ -180,7 +176,10 @@ class Component(ABC):
         self.dic = dic
         if self.isdeterministic() and "random_state" in self.dic:
             del self.dic["random_state"]
-        self.uuid = uuid(self.serialized())
+        self.already_serialized = json.dumps(self.dic, sort_keys=True).encode()
+        # self.already_serialized = zlib.compress(
+        #     json.dumps(self.dic, sort_keys=True).encode())
+        self.already_uuid = uuid(self.serialized())
         if 'name' in self.dic:
             del self.dic['name']
         self.build_impl()
@@ -212,12 +211,17 @@ class Component(ABC):
         """
         if self.unfit:
             raise UseWithoutApply('apply() should be called before '
-                                  'use() <-'+ self.__class__.__name__)
+                                  'use() <-' + self.__class__.__name__)
         return self.use_impl(data)
 
     def print_forest(self, data=None):
         print(self.tree(data))
 
+    def uuid(self):
+        if self.already_uuid is None:
+            raise ApplyWithoutBuild('build() should be called before '
+                                    'uuid() <-' + self.__class__.__name__)
+        return self.already_uuid
 
 class UseWithoutApply(Exception):
     pass
@@ -225,3 +229,4 @@ class UseWithoutApply(Exception):
 
 class ApplyWithoutBuild(Exception):
     pass
+

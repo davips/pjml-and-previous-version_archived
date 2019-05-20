@@ -42,7 +42,7 @@ class SQLite(Cache):
         self.query(
             "select trainout, testout, model from result where "
             "idcomp=? and idtrain=? and idtest=?",
-            [component.uuid, train.uuid, test.uuid])
+            [component.uuid(), train.uuid, test.uuid])
         rows = self.cursor.fetchall()
         if rows is None or len(rows) == 0:
             return None, None
@@ -55,10 +55,12 @@ class SQLite(Cache):
                 exit(0)
             return unpack(rows[0][0]), unpack(rows[0][1])
 
-    def store(self, component, train, test, trainout, testout):
+    def store(self, component, train, test, trainout, testout, time):
         self.query("insert into result values (?, ?, ?, ?, ?, ?, ?)",
-                   [component.uuid, train.uuid, test.uuid,
-                    pack(trainout), pack(testout), -1, pack(component)])
+                   [component.uuid(), train.uuid, test.uuid,
+                    pack(trainout), pack(testout), time, pack(component)])
+        self.query("insert into args values (?, ?)",
+                   [component.uuid(), component.serialized()])
         self.connection.commit()
 
     def query(self, sql, args):
