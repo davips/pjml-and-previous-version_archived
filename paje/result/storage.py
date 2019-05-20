@@ -1,6 +1,7 @@
 import codecs
 import hashlib
 import pickle
+import time
 from abc import ABC, abstractmethod
 
 from paje.base.exceptions import ExceptionInApplyOrUse
@@ -31,7 +32,7 @@ class Cache(ABC):
         pass
 
     @abstractmethod
-    def store(self, component, train, test, trainout, testout):
+    def store(self, component, train, test, trainout, testout, time):
         pass
 
     def get_or_else(self, component, train, test):
@@ -52,18 +53,22 @@ class Cache(ABC):
             # TODO: is it useful to store the dump of the component?
 
             # storing only (test and train) predictions: 5kB / row
-            # (1 pipeline w/ 3-fold CV = 6 rows)
+            # (1 pipeline w/ 3-fold CV = 6 rows) = 30kb / pipe
+            # storing complete test and train data and model: 83kb / row
+            # = 500kb / pipe
             try:
                 # TODO: failed pipeline should store fake bad predictions
+                start = time.clock()
                 component.apply(train)
                 trainout, testout = component.use(train), component.use(test)
+                end = time.clock()
             except Exception as e:
                 print('shape train:', train.X.shape, train.y.shape)
                 print('shape test:', test.X.shape, test.y.shape)
                 raise ExceptionInApplyOrUse(e)
 
             # Store result.
-            self.store(component, train, test, trainout, testout)
+            self.store(component, train, test, trainout, testout, end-start)
 
         return trainout, testout
 

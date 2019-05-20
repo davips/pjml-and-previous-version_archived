@@ -55,10 +55,12 @@ class SQLite(Cache):
                 exit(0)
             return unpack(rows[0][0]), unpack(rows[0][1])
 
-    def store(self, component, train, test, trainout, testout):
+    def store(self, component, train, test, trainout, testout, time):
         self.query("insert into result values (?, ?, ?, ?, ?, ?, ?)",
                    [component.uuid, train.uuid, test.uuid,
-                    pack(trainout), pack(testout), -1, pack(component)])
+                    pack(trainout), pack(testout), time, pack(component)])
+        self.query("insert into args values (?, ?)",
+                   [component.uuid, component.serialized()])
         self.connection.commit()
 
     def query(self, sql, args):
