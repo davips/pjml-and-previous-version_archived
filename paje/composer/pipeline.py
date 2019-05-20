@@ -74,8 +74,8 @@ class Pipeline(Composer):
                 # tree = component.forest(data)
                 # forest.append(tree)
             self.myforest = HPTree({}, [trees[0]], self.__class__.__name__)
-            self.set_leaf(trees[len(trees) - 1], lambda: HPTree({}, [],
-                                                                'EndPipeline'))
+            self.set_leaf(trees[len(trees) - 1],
+                          lambda: HPTree({}, [], 'EndPipeline'))
         return self.myforest
 
     def __str__(self, depth=''):

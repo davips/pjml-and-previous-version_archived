@@ -45,7 +45,7 @@ from paje.module.preprocessing.unsupervised.feature.transformer.drsvd import \
     DRSVD
 from paje.composer.pipeline import Pipeline
 from paje.composer.switch import Switch
-from paje.base.freeze import Freeze
+from paje.base.frozen import Frozen
 
 # TODO: Extract list of all modules automatically from the root package module?
 # TODO: add DRFtAg, DRICA when try/catch is implemented in pipeline execution
@@ -54,7 +54,7 @@ ready_classifiers = [DT(), KNN(), MLP(), NB(), RF(), SVM()]
 ready_transformers = [DRPCA(), DRFA(), DRGRP(), DRPCA(), DRSRP()]
 ready_scalers = [Equalization(), Standard()]
 pip_chi_squared = [Pipeline(components=[
-    Freeze(Equalization(), feature_range=(0, 1)),
+    Frozen(Equalization(), feature_range=(0, 1)),
     FilterChiSquare()
 ])]
 # TODO: FilterCFS() broken when called after  DRSRP {'n_components': 15,

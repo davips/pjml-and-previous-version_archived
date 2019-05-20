@@ -1,9 +1,8 @@
-from paje.base.component import Component
 from paje.base.hps import HPTree
 from paje.composer.composer import Composer
 
 
-class Freeze(Composer):
+class Frozen(Composer):
     def __init__(self, component, in_place=False, memoize=False,
                  show_warns=True, **kwargs):
         super().__init__(in_place, memoize, show_warns)
@@ -12,9 +11,9 @@ class Freeze(Composer):
         self.params = kwargs
 
     def build_impl(self):
-        # TODO: paramos de setar rnd_state?
+        # rnd_state vem de quem chama build()
         self.components = self.components.copy()
-        self.params = self.params.copy()
+        # self.params = self.params.copy()  # TODO: why we needed this here?
         self.components[0].memoize = self.memoize
         self.components[0] = self.components[0].build(**self.dic)
 
@@ -22,8 +21,10 @@ class Freeze(Composer):
         aux = {}
         for i in self.params:
             aux[i] = ['c', [self.params[i]]]
-        print(aux)
         return aux
 
     def tree_impl(self, data=None):
         return HPTree(dic=self.freeze_hptree(), children=[])
+
+    def __str__(self, depth=''):
+        return 'Frozen { ' + str(self.components[0]) + ' }'

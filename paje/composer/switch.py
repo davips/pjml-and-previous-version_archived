@@ -19,7 +19,7 @@ class Switch(Composer):
         component_idx = int(component_idx.split("_")[0])
 
         dic = dics[0].copy()
-        dic['random_state'] = self.random_state
+        dic['random_state'] = self.dic['random_state'] # TODO: check this
         del dic["component"]
         print(dic)
 
