@@ -35,7 +35,7 @@ class Data:
         # Consider the first non None list in the args for extracting metadata.
         def get_first_non_none(l):
             filtered = list(filter(None.__ne__, l))
-            return [] if filtered==[] else filtered[0]
+            return [] if filtered == [] else filtered[0]
 
         n_classes = len(set(get_first_non_none([y, v, z, w])))
         n_instances = len(get_first_non_none(alldata))
@@ -47,6 +47,8 @@ class Data:
             'n_instances': n_instances,
             'n_attributes': n_attributes,
             'xy': (X, y),
+            'predictions': {k: v for k, v in dic.items()
+                            if k in ['z', 'w', 'p', 'q']},
             'all': alldata,
             'serialized': serialized,
             'uuid': uuid(serialized)

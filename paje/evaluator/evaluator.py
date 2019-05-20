@@ -33,7 +33,7 @@ class Evaluator():
             data_test = data.updated(X=data.X[test_index], y=data.y[test_index])
             try:
                 if self.storage is not None:
-                    output_train, output_test = self.storage.get_or_else(
+                    output_train, output_test = self.storage.get_or_run(
                         component, data_train, data_test)
                 else:
                     # TODO: if output_train is needed, it should come from

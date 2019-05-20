@@ -32,10 +32,14 @@ class Cache(ABC):
         pass
 
     @abstractmethod
-    def store(self, component, train, test, trainout, testout, time):
+    def get_model(self, component, train, test):
         pass
 
-    def get_or_else(self, component, train, test):
+    @abstractmethod
+    def store(self, component, train, test, trainout, testout, time_spent):
+        pass
+
+    def get_or_run(self, component, train, test):
         """
         Results memoization: only output Data is stored for now
         :param component:
@@ -68,15 +72,6 @@ class Cache(ABC):
                 raise ExceptionInApplyOrUse(e)
 
             # Store result.
-            self.store(component, train, test, trainout, testout, end-start)
+            self.store(component, train, test, trainout, testout, end - start)
 
         return trainout, testout
-
-    # @abstractmethod
-    # def get_model(self, component, train):
-    #     """
-    #     Extract model from database.
-    #     :param component:
-    #     :param train:
-    #     :return:
-    #     """

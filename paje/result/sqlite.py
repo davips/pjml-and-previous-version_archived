@@ -1,5 +1,6 @@
 import sqlite3
 
+from paje.base.data import Data
 from paje.result.storage import Cache, unpack, pack
 
 
@@ -15,21 +16,26 @@ class SQLite(Cache):
         #  __init__ without locking database
         self.connection = sqlite3.connect(self.database)
         self.cursor = self.connection.cursor()
+
         self.cursor.execute("create table if not exists result " +
                             "(idcomp BLOB, idtrain BLOB, idtest BLOB, " +
                             "trainout BLOB, testout BLOB, time FLOAT, model "
                             "BLOB)")
-        # The idtest field is not strictly needed for now, may have some use.
+        # idtest field is not strictly needed for now, but may have some use.
         self.cursor.execute("CREATE INDEX if not exists idx_res ON result " +
                             "(idcomp, idtrain, idtest)")
-        self.cursor.execute("create table if not exists args " +
+
+        self.cursor.execute("create table if not exists args "
                             "(idcomp BLOB, dic BLOB)")
-        self.cursor.execute("CREATE INDEX if not exists idx_comp ON args " +
+        self.cursor.execute("CREATE INDEX if not exists idx_comp ON args "
                             "(idcomp)")
-        self.cursor.execute("CREATE INDEX if not exists idx_args ON args " +
+        self.cursor.execute("CREATE INDEX if not exists idx_dic ON args "
                             "(dic)")
-        # self.cursor.execute("create table if not exists model " +
-        #                     "(name STRING, args BLOB, train BLOB, dump BLOB)")
+
+        self.cursor.execute("create table if not exists dset "
+                            "(iddset BLOB, data BLOB)")
+        self.cursor.execute("CREATE INDEX if not exists idx_dset ON dset "
+                            "(iddset)")
 
     def get_result(self, component, train, test):
         """
@@ -42,7 +48,7 @@ class SQLite(Cache):
         self.query(
             "select trainout, testout, model from result where "
             "idcomp=? and idtrain=? and idtest=?",
-            [component.uuid, train.uuid, test.uuid])
+            [component.uuid(), train.uuid, test.uuid])
         rows = self.cursor.fetchall()
         if rows is None or len(rows) == 0:
             return None, None
@@ -53,15 +59,24 @@ class SQLite(Cache):
                 # TODO: use general error handling to show messages
                 print('get_model: exiting sqlite...')
                 exit(0)
-            return unpack(rows[0][0]), unpack(rows[0][1])
+            return train.updated(**unpack(rows[0][0]).predictions), \
+                   test.updated(**unpack(rows[0][1]).predictions)
 
-    def store(self, component, train, test, trainout, testout, time):
+    def store(self, component, train, test, trainout, testout, time_spent):
+        slim_trainout = Data(**trainout.predictions)
+        slim_testout = Data(**testout.predictions)
         self.query("insert into result values (?, ?, ?, ?, ?, ?, ?)",
                    [component.uuid(), train.uuid, test.uuid,
-                    pack(trainout), pack(testout), time, pack(component)])
+                    pack(slim_trainout), pack(slim_testout), time_spent,
+                    pack(component)])
         self.query("insert into args values (?, ?)",
                    [component.uuid(), component.serialized()])
+        self.query("insert into dset values (?, ?)", [train.uuid, pack(train)])
+        self.query("insert into dset values (?, ?)", [test.uuid, pack(test)])
         self.connection.commit()
+
+    def get_model(self, component, train, test):
+        raise NotImplementedError('get model')
 
     def query(self, sql, args):
         if self.debug:

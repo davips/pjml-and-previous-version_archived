@@ -71,7 +71,7 @@ class Component(ABC):
                 self.error("This component " + self.__class__.__name__ +
                            " cannot support storage, please implement a" +
                            " custom handle_storage to overcome this.")
-            return self.storage.get_or_else(self, data, self.apply_impl)
+            return self.storage.get_or_run(self, data, self.apply_impl)
 
         try:
             return self.apply_impl(data)
