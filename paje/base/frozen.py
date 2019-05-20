@@ -24,7 +24,8 @@ class Frozen(Composer):
         return aux
 
     def tree_impl(self, data=None):
-        return HPTree(dic=self.freeze_hptree(), children=[])
+        return HPTree(dic=self.freeze_hptree(), children=[],
+                      name='Frozen: ' + self.components[0].__class__.__name__)
 
     def __str__(self, depth=''):
         return 'Frozen { ' + str(self.components[0]) + ' }'
