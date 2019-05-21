@@ -17,25 +17,25 @@ class SQLite(Cache):
         self.connection = sqlite3.connect(self.database)
         self.cursor = self.connection.cursor()
 
-        self.cursor.execute("create table if not exists result " +
-                            "(idcomp BLOB, idtrain BLOB, idtest BLOB, " +
-                            "trainout BLOB, testout BLOB, time FLOAT, model "
-                            "BLOB)")
+        self.cursor.execute("create table if not exists result "
+                            "(idcomp BLOB, idtrain BLOB, idtest BLOB, "
+                            "trainout BLOB, testout BLOB, time FLOAT, "
+                            "model BLOB, PRIMARY KEY(idcomp, idtrain, idtest))")
         # idtest field is not strictly needed for now, but may have some use.
-        self.cursor.execute("CREATE INDEX if not exists idx_res ON result " +
-                            "(idcomp, idtrain, idtest)")
+        # self.cursor.execute("CREATE INDEX if not exists idx_res ON result "
+        #                     "(idcomp, idtrain, idtest)")
 
         self.cursor.execute("create table if not exists args "
-                            "(idcomp BLOB, dic BLOB)")
-        self.cursor.execute("CREATE INDEX if not exists idx_comp ON args "
-                            "(idcomp)")
-        self.cursor.execute("CREATE INDEX if not exists idx_dic ON args "
-                            "(dic)")
+                            "(idcomp BLOB PRIMARY KEY, dic BLOB UNIQUE)")
+        # self.cursor.execute("CREATE INDEX if not exists idx_comp ON args "
+        #                     "(idcomp)")
+        # self.cursor.execute("CREATE INDEX if not exists idx_dic ON args "
+        #                     "(dic)")
 
         self.cursor.execute("create table if not exists dset "
-                            "(iddset BLOB, data BLOB)")
-        self.cursor.execute("CREATE INDEX if not exists idx_dset ON dset "
-                            "(iddset)")
+                            "(iddset BLOB PRIMARY KEY, data BLOB UNIQUE)")
+        # self.cursor.execute("CREATE INDEX if not exists idx_dset ON dset "
+        #                     "(iddset)")
 
     def get_result(self, component, train, test):
         """
@@ -69,10 +69,12 @@ class SQLite(Cache):
                    [component.uuid(), train.uuid, test.uuid,
                     pack(slim_trainout), pack(slim_testout), time_spent,
                     pack(component)])
-        self.query("insert into args values (?, ?)",
+        self.query("insert or ignore into args values (?, ?)",
                    [component.uuid(), component.serialized()])
-        self.query("insert into dset values (?, ?)", [train.uuid, pack(train)])
-        self.query("insert into dset values (?, ?)", [test.uuid, pack(test)])
+        self.query("insert or ignore into dset values (?, ?)", [train.uuid,
+                                                                pack(train)])
+        self.query("insert or ignore into dset values (?, ?)",
+                   [test.uuid, pack(test)])
         self.connection.commit()
 
     def get_model(self, component, train, test):
