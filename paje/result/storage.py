@@ -81,9 +81,7 @@ class Cache(ABC):
             # same as above, but storing nothing as model: 720kB / pipe
             start = time.clock()
             try:
-                print('Applying component...')
                 component.apply(train)
-                print('Using component...')
                 trainout, testout = component.use(train), component.use(test)
             except Exception as e:
                 # Fake predictions for curated errors.

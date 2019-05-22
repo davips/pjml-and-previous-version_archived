@@ -190,6 +190,7 @@ class Component(ABC):
     def apply(self, data=None):
         """Todo the doc string
         """
+        print('Applying component...', self.__class__.__name__)
         if self.model is None:
             raise ApplyWithoutBuild('build() should be called before '
                                     'apply() <-' + self.__class__.__name__)
@@ -210,6 +211,7 @@ class Component(ABC):
     def use(self, data: Data = None) -> Data:
         """Todo the doc string
         """
+        print('Using component...', self.__class__.__name__)
         if self.unfit:
             raise UseWithoutApply('apply() should be called before '
                                   'use() <-' + self.__class__.__name__)

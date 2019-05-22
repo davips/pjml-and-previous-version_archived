@@ -10,6 +10,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from paje.base.component import Component
 from paje.base.hps import HPTree
 from paje.base.data import Data
+from paje.util.distributions import exponential_integers
 
 
 class NRNN(Component, ABC):
@@ -150,13 +151,13 @@ class NRNN(Component, ABC):
         # Assumes worst case of k-fold CV, i.e. k=2. Undersampling is another
         # problem, handled by @n_instances.
         cls.check_data(data)
-        kmax = floor(data.n_instances / 2 - 1)
+        kmax = floor(min(1000, data.n_instances / 2 - 1))
 
         dic = {
             # TODO: implement 'minority'
             'vote': ['c', ['majority', 'consensus']],
             'algorithm': ['c', ['ENN', 'RENN', 'AENN']],
-            'k': ['z', [1, kmax]]
+            'k': ['c', exponential_integers(kmax)]
             # (False, False) seems to be useless
         }
         return HPTree(dic, children=[])
