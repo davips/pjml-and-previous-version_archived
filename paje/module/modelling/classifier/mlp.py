@@ -35,8 +35,8 @@ class MLP(Classifier):
     def tree_impl(cls, data=None):
         cls.check_data(data)
         # todo: set random seed
-        max_free_parameters = int(data.n_instances / (data.n_attributes +
-                                                        data.n_classes))
+        max_free_parameters = int(sqrt(data.n_instances / (data.n_attributes +
+                                                           data.n_classes)))
         dic = {
             'alpha': ['o',
                       [0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100,
