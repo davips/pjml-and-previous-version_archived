@@ -9,6 +9,7 @@ from paje.base.component import Component
 from paje.evaluator.evaluator import Evaluator
 from paje.evaluator.metrics import Metrics
 from paje.module.modules import default_preprocessors, default_modelers
+from paje.result.mysql import MySQL
 from paje.result.sqlite import SQLite
 
 
@@ -39,7 +40,7 @@ class AutoML(Component, ABC):
         #       '  static', self.static, '  fixed', self.fixed,
         #       '  repetitions', self.repetitions)
         if self.memoize:
-            self.storage = SQLite('/tmp/paje-results.db', debug=False)
+            self.storage = MySQL(debug=not True)
         evaluator = Evaluator(Metrics.error, "cv", 3, storage=self.storage,
                               random_state=self.random_state)
 

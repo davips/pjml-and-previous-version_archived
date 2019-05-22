@@ -1,0 +1,146 @@
+from paje.base.data import Data
+from paje.result.storage import Cache, unpack, pack
+
+
+class SQL(Cache):
+    def create_database(self):
+        self.cursor.execute("create table if not exists result "
+                            "(idcomp varchar(32), idtrain varchar(32), "
+                            "idtest varchar(32), "
+                            "trainout LONGBLOB, testout LONGBLOB, time FLOAT, "
+                            "dump LONGBLOB, PRIMARY KEY(idcomp, idtrain, "
+                            "idtest))")
+        # idtest field is not strictly needed for now, but may have some use.
+        # self.cursor.execute("CREATE INDEX if not exists idx_res ON result "
+        #                     "(idcomp, idtrain, idtest)")
+
+        self.cursor.execute("create table if not exists args "
+                            "(idcomp varchar(32) PRIMARY KEY, dic TEXT)")
+        # self.cursor.execute("CREATE INDEX if not exists idx_comp ON args "
+        #                     "(idcomp)")
+        # self.cursor.execute("CREATE INDEX if not exists idx_dic ON args "
+        #                     "(dic)")
+
+        self.cursor.execute("create table if not exists dset "
+                            "(iddset varchar(32) PRIMARY KEY, data LONGBLOB)")
+        # self.cursor.execute("CREATE INDEX if not exists idx_dset ON dset "
+        #                     "(iddset)")
+
+    def got(self):
+        rows = self.cursor.fetchall()
+        if rows is None or len(rows) == 0:
+            return None
+        else:
+            if len(rows) is not 1:
+                for r in rows:
+                    print(r)
+                # TODO: use general error handling to show messages
+                print('get_model: exiting sql...')
+                exit(0)
+            from paje.result.mysql import MySQL
+            if isinstance(self, MySQL):
+                return list(rows[0].values())
+            else:
+                return rows[0]
+
+    def result_exists(self, component, train, test):
+        return self.get_result(component, train, test, True) != (None, None)
+
+    def component_exists(self, component):
+        return self.get_component(component, True) is not None
+
+    def data_exists(self, data):
+        return self.get_data(data, True) is not None
+
+    def get_result(self, component, train, test, just_check_exists=False):
+        """
+        Look for a result in database.
+        :param just_check_exists:
+        :param component:
+        :param train:
+        :param test:
+        :return:
+        """
+        fields = 'trainout, testout'
+        if just_check_exists:
+            fields = '1'
+        self.query(
+            f"select {fields} from result where "
+            "idcomp=? and idtrain=? and idtest=?",
+            [component.uuid(), train.uuid, test.uuid])
+        res = self.got()
+        if res is None:
+            return None, None
+        else:
+            return train.updated(**unpack(res[0]).predictions), \
+                   test.updated(**unpack(res[1]).predictions)
+
+    def get_component(self, component, just_check_exists=False):
+        field = 'dic'
+        if just_check_exists:
+            field = '1'
+        self.query(f'select {field} from args where idcomp=?',
+                   [component.uuid()])
+        res = self.got()
+        if res is None:
+            return None
+        else:
+            return res[0]
+
+    def get_data(self, data, just_check_exists=False):
+        field = 'data'
+        if just_check_exists:
+            field = '1'
+        self.query(f'select {field} from dset where iddset=?', [data.uuid])
+        res = self.got()
+        if res is None:
+            return None, None
+        else:
+            return Data(**unpack(res[0]))
+
+    def get_component_dump(self, component, train, test,
+                           just_check_exists=False):
+        raise NotImplementedError('get model')
+
+    def store(self, component, train, test, trainout, testout, time_spent):
+        slim_trainout = Data(**trainout.predictions)
+        slim_testout = Data(**testout.predictions)
+        if not self.result_exists(component, train, test):
+            self.query("insert into result values (?, ?, ?, ?, ?, ?, ?)",
+                       [component.uuid(), train.uuid, test.uuid,
+                        pack(slim_trainout), pack(slim_testout), time_spent,
+                        pack(component)])
+        if not self.component_exists(component):
+            self.query("insert into args values (?, ?)",
+                       [component.uuid(), component.serialized()])
+        if not self.data_exists(train):
+            self.query("insert into dset values (?, ?)", [train.uuid,
+                                                          pack(train)])
+        if not self.data_exists(test):
+            self.query("insert into dset values (?, ?)",
+                       [test.uuid, pack(test)])
+        self.connection.commit()
+
+    @staticmethod
+    def interpolate(sql, lst):
+        zipped = zip(sql.replace('?', '"?"').split('?'), map(str, lst + ['']))
+        return ''.join(list(sum(zipped, ())))
+
+    def query(self, sql, args):
+        from paje.result.mysql import MySQL
+        if isinstance(self, MySQL):
+            sql = sql.replace('?', '%s')
+            sql = sql.replace('insert or ignore', 'insert ignore')
+
+        if self.debug:
+            print(self.interpolate(sql, args))
+        try:
+            self.cursor.execute(sql, args)
+        except Exception as e:
+            print(e)
+            print()
+            print(sql, args)
+            raise e
+
+    def __del__(self):
+        self.connection.close()

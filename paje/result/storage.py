@@ -35,7 +35,23 @@ class Cache(ABC):
         pass
 
     @abstractmethod
-    def get_model(self, component, train, test):
+    def get_component_dump(self, component, train, test, just_check_exists=False):
+        pass
+
+    @abstractmethod
+    def get_component(self, component, just_check_exists=False):
+        pass
+
+    @abstractmethod
+    def result_exists(self, component, train, test):
+        pass
+
+    @abstractmethod
+    def data_exists(self, data):
+        pass
+
+    @abstractmethod
+    def get_data(self, data):
         pass
 
     @abstractmethod
