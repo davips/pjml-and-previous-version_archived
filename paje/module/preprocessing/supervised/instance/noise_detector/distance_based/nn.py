@@ -151,7 +151,7 @@ class NRNN(Component, ABC):
         # Assumes worst case of k-fold CV, i.e. k=2. Undersampling is another
         # problem, handled by @n_instances.
         cls.check_data(data)
-        kmax = floor(min(1000, data.n_instances / 2 - 1))
+        kmax = floor(min(400, data.n_instances / 2 - 1))
 
         dic = {
             # TODO: implement 'minority'

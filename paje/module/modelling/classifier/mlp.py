@@ -35,8 +35,9 @@ class MLP(Classifier):
     def tree_impl(cls, data=None):
         cls.check_data(data)
         # todo: set random seed
-        max_free_parameters = int((data.n_instances / (data.n_attributes +
-                                                       data.n_classes)))
+        max_free_parameters = min(400, max(10, int((data.n_instances /
+                                           (data.n_attributes +
+                                            data.n_classes)))))
         dic = {
             'alpha': ['o',
                       [0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100,
@@ -56,7 +57,7 @@ class MLP(Classifier):
         }, children=[])
 
         one_hidden_layer = HPTree({
-            '@hidden_layer_size1': ['z', [1, max_free_parameters]],
+            '@hidden_layer_size1': ['z', [1, floor(max_free_parameters)]],
             # @ indicates that this hyperparameter is auxiliary (will be converted in constructor)
             'activation': ['c', ['identity', 'logistic', 'tanh', 'relu']],
             # Only used when there is at least one hidden layer
