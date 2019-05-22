@@ -35,7 +35,8 @@ class Cache(ABC):
         pass
 
     @abstractmethod
-    def get_component_dump(self, component, train, test, just_check_exists=False):
+    def get_component_dump(self, component, train, test,
+                           just_check_exists=False):
         pass
 
     @abstractmethod
@@ -70,7 +71,8 @@ class Cache(ABC):
         # TODO: Repeated calls to this function with the same parameters can
         #  be memoized, to avoid network delays, for instance.
         # TODO: insert time spent
-        trainout, testout = self.get_result(component, train, test)
+        trainout, testout, component.dic['failed'] = \
+            self.get_result(component, train, test)
         if trainout is None:
             # storing only (test and train) predictions: 5kB / row
             # (1 pipeline w/ 3-fold CV = 6 rows) = 30kB / pipe
@@ -81,14 +83,16 @@ class Cache(ABC):
             # same as above, but storing nothing as model: 720kB / pipe
             start = time.clock()
             try:
+                component.dic['failed'] = False
                 component.apply(train)
                 trainout, testout = component.use(train), component.use(test)
             except Exception as e:
+                component.dic['failed'] = True
                 # Fake predictions for curated errors.
                 print('Trying to circumvent exception: >' + str(e) + '<')
                 msgs = ['All features are either constant or ignored.',  # CB
                         'be between 0 and min(n_samples, n_features)',  # DR*
-
+                        'excess of max_free_parameters:',  # MLP
                         ]
                 if any([str(e).__contains__(msg) for msg in msgs]):
                     # We suppose here that all pipelines are for classification.
@@ -97,7 +101,6 @@ class Cache(ABC):
                     zr = model.predict(train.y)
                     zs = model.predict(test.y)
                     trainout, testout = train.updated(z=zr), test.updated(z=zs)
-                    component.failed= True
                     component.warning(e)
                 else:
                     traceback.print_exc()
@@ -109,5 +112,4 @@ class Cache(ABC):
             self.store(component, train, test, trainout, testout, end - start)
             print('memoized!')
             print()
-
         return trainout, testout

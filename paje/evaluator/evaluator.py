@@ -32,7 +32,7 @@ class Evaluator():
                                       y=data.y[train_index])
             data_test = data.updated(X=data.X[test_index], y=data.y[test_index])
 
-            # TODO: failed pipeline store fake bad predictions,
+            # TODO: failed pipelines already store fake bad predictions,
             #  but only when self.storage is activated
             if self.storage is not None:
                 output_train, output_test = self.storage.get_or_run(

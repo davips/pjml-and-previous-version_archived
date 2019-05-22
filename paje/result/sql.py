@@ -8,8 +8,8 @@ class SQL(Cache):
                             "(idcomp varchar(32), idtrain varchar(32), "
                             "idtest varchar(32), "
                             "trainout LONGBLOB, testout LONGBLOB, time FLOAT, "
-                            "dump LONGBLOB, PRIMARY KEY(idcomp, idtrain, "
-                            "idtest))")
+                            "dump LONGBLOB, failed BOOLEAN, PRIMARY KEY("
+                            "idcomp, idtrain, idtest))")
         # idtest field is not strictly needed for now, but may have some use.
         # self.cursor.execute("CREATE INDEX if not exists idx_res ON result "
         #                     "(idcomp, idtrain, idtest)")
@@ -61,7 +61,7 @@ class SQL(Cache):
         :param test:
         :return:
         """
-        fields = 'trainout, testout'
+        fields = 'trainout, testout, failed'
         if just_check_exists:
             fields = '1'
         self.query(
@@ -70,10 +70,10 @@ class SQL(Cache):
             [component.uuid(), train.uuid, test.uuid])
         res = self.got()
         if res is None:
-            return None, None
+            return None, None, None
         else:
             return train.updated(**unpack(res[0]).predictions), \
-                   test.updated(**unpack(res[1]).predictions)
+                   test.updated(**unpack(res[1]).predictions), res[2]
 
     def get_component(self, component, just_check_exists=False):
         field = 'dic'
@@ -106,10 +106,10 @@ class SQL(Cache):
         slim_trainout = Data(**trainout.predictions)
         slim_testout = Data(**testout.predictions)
         if not self.result_exists(component, train, test):
-            self.query("insert into result values (?, ?, ?, ?, ?, ?, ?)",
+            self.query("insert into result values (?, ?, ?, ?, ?, ?, ?, ?)",
                        [component.uuid(), train.uuid, test.uuid,
                         pack(slim_trainout), pack(slim_testout), time_spent,
-                        pack(component)])
+                        pack(component), component.dic['failed']])
         if not self.component_exists(component):
             self.query("insert into args values (?, ?)",
                        [component.uuid(), component.serialized()])

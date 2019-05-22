@@ -28,7 +28,6 @@ class Component(ABC):
         self.model = None
         self.already_uuid = None  # UUID will be known only after build()
         self.dic = {}
-        self.failed = False
 
         # Store apply() results in disk?
         self.memoize = memoize
@@ -184,6 +183,7 @@ class Component(ABC):
         if 'name' in self.dic:
             del self.dic['name']
         self.build_impl()
+        self.dic['failed'] = False
         return self
 
     # @profile

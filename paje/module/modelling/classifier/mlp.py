@@ -1,6 +1,8 @@
+import numpy as np
 from math import *
 from sklearn.neural_network import MLPClassifier
 
+from paje.base.exceptions import ExceptionInApplyOrUse
 from paje.base.hps import HPTree
 from paje.module.modelling.classifier.classifier import Classifier
 
@@ -31,13 +33,24 @@ class MLP(Classifier):
             new_kwargs['hidden_layer_sizes'] = values
         self.model = MLPClassifier(**new_kwargs)
 
+    def apply_impl(self, data):
+        max_free_parameters = min(100000, max(10, int((data.n_instances /
+                                                       (data.n_attributes +
+                                                        data.n_classes)))))
+        free_parameters = np.product(self.model.hidden_layer_sizes)
+        if free_parameters > max_free_parameters:
+            raise ExceptionInApplyOrUse('excess of max_free_parameters:',
+                                        free_parameters, '>',
+                                        max_free_parameters)
+        return super().apply_impl(data)
+
     @classmethod
     def tree_impl(cls, data=None):
         cls.check_data(data)
         # todo: set random seed
-        max_free_parameters = min(400, max(10, int((data.n_instances /
-                                           (data.n_attributes +
-                                            data.n_classes)))))
+        max_free_parameters = min(10000, max(10, int((data.n_instances /
+                                                      (data.n_attributes +
+                                                       data.n_classes)))))
         dic = {
             'alpha': ['o',
                       [0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100,
