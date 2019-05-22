@@ -183,7 +183,7 @@ class Component(ABC):
         if 'name' in self.dic:
             del self.dic['name']
         self.build_impl()
-        self.dic['failed'] = False
+        self.failed = False
         return self
 
     # @profile

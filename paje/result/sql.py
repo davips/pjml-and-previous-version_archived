@@ -44,7 +44,8 @@ class SQL(Cache):
                 return rows[0]
 
     def result_exists(self, component, train, test):
-        return self.get_result(component, train, test, True) != (None, None)
+        return self.get_result(component, train, test, True) != (None, None,
+                                                                 None)
 
     def component_exists(self, component):
         return self.get_component(component, True) is not None
@@ -109,7 +110,7 @@ class SQL(Cache):
             self.query("insert into result values (?, ?, ?, ?, ?, ?, ?, ?)",
                        [component.uuid(), train.uuid, test.uuid,
                         pack(slim_trainout), pack(slim_testout), time_spent,
-                        pack(component), component.dic['failed']])
+                        pack(component), component.failed])
         if not self.component_exists(component):
             self.query("insert into args values (?, ?)",
                        [component.uuid(), component.serialized()])
@@ -128,12 +129,11 @@ class SQL(Cache):
 
     def query(self, sql, args):
         from paje.result.mysql import MySQL
+        if self.debug:
+            print(self.interpolate(sql, args))
         if isinstance(self, MySQL):
             sql = sql.replace('?', '%s')
             sql = sql.replace('insert or ignore', 'insert ignore')
-
-        if self.debug:
-            print(self.interpolate(sql, args))
         try:
             self.cursor.execute(sql, args)
         except Exception as e:

@@ -55,7 +55,7 @@ class AutoML(Component, ABC):
                 if self.verbose:
                     print(pipe)
                 error = np.mean(evaluator.eval(pipe, data))
-                if not pipe.dic['failed']:
+                if not pipe.failed:
                     ok += 1
                 errors.append(error)
             self.process(errors)

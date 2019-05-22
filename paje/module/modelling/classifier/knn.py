@@ -50,7 +50,7 @@ class KNN(Classifier):
     def tree_impl(cls, data=None):
         # Assumes worst case of k-fold CV, i.e. k=2. Undersampling is another problem, handled by @n_instances.
         cls.check_data(data)
-        kmax = floor(data.n_instances / 2 - 1)
+        kmax = min(1000, floor(data.n_instances / 2 - 1))
 
         dic = {
             'n_neighbors': ['c', exponential_integers(kmax)],

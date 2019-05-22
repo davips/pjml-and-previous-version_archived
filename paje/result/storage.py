@@ -71,7 +71,7 @@ class Cache(ABC):
         # TODO: Repeated calls to this function with the same parameters can
         #  be memoized, to avoid network delays, for instance.
         # TODO: insert time spent
-        trainout, testout, component.dic['failed'] = \
+        trainout, testout, component.failed = \
             self.get_result(component, train, test)
         if trainout is None:
             # storing only (test and train) predictions: 5kB / row
@@ -83,11 +83,11 @@ class Cache(ABC):
             # same as above, but storing nothing as model: 720kB / pipe
             start = time.clock()
             try:
-                component.dic['failed'] = False
+                component.failed = False or component.failed
                 component.apply(train)
                 trainout, testout = component.use(train), component.use(test)
             except Exception as e:
-                component.dic['failed'] = True
+                component.failed = True
                 # Fake predictions for curated errors.
                 print('Trying to circumvent exception: >' + str(e) + '<')
                 msgs = ['All features are either constant or ignored.',  # CB
