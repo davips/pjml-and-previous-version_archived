@@ -72,7 +72,6 @@ class Cache(ABC):
         # TODO: insert time spent
         trainout, testout = self.get_result(component, train, test)
         if trainout is None:
-            print('memoizing results...')
             # storing only (test and train) predictions: 5kB / row
             # (1 pipeline w/ 3-fold CV = 6 rows) = 30kB / pipe
             # storing complete test and train data and model: 83kB / row
@@ -82,7 +81,9 @@ class Cache(ABC):
             # same as above, but storing nothing as model: 720kB / pipe
             start = time.clock()
             try:
+                print('Applying component...')
                 component.apply(train)
+                print('Using component...')
                 trainout, testout = component.use(train), component.use(test)
             except Exception as e:
                 # Fake predictions for curated errors.
@@ -98,6 +99,7 @@ class Cache(ABC):
                     zr = model.predict(train.y)
                     zs = model.predict(test.y)
                     trainout, testout = train.updated(z=zr), test.updated(z=zs)
+                    component.failed= True
                     component.warning(e)
                 else:
                     traceback.print_exc()
@@ -105,6 +107,9 @@ class Cache(ABC):
 
             # Store result.
             end = time.clock()
+            print('memoizing results...')
             self.store(component, train, test, trainout, testout, end - start)
+            print('memoized!')
+            print()
 
         return trainout, testout

@@ -28,6 +28,7 @@ class Component(ABC):
         self.model = None
         self.already_uuid = None  # UUID will be known only after build()
         self.dic = {}
+        self.failed = False
 
         # Store apply() results in disk?
         self.memoize = memoize
@@ -223,10 +224,10 @@ class Component(ABC):
                                     'uuid() <-' + self.__class__.__name__)
         return self.already_uuid
 
+
 class UseWithoutApply(Exception):
     pass
 
 
 class ApplyWithoutBuild(Exception):
     pass
-

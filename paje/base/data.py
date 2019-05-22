@@ -19,7 +19,7 @@ class Data:
     """
 
     def __init__(self, X=None, y=None, z=None, p=None,
-                 U=None, v=None, w=None, q=None, columns=None):
+                 U=None, v=None, w=None, q=None, columns=None, name=None):
         # Init instance vars and dic to factory new instances in the future.
         args = {k: v for k, v in locals().items() if k != 'self'}
         self.__dict__.update(args)
@@ -87,7 +87,7 @@ class Data:
         y = df.pop(target).values
         X = df.values.astype('float')
 
-        return Data(X, y, columns)
+        return Data(X, y, columns, name=file)
 
     @staticmethod
     def random(n_attributes, n_classes, n_instances):
