@@ -42,22 +42,27 @@ class Data:
         n_instances = len(get_first_non_none(alldata))
         n_attributes = len(get_first_non_none([X, U])[0])
 
+        def dematrixfy(m):
+            return m[0] if m is not None else None
+
         self.__dict__.update({
             'n_classes': n_classes,
             'n_instances': n_instances,
             'n_attributes': n_attributes,
-            'Xy': (X, Y[0] if Y is not None else None),
-            'Uv': (U, V[0] if V is not None else None),
-            'y': Y[0] if Y is not None else None,
-            'z': Z[0] if Z is not None else None,
-            'v': V[0] if V is not None else None,
-            'w': W[0] if W is not None else None,
+            'Xy': (X, dematrixfy(Y)),
+            'Uv': (U, dematrixfy(V)),
             # 'predictions': {k: v for k, v in dic.items()
             #                 if k in ['z', 'w', 'p', 'q']},
             'all': alldata,
             'serialized': serialized,
             'uuid': uuid(serialized)
         })
+
+        # Add vectorized shortcuts for matrices.
+        vectors = ['y', 'z', 'v', 'w']
+        self._set('vectors', vectors)
+        for vec in vectors:
+            self.__dict__[vec] = dematrixfy(self.__dict__[vec.upper()])
 
         # TODO
         # check if exits dtype indefined == object
@@ -109,17 +114,14 @@ class Data:
     def updated(self, **kwargs):
         dic = self._dic.copy()
         dic.update(kwargs)
-        if 'v' in dic:
-            dic['V']=[dic.pop('v')]
-        if 'w' in dic:
-            dic['W']=[dic.pop('w')]
-        if 'y' in dic:
-            dic['Y']=[dic.pop('y')]
-        if 'z' in dic:
-            dic['Z']=[dic.pop('z')]
+        for l in self.vectors:
+            if l in dic:
+                dic[l.upper()] = [dic.pop(l)]
         return Data(**dic)
 
     def select(self, fields):
+        # Convert vectorized shortcuts to matrices.
+        fields = [(x.upper() if x in self.vectors else x) for x in fields]
         return {k: v for k, v in self._dic.items() if k in fields}
 
     def sub(self, fields):
@@ -132,6 +134,7 @@ class Data:
 
     def _set(self, attr, value):
         object.__setattr__(self, attr, value)
+
 
 class MutabilityException(Exception):
     pass
