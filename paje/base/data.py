@@ -19,7 +19,8 @@ class Data:
     """
 
     def __init__(self, X=None, y=None, z=None, p=None,
-                 U=None, v=None, w=None, q=None, columns=None, name=None):
+                 U=None, v=None, w=None, q=None,
+                 columns=None, name=None):
         # Init instance vars and dic to factory new instances in the future.
         args = {k: v for k, v in locals().items() if k != 'self'}
         self.__dict__.update(args)
@@ -47,8 +48,8 @@ class Data:
             'n_instances': n_instances,
             'n_attributes': n_attributes,
             'xy': (X, y),
-            'predictions': {k: v for k, v in dic.items()
-                            if k in ['z', 'w', 'p', 'q']},
+            # 'predictions': {k: v for k, v in dic.items()
+            #                 if k in ['z', 'w', 'p', 'q']},
             'all': alldata,
             'serialized': serialized,
             'uuid': uuid(serialized)
@@ -105,6 +106,12 @@ class Data:
         dic = self._dic.copy()
         dic.update(kwargs)
         return Data(**dic)
+
+    def select(self, fields):
+        return {k: v for k, v in self._dic.items() if k in fields}
+
+    def sub(self, fields):
+        return Data(**self.select(fields))
 
     def __setattr__(self, name, value):
         raise MutabilityException(
