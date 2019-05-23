@@ -7,7 +7,7 @@ from sklearn.model_selection import LeaveOneOut
 from sklearn.model_selection import StratifiedShuffleSplit
 
 
-class Evaluator():
+class Evaluator:
     def __init__(self, metric, split="cv", steps=10, random_state=0,
                  storage=None):
 
