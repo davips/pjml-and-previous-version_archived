@@ -26,14 +26,13 @@ class Evaluator():
     # @profile
     def eval(self, component, data):
         perfs = []
-        for train_index, test_index \
-                in self.split.split(*data.xy):
+        for train_index, test_index in self.split.split(*data.xy):
             data_train = data.updated(X=data.X[train_index],
                                       y=data.y[train_index])
             data_test = data.updated(X=data.X[test_index], y=data.y[test_index])
 
-            # TODO: failed pipelines already store fake bad predictions,
-            #  but only when self.storage is activated
+            # TODO: failed pipelines already fallback to fake bad predictions,
+            #  but only when self.storage is activated!
             if self.storage is not None:
                 output_train, output_test = self.storage.get_or_run(
                     component, data_train, data_test)

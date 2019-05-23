@@ -71,9 +71,11 @@ class Cache(ABC):
         # TODO: Repeated calls to this function with the same parameters can
         #  be memoized, to avoid network delays, for instance.
         # TODO: insert time spent
-        trainout, testout, component.failed = \
+        trainout, testout, failed = \
             self.get_result(component, train, test)
-        if trainout is None:
+        if trainout is not None:
+            component.failed = failed
+        else:
             # storing only (test and train) predictions: 5kB / row
             # (1 pipeline w/ 3-fold CV = 6 rows) = 30kB / pipe
             # storing complete test and train data and model: 83kB / row
@@ -83,7 +85,8 @@ class Cache(ABC):
             # same as above, but storing nothing as model: 720kB / pipe
             start = time.clock()
             try:
-                component.failed = False or component.failed
+                if component.failed:
+                    raise Exception('Pipeline already failed before!')
                 component.apply(train)
                 trainout, testout = component.use(train), component.use(test)
             except Exception as e:
@@ -93,6 +96,7 @@ class Cache(ABC):
                 msgs = ['All features are either constant or ignored.',  # CB
                         'be between 0 and min(n_samples, n_features)',  # DR*
                         'excess of max_free_parameters:',  # MLP
+                        'Pipeline already failed before!',  # Preemptvely avoid
                         ]
                 if any([str(e).__contains__(msg) for msg in msgs]):
                     # We suppose here that all pipelines are for classification.
