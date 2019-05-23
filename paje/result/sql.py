@@ -7,7 +7,8 @@ class SQL(Cache):
         self.cursor.execute("create table if not exists result "
                             "(idcomp varchar(32), idtrain varchar(32), "
                             "idtest varchar(32), "
-                            "trainout LONGBLOB, testout LONGBLOB, time FLOAT, "
+                            "trainout LONGBLOB, testout LONGBLOB, "
+                            "timetrain FLOAT, timetest FLOAT, "
                             "dump LONGBLOB, failed BOOLEAN, PRIMARY KEY("
                             "idcomp, idtrain, idtest))")
         # idtest field is not strictly needed for now, but may have some use.
@@ -103,14 +104,24 @@ class SQL(Cache):
                            just_check_exists=False):
         raise NotImplementedError('get model')
 
-    def store(self, component, train, test, trainout, testout, time_spent):
+    def store(self, component, train, test, trainout, testout,
+              time_spent_tr, time_spent_ts):
         slim_trainout = Data(**trainout.predictions)
         slim_testout = Data(**testout.predictions)
         if not self.result_exists(component, train, test):
-            self.query("insert into result values (?, ?, ?, ?, ?, ?, ?, ?)",
+            # try:
+            #     dump = pack(component)
+            # except:
+            # # except MemoryError as error:
+            #     component.warning('Aborting dump storing due to memory issues.')
+            #     from paje.module.modelling.classifier.nb import NB
+            # TODO: dumps are not saved anymore!
+            dump = None
+            self.query("insert into result values (?, ?, ?, ?, ?, ?, ?, ?, ?)",
                        [component.uuid(), train.uuid, test.uuid,
-                        pack(slim_trainout), pack(slim_testout), time_spent,
-                        pack(component), component.failed])
+                        pack(slim_trainout), pack(slim_testout),
+                        time_spent_tr, time_spent_ts,
+                        dump, component.failed])
         if not self.component_exists(component):
             self.query("insert into args values (?, ?)",
                        [component.uuid(), component.serialized()])
@@ -129,17 +140,19 @@ class SQL(Cache):
 
     def query(self, sql, args):
         from paje.result.mysql import MySQL
+        msg = self.interpolate(sql, args)
         if self.debug:
-            print(self.interpolate(sql, args))
+            print(msg)
         if isinstance(self, MySQL):
             sql = sql.replace('?', '%s')
             sql = sql.replace('insert or ignore', 'insert ignore')
+            self.connection.ping(reconnect=True)
         try:
             self.cursor.execute(sql, args)
         except Exception as e:
             print(e)
             print()
-            print(sql, args)
+            print(msg)
             raise e
 
     def __del__(self):

@@ -8,6 +8,7 @@ from abc import ABC, abstractmethod
 from sklearn.dummy import DummyClassifier
 
 from paje.base.exceptions import ExceptionInApplyOrUse
+from paje.evaluator.time import time_limit
 
 
 def uuid(description):
@@ -56,10 +57,11 @@ class Cache(ABC):
         pass
 
     @abstractmethod
-    def store(self, component, train, test, trainout, testout, time_spent):
+    def store(self, component, train, test, trainout, testout,
+              time_spent_tr, time_spent_ts):
         pass
 
-    def get_or_run(self, component, train, test):
+    def get_or_run(self, component, train, test, maxtime=60):
         """
         Results memoization: only output Data is stored for now
         :param component:
@@ -83,12 +85,16 @@ class Cache(ABC):
 
             # storing also args and sets: 1MB / pipe
             # same as above, but storing nothing as model: 720kB / pipe
-            start = time.clock()
             try:
                 if component.failed:
                     raise Exception('Pipeline already failed before!')
-                component.apply(train)
-                trainout, testout = component.use(train), component.use(test)
+                with time_limit(maxtime):
+                    start = time.clock()
+                    component.apply(train)
+                    trtime = time.clock() - start
+                    trainout, testout = component.use(train), \
+                                        component.use(test)
+                    tstime = time.clock() - trtime
             except Exception as e:
                 component.failed = True
                 # Fake predictions for curated errors.
@@ -97,8 +103,13 @@ class Cache(ABC):
                         'be between 0 and min(n_samples, n_features)',  # DR*
                         'excess of max_free_parameters:',  # MLP
                         'Pipeline already failed before!',  # Preemptvely avoid
+                        'Timed out!',
                         ]
+                if str(e).__contains__('Pipeline already failed before!'):
+                    trtime = tstime = 99999999
+
                 if any([str(e).__contains__(msg) for msg in msgs]):
+                    trtime = tstime = 0
                     # We suppose here that all pipelines are for classification.
                     model = DummyClassifier(strategy='uniform')
                     model.fit(*train.xy)
@@ -113,7 +124,8 @@ class Cache(ABC):
             # Store result.
             end = time.clock()
             print('memoizing results...')
-            self.store(component, train, test, trainout, testout, end - start)
+            self.store(component, train, test, trainout, testout,
+                       trtime, tstime)
             print('memoized!')
             print()
         return trainout, testout
