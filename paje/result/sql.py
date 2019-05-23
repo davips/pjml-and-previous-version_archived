@@ -54,15 +54,19 @@ class SQL(Cache):
     def data_exists(self, data):
         return self.get_data(data, True) is not None
 
-    def get_result(self, component, train, test, just_check_exists=False):
+    def get_result(self, component, train, test,
+                   just_check_exists=False, fields_to_store=None):
         """
         Look for a result in database.
         :param just_check_exists:
         :param component:
         :param train:
         :param test:
+        :param fields_to_store:
         :return:
         """
+        if fields_to_store is None:
+            fields_to_store = []
         fields = 'trainout, testout, failed'
         if just_check_exists:
             fields = '1'
@@ -74,8 +78,11 @@ class SQL(Cache):
         if res is None:
             return None, None, None
         else:
-            return train.updated(**unpack(res[0]).predictions), \
-                   test.updated(**unpack(res[1]).predictions), res[2]
+            if just_check_exists:
+                return True, True, True
+            return train.updated(**unpack(res[0]).select(fields_to_store)), \
+                   test.updated(**unpack(res[1]).select(fields_to_store)), \
+                   res[2]
 
     def get_component(self, component, just_check_exists=False):
         field = 'dic'
@@ -105,9 +112,9 @@ class SQL(Cache):
         raise NotImplementedError('get model')
 
     def store(self, component, train, test, trainout, testout,
-              time_spent_tr, time_spent_ts):
-        slim_trainout = Data(**trainout.predictions)
-        slim_testout = Data(**testout.predictions)
+              time_spent_tr, time_spent_ts, fields_to_store):
+        slim_trainout = trainout.sub(fields_to_store)
+        slim_testout = testout.sub(fields_to_store)
         if not self.result_exists(component, train, test):
             # try:
             #     dump = pack(component)

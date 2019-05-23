@@ -1,9 +1,5 @@
-import traceback
-
-from paje.base.exceptions import ExceptionInApplyOrUse
-from paje.base.data import Data
-from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import LeaveOneOut
+from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import StratifiedShuffleSplit
 
 
@@ -35,7 +31,7 @@ class Evaluator:
             #  but only when self.storage is activated!
             if self.storage is not None:
                 output_train, output_test = self.storage.get_or_run(
-                    component, data_train, data_test)
+                    component, data_train, data_test, fields_to_store=['z'])
             else:
                 # TODO: if output_train is needed, it should come from
                 #  component.use(), not from component.apply()!

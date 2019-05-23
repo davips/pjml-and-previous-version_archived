@@ -32,7 +32,8 @@ class Cache(ABC):
     """
 
     @abstractmethod
-    def get_result(self, component, train, test):
+    def get_result(self, component, train, test, just_check_exists,
+                   fields_to_store):
         pass
 
     @abstractmethod
@@ -58,23 +59,28 @@ class Cache(ABC):
 
     @abstractmethod
     def store(self, component, train, test, trainout, testout,
-              time_spent_tr, time_spent_ts):
+              time_spent_tr, time_spent_ts, fields_to_store):
         pass
 
-    def get_or_run(self, component, train, test, maxtime=60):
+    def get_or_run(self, component, train, test,
+                   maxtime=60, fields_to_store=None):
         """
         Results memoization: only output Data is stored for now
         :param component:
         :param train:
         :param test:
-        :param f:
+        :param maxtime:
+        :param fields_to_store:
         :return:
         """
         # TODO: Repeated calls to this function with the same parameters can
         #  be memoized, to avoid network delays, for instance.
         # TODO: insert time spent
+        if fields_to_store is None:
+            fields_to_store = []
         trainout, testout, failed = \
-            self.get_result(component, train, test)
+            self.get_result(component, train, test,
+                            fields_to_store=fields_to_store)
         if trainout is not None:
             component.failed = failed
         else:
@@ -110,22 +116,28 @@ class Cache(ABC):
 
                 if any([str(e).__contains__(msg) for msg in msgs]):
                     trtime = tstime = 0
-                    # We suppose here that all pipelines are for classification.
-                    model = DummyClassifier(strategy='uniform')
-                    model.fit(*train.xy)
-                    zr = model.predict(train.y)
-                    zs = model.predict(test.y)
-                    trainout, testout = train.updated(z=zr), test.updated(z=zs)
+
+                    # When the pipelines are for prediction...
+                    if fields_to_store == ['z']:
+                        model = DummyClassifier(strategy='uniform')
+                        model.fit(*train.xy)
+                        zr = model.predict(train.y)
+                        zs = model.predict(test.y)
+                        trainout, testout = train.updated(z=zr), \
+                                            test.updated(z=zs)
+                    else:
+                        # TODO: is this the ideal output for failed
+                        #  nonpredictive pipelines?
+                        trainout, testout = train.sub(), test.sub()
                     component.warning(e)
                 else:
                     traceback.print_exc()
                     raise ExceptionInApplyOrUse(e)
 
             # Store result.
-            end = time.clock()
             print('memoizing results...')
             self.store(component, train, test, trainout, testout,
-                       trtime, tstime)
+                       trtime, tstime, fields_to_store)
             print('memoized!')
             print()
         return trainout, testout
