@@ -26,7 +26,7 @@ class NRNN(Component, ABC):
     def apply_impl(self, data):
         if self.k > data.n_instances:
             self.k = data.n_instances
-        X, y = getattr(self, self.algorithm)(*data.xy)
+        X, y = getattr(self, self.algorithm)(*data.Xy)
         return data.updated(X=X, y=y)
 
     def use_impl(self, data):

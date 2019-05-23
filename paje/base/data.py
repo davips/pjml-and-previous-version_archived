@@ -18,8 +18,8 @@ class Data:
         self.q = q  # Predicted probabilities for unlabeled set
     """
 
-    def __init__(self, X=None, y=None, z=None, p=None,
-                 U=None, v=None, w=None, q=None,
+    def __init__(self, X=None, Y=None, Z=None, P=None,
+                 U=None, V=None, W=None, Q=None,
                  columns=None, name=None):
         # Init instance vars and dic to factory new instances in the future.
         args = {k: v for k, v in locals().items() if k != 'self'}
@@ -27,27 +27,31 @@ class Data:
         dic = args.copy()
         del dic['columns']
         self._set('_dic', dic)
-        if y is not None:
-            check_X_y(X, y)
+        if Y is not None:
+            check_X_y(X, Y[0])
 
-        alldata = X, y, z, U, v, w, p, q
+        alldata = X, Y, Z, U, V, W, P, Q
         serialized = pack(alldata)
 
         # Consider the first non None list in the args for extracting metadata.
         def get_first_non_none(l):
             filtered = list(filter(None.__ne__, l))
-            return [] if filtered == [] else filtered[0]
+            return [[]] if filtered == [] else filtered[0]
 
-        n_classes = len(set(get_first_non_none([y, v, z, w])))
+        n_classes = len(set(get_first_non_none([Y, V, Z, W])[0]))
         n_instances = len(get_first_non_none(alldata))
-        atts = get_first_non_none([X, U])
-        n_attributes = None if len(atts) == 0 else len(atts[0])
+        n_attributes = len(get_first_non_none([X, U])[0])
 
         self.__dict__.update({
             'n_classes': n_classes,
             'n_instances': n_instances,
             'n_attributes': n_attributes,
-            'xy': (X, y),
+            'Xy': (X, Y[0] if Y is not None else None),
+            'Uv': (U, V[0] if V is not None else None),
+            'y': Y[0] if Y is not None else None,
+            'z': Z[0] if Z is not None else None,
+            'v': V[0] if V is not None else None,
+            'w': W[0] if W is not None else None,
             # 'predictions': {k: v for k, v in dic.items()
             #                 if k in ['z', 'w', 'p', 'q']},
             'all': alldata,
@@ -85,10 +89,10 @@ class Data:
         df = pd.DataFrame(data['data'],
                           columns=[attr[0] for attr in data['attributes']])
 
-        y = df.pop(target).values
+        Y = [df.pop(target).values]
         X = df.values.astype('float')
 
-        return Data(X, y, columns, name=file)
+        return Data(X, Y, columns, name=file)
 
     @staticmethod
     def random(n_attributes, n_classes, n_instances):
@@ -97,7 +101,7 @@ class Data:
                                       n_classes=n_classes,
                                       n_informative=int(
                                           np.sqrt(2 * n_classes)) + 1)
-        return Data(X, y)
+        return Data(X, [y])
 
     def read_csv(self, file, target):
         raise NotImplementedError("Method read_csv should be implement!")
@@ -105,6 +109,14 @@ class Data:
     def updated(self, **kwargs):
         dic = self._dic.copy()
         dic.update(kwargs)
+        if 'v' in dic:
+            dic['V']=[dic.pop('v')]
+        if 'w' in dic:
+            dic['W']=[dic.pop('w')]
+        if 'y' in dic:
+            dic['Y']=[dic.pop('y')]
+        if 'z' in dic:
+            dic['Z']=[dic.pop('z')]
         return Data(**dic)
 
     def select(self, fields):
@@ -120,7 +132,6 @@ class Data:
 
     def _set(self, attr, value):
         object.__setattr__(self, attr, value)
-
 
 class MutabilityException(Exception):
     pass

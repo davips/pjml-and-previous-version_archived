@@ -9,7 +9,7 @@ from paje.base.data import Data
 class Scaler(Component, ABC):
     def apply_impl(self, data):
         # self.model will be set in the child class
-        self.model.fit(*data.xy)
+        self.model.fit(*data.Xy)
         return self.use(data)
 
     def use_impl(self, data):

@@ -18,7 +18,7 @@ class Classifier(Component, ABC):
         :return:
         """
         # self.model will be set in the child class
-        self.model.fit(*data.xy)
+        self.model.fit(*data.Xy)
         return self.use(data)
 
     def use_impl(self, data):

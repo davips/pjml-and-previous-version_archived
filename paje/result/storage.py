@@ -120,7 +120,7 @@ class Cache(ABC):
                     # When the pipelines are for prediction...
                     if fields_to_store == ['z']:
                         model = DummyClassifier(strategy='uniform')
-                        model.fit(*train.xy)
+                        model.fit(*train.Xy)
                         zr = model.predict(train.y)
                         zs = model.predict(test.y)
                         trainout, testout = train.updated(z=zr), \

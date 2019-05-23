@@ -8,7 +8,7 @@ class FilterGiniIndex(Filter):
     """  """
     def apply_impl(self, data):
         # TODO: verify if is possible implement this with numpy
-        X, y = data.xy
+        X, y = data.Xy
         y = pd.Categorical(y).codes
 
         self._score = gini_index.gini_index(X, y)

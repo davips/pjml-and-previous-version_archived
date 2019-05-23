@@ -3,7 +3,7 @@ from paje.base.component import Component
 
 class Resampler(Component):
     def apply_impl(self, data):
-        X, y = self.model.fit_resample(*data.xy)
+        X, y = self.model.fit_resample(*data.Xy)
         return data.updated(X=X, y=y)
 
     def use_impl(self, data):

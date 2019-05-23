@@ -20,10 +20,10 @@ def main():
         for a in argv:
             print(a)
         print('seed=',random_state)
-        X, y = data.xy
+        X, y = data.Xy
         X_train, X_test, y_train, y_test = \
             sklearn.model_selection.train_test_split(X, y, random_state=1)
-        trainset = Data(X_train, y_train)
+        trainset = Data(X_train, [y_train])
         testset = Data(X_test)
 
         automl_rs = RandomAutoML(memoize=memoize,

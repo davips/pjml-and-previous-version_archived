@@ -22,7 +22,7 @@ class Evaluator:
     # @profile
     def eval(self, component, data):
         perfs = []
-        for train_index, test_index in self.split.split(*data.xy):
+        for train_index, test_index in self.split.split(*data.Xy):
             data_train = data.updated(X=data.X[train_index],
                                       y=data.y[train_index])
             data_test = data.updated(X=data.X[test_index], y=data.y[test_index])
