@@ -1,7 +1,7 @@
 from paje.base.component import Component
 
 
-class SupMtL(Component):
+class UnsupMtFe(Component):
     def apply_impl(self, data):
         pass
 
