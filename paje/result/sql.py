@@ -52,7 +52,7 @@ class SQL(Cache):
         return self.get_component(component, True) is not None
 
     def data_exists(self, data):
-        return self.get_data(data, True) is not None
+        return data is None or self.get_data(data, True) is not None
 
     def get_result(self, component, train, test,
                    just_check_exists=False, fields_to_store=None):
@@ -74,16 +74,17 @@ class SQL(Cache):
         self.query(
             f"select {fields} from result where "
             "idcomp=? and idtrain=? and idtest=?",
-            [component.uuid(), train.uuid, test.uuid])
+            [component.uuid(), train.uuid, (test or 0) and test.uuid])
         res = self.got()
         if res is None:
             return None, None, None
         else:
             if just_check_exists:
                 return True, True, True
-            return train.updated(**unpack(res[0]).select(fields_to_store)), \
-                   test.updated(**unpack(res[1]).select(fields_to_store)), \
-                   res[2]
+            trainout = train.updated(**unpack(res[0]).select(fields_to_store))
+            testout = test or test.updated(**unpack(res[1]).select(
+                fields_to_store))
+            return trainout, testout, res[2]
 
     def get_component(self, component, just_check_exists=False):
         field = 'dic'
@@ -115,7 +116,7 @@ class SQL(Cache):
     def store(self, component, train, test, trainout, testout,
               time_spent_tr, time_spent_ts, fields_to_store):
         slim_trainout = trainout.sub(fields_to_store)
-        slim_testout = testout.sub(fields_to_store)
+        slim_testout = testout and testout.sub(fields_to_store)
         if not self.result_exists(component, train, test):
             # try:
             #     dump = pack(component)
@@ -126,7 +127,8 @@ class SQL(Cache):
             # TODO: dumps are not saved anymore!
             dump = None
             self.query("insert into result values (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                       [component.uuid(), train.uuid, test.uuid,
+                       [component.uuid(), train.uuid,
+                        (test or 0) and test.uuid,
                         pack(slim_trainout), pack(slim_testout),
                         time_spent_tr, time_spent_ts,
                         dump, component.failed])

@@ -28,7 +28,12 @@ class Data:
         del dic['columns']
         self._set('_dic', dic)
         if Y is not None:
-            check_X_y(X, Y[0])
+            try:
+                check_X_y(X, Y[0])
+            except Exception as e:
+                print(X.shape)
+                print(Y[0].shape)
+                raise e
 
         alldata = X, Y, Z, U, V, W, P, Q
         serialized = pack(alldata)

@@ -7,18 +7,15 @@ from paje.base.data import Data
 
 class SupMtFe(Component):
     def apply_impl(self, data):
-        self.model.fit(*data.Xy)
-        names, values = self.model.extract(suppress_warnings=True)
-        print(values, 'datakkkkkkkkkkkkk')
-        print([values])
-        return Data(X=np.array([values]))
+        return self.use(data)
 
     def use_impl(self, data):
         self.model.fit(*data.Xy)
         names, values = self.model.extract(suppress_warnings=True)
-        print(values, 'datakkkkkkkkkkkkk')
-        print([values])
-        return Data(X=np.array([values]))
+        X = np.array([values])
+        # TODO: suppressing NaNs with 0s
+        X[~np.isfinite(X)] = 0
+        return Data(X=X)
 
     def build_impl(self):
         self.model = MFE()

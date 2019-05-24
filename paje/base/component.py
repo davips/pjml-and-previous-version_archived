@@ -182,7 +182,6 @@ class Component(ABC):
         self.already_uuid = uuid(self.serialized())
         if 'name' in self.dic:
             del self.dic['name']
-        print(self.already_uuid, ' <----')
         self.build_impl()
         self.failed = False
         return self
@@ -202,7 +201,7 @@ class Component(ABC):
             np.warnings.filterwarnings('ignore')
 
         self.unfit = False
-        result = self.apply_impl(data)
+        result = data and self.apply_impl(data)
 
         if not self.show_warns:
             np.warnings.filterwarnings('always')
@@ -216,7 +215,7 @@ class Component(ABC):
         if self.unfit:
             raise UseWithoutApply('apply() should be called before '
                                   'use() <-' + self.__class__.__name__)
-        return self.use_impl(data)
+        return data and self.use_impl(data)
 
     def print_forest(self, data=None):
         print(self.tree(data))

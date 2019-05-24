@@ -1,6 +1,6 @@
 import codecs
 import hashlib
-import pickle
+import _pickle as pickle
 import time
 import traceback
 from abc import ABC, abstractmethod
@@ -62,7 +62,7 @@ class Cache(ABC):
               time_spent_tr, time_spent_ts, fields_to_store):
         pass
 
-    def get_or_run(self, component, train, test,
+    def get_or_run(self, component, train, test=None,
                    maxtime=60, fields_to_store=None):
         """
         Results memoization: only output Data is stored for now
@@ -100,7 +100,7 @@ class Cache(ABC):
                     trtime = time.clock() - start
                     trainout, testout = component.use(train), \
                                         component.use(test)
-                    print(trainout.Xy, 'depois de use(), antes de store')
+                    # print(trainout.Xy, 'depois de use(), antes de store')
                     tstime = time.clock() - trtime
             except Exception as e:
                 component.failed = True
@@ -112,11 +112,12 @@ class Cache(ABC):
                         'Pipeline already failed before!',  # Preemptvely avoid
                         'Timed out!',
                         ]
-                if str(e).__contains__('Pipeline already failed before!'):
-                    trtime = tstime = 99999999
 
                 if any([str(e).__contains__(msg) for msg in msgs]):
-                    trtime = tstime = 0
+                    if str(e).__contains__('Pipeline already failed before!'):
+                        trtime = tstime = 99999999
+                    else:
+                        trtime = tstime = 0
 
                     # When the pipelines are for prediction...
                     if fields_to_store == ['z']:
@@ -129,7 +130,7 @@ class Cache(ABC):
                     else:
                         # TODO: is this the ideal output for failed
                         #  nonpredictive pipelines?
-                        trainout, testout = train.sub(), test.sub()
+                        trainout, testout = None, None
                     component.warning(e)
                 else:
                     traceback.print_exc()
