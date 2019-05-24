@@ -100,6 +100,7 @@ class Cache(ABC):
                     trtime = time.clock() - start
                     trainout, testout = component.use(train), \
                                         component.use(test)
+                    print(trainout.Xy, 'depois de use(), antes de store')
                     tstime = time.clock() - trtime
             except Exception as e:
                 component.failed = True

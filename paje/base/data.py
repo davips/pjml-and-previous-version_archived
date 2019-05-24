@@ -88,14 +88,17 @@ class Data:
 
     @staticmethod
     def read_arff(file, target):
-        data = arff.load(open(file, 'r'), encode_nominal=True)
+        try:
+            data = arff.load(open(file, 'r'), encode_nominal=True)
 
-        columns = data["attributes"]
-        df = pd.DataFrame(data['data'],
-                          columns=[attr[0] for attr in data['attributes']])
+            columns = data["attributes"]
+            df = pd.DataFrame(data['data'],
+                              columns=[attr[0] for attr in data['attributes']])
 
-        Y = [df.pop(target).values]
-        X = df.values.astype('float')
+            Y = [df.pop(target).values]
+            X = df.values.astype('float')
+        except:
+            raise Exception('Problems loading ', file)
 
         return Data(X, Y, columns, name=file)
 

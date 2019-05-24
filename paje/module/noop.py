@@ -3,7 +3,7 @@ from paje.base.component import Component
 
 class Noop(Component):
     def build_impl(self):
-        pass
+        self.model = 42
 
     def apply_impl(self, data):
         return data

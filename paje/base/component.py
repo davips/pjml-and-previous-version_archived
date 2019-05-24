@@ -182,6 +182,7 @@ class Component(ABC):
         self.already_uuid = uuid(self.serialized())
         if 'name' in self.dic:
             del self.dic['name']
+        print(self.already_uuid, ' <----')
         self.build_impl()
         self.failed = False
         return self

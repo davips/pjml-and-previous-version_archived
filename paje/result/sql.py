@@ -70,6 +70,7 @@ class SQL(Cache):
         fields = 'trainout, testout, failed'
         if just_check_exists:
             fields = '1'
+        print(component, '<  component')
         self.query(
             f"select {fields} from result where "
             "idcomp=? and idtrain=? and idtest=?",
