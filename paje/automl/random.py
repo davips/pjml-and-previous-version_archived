@@ -54,6 +54,8 @@ class RandomAutoML(AutoML):
         tree = self.curr_pipe.tree(data)
         args = self.next_args(tree)
         args.update(random_state=self.random_state)
+        # print('tree...\n', tree)
+        # print(' args...\n', args)
         self.curr_pipe = self.curr_pipe.build(**args)
         return [self.curr_pipe]
 

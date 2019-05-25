@@ -9,7 +9,7 @@ class Composer(Component):
             components = []
         self.components = components
         self.random_state = 0
-        self.myforest = None
+        self.mytree = None
         self.model = 42
 
     # @profile

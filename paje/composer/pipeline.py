@@ -42,41 +42,27 @@ class Pipeline(Composer):
             for child in tree.children:
                 self.set_leaf(child, f)
         else:
-            # if tree.name is not 'EndPipeline':
-            tree.children.append(f())
+            if not (tree.name.startswith('End')
+                    and tree.tmp_uuid == self.tmp_uuid):
+                tree.children.append(f())
 
     # @profile
     def tree_impl(self, data=None):
-        # forest = []
-        if self.myforest is None:
-            # for component in self.components:
-            # self.myforest = self.components[0].forest(data)
-            # tree = self.myforest
-            # trees = [copy.deepcopy(i.forest(data)) for i in self.components]
+        if self.mytree is None:
             trees = []
             for i in range(0, len(self.components)):
                 # TODO: Why were we using deepcopy here?
                 tree = copy.copy(self.components[i]).tree(data)
-                # tree.name = "{0}_{1}".format(
-                #     i, self.components[i].name)
                 trees.append(tree)
 
+            self.set_leaf(trees[len(trees) - 1], lambda:
+            HPTree({}, [], name='End' + self.name, tmp_uuid=self.tmp_uuid))
             for i in reversed(range(1, len(trees))):
                 self.set_leaf(trees[i - 1], lambda: trees[i])
 
-                # if isinstance(component, Pipeline):
-                #     aux = list(map(
-                #         lambda x: x.forest(data),
-                #         component.components
-                #     ))
-                #     tree = aux
-                # else:
-                # tree = component.forest(data)
-                # forest.append(tree)
-            self.myforest = HPTree({}, [trees[0]], self.name)
-            self.set_leaf(trees[len(trees) - 1],
-                          lambda: HPTree({}, [], 'End'+self.name))
-        return self.myforest
+            self.mytree = HPTree({}, [trees[0]], self.name)
+
+        return self.mytree
 
     def __str__(self, depth=''):
         newdepth = depth + '    '

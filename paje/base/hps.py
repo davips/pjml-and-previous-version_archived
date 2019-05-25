@@ -5,10 +5,11 @@ from paje.util.distributions import sample
 
 
 class HPTree(object):
-    def __init__(self, dic, children, name=''):
+    def __init__(self, dic, children, name='', tmp_uuid=None):
         self.dic = dic
         self.children = children
         self.name = name
+        self.tmp_uuid = tmp_uuid
 
     def expand(self) -> (Dict, List):
         return self.dic, self.children
@@ -52,7 +53,7 @@ class HPTree(object):
                 str(children))
         while children:
             tree = random.choice(children)
-            if tree.name == 'EndPipeline':
+            if tree.name.startswith('End'):
                 break
             if tree.name == 'Pipeline':
                 args, children = self.pipeline_to_dic_rec(tree)
@@ -65,13 +66,8 @@ class HPTree(object):
     def __str__(self, depth=''):
         rows = [str(self.dic)]
         for child in self.children:
-            # print(child.name, ' <- child')
-            # if isinstance(child, list):
-            #     for child_list in child:
-            #         rows.append(child_list.__str__())
-            # else:
-            if child.name != 'EndPipeline':
-                rows.append(child.__str__(depth + '   '))
+            # if not child.name.startswith('End'):
+            rows.append(child.__str__(depth + '   '))
         return depth + self.name + '\n'.join(rows)
 
     __repr__ = __str__

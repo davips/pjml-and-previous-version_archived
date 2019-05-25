@@ -2,14 +2,14 @@
 """
 import copy
 import json
-import zlib
 from abc import ABC, abstractmethod
 from logging import warning
+from uuid import uuid4
 
 import numpy as np
 
-from paje.base.exceptions import ExceptionInApplyOrUse
 from paje.base.data import Data
+from paje.base.exceptions import ExceptionInApplyOrUse
 from paje.result.sqlite import SQLite
 from paje.result.storage import uuid
 
@@ -29,6 +29,7 @@ class Component(ABC):
         self.already_uuid = None  # UUID will be known only after build()
         self.dic = {}
         self.name = self.__class__.__name__
+        self.tmp_uuid = uuid4().hex
 
         # Store apply() results in disk?
         self.memoize = memoize
