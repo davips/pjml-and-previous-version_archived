@@ -9,4 +9,3 @@ class SQLite(SQL):
         self.debug = debug
         self.connection = sqlite3.connect(self.database)
         self.cursor = self.connection.cursor()
-        self.create_database()

@@ -32,6 +32,10 @@ class Cache(ABC):
     """
 
     @abstractmethod
+    def setup(self):
+        pass
+
+    @abstractmethod
     def get_result(self, component, train, test, just_check_exists,
                    fields_to_store):
         pass

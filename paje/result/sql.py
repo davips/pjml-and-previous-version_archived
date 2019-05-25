@@ -3,8 +3,10 @@ from paje.result.storage import Cache, unpack, pack
 
 
 class SQL(Cache):
-    def create_database(self):
-        self.cursor.execute("create table if not exists result "
+    def setup(self):
+        if self.debug:
+            print('creating tables...')
+        self.query("create table if not exists result "
                             "(idcomp varchar(32), idtrain varchar(32), "
                             "idtest varchar(32), "
                             "trainout LONGBLOB, testout LONGBLOB, "
@@ -15,17 +17,18 @@ class SQL(Cache):
         # self.cursor.execute("CREATE INDEX if not exists idx_res ON result "
         #                     "(idcomp, idtrain, idtest)")
 
-        self.cursor.execute("create table if not exists args "
+        self.query("create table if not exists args "
                             "(idcomp varchar(32) PRIMARY KEY, dic TEXT)")
         # self.cursor.execute("CREATE INDEX if not exists idx_comp ON args "
         #                     "(idcomp)")
         # self.cursor.execute("CREATE INDEX if not exists idx_dic ON args "
         #                     "(dic)")
 
-        self.cursor.execute("create table if not exists dset "
+        self.query("create table if not exists dset "
                             "(iddset varchar(32) PRIMARY KEY, data LONGBLOB)")
         # self.cursor.execute("CREATE INDEX if not exists idx_dset ON dset "
         #                     "(iddset)")
+        self.connection.commit()
 
     def got(self):
         rows = self.cursor.fetchall()
@@ -147,7 +150,9 @@ class SQL(Cache):
         zipped = zip(sql.replace('?', '"?"').split('?'), map(str, lst + ['']))
         return ''.join(list(sum(zipped, ())))
 
-    def query(self, sql, args):
+    def query(self, sql, args=None):
+        if args is None:
+            args = []
         from paje.result.mysql import MySQL
         msg = self.interpolate(sql, args)
         if self.debug:
