@@ -7,6 +7,7 @@ from paje.base.hps import HPTree
 from paje.module.modelling.classifier.classifier import Classifier
 from paje.util.distributions import exponential_integers
 
+
 class KNN(Classifier):
     def build_impl(self):
         # Extract n_instances from hps to be available to be used in apply()
@@ -23,21 +24,30 @@ class KNN(Classifier):
         #     pct = self.model.n_neighbors / self.n_instances
         #     self.model.n_neighbors = floor(pct * data.n_instances) + 1
 
-        #TODO: decide how to handle this
+        # TODO: decide how to handle this
         if self.model.n_neighbors > data.n_instances:
             self.warning('excess of neighbors!')
             self.model.n_neighbors = data.n_instances
 
-        # Handle complicated distance measures.
+        # # Handle complicated distance measures.
         if self.model.metric == 'mahalanobis':
             X = data.X
             self.model.algorithm = 'brute'
             try:
-                cov = np.cov(X)
                 # pinv is the same as inv for invertible matrices
+                # if self.model.metric == 'mahalanobis' and self.model.n_neighbors>500 \
+                #         or data.n_instances>10000:
+                if len(X) > 5000:
+                    self.warning('Mahalanobis for too big data, cov matrix'
+                                 'size:' + str(len(X)))
+                    raise Exception('Mahalanobis for too big data, cov matrix'
+                                    'size:', len(X))
+                cov = np.cov(X)
                 inv = np.linalg.pinv(cov)
                 self.model.metric_params = {'VI': inv}
             except:
+                self.warning('Problems with Mahalanobis, '
+                             'falling back to identity!')
                 # Uses a fake inverse of covariance matrix as fallback.
                 self.model.metric_params = {'VI': np.eye(len(X))}
 
