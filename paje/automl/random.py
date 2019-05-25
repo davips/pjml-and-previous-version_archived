@@ -51,10 +51,8 @@ class RandomAutoML(AutoML):
         modules = self.static_pipeline if self.static else self.choose_modules()
         # Not passing memoize to Pipeline, since it is not used there anymore.
         self.curr_pipe = Pipeline(modules, show_warns=self.show_warns)
-        forest = self.curr_pipe.tree(data)
-        # print('fores...\n', forest)
-        # print(' to dic...\n', self.next_args(forest))
-        args = self.next_args(forest)
+        tree = self.curr_pipe.tree(data)
+        args = self.next_args(tree)
         args.update(random_state=self.random_state)
         self.curr_pipe = self.curr_pipe.build(**args)
         return [self.curr_pipe]

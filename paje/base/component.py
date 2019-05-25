@@ -92,12 +92,6 @@ class Component(ABC):
         pass
 
     @classmethod
-    def print_tree(cls,
-                   data=None):  # previously known as print_hyper_spaces_tree
-        tree = cls.tree(data)
-        print(tree)
-
-    @classmethod
     def check_data(cls, data):
         if data is None:
             raise Exception(cls.__name__ + ' needs a dataset to be able to \
@@ -217,9 +211,6 @@ class Component(ABC):
             raise UseWithoutApply('apply() should be called before '
                                   'use() <-' + self.name)
         return data and self.use_impl(data)
-
-    def print_forest(self, data=None):
-        print(self.tree(data))
 
     def uuid(self):
         if self.already_uuid is None:
