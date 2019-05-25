@@ -82,7 +82,7 @@ class SQL(Cache):
             if just_check_exists:
                 return True, True, True
             trainout = train.updated(**unpack(res[0]).select(fields_to_store))
-            testout = test or test.updated(**unpack(res[1]).select(
+            testout = test and test.updated(**unpack(res[1]).select(
                 fields_to_store))
             return trainout, testout, res[2]
 
