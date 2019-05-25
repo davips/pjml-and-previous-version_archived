@@ -25,7 +25,7 @@ class Data:
         args = {k: v for k, v in locals().items() if k != 'self'}
         self.__dict__.update(args)
         dic = args.copy()
-        del dic['columns']
+        # del dic['columns']
         self._set('_dic', dic)
         if Y is not None:
             try:
