@@ -58,7 +58,7 @@ class Pipeline(Composer):
                 # TODO: Why were we using deepcopy here?
                 tree = copy.copy(self.components[i]).tree(data)
                 # tree.name = "{0}_{1}".format(
-                #     i, self.components[i].__class__.__name__)
+                #     i, self.components[i].name)
                 trees.append(tree)
 
             for i in reversed(range(1, len(trees))):
@@ -73,14 +73,14 @@ class Pipeline(Composer):
                 # else:
                 # tree = component.forest(data)
                 # forest.append(tree)
-            self.myforest = HPTree({}, [trees[0]], self.__class__.__name__)
+            self.myforest = HPTree({}, [trees[0]], self.name)
             self.set_leaf(trees[len(trees) - 1],
-                          lambda: HPTree({}, [], 'EndPipeline'))
+                          lambda: HPTree({}, [], 'End'+self.name))
         return self.myforest
 
     def __str__(self, depth=''):
         newdepth = depth + '    '
         strs = [component.__str__(newdepth) for component in self.components]
-        return "Pipeline {\n" + \
+        return self.name + " {\n" + \
                newdepth + ("\n" + newdepth).join(str(x) for x in strs) + '\n' \
                + depth + "}"

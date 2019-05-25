@@ -36,7 +36,7 @@ else:
         pip.show_warnings = False
         tr = pip.apply(data_train).data_y
         ts = pip.use(data_test).data_y
-        joblib.dump(pip, pip.__class__.__name__ + str(x) + '.dump', compress=('bz2', 9))
+        joblib.dump(pip, pip.name + str(x) + '.dump', compress=('bz2', 9))
         joblib.dump(pip.obj_comp[1], pip.obj_comp[1].__class__.__name__ + str(x) + '.dump', compress=('bz2', 9))
 
         print(str(x) + "\t" + str(f(sklearn.metrics.accuracy_score(data_train.data_y, tr))) + "\t" + str(f(sklearn.metrics.accuracy_score(data_test.data_y, ts))))

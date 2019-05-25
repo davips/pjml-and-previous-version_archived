@@ -46,7 +46,7 @@ class Switch(Composer):
             # else:
             tree = component.tree(data)
             comp_hptree = HPTree({"component": ['c', ["{0}_{1}".format(
-                idx, component.__class__.__name__)]]}, [tree])
+                idx, component.name)]]}, [tree])
             forest.append(comp_hptree)
 
         return HPTree({}, children=forest)

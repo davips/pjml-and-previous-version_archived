@@ -28,6 +28,7 @@ class Component(ABC):
         self.model = None
         self.already_uuid = None  # UUID will be known only after build()
         self.dic = {}
+        self.name = self.__class__.__name__
 
         # Store apply() results in disk?
         self.memoize = memoize
@@ -68,7 +69,7 @@ class Component(ABC):
 
         if self.memoize:
             if self.model is None:
-                self.error("This component " + self.__class__.__name__ +
+                self.error("This component " + self.name +
                            " cannot support storage, please implement a" +
                            " custom handle_storage to overcome this.")
             return self.storage.get_or_run(self, data, self.apply_impl)
@@ -111,11 +112,11 @@ class Component(ABC):
         #  instance method?
         tree = self.tree_impl(data)
         self.check(tree)
-        tree.name = self.__class__.__name__
+        tree.name = self.name
         return tree
 
     def __str__(self, depth=''):
-        return self.__class__.__name__ + " " + str(self.dic)
+        return self.name + " " + str(self.dic)
 
     __repr__ = __str__
 
@@ -129,7 +130,7 @@ class Component(ABC):
     def serialized(self):
         if self.already_serialized is None:
             raise ApplyWithoutBuild('build() should be called before '
-                                    'serialized() <-' + self.__class__.__name__)
+                                    'serialized() <-' + self.name)
         return self.already_serialized
 
     @classmethod
@@ -190,10 +191,10 @@ class Component(ABC):
     def apply(self, data=None):
         """Todo the doc string
         """
-        print('Applying component...', self.__class__.__name__)
+        print('Applying component...', self.name)
         if self.model is None:
             raise ApplyWithoutBuild('build() should be called before '
-                                    'apply() <-' + self.__class__.__name__)
+                                    'apply() <-' + self.name)
         # Mahalanobis in KNN needs to supress warnings due to NaN in linear
         # algebra calculations. MLP is also verbose due to nonconvergence
         # issues among other problems.
@@ -211,10 +212,10 @@ class Component(ABC):
     def use(self, data: Data = None) -> Data:
         """Todo the doc string
         """
-        print('Using component...', self.__class__.__name__)
+        print('Using component...', self.name)
         if self.unfit:
             raise UseWithoutApply('apply() should be called before '
-                                  'use() <-' + self.__class__.__name__)
+                                  'use() <-' + self.name)
         return data and self.use_impl(data)
 
     def print_forest(self, data=None):
@@ -223,7 +224,7 @@ class Component(ABC):
     def uuid(self):
         if self.already_uuid is None:
             raise ApplyWithoutBuild('build() should be called before '
-                                    'uuid() <-' + self.__class__.__name__)
+                                    'uuid() <-' + self.name)
         return self.already_uuid
 
 
