@@ -121,6 +121,7 @@ class Cache(ABC):
                         'excess of max_free_parameters:',  # MLP
                         'Pipeline already failed before!',  # Preemptvely avoid
                         'Timed out!',
+                        'Mahalanobis for too big data',
                         ]
 
                 if any([str(e).__contains__(msg) for msg in msgs]):
