@@ -12,13 +12,11 @@ class Composer(Component):
         self.mytree = None
         self.model = 42
 
-    # @profile
     def apply_impl(self, data):
         for component in self.components:
             data = component.apply(data)
         return data
 
-    # @profile
     def use_impl(self, data):
         for component in self.components:
             data = component.use(data)

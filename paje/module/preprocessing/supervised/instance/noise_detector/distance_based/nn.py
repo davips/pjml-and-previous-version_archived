@@ -153,6 +153,7 @@ class NRNN(Component, ABC):
         cls.check_data(data)
         kmax = floor(min(400, data.n_instances / 2 - 1))
 
+        # TODO: put knn hyperparameters here?
         dic = {
             # TODO: implement 'minority'
             'vote': ['c', ['majority', 'consensus']],

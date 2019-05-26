@@ -183,7 +183,6 @@ class Component(ABC):
         self.failed = False
         return self
 
-    # @profile
     def apply(self, data=None):
         """Todo the doc string
         """

@@ -7,25 +7,25 @@ class SQL(Cache):
         if self.debug:
             print('creating tables...')
         self.query("create table if not exists result "
-                            "(idcomp varchar(32), idtrain varchar(32), "
-                            "idtest varchar(32), "
-                            "trainout LONGBLOB, testout LONGBLOB, "
-                            "timetrain FLOAT, timetest FLOAT, "
-                            "dump LONGBLOB, failed BOOLEAN, PRIMARY KEY("
-                            "idcomp, idtrain, idtest))")
+                   "(idcomp varchar(32), idtrain varchar(32), "
+                   "idtest varchar(32), "
+                   "trainout LONGBLOB, testout LONGBLOB, "
+                   "timetrain FLOAT, timetest FLOAT, "
+                   "dump LONGBLOB, failed BOOLEAN, PRIMARY KEY("
+                   "idcomp, idtrain, idtest))")
         # idtest field is not strictly needed for now, but may have some use.
         # self.cursor.execute("CREATE INDEX if not exists idx_res ON result "
         #                     "(idcomp, idtrain, idtest)")
 
         self.query("create table if not exists args "
-                            "(idcomp varchar(32) PRIMARY KEY, dic TEXT)")
+                   "(idcomp varchar(32) PRIMARY KEY, dic TEXT)")
         # self.cursor.execute("CREATE INDEX if not exists idx_comp ON args "
         #                     "(idcomp)")
         # self.cursor.execute("CREATE INDEX if not exists idx_dic ON args "
         #                     "(dic)")
 
         self.query("create table if not exists dset "
-                            "(iddset varchar(32) PRIMARY KEY, data LONGBLOB)")
+                   "(iddset varchar(32) PRIMARY KEY, data LONGBLOB)")
         # self.cursor.execute("CREATE INDEX if not exists idx_dset ON dset "
         #                     "(iddset)")
         self.connection.commit()
@@ -150,7 +150,7 @@ class SQL(Cache):
         zipped = zip(sql.replace('?', '"?"').split('?'), map(str, lst + ['']))
         return ''.join(list(sum(zipped, ())))
 
-    def query(self, sql, args=None):
+    def query(self, sql, args=None):  # 300ms per query  (mozilla set)
         if args is None:
             args = []
         from paje.result.mysql import MySQL
@@ -160,7 +160,7 @@ class SQL(Cache):
         if isinstance(self, MySQL):
             sql = sql.replace('?', '%s')
             sql = sql.replace('insert or ignore', 'insert ignore')
-            self.connection.ping(reconnect=True)
+            # self.connection.ping(reconnect=True)
         try:
             self.cursor.execute(sql, args)
         except Exception as e:

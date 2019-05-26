@@ -11,17 +11,22 @@ from paje.base.exceptions import ExceptionInApplyOrUse
 from paje.evaluator.time import time_limit
 
 
+# @profile
 def uuid(description):
     # TODO: compact with zlib uglyly to reduce the size by half
-    return hashlib.md5(description).hexdigest()
+    return hashlib.md5(description).hexdigest() # double time of pickle (moz.)
 
 
+# @profile
 def pack(data):
-    return codecs.encode(pickle.dumps(data), "base64")
+    dump = pickle.dumps(data)  # irrelevant time (mozilla set)
+    return codecs.encode(dump, "base64")  # 5X slower than decode (mozilla set)
 
 
+# @profile
 def unpack(dump):
-    return pickle.loads(codecs.decode(dump, "base64"))
+    decoded = codecs.decode(dump, "base64")
+    return pickle.loads(decoded)  # irrelevant time (mozilla set)
 
 
 class Cache(ABC):
@@ -66,6 +71,7 @@ class Cache(ABC):
               time_spent_tr, time_spent_ts, fields_to_store):
         pass
 
+    # @profile
     def get_or_run(self, component, train, test=None,
                    maxtime=60, fields_to_store=None):
         """

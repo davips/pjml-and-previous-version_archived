@@ -19,7 +19,6 @@ class Evaluator:
             self.split = StratifiedShuffleSplit(n_splits=steps, test_size=0.30,
                                                 random_state=random_state)
 
-    # @profile
     def eval(self, component, data):
         perfs = []
         for train_index, test_index in self.split.split(*data.Xy):
