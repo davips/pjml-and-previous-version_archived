@@ -40,6 +40,7 @@ class AutoML(Component, ABC):
         #       '  repetitions', self.repetitions)
         if self.memoize:
             self.storage = MySQL(debug=not True)
+        # self.storage.setup()
         evaluator = Evaluator(Metrics.error, "cv", 3, storage=self.storage,
                               random_state=self.random_state)
 
