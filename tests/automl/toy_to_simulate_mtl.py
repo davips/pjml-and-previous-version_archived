@@ -13,24 +13,25 @@ import numpy as np
 
 def main():
     if len(argv) < 2 or len(argv) > 5:
-        print('Usage: \npython dna.py path_to_arffs arff1,arff2,arff3,... ')
+        print('Usage: \npython toy_to_simulate_mtl.py path_to_arffs arff1,'
+              'arff2,arff3,... ')
     else:
-        storage = MySQL()
+        storage = MySQL(debug=True)
         for a in argv:
             print(a)
         path = argv[1]
         datasets = argv[2].split(',')
-        mtl = SupMtFe()  # Concat([SupMtFe()], ['X'], direction='horizontal')
+        mfe = SupMtFe()  # Concat([SupMtFe()], ['X'], direction='horizontal')
         rows = []
         for dataset in datasets:
             data = Data.read_arff(path + dataset, "class")
-            component = mtl.build()
+            component = mfe.build()
             output_train, _ = storage.get_or_run(component, data,
-                                                 fields_to_store=['X'])
+                                                 fields_to_store=['X'],
+                                                 fields_to_keep=[])
             rows.append(output_train.X[0])
 
         X = np.array(rows)
-        print('X ...............', X)
         noop = Noop()
         component = noop.build()
         metadata = Data(X=X, Y=[[round(x) for x in X[..., 0]]])

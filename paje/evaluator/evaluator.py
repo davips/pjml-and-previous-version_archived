@@ -30,7 +30,8 @@ class Evaluator:
             #  but only when self.storage is activated!
             if self.storage is not None:
                 output_train, output_test = self.storage.get_or_run(
-                    component, data_train, data_test, fields_to_store=['z'])
+                    component, data_train, data_test, fields_to_store=['z'],
+                    fields_to_keep=['X', 'y'])
             else:
                 # TODO: if output_train is needed, it should come from
                 #  component.use(), not from component.apply()!

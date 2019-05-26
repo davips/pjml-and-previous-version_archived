@@ -42,7 +42,7 @@ class Cache(ABC):
 
     @abstractmethod
     def get_result(self, component, train, test, just_check_exists,
-                   fields_to_store):
+                   fields_to_keep):
         pass
 
     @abstractmethod
@@ -73,23 +73,25 @@ class Cache(ABC):
 
     # @profile
     def get_or_run(self, component, train, test=None,
-                   maxtime=60, fields_to_store=None):
+                   maxtime=60, fields_to_store=None, fields_to_keep=None):
         """
         :param component:
         :param train:
         :param test:
         :param maxtime:
         :param fields_to_store:
+        :param fields_to_keep:
         :return:
         """
         # TODO: Repeated calls to this function with the same parameters can
         #  be memoized, to avoid network delays, for instance.
+        if fields_to_keep is None:
+            fields_to_keep = []
         if fields_to_store is None:
             fields_to_store = []
-        trainout, testout, failed = \
-            self.get_result(component, train, test,
-                            fields_to_store=fields_to_store)
-        if trainout is not None:
+        trainout, testout, failed = self.get_result(
+            component, train, test, fields_to_keep=fields_to_keep)
+        if failed is not None:
             component.failed = failed
         else:
             # Stats:

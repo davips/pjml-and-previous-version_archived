@@ -46,6 +46,7 @@ class Data:
         n_classes = len(set(get_first_non_none([Y, V, Z, W])[0]))
         n_instances = len(get_first_non_none(alldata))
         n_attributes = len(get_first_non_none([X, U])[0])
+        fields = {k: v for k, v in self._dic.items() if v is not None}
 
         def dematrixfy(m):
             return m[0] if m is not None else None
@@ -60,7 +61,8 @@ class Data:
             #                 if k in ['z', 'w', 'p', 'q']},
             'all': alldata,
             'serialized': serialized,
-            'uuid': uuid(serialized)
+            'uuid': uuid(serialized),
+            'fields': fields
         })
 
         # Add vectorized shortcuts for matrices.

@@ -58,7 +58,7 @@ class SQL(Cache):
         return data is None or self.get_data(data, True) is not None
 
     def get_result(self, component, train, test,
-                   just_check_exists=False, fields_to_store=None):
+                   just_check_exists=False, fields_to_keep=None):
         """
         Look for a result in database.
         :param just_check_exists:
@@ -68,8 +68,8 @@ class SQL(Cache):
         :param fields_to_store:
         :return:
         """
-        if fields_to_store is None:
-            fields_to_store = []
+        if fields_to_keep is None:
+            fields_to_keep = []
         fields = 'trainout, testout, failed'
         if just_check_exists:
             fields = '1'
@@ -85,9 +85,9 @@ class SQL(Cache):
                 return True, True, True
             trainout, testout = unpack(res[0]), test and unpack(res[1])
             if trainout is not None:
-                trainout = train.updated(**trainout.select(fields_to_store))
+                trainout = train.sub(fields_to_keep).updated(**trainout.fields)
             if testout is not None:
-                testout = test.updated(**testout.select(fields_to_store))
+                testout = test.sub(fields_to_keep).updated(**testout.fields)
             return trainout, testout, res[2]
 
     def get_component(self, component, just_check_exists=False):

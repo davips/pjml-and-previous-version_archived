@@ -3,6 +3,7 @@ from paje.base.component import Component
 import numpy as np
 
 from paje.base.data import Data
+from paje.base.hps import HPTree
 
 
 class SupMtFe(Component):
@@ -19,3 +20,6 @@ class SupMtFe(Component):
 
     def build_impl(self):
         self.model = MFE()
+
+    def tree_impl(cls, data):
+        HPTree({}, [])
