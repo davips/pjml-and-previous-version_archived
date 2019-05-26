@@ -87,6 +87,7 @@ class Component(ABC):
     #     raise NotImplementedError("Should it return probability\
     #                                distributions, rules?")
 
+    @abstractmethod
     def tree_impl(cls, data):  # previously known as hyper_spaces_tree_impl
         """Todo the doc string
         """

@@ -1,4 +1,5 @@
 from paje.base.component import Component
+from paje.base.hps import HPTree
 
 
 class Noop(Component):
@@ -10,3 +11,6 @@ class Noop(Component):
 
     def use_impl(self, data):
         return data
+
+    def tree_impl(cls, data):
+        HPTree({}, [])
