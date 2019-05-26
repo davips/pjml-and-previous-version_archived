@@ -3,6 +3,7 @@ from math import *
 import numpy as np
 from sklearn.neighbors.classification import KNeighborsClassifier
 
+from paje.base.exceptions import ExceptionInApplyOrUse
 from paje.base.hps import HPTree
 from paje.module.modelling.classifier.classifier import Classifier
 from paje.util.distributions import exponential_integers
@@ -33,23 +34,27 @@ class KNN(Classifier):
         if self.model.metric == 'mahalanobis':
             X = data.X
             self.model.algorithm = 'brute'
-            try:
-                # pinv is the same as inv for invertible matrices
-                # if self.model.metric == 'mahalanobis' and self.model.n_neighbors>500 \
-                #         or data.n_instances>10000:
-                if len(X) > 5000:
-                    self.warning('Mahalanobis for too big data, cov matrix'
-                                 'size:' + str(len(X)))
-                    raise Exception('Mahalanobis for too big data, cov matrix'
-                                    'size:', len(X))
-                cov = np.cov(X)
-                inv = np.linalg.pinv(cov)
-                self.model.metric_params = {'VI': inv}
-            except:
-                self.warning('Problems with Mahalanobis, '
-                             'falling back to identity!')
-                # Uses a fake inverse of covariance matrix as fallback.
-                self.model.metric_params = {'VI': np.eye(len(X))}
+            # try:
+            # pinv is the same as inv for invertible matrices
+            # if self.model.metric == 'mahalanobis' and self.model.n_neighbors>500 \
+            #         or data.n_instances>10000:
+
+            if len(X) > 5000:
+                self.warning('Mahalanobis for too big data, cov matrix'
+                             'size:' + str(len(X)))
+                raise ExceptionInApplyOrUse('Mahalanobis for too big data, '
+                                            'matrix size:', len(X))
+            cov = np.cov(X)
+            inv = np.linalg.pinv(cov)
+            self.model.metric_params = {'VI': inv}
+
+            # except ExceptionInApplyOrUse as e:
+            #     raise e
+            # except Exception as e:
+            #     self.warning('Problems with Mahalanobis, '
+            #                  'falling back to identity! ' + e)
+            #     # Uses a fake inverse of covariance matrix as fallback.
+            #     self.model.metric_params = {'VI': np.eye(len(X))}
 
         return super().apply_impl(data)
 
