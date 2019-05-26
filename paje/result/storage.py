@@ -14,7 +14,7 @@ from paje.evaluator.time import time_limit
 # @profile
 def uuid(description):
     # TODO: compact with zlib uglyly to reduce the size by half
-    return hashlib.md5(description).hexdigest() # double time of pickle (moz.)
+    return hashlib.md5(description).hexdigest()  # double time of pickle (moz.)
 
 
 # @profile
@@ -108,8 +108,8 @@ class Cache(ABC):
                     start = time.clock()
                     component.apply(train)
                     trtime = time.clock() - start
-                    trainout, testout = component.use(train), \
-                                        component.use(test)
+                    trainout = component.use(train)
+                    testout = component.use(test)
                     # print(trainout.Xy, 'depois de use(), antes de store')
                     tstime = time.clock() - trtime
             except Exception as e:
@@ -122,6 +122,9 @@ class Cache(ABC):
                         'Pipeline already failed before!',  # Preemptvely avoid
                         'Timed out!',
                         'Mahalanobis for too big data',
+                        'MemoryError',
+                        'On entry to DLASCL parameter number',  # Mahala knn
+                        'excess of neighbors!',  # KNN
                         ]
 
                 if any([str(e).__contains__(msg) for msg in msgs]):

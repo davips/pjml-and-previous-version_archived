@@ -27,8 +27,7 @@ class KNN(Classifier):
 
         # TODO: decide how to handle this
         if self.model.n_neighbors > data.n_instances:
-            self.warning('excess of neighbors!')
-            self.model.n_neighbors = data.n_instances
+            raise ExceptionInApplyOrUse('excess of neighbors!')
 
         # # Handle complicated distance measures.
         if self.model.metric == 'mahalanobis':
