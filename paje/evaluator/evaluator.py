@@ -37,7 +37,7 @@ class Evaluator:
                 component.apply(data_train)
                 output_test = component.use(data_test)
 
-            error = self.metric(output_test)
+            error = 1 if output_test is None else self.metric(output_test)
             perfs.append(error)
 
         return perfs

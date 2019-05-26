@@ -75,7 +75,6 @@ class Cache(ABC):
     def get_or_run(self, component, train, test=None,
                    maxtime=60, fields_to_store=None):
         """
-        Results memoization: only output Data is stored for now
         :param component:
         :param train:
         :param test:
@@ -85,7 +84,6 @@ class Cache(ABC):
         """
         # TODO: Repeated calls to this function with the same parameters can
         #  be memoized, to avoid network delays, for instance.
-        # TODO: insert time spent
         if fields_to_store is None:
             fields_to_store = []
         trainout, testout, failed = \
@@ -94,6 +92,7 @@ class Cache(ABC):
         if trainout is not None:
             component.failed = failed
         else:
+            # Stats:
             # storing only (test and train) predictions: 5kB / row
             # (1 pipeline w/ 3-fold CV = 6 rows) = 30kB / pipe
             # storing complete test and train data and model: 83kB / row
@@ -114,6 +113,7 @@ class Cache(ABC):
                     tstime = time.clock() - trtime
             except Exception as e:
                 component.failed = True
+                trtime = tstime = None
                 # Fake predictions for curated errors.
                 print('Trying to circumvent exception: >' + str(e) + '<')
                 msgs = ['All features are either constant or ignored.',  # CB
@@ -128,23 +128,7 @@ class Cache(ABC):
                         ]
 
                 if any([str(e).__contains__(msg) for msg in msgs]):
-                    if str(e).__contains__('Pipeline already failed before!'):
-                        trtime = tstime = 99999999
-                    else:
-                        trtime = tstime = 0
-
-                    # When the pipelines are for prediction...
-                    if fields_to_store == ['z']:
-                        model = DummyClassifier(strategy='uniform')
-                        model.fit(*train.Xy)
-                        zr = model.predict(train.y)
-                        zs = model.predict(test.y)
-                        trainout, testout = train.updated(z=zr), \
-                                            test.updated(z=zs)
-                    else:
-                        # TODO: is this the ideal output for failed
-                        #  nonpredictive pipelines?
-                        trainout, testout = None, None
+                    trainout, testout = None, None
                     component.warning(e)
                 else:
                     traceback.print_exc()
