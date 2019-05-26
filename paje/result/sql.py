@@ -150,6 +150,7 @@ class SQL(Cache):
         zipped = zip(sql.replace('?', '"?"').split('?'), map(str, lst + ['']))
         return ''.join(list(sum(zipped, ())))
 
+    # @profile
     def query(self, sql, args=None):  # 300ms per query  (mozilla set)
         if args is None:
             args = []
