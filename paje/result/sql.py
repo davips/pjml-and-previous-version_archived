@@ -83,9 +83,11 @@ class SQL(Cache):
         else:
             if just_check_exists:
                 return True, True, True
-            trainout = train.updated(**unpack(res[0]).select(fields_to_store))
-            testout = test and test.updated(**unpack(res[1]).select(
-                fields_to_store))
+            trainout, testout = unpack(res[0]), test and unpack(res[1])
+            if trainout is not None:
+                trainout = train.updated(**trainout.select(fields_to_store))
+            if testout is not None:
+                testout = test.updated(**testout.select(fields_to_store))
             return trainout, testout, res[2]
 
     def get_component(self, component, just_check_exists=False):
@@ -117,7 +119,7 @@ class SQL(Cache):
 
     def store(self, component, train, test, trainout, testout,
               time_spent_tr, time_spent_ts, fields_to_store):
-        slim_trainout = trainout.sub(fields_to_store)
+        slim_trainout = trainout and trainout.sub(fields_to_store)
         slim_testout = testout and testout.sub(fields_to_store)
         if not self.result_exists(component, train, test):
             # try:
