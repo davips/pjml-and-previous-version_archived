@@ -117,7 +117,7 @@ class SQL(Cache):
 
     def store(self, component, train, test, trainout, testout,
               time_spent_tr, time_spent_ts, fields_to_store):
-        slim_trainout = trainout.sub(fields_to_store)
+        slim_trainout = trainout and trainout.sub(fields_to_store)
         slim_testout = testout and testout.sub(fields_to_store)
         if not self.result_exists(component, train, test):
             # try:
