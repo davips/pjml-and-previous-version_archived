@@ -2,6 +2,7 @@ from paje.composer.composer import Composer
 from paje.composer.pipeline import Pipeline
 from paje.base.hps import HPTree
 
+
 class Switch(Composer):
 
     def build_impl(self):
@@ -19,31 +20,18 @@ class Switch(Composer):
         component_idx = int(component_idx.split("_")[0])
 
         dic = dics[0].copy()
-        dic['random_state'] = self.dic['random_state'] # TODO: check this
+        dic['random_state'] = self.dic['random_state']  # TODO: check this
         del dic["component"]
-        print(dic)
+        print('swithccccc', dic)
+        # TODO: is switch ready?
 
         self.components = [self.components[component_idx].build(**dic)]
 
-        # zipped = zip(range(0, len(self.components)), dics)
-        # for idx, dic in zipped:
-        #     if isinstance(self.components[idx], Composer):
-        #         dic = {'dics': dic.copy()}
-        #     dic['random_state'] = self.random_state
-        #     self.components[idx] = self.components[idx].instantiate(**dic)
-
-    def tree(self, data=None):  # previously known as hyperpar_spaces_forest
+    def tree(self, data=None):
         forest = []
         idx = -1
         for component in self.components:
             idx += 1
-            # if isinstance(component, Pipeline):
-            #     aux = list(map(
-            #         lambda x: x.forest(data),
-            #         component.components
-            #     ))
-            #     tree = aux
-            # else:
             tree = component.tree(data)
             comp_hptree = HPTree({"component": ['c', ["{0}_{1}".format(
                 idx, component.name)]]}, [tree])
@@ -55,8 +43,5 @@ class Switch(Composer):
         newdepth = depth + '    '
         strs = [component.__str__(newdepth) for component in
                 self.components]
-        return "Switch {\n" + \
-               newdepth + ("\n" + newdepth).join(str(x) for x in strs) + '\n'\
-               + depth + "}"
-
-
+        return self.name + " {\n" + newdepth + \
+               ("\n" + newdepth).join(str(x) for x in strs) + '\n' + depth + "}"

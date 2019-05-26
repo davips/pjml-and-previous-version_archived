@@ -28,4 +28,4 @@ class Frozen(Composer):
                       name=self.name + ': ' + self.components[0].name)
 
     def __str__(self, depth=''):
-        return 'Frozen { ' + str(self.components[0]) + ' }'
+        return self.name + ' { ' + str(self.components[0]) + ' }'

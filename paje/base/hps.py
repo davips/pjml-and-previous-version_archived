@@ -55,7 +55,7 @@ class HPTree(object):
             tree = random.choice(children)
             if tree.name.startswith('End'):
                 break
-            if tree.name == 'Pipeline':
+            if tree.name == 'Pipeline' or tree.name == 'Concat':
                 args, children = self.pipeline_to_dic_rec(tree)
             else:
                 args, last = self.moduletree_to_dic(tree)
