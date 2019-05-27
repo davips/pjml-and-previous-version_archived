@@ -16,7 +16,7 @@ def main():
         print('Usage: \npython toy_to_simulate_mtl.py path_to_arffs arff1,'
               'arff2,arff3,... ')
     else:
-        storage = MySQL(debug=True)
+        storage = MySQL(debug=not True)
         for a in argv:
             print(a)
         path = argv[1]
