@@ -121,6 +121,7 @@ class SQL(Cache):
               time_spent_tr, time_spent_ts, fields_to_store):
         slim_trainout = trainout and trainout.sub(fields_to_store)
         slim_testout = testout and testout.sub(fields_to_store)
+
         if not self.result_exists(component, train, test):
             # try:
             #     dump = pack(component)
@@ -136,15 +137,30 @@ class SQL(Cache):
                         pack(slim_trainout), pack(slim_testout),
                         time_spent_tr, time_spent_ts,
                         dump, component.failed])
+        else:
+            component.warning('Combination already exists:',
+                              component.serialized(), train.uuid,
+                              (test or 0) and test.uuid)
+
         if not self.component_exists(component):
             self.query("insert into args values (?, ?)",
                        [component.uuid(), component.serialized()])
+        else:
+            component.warning('Component already exists:',
+                              component.serialized())
+
         if not self.data_exists(train):
             self.query("insert into dset values (?, ?)", [train.uuid,
                                                           pack(train)])
+        else:
+            component.warning('Trainset already exists:', train.uuid)
+
         if not self.data_exists(test):
             self.query("insert into dset values (?, ?)",
                        [test.uuid, pack(test)])
+        else:
+            component.warning('Testset already exists:', train.uuid)
+
         self.connection.commit()
 
     @staticmethod
