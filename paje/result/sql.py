@@ -10,7 +10,7 @@ class SQL(Cache):
             print('Locking...')
         txt = "insert into result values (?, ?, ?, ?, ?, ?, ?, ?)"
         args = [component.uuid(), train.uuid, test.uuid,
-                None, None, None, None, 1 if component.locked else 0]
+                None, None, None, None, 1]
         if not self.result_exists(component, train, test):
             self.query(txt, args)
         else:
@@ -20,6 +20,7 @@ class SQL(Cache):
                                              'compid=? and trainid=? and '
                                              'testid=?', args[:3]))
         self.connection.commit()
+        component.locked = True
         if self.debug:
             print('Locked!')
 

@@ -15,7 +15,8 @@ def main():
         print('Usage: \npython toy.py dataset.arff '
               '[memoize? True/False] [iterations] [seed]')
     else:
-        storage = SQLite(debug=True) if len(argv) >= 3 and argv[2] == 'True' \
+        storage = SQLite(debug=not True) if len(argv) >= 3 and argv[2] == \
+                                           'True' \
             else None
         iterations = 30 if len(argv) < 4 else int(argv[3])
         random_state = 0 if len(argv) < 5 else int(argv[4])

@@ -25,8 +25,8 @@ class MySQL(SQL):
             print('getting cursor...')
         self.cursor = self.connection.cursor()
         if self.debug:
-            print('creating database', db, 'on', database, '...')
+            print('creating database', self.db, 'on', self.database, '...')
         self.cursor.execute("create database if not exists " + self.db)
         if self.debug:
-            print('using database', db, 'on', database, '...')
+            print('using database', self.db, 'on', self.database, '...')
         self.cursor.execute("use " + self.db)

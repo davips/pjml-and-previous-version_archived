@@ -5,7 +5,7 @@ from paje.util.distributions import sample
 
 
 class HPTree(object):
-    def __init__(self, dic, children, name='', tmp_uuid=None):
+    def __init__(self, dic, children, name=None, tmp_uuid=None):
         self.dic = dic
         self.children = children
         self.name = name
@@ -32,9 +32,10 @@ class HPTree(object):
             child = random.choice(tree.children)
             # if tree.name is 'EndPipeline':
             #     return {'name': ''}, tree
-            if child.name == '':
+            # if child is not a component (it is a, e.g., a kernel)
+            if child.name is None:
                 dic, tree = self.moduletree_to_dic(child)
-                del dic['name']
+                # del dic['name'] # TODO: what was this for?
                 args.update(dic)
         return args, tree
 
