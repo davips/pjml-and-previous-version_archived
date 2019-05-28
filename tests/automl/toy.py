@@ -6,27 +6,31 @@ from paje.automl.random import RandomAutoML
 from paje.base.data import Data
 from paje.module.modules import default_preprocessors, default_modelers
 
-
 # @profile
+from paje.result.sqlite import SQLite
+
+
 def main():
     if len(argv) < 2 or len(argv) > 5:
         print('Usage: \npython toy.py dataset.arff '
               '[memoize? True/False] [iterations] [seed]')
     else:
-        memoize = False if len(argv) < 3 else argv[2] == 'True'
+        storage = SQLite(debug=True) if len(argv) >= 3 and argv[2] == 'True' \
+            else None
         iterations = 30 if len(argv) < 4 else int(argv[3])
         random_state = 0 if len(argv) < 5 else int(argv[4])
         data = Data.read_arff(argv[1], "class")
         for a in argv:
             print(a)
-        print('seed=',random_state)
+        print('seed=', random_state)
         X, y = data.Xy
         X_train, X_test, y_train, y_test = \
             sklearn.model_selection.train_test_split(X, y, random_state=1)
         trainset = Data(X_train, [y_train])
         testset = Data(X_test)
 
-        automl_rs = RandomAutoML(memoize=memoize,
+        # SQLite().setup()
+        automl_rs = RandomAutoML(storage=storage,
                                  preprocessors=default_preprocessors,
                                  modelers=default_modelers, max_iter=iterations,
                                  static=False, fixed=False,

@@ -14,11 +14,10 @@ from paje.result.sqlite import SQLite
 
 
 class AutoML(Component, ABC):
-
     def __init__(self, preprocessors=None, modelers=None, verbose=True,
-                 random_state=0, memoize=False,
+                 random_state=0, storage=None,
                  show_warns=True, **kwargs):
-        super().__init__(memoize, show_warns, **kwargs)
+        super().__init__(storage, show_warns, **kwargs)
         self.preprocessors = default_preprocessors \
             if preprocessors is None else preprocessors
         self.modelers = default_modelers if modelers is None else modelers
@@ -38,13 +37,7 @@ class AutoML(Component, ABC):
         # print('max_iter', self.max_iter, '  max_depth', self.max_depth,
         #       '  static', self.static, '  fixed', self.fixed,
         #       '  repetitions', self.repetitions)
-        if self.memoize:
-            # self.storage = MySQL(database='davi@localhost', password='1',
-            self.storage = MySQL(
-            debug=not True)
-            # self.storage = SQLite(debug=not True)
-        # self.storage.setup()
-        evaluator = Evaluator(Metrics.error, "cv", 3, storage=self.storage,
+        evaluator = Evaluator(Metrics.error, "cv", 3,
                               random_state=self.random_state)
 
         ok, tot = 0, 0
@@ -72,9 +65,6 @@ class AutoML(Component, ABC):
             print(self.best())
 
         self.model = self.best()
-        # TODO: activate memoize also here? Perhaps its a good place to
-        #  employ dump memoization, since it is a single pipeline for the
-        #  entire automl process.
         return self.model.apply(data)
 
     @abstractmethod
@@ -86,8 +76,6 @@ class AutoML(Component, ABC):
         pass
 
     def use_impl(self, data):
-        # TODO: activate memoize also here? Perhaps its a good place to
-        #  employ dump memoization.
         return self.model.use(data)
 
     @abstractmethod
@@ -103,12 +91,14 @@ class AutoML(Component, ABC):
     #     """
     #     pass
 
-    def handle_storage(self, data):
-        # TODO: activate memoize also here? Perhaps its a good place to
-        #  employ dump memoization, since it is a single pipeline for the
-        #  entire automl process.
-        return self.apply_impl(data)
-
     @classmethod
     def tree_impl(cls, data=None):
         raise NotImplementedError("AutoML has no tree() implemented!")
+
+    def fields_to_store_after_use(self):
+        raise NotImplementedError(
+            "AutoML has no fields_to_store_after_use() implemented!")
+
+    def fields_to_keep_after_use(self):
+        raise NotImplementedError(
+            "AutoML has no fields_to_keep_after_use() implemented!")

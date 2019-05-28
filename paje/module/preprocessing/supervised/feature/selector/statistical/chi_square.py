@@ -8,6 +8,12 @@ import math
 
 class FilterChiSquare(Filter):
     """  """
+    def fields_to_store_after_use(self):
+        return ['X']
+
+    def fields_to_keep_after_use(self):
+        return ['y']
+
     def apply_impl(self, data):
         X, y = data.Xy
         # TODO: verify if is possible implement this with numpy
@@ -20,4 +26,4 @@ class FilterChiSquare(Filter):
         self._rank = chi_square.feature_ranking(self._score)
         self._nro_features = math.ceil((self.ratio) * X.shape[1])
 
-        return self.use(data)
+        return self.use_impl(data)

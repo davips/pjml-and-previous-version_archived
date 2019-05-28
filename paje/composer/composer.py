@@ -3,8 +3,8 @@ from paje.base.component import Component
 
 class Composer(Component):
     # TODO: An empty Pipeline/composer may return perfect predictions.
-    def __init__(self, components=None, memoize=False, show_warns=True):
-        super().__init__(memoize, show_warns)
+    def __init__(self, components=None, storage=None, show_warns=True):
+        super().__init__(storage, show_warns)
         if components is None:
             components = []
         self.components = components
@@ -21,8 +21,3 @@ class Composer(Component):
         for component in self.components:
             data = component.use(data)
         return data
-
-    def handle_storage(self, data):
-        # TODO: replicate this method to other nesting modules, if any,
-        #  not only Composer and AutoML
-        return self.apply_impl(data)

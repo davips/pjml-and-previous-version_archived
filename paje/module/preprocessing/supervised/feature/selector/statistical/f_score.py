@@ -18,4 +18,4 @@ class FilterFScore(Filter):
         self._rank = f_score.feature_ranking(self._score)
         self._nro_features = math.ceil(self.ratio * X.shape[1])
 
-        return self.use(data)
+        return self.use_impl(data)

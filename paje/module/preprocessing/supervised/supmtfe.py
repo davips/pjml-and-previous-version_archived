@@ -8,7 +8,7 @@ from paje.base.hps import HPTree
 
 class SupMtFe(Component):
     def apply_impl(self, data):
-        return self.use(data)
+        return self.use_impl(data)
 
     def use_impl(self, data):
         self.model.fit(*data.Xy)

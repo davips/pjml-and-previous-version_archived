@@ -4,6 +4,12 @@ from paje.base.component import Component
 
 
 class Classifier(Component, ABC):
+    def fields_to_store_after_use(self):
+        return ['z']
+
+    def fields_to_keep_after_use(self):
+        return ['X', 'y']
+
     def apply_impl(self, data):
         """
         Output of classifier.apply() does not represent the
@@ -19,7 +25,7 @@ class Classifier(Component, ABC):
         """
         # self.model will be set in the child class
         self.model.fit(*data.Xy)
-        return self.use(data)
+        return self.use_impl(data)
 
     def use_impl(self, data):
         return data.updated(z=self.model.predict(data.X))

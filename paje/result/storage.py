@@ -1,11 +1,10 @@
 import codecs
 import hashlib
-import _pickle as pickle
 import time
 import traceback
 from abc import ABC, abstractmethod
 
-from sklearn.dummy import DummyClassifier
+import _pickle as pickle
 
 from paje.base.exceptions import ExceptionInApplyOrUse
 from paje.evaluator.time import time_limit
@@ -35,14 +34,16 @@ class Cache(ABC):
     The children classes are expected to provide storage in:
      SQLite, remote/local MongoDB or MySQL server.
     """
+    @abstractmethod
+    def start(self):
+        pass
 
     @abstractmethod
     def setup(self):
         pass
 
     @abstractmethod
-    def get_result(self, component, train, test, just_check_exists,
-                   fields_to_keep):
+    def get_result(self, component, train, test):
         pass
 
     @abstractmethod
@@ -67,79 +68,31 @@ class Cache(ABC):
         pass
 
     @abstractmethod
-    def store(self, component, train, test, trainout, testout,
-              time_spent_tr, time_spent_ts, fields_to_store):
+    def store(self, component, train, test, testout, time_spent):
         pass
 
     # @profile
-    def get_or_run(self, component, train, test=None,
-                   maxtime=60, fields_to_store=None, fields_to_keep=None):
-        """
-        :param component:
-        :param train:
-        :param test:
-        :param maxtime:
-        :param fields_to_store:
-        :param fields_to_keep:
-        :return:
-        """
+    def get_or_run(self, component, train, test, f):
         # TODO: Repeated calls to this function with the same parameters can
         #  be memoized, to avoid network delays, for instance.
-        if fields_to_keep is None:
-            fields_to_keep = []
-        if fields_to_store is None:
-            fields_to_store = []
-        trainout, testout, failed = self.get_result(
-            component, train, test, fields_to_keep=fields_to_keep)
-        if failed is not None:
+        testout, time_spent, failed, locked = self.get_result(component,
+                                                             train, test)
+        if locked is not None:
             component.failed = failed
+            component.locked = locked
+            if locked:
+                component.warning('Already locked!')
         else:
-            # Stats:
-            # storing only (test and train) predictions: 5kB / row
-            # (1 pipeline w/ 3-fold CV = 6 rows) = 30kB / pipe
-            # storing complete test and train data and model: 83kB / row
-            # = 500kB / pipe
-
-            # storing also args and sets: 1MB / pipe
-            # same as above, but storing nothing as model: 720kB / pipe
-            try:
-                if component.failed:
-                    raise Exception('Pipeline already failed before!')
-                with time_limit(maxtime):
-                    start = time.clock()
-                    component.apply(train)
-                    trtime = time.clock() - start
-                    trainout = component.use(train)
-                    testout = component.use(test)
-                    # print(trainout.Xy, 'depois de use(), antes de store')
-                    tstime = time.clock() - trtime
-            except Exception as e:
-                component.failed = True
-                trtime = tstime = None
-                # Fake predictions for curated errors.
-                print('Trying to circumvent exception: >' + str(e) + '<')
-                msgs = ['All features are either constant or ignored.',  # CB
-                        'be between 0 and min(n_samples, n_features)',  # DR*
-                        'excess of max_free_parameters:',  # MLP
-                        'Pipeline already failed before!',  # Preemptvely avoid
-                        'Timed out!',
-                        'Mahalanobis for too big data',
-                        'MemoryError',
-                        'On entry to DLASCL parameter number',  # Mahala knn
-                        'excess of neighbors!',  # KNN
-                        ]
-
-                if any([str(e).__contains__(msg) for msg in msgs]):
-                    trainout, testout = None, None
-                    component.warning(e)
-                else:
-                    traceback.print_exc()
-                    raise ExceptionInApplyOrUse(e)
+            # Process data...
+            testout, time_spent = f(train, test)
 
             # Store result.
             print('memoizing results...')
-            self.store(component, train, test, trainout, testout,
-                       trtime, tstime, fields_to_store)
+            self.store(component, train, test, testout, time_spent)
             print('memoized!')
             print()
-        return trainout, testout
+        return testout, time_spent
+
+    @abstractmethod
+    def lock(self, component, train, test):
+        pass

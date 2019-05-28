@@ -4,10 +4,8 @@ from sklearn.model_selection import StratifiedShuffleSplit
 
 
 class Evaluator:
-    def __init__(self, metric, split="cv", steps=10, random_state=0,
-                 storage=None):
+    def __init__(self, metric, split="cv", steps=10, random_state=0):
 
-        self.storage = storage
         self.metric = metric
         if split == "cv":
             self.split = StratifiedKFold(n_splits=steps,
@@ -26,17 +24,10 @@ class Evaluator:
                                       y=data.y[train_index])
             data_test = data.updated(X=data.X[test_index], y=data.y[test_index])
 
-            # TODO: failed pipelines already fallback to fake bad predictions,
-            #  but only when self.storage is activated!
-            if self.storage is not None:
-                output_train, output_test = self.storage.get_or_run(
-                    component, data_train, data_test, fields_to_store=['z'],
-                    fields_to_keep=['X', 'y'])
-            else:
-                # TODO: if output_train is needed, it should come from
-                #  component.use(), not from component.apply()!
-                component.apply(data_train)
-                output_test = component.use(data_test)
+            # TODO: if output_train is needed, it should come from
+            #  component.use(), not from component.apply()!
+            component.apply(data_train)
+            output_test = component.use(data_test)
 
             error = 1 if output_test is None else self.metric(output_test)
             perfs.append(error)

@@ -12,6 +12,8 @@ class MySQL(SQL):
         self.db = db
         self.user, self.host = database.split('@')
         self.debug = debug
+
+    def start(self):
         if self.debug:
             print('getting connection...')
         self.connection = pymysql.connect(host=self.host,

@@ -4,6 +4,14 @@ import copy
 
 
 class Pipeline(Composer):
+    def fields_to_store_after_use(self):
+        return self.components[len(self.components) - 1] \
+            .fields_to_store_after_use()
+
+    def fields_to_keep_after_use(self):
+        return self.components[len(self.components) - 1] \
+            .fields_to_keep_after_use()
+
     def build_impl(self):
         """
         The only parameter is dics with the dic of each component.
@@ -28,7 +36,6 @@ class Pipeline(Composer):
             dic['random_state'] = self.random_state
             # print('comp',self.components[idx])
             # print('dic', dic)
-            # self.components[idx].memoize = self.memoize
             self.components[idx] = self.components[idx].build(**dic)
             # component.instantiate(**dic)
 

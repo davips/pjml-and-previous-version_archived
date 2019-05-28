@@ -3,9 +3,15 @@ from paje.composer.composer import Composer
 
 
 class Frozen(Composer):
-    def __init__(self, component, in_place=False, memoize=False,
+    def fields_to_store_after_use(self):
+        return self.components[0].fields_to_store_after_use()
+
+    def fields_to_keep_after_use(self):
+        return self.components[0].fields_to_keep_after_use()
+
+    def __init__(self, component, in_place=False, storage=None,
                  show_warns=True, **kwargs):
-        super().__init__(in_place, memoize, show_warns)
+        super().__init__(in_place, storage, show_warns)
 
         self.components = [component]
         self.params = kwargs
@@ -14,7 +20,6 @@ class Frozen(Composer):
         # rnd_state vem de quem chama build()
         self.components = self.components.copy()
         # self.params = self.params.copy()  # TODO: why we needed this here?
-        self.components[0].memoize = self.memoize
         self.components[0] = self.components[0].build(**self.dic)
 
     def freeze_hptree(self):

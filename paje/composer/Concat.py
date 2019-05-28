@@ -7,8 +7,8 @@ import numpy as np
 
 class Concat(Pipeline):
     def __init__(self, components=None, matrices=None, direction='horizontal',
-                 memoize=False, show_warns=True):
-        super().__init__(memoize, show_warns)
+                 storage=None, show_warns=True):
+        super().__init__(storage, show_warns)
         if matrices is None:
             matrices = ['X']
         if components is None:

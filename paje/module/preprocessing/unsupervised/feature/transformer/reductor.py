@@ -5,6 +5,12 @@ from paje.base.hps import HPTree
 
 
 class Reductor(Component, ABC):
+    def fields_to_store_after_use(self):
+        return ['X']
+
+    def fields_to_keep_after_use(self):
+        return ['y']
+
     def apply_impl(self, data):
         self.att_labels = data.columns
         max_components = min(data.n_instances, data.n_attributes)
@@ -16,7 +22,7 @@ class Reductor(Component, ABC):
         #  FeatureAgglomeration.
         # TODO: DRICA ValueError: array must not contain infs or NaNs
         self.model.fit(data.X)
-        return self.use(data)
+        return self.use_impl(data)
 
     def use_impl(self, data):
         return data.updated(X=self.model.transform(data.X))

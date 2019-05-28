@@ -20,7 +20,7 @@ class FilterTScore(Filter):
         self.apply_t_score(X, y)
         self._nro_features = math.ceil(self.ratio * X.shape[1])
 
-        return self.use(data)
+        return self.use_impl(data)
 
     def comb_idx(self, n, k):
         return np.array(list(combinations(range(n), k)))

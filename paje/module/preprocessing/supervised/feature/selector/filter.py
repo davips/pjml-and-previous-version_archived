@@ -6,11 +6,13 @@ from paje.base.hps import HPTree
 
 class Filter(Component, ABC):
     """ Filter base class"""
+    def fields_to_store_after_use(self):
+        return ['X']
+
+    def fields_to_keep_after_use(self):
+        return ['y']
 
     def build_impl(self):
-        # TODO: forcing to recalculate, since there is no self.model.
-        self.memoize = False
-
         self.ratio = self.dic['ratio']
         self._rank = self._score = self._nro_features = None
         self.model = 42

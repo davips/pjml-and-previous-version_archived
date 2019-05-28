@@ -6,10 +6,9 @@ from paje.module.modelling.classifier.classifier import Classifier
 
 
 class CB(Classifier):
-    def __init__(self, verbose=False, memoize=False,
-                 show_warns=True):
+    def __init__(self, verbose=False, storage=None, show_warns=True):
         self.verbose = verbose
-        super().__init__(memoize, show_warns)
+        super().__init__(storage, show_warns)
 
     def use_impl(self, data):
         # TODO: catboost seems to return a matrix instead of a vector; check
