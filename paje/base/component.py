@@ -3,7 +3,6 @@
 import copy
 import json
 import time
-import traceback
 from abc import ABC, abstractmethod
 from logging import warning
 from uuid import uuid4
@@ -11,7 +10,8 @@ from uuid import uuid4
 import numpy as np
 
 from paje.base.data import Data
-from paje.base.exceptions import ExceptionInApplyOrUse
+from paje.base.exceptions import ApplyWithoutBuild, UseWithoutApply, \
+    handle_exception
 from paje.evaluator.time import time_limit
 from paje.result.storage import uuid
 
@@ -20,7 +20,8 @@ class Component(ABC):
     """Todo the docs string
     """
 
-    def __init__(self, storage=None, show_warns=True):
+    def __init__(self, storage=None, show_warns=True,
+                 max_time=None):
 
         # self.model here refers to classifiers, preprocessors and, possibly,
         # some representation of pipelines or the autoML itself.
@@ -28,7 +29,7 @@ class Component(ABC):
         # that has self.model.
         self.unfit = True
         self.model = None
-        self.already_uuid = None  # UUID will be known only after build()
+        self.cached_uuid = None  # UUID will be known only after build()
         self.dic = {}
         self.name = self.__class__.__name__
         self.tmp_uuid = uuid4().hex
@@ -38,11 +39,14 @@ class Component(ABC):
         self.locked = False
         self.failed = False
         self.time_spent = None
+        self.max_time = max_time
+        self.discard_new_time = False
 
         # if True show warnings
         self.show_warns = show_warns
+        self.show_logs = False
 
-        self.serialized_val = None
+        self.cached_serialization = None
 
     @abstractmethod
     def fields_to_store_after_use(self):
@@ -140,9 +144,8 @@ class Component(ABC):
             cls.check_tree(child)
 
     def build(self, **dic):
-        print('sddddddddddd',self)
         # Check if build has already been called.
-        if self.already_uuid is not None:
+        if self.cached_uuid is not None:
             self.error('Build cannot be called twice!')
         self = copy.copy(self)
         if self.storage is not None:
@@ -150,9 +153,9 @@ class Component(ABC):
         self.dic = dic
         if self.isdeterministic() and "random_state" in self.dic:
             del self.dic["random_state"]
-        print('ssssssssssssssss',self)
-        self.serialized_val = json.dumps(self.dic, sort_keys=True).encode()
-        self.already_uuid = uuid(self.serialized())
+        self.cached_serialization = \
+            json.dumps(self.dic, sort_keys=True).encode()
+        self.cached_uuid = uuid(self.cached_serialization)
         if 'name' in self.dic:
             del self.dic['name']
         self.build_impl()
@@ -171,25 +174,26 @@ class Component(ABC):
 
     def lock(self, data):
         if self.storage is None:
-            self.storage.lock(self, data)
-        else:
             self.locked = True
+        else:
+            self.storage.lock(self, data)
 
     def get_result(self, data):
         return self.storage and self.storage.get_result(self, data)
 
+    def check_if_built(self):
+        self.serialized()  # Call just to raise exception, if needed.
+
     def apply(self, data=None):
         """Todo the doc string
         """
-        if self.serialized_val is None:
-            raise ApplyWithoutBuild('No serialized_val defined for', self.name)
-
         # Checklist / get from storage -----------------------------------
+        self.check_if_built()
         if data is None:
-            self.warning(f"Applying {self.name} on None returns None.")
+            # self.log(f"Applying {self.name} on None returns None.")
             return None
 
-        print('Trying to apply component...', self.name)
+        # print('Trying to apply component...', self.name)
         self.uuid_train = data.uuid
         output_data = self.get_result(data)
 
@@ -208,20 +212,31 @@ class Component(ABC):
             self.lock(data)
 
             self.handle_warnings()
-            print('Applying component...', self.name)
+            self.log('Applying component' + self.name + '...')
             start = time.clock()
-            output_data = self.apply_impl(data)  # TODO:handle excps mark failed
-            self.time_spent = time.clock() - start
-            print('Component ', self.name, 'applied.')
+            try:
+                if self.max_time is None:
+                    output_data = self.apply_impl(data)
+                else:
+                    with time_limit(self.max_time):
+                        output_data = self.apply_impl(data)
+            except Exception as e:
+                self.failed = False
+                handle_exception(self, e)
+            if not self.discard_new_time:
+                self.time_spent = time.clock() - start
+            self.log('Component ' + self.name + ' applied.')
             self.dishandle_warnings()
 
             if self.storage:
                 self.store_data(data)  # Store training set...
-                self.use(data)  # ...and its predictions.
+                self.discard_new_time = True  # ...and time spent training...
+                self.use(data)  # ...and the training predictions.
+                self.discard_new_time = False
 
         return output_data
 
-    def use(self, data: Data = None):
+    def use(self, data=None):
         """Todo the doc string
         """
         if self.uuid_train is None:
@@ -232,7 +247,6 @@ class Component(ABC):
             self.warning(f"Using {self.name} on None returns None.")
             return None
 
-        print('Trying to use component...', self.name)
         output_data = self.get_result(data)
 
         if self.locked:
@@ -245,18 +259,20 @@ class Component(ABC):
                          f"Current {self.name} already failed before.")
             return output_data
 
-        print('Using component...', self.name)
-
         # Use if still needed  ----------------------------------
         if output_data is None:
             self.lock(data)
 
             self.handle_warnings()
-            print('Using component...', self.name)
+            print('Using component', self.name, '...')
+
+            # TODO: put time limit and/or exception handling like in apply()?
             start = time.clock()
             output_data = self.use_impl(data)  # TODO:handle excps mark failed
-            self.time_spent = time.clock() - start
-            print('Component ', self.name, 'used.')
+            if not self.discard_new_time:
+                self.time_spent = time.clock() - start
+
+            self.log('Component ' + self.name + 'used.')
             self.dishandle_warnings()
 
             if self.storage:
@@ -264,10 +280,10 @@ class Component(ABC):
         return output_data
 
     def uuid(self):
-        if self.already_uuid is None:
+        if self.cached_uuid is None:
             raise ApplyWithoutBuild('build() should be called before '
                                     'uuid() <-' + self.name)
-        return self.already_uuid
+        return self.cached_uuid
 
     def __str__(self, depth=''):
         return self.name + " " + str(self.dic)
@@ -278,18 +294,22 @@ class Component(ABC):
         if self.show_warns:
             warning(msg)
 
+    def log(self, msg):
+        if self.show_logs:
+            print(msg)
+
     def error(self, msg):
         raise Exception(msg)
 
     def serialized(self):
-        if self.serialized_val is None:
+        if self.cached_serialization is None:
             raise ApplyWithoutBuild('build() should be called before '
                                     'serialized() <-' + self.name)
-        return self.serialized_val
+        return self.cached_serialization
 
     def store_data(self, data):
         if self.storage:
-            self.storage.store_dset(self, data)
+            self.storage.store_dset(data)
 
     def store_result(self, input_data, output_data):
         """
@@ -299,56 +319,3 @@ class Component(ABC):
         """
         if self.storage:
             self.storage.store(self, input_data, output_data)
-
-
-class UseWithoutApply(Exception):
-    pass
-
-
-class ApplyWithoutBuild(Exception):
-    pass
-
-
-class ExceptionHandler:
-    def handle_exceptions(self, train, test, apply, maxtime=60):
-        try:
-            if not apply and self.unfit:
-                raise UseWithoutApply('build() should be called before '
-                                      'apply() <-' + self.name)
-            elif self.model is None:
-                raise UseWithoutApply('apply() should be called before '
-                                      'use() <-' + self.name)
-
-            if self.storage is not None:
-                self.storage.lock(self, train, test)
-            with time_limit(maxtime):
-                start = time.clock()
-                tstout = self.apply_impl(test) if apply else self.use_impl(test)
-                time_spent = time.clock() - start
-        except Exception as e:
-            self.failed = True
-            time_spent = None
-            # Fake predictions for curated errors.
-            self.warning('Trying to circumvent exception: >' + str(e) + '<')
-            msgs = ['All features are either constant or ignored.',  # CB
-                    'be between 0 and min(n_samples, n_features)',  # DR*
-                    'excess of max_free_parameters:',  # MLP
-                    'Trying to apply/use()',
-                    # Preemptvely avoid
-                    'Timed out!',
-                    'Mahalanobis for too big data',
-                    'MemoryError',
-                    'On entry to DLASCL parameter number',  # Mahala knn
-                    'excess of neighbors!',  # KNN
-                    'subcomponent failed',  # nested failure
-                    'Combination already exists, while locking',
-                    ]
-
-            if any([str(e).__contains__(msg) for msg in msgs]):
-                tstout = None
-                self.warning(e)
-            else:
-                traceback.print_exc()
-                raise ExceptionInApplyOrUse(e)
-
-        return tstout, time_spent

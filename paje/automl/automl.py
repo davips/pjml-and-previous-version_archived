@@ -15,8 +15,8 @@ class AutoML(Component, ABC):
     def __init__(self, preprocessors=None, modelers=None,
                  storage_for_components=None, verbose=True,
                  random_state=0, storage=None,
-                 show_warns=True, **kwargs):
-        super().__init__(storage, show_warns, **kwargs)
+                 show_warns=True, max_time=None, **kwargs):
+        super().__init__(storage, show_warns, max_time, **kwargs)
         self.preprocessors = default_preprocessors \
             if preprocessors is None else preprocessors
         self.modelers = default_modelers if modelers is None else modelers

@@ -18,11 +18,12 @@ def main():
     else:
         # storage = SQLite(debug=not True) if len(argv) >= 3 and argv[2] == \
         #                                     'True' else None
-        storage = MySQL(debug=True) if len(argv) >= 3 and argv[2] == \
+        storage = MySQL(debug=not True) if len(argv) >= 3 and argv[2] == \
                                            'True' else None
-        # First setup of a SGBD:
+        # # First setup of a SGBD:
         # storage.start()
         # storage.setup()
+        # print('Please disable setup of db in toy.py')
         # exit(0)
 
         iterations = 30 if len(argv) < 4 else int(argv[3])
@@ -43,8 +44,8 @@ def main():
                                  modelers=default_modelers, max_iter=iterations,
                                  static=False, fixed=False,
                                  max_depth=15, repetitions=2, method="all",
-                                 show_warns=False, random_state=random_state)
-        automl_rs.build()
+                                 show_warns=False,
+                                 random_state=random_state).build()
         automl_rs.apply(trainset)
         print("Accuracy score",
               sklearn.metrics.accuracy_score(y_test, automl_rs.use(testset).z)

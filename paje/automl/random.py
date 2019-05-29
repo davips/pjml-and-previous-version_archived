@@ -11,7 +11,7 @@ class RandomAutoML(AutoML):
                  storage_for_components=None,
                  max_iter=5, static=True, fixed=True, max_depth=5,
                  repetitions=0, method="all", verbose=True, random_state=0,
-                 storage=None, show_warns=True):
+                 storage=None, show_warns=True, max_time=None):
         """
         AutoML
         :param preprocessors: list of modules for balancing, noise removal, sampling etc.
@@ -28,7 +28,7 @@ class RandomAutoML(AutoML):
         AutoML.__init__(self, preprocessors=preprocessors, modelers=modelers,
                         storage_for_components=storage_for_components, verbose=verbose,
                         random_state=random_state,
-                        storage=storage, show_warns=show_warns)
+                        storage=storage, show_warns=show_warns, max_time=max_time)
 
         self.best_error = 9999999
         if static and not fixed:

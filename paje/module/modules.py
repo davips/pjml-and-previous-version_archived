@@ -82,11 +82,11 @@ mlp = Pipeline(components=[pca, MLP()])
 default_preprocessors = ready_transformers + ready_scalers + [pca]
 default_preprocessors = ready_transformers + ready_scalers + ready_balancing + \
                         ready_filters + [NRNN()]
-default_preprocessors = []
+# default_preprocessors = []
 # switch = Switch(components=[Equalization(), Standard()])
 # switch2 = Switch(components=[switch, pipe2, pipe_pca])
 # default_preprocessors = [pipe_pca, pipe2, switch, switch2]
 # default_preprocessors = [pipe_pca, pca, pipe2]
 
-default_modelers = [mlp] # [knn, knn2, mlp] + ready_classifiers
+default_modelers = [knn, knn2, mlp] + ready_classifiers
 # default_modelers = [knn]

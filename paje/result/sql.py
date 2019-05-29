@@ -100,7 +100,7 @@ class SQL(Cache):
             field = '1'
         self.query(f'select {field} from args where idcomp=?',
                    [component.uuid()])
-        res = self.got()
+        res = self.process_result()
         if res is None:
             return None
         else:
@@ -111,7 +111,7 @@ class SQL(Cache):
         if just_check_exists:
             field = '1'
         self.query(f'select {field} from dset where iddset=?', [data.uuid])
-        res = self.got()
+        res = self.process_result()
         if res is None:
             return None, None
         else:
@@ -123,7 +123,8 @@ class SQL(Cache):
                        [data.uuid, pack(data)])
             self.connection.commit()
         else:
-            print('Testset already exists:' + data.uuid)
+            if self.debug:
+                print('Testset already exists:' + data.uuid)
 
     def store(self, component, test, testout):
         """
@@ -165,6 +166,7 @@ class SQL(Cache):
 
         self.store_dset(test)
         component.locked = False
+        print('Stored!')
 
     @staticmethod
     def interpolate(sql, lst):

@@ -39,8 +39,6 @@ class KNN(Classifier):
             #         or data.n_instances>10000:
 
             if len(X) > 5000:
-                self.warning('Mahalanobis for too big data, cov matrix'
-                             'size:' + str(len(X)))
                 raise ExceptionInApplyOrUse('Mahalanobis for too big data, '
                                             'matrix size:', len(X))
             cov = np.cov(X)

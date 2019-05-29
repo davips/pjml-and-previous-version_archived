@@ -24,9 +24,14 @@ class MySQL(SQL):
         if self.debug:
             print('getting cursor...')
         self.cursor = self.connection.cursor()
-        if self.debug:
-            print('creating database', self.db, 'on', self.database, '...')
-        self.cursor.execute("create database if not exists " + self.db)
+
+        # Create db if it doesn't exist yet.
+        self.query(f"SHOW DATABASES LIKE '{self.db}'")
+        if self.process_result() is None:
+            if self.debug:
+                print('creating database', self.db, 'on', self.database, '...')
+            self.cursor.execute("create database if not exists " + self.db)
+
         if self.debug:
             print('using database', self.db, 'on', self.database, '...')
         self.cursor.execute("use " + self.db)
