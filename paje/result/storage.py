@@ -34,6 +34,7 @@ class Cache(ABC):
     The children classes are expected to provide storage in:
      SQLite, remote/local MongoDB or MySQL server.
     """
+
     @abstractmethod
     def start(self):
         pass
@@ -43,12 +44,15 @@ class Cache(ABC):
         pass
 
     @abstractmethod
-    def get_result(self, component, train, test):
+    def get_result(self, component, data):
         pass
 
     @abstractmethod
-    def get_component_dump(self, component, train, test,
-                           just_check_exists=False):
+    def lock(self, component, test):
+        pass
+
+    @abstractmethod
+    def get_component_dump(self, component):
         pass
 
     @abstractmethod
@@ -68,7 +72,11 @@ class Cache(ABC):
         pass
 
     @abstractmethod
-    def store(self, component, train, test, testout, time_spent):
+    def store_dset(self, data):
+        pass
+
+    @abstractmethod
+    def store(self, component, test, testout):
         pass
 
     # @profile
@@ -76,8 +84,9 @@ class Cache(ABC):
         # TODO: Repeated calls to this function with the same parameters can
         #  be memoized, to avoid network delays, for instance.
         testout, time_spent, failed, locked = self.get_result(component,
-                                                             train, test)
-        if locked is not None:
+                                                              train, test)
+        print('failed', failed)
+        if failed is not None:
             component.failed = failed
             component.locked = locked
             if locked:
@@ -87,7 +96,7 @@ class Cache(ABC):
             testout, time_spent = f(train, test)
 
             # Store result.
-            print('memoizing results...')
+            print('memoizing results...  failed?:', component.failed)
             self.store(component, train, test, testout, time_spent)
             print('memoized!')
             print()
@@ -96,3 +105,4 @@ class Cache(ABC):
     @abstractmethod
     def lock(self, component, train, test):
         pass
+

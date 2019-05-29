@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from time import sleep
 
 from paje.base.data import Data
@@ -5,35 +6,15 @@ from paje.result.storage import Cache, unpack, pack
 
 
 class SQL(Cache):
-    def lock(self, component, train, test):
-        if self.debug:
-            print('Locking...')
-        txt = "insert into result values (?, ?, ?, ?, ?, ?, ?, ?)"
-        args = [component.uuid(), train.uuid, test.uuid,
-                None, None, None, None, 1]
-        if not self.result_exists(component, train, test):
-            self.query(txt, args)
-        else:
-            component.error('Combination already exists, while locking...\n' +
-                            'Try to remove lock running:\n' +
-                            self.interpolate('delete from result where '
-                                             'compid=? and trainid=? and '
-                                             'testid=?', args[:3]))
-        self.connection.commit()
-        component.locked = True
-        if self.debug:
-            print('Locked!')
-
     def setup(self):
         if self.debug:
             print('creating tables...')
-        self.query("create table if not exists result "
-                   "(idcomp varchar(32), idtrain varchar(32), "
-                   "idtest varchar(32), "
-                   "testout LONGBLOB, "
-                   "timespent FLOAT, "
-                   "dump LONGBLOB, failed BOOLEAN, locked TINYINT, "
-                   "PRIMARY KEY(idcomp, idtrain, idtest))")
+        self.query("create table if not exists result ("
+                   "idcomp varchar(32), idtrain varchar(32), idtest varchar(32)"
+                   ", testout LONGBLOB, timespent FLOAT, dump LONGBLOB"
+                   ", failed TINYINT"
+                   ", start TIMESTAMP, end TIMESTAMP"
+                   ", PRIMARY KEY(idcomp, idtrain, idtest))")
         # idtest field is not strictly needed for now, but may have some use.
         # self.cursor.execute("CREATE INDEX if not exists idx_res ON result "
         #                     "(idcomp, idtrain, idtest)")
@@ -51,7 +32,30 @@ class SQL(Cache):
         #                     "(iddset)")
         self.connection.commit()
 
-    def got(self):
+    def lock(self, component, test):
+        if self.debug:
+            print('Locking...')
+        txt = "insert into result values (?, ?, ?, ?, ?, ?, ?, " + \
+              self.now_function() + ", '0000-00-00 00:00:00')"
+        args = [component.uuid(), component.uuid_train, test.uuid,
+                None, None, None, 0]
+        self.query(txt, args)
+        self.connection.commit()
+        component.locked = True
+        if self.debug:
+            print('Locked!')
+
+    def result_exists(self, component, train, test):
+        return self.get_result(component, train, test, True) != (None, None,
+                                                                 None, None)
+
+    def component_exists(self, component):
+        return self.get_component(component, True) is not None
+
+    def data_exists(self, data):
+        return data is None or self.get_data(data, True) is not None
+
+    def process_result(self):
         rows = self.cursor.fetchall()
         if rows is None or len(rows) == 0:
             return None
@@ -68,43 +72,27 @@ class SQL(Cache):
             else:
                 return rows[0]
 
-    def result_exists(self, component, train, test):
-        return self.get_result(component, train, test, True) != (None, None,
-                                                                 None, None)
-
-    def component_exists(self, component):
-        return self.get_component(component, True) is not None
-
-    def data_exists(self, data):
-        return data is None or self.get_data(data, True) is not None
-
-    def get_result(self, component, train, test, just_check_exists=False):
+    def get_result(self, component, test):
         """
         Look for a result in database.
-        :param just_check_exists:
-        :param component:
-        :param train:
-        :param test:
-        :param fields_to_store:
         :return:
         """
-        fields = 'testout, timespent, failed, locked'
-        if just_check_exists:
-            fields = '1'
         self.query(
-            f"select {fields} from result where "
+            "select testout, timespent, failed, end from result where "
             "idcomp=? and idtrain=? and idtest=?",
-            [component.uuid(), train.uuid, (test or 0) and test.uuid])
-        res = self.got()
-        if res is None:
-            return None, None, None, None
+            [component.uuid(), component.uuid_train, test.uuid])
+
+        r = self.process_result()
+        if r is None:
+            return None
         else:
-            if just_check_exists:
-                return True, True, True, True
-            data = res[0] and unpack(res[0])
+            data = r[0] and unpack(r[0])
             testout = data and test.sub(component.fields_to_keep_after_use()) \
                 .updated(**data.fields)
-            return testout, res[1], res[2], True if res[3] == 1 else False
+            component.time_spent = r[1]
+            component.failed = True if r[2] == 1 else False
+            component.locked = True if r[3] == '0000-00-00 00:00:00' else False
+            return testout
 
     def get_component(self, component, just_check_exists=False):
         field = 'dic'
@@ -129,11 +117,15 @@ class SQL(Cache):
         else:
             return Data(**unpack(res[0]))
 
-    def get_component_dump(self, component, train, test,
-                           just_check_exists=False):
-        raise NotImplementedError('get model')
+    def store_dset(self, data):
+        if not self.data_exists(data):
+            self.query("insert into dset values (?, ?)",
+                       [data.uuid, pack(data)])
+            self.connection.commit()
+        else:
+            print('Testset already exists:' + data.uuid)
 
-    def store(self, component, train, test, testout, time_spent):
+    def store(self, component, test, testout):
         """
         Unlock component and store result.
         :param component:
@@ -153,32 +145,25 @@ class SQL(Cache):
         #     from paje.module.modelling.classifier.nb import NB
         # TODO: dumps are not saved anymore!
         dump = None
+        uuid_tr = component.uuid_train
         self.query("update result set "
-                   "testout=?, timespent=?, dump=?, failed=?, locked=?"
-                   "where idcomp=? and idtrain=? and idtest=?",
-                   [pack(slimtstout), time_spent, dump, component.failed, 0,
-                    component.uuid(), train.uuid, test.uuid])
+                   "testout=?, timespent=?, dump=?, failed=?, "
+                   "start=start, end=" + self.now_function() +
+                   " where idcomp=? and idtrain=? and idtest=?",
+                   [pack(slimtstout), component.time_spent, dump,
+                    1 if component.failed else 0,
+                    component.uuid(), uuid_tr, test.uuid])
+        self.connection.commit()
 
         if not self.component_exists(component):
             self.query("insert into args values (?, ?)",
                        [component.uuid(), component.serialized()])
+            self.connection.commit()
         else:
             component.warning(
                 'Component already exists:' + str(component.serialized()))
 
-        if not self.data_exists(train):
-            self.query("insert into dset values (?, ?)", [train.uuid,
-                                                          pack(train)])
-        else:
-            component.warning('Trainset already exists:' + train.uuid)
-
-        if not self.data_exists(test):
-            self.query("insert into dset values (?, ?)",
-                       [test.uuid, pack(test)])
-        else:
-            component.warning('Testset already exists:' + test.uuid)
-
-        self.connection.commit()
+        self.store_dset(test)
         component.locked = False
 
     @staticmethod
@@ -205,6 +190,13 @@ class SQL(Cache):
             print()
             print(msg)
             raise e
+
+    def get_component_dump(self, component):
+        raise NotImplementedError('get model')
+
+    @abstractmethod
+    def now_function(self):
+        pass
 
     def __del__(self):
         self.connection.close()

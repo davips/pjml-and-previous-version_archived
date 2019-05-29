@@ -9,12 +9,11 @@ from paje.base.component import Component
 from paje.evaluator.evaluator import Evaluator
 from paje.evaluator.metrics import Metrics
 from paje.module.modules import default_preprocessors, default_modelers
-from paje.result.mysql import MySQL
-from paje.result.sqlite import SQLite
 
 
 class AutoML(Component, ABC):
-    def __init__(self, preprocessors=None, modelers=None, verbose=True,
+    def __init__(self, preprocessors=None, modelers=None,
+                 storage_for_components=None, verbose=True,
                  random_state=0, storage=None,
                  show_warns=True, **kwargs):
         super().__init__(storage, show_warns, **kwargs)
@@ -25,7 +24,8 @@ class AutoML(Component, ABC):
             self.warning('No modelers given')
         self.random_state = random_state
         self.verbose = verbose
-        self.model = 42
+        self.storage_for_components = storage_for_components
+        self.storage = None  # TODO: AutoML is only storing Pipelins for now
 
     def build_impl(self):
         # TODO: uncomment:

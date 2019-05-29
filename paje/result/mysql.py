@@ -30,3 +30,6 @@ class MySQL(SQL):
         if self.debug:
             print('using database', self.db, 'on', self.database, '...')
         self.cursor.execute("use " + self.db)
+
+    def now_function(self):
+        return 'now()'

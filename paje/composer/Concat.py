@@ -24,12 +24,16 @@ class Concat(Pipeline):
         datas = []
         for component in self.components:
             datas.append(component.apply(data))
+            if component.failed:
+                raise Exception('Applying subcomponent failed! ', component)
         return self.concat_list(datas)
 
     def use_impl(self, data):
         datas = []
         for component in self.components:
             datas.append(component.use(data))
+            if component.failed:
+                raise Exception('Using subcomponent failed! ', component)
         return self.concat_list(datas)
 
     # TODO: check if all data shapes match

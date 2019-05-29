@@ -7,6 +7,7 @@ from paje.base.data import Data
 from paje.module.modules import default_preprocessors, default_modelers
 
 # @profile
+from paje.result.mysql import MySQL
 from paje.result.sqlite import SQLite
 
 
@@ -15,9 +16,15 @@ def main():
         print('Usage: \npython toy.py dataset.arff '
               '[memoize? True/False] [iterations] [seed]')
     else:
-        storage = SQLite(debug=not True) if len(argv) >= 3 and argv[2] == \
-                                           'True' \
-            else None
+        # storage = SQLite(debug=not True) if len(argv) >= 3 and argv[2] == \
+        #                                     'True' else None
+        storage = MySQL(debug=True) if len(argv) >= 3 and argv[2] == \
+                                           'True' else None
+        # First setup of a SGBD:
+        # storage.start()
+        # storage.setup()
+        # exit(0)
+
         iterations = 30 if len(argv) < 4 else int(argv[3])
         random_state = 0 if len(argv) < 5 else int(argv[4])
         data = Data.read_arff(argv[1], "class")
@@ -31,12 +38,13 @@ def main():
         testset = Data(X_test)
 
         # SQLite().setup()
-        automl_rs = RandomAutoML(storage=storage,
+        automl_rs = RandomAutoML(storage_for_components=storage,
                                  preprocessors=default_preprocessors,
                                  modelers=default_modelers, max_iter=iterations,
                                  static=False, fixed=False,
                                  max_depth=15, repetitions=2, method="all",
                                  show_warns=False, random_state=random_state)
+        automl_rs.build()
         automl_rs.apply(trainset)
         print("Accuracy score",
               sklearn.metrics.accuracy_score(y_test, automl_rs.use(testset).z)

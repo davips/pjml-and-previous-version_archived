@@ -13,7 +13,6 @@ import numpy as np
 from paje.base.data import Data
 from paje.base.exceptions import ExceptionInApplyOrUse
 from paje.evaluator.time import time_limit
-from paje.result.sqlite import SQLite
 from paje.result.storage import uuid
 
 
@@ -35,14 +34,15 @@ class Component(ABC):
         self.tmp_uuid = uuid4().hex
 
         self.storage = storage
-        self.data_used_for_apply = None
+        self.uuid_train = None
         self.locked = False
         self.failed = False
+        self.time_spent = None
 
         # if True show warnings
         self.show_warns = show_warns
 
-        self.already_serialized = None
+        self.serialized_val = None
 
     @abstractmethod
     def fields_to_store_after_use(self):
@@ -101,30 +101,12 @@ class Component(ABC):
         # TODO: all child classes mark tree_impl as classmethod, turn it into
         #  instance method?
         tree = self.tree_impl(data)
-        self.check(tree)
+        self.check_tree(tree)
         tree.name = self.name
         return tree
 
-    def __str__(self, depth=''):
-        return self.name + " " + str(self.dic)
-
-    __repr__ = __str__
-
-    def warning(self, msg):
-        if self.show_warns:
-            warning(msg)
-
-    def error(self, msg):
-        raise Exception(msg)
-
-    def serialized(self):
-        if self.already_serialized is None:
-            raise ApplyWithoutBuild('build() should be called before '
-                                    'serialized() <-' + self.name)
-        return self.already_serialized
-
     @classmethod
-    def check(cls, tree):
+    def check_tree(cls, tree):
         try:
             dic = tree.dic
         except Exception as e:
@@ -155,9 +137,10 @@ class Component(ABC):
             raise Exception('Problems with hyperparameter space: ' + str(dic))
 
         for child in tree.children:
-            cls.check(child)
+            cls.check_tree(child)
 
     def build(self, **dic):
+        print('sddddddddddd',self)
         # Check if build has already been called.
         if self.already_uuid is not None:
             self.error('Build cannot be called twice!')
@@ -167,104 +150,117 @@ class Component(ABC):
         self.dic = dic
         if self.isdeterministic() and "random_state" in self.dic:
             del self.dic["random_state"]
-        self.already_serialized = json.dumps(self.dic, sort_keys=True).encode()
-        # self.already_serialized = zlib.compress(
-        #     json.dumps(self.dic, sort_keys=True).encode())
+        print('ssssssssssssssss',self)
+        self.serialized_val = json.dumps(self.dic, sort_keys=True).encode()
         self.already_uuid = uuid(self.serialized())
         if 'name' in self.dic:
             del self.dic['name']
         self.build_impl()
-        self.failed = False
         return self
 
-    def handle_exceptions(self, f, maxtime=60):
-        def function(train, test):
-            try:
-                if self.failed or self.locked:
-                    raise Exception('Pipeline already failed/locked before!')
-                if self.storage is not None:
-                    self.storage.lock(self, train, test)
-                with time_limit(maxtime):
-                    start = time.clock()
-                    testout = f(test)
-                    time_spent = time.clock() - start
-            except Exception as e:
-                self.failed = True
-                time_spent = None
-                # Fake predictions for curated errors.
-                self.warning('Trying to circumvent exception: >' + str(e) + '<')
-                msgs = ['All features are either constant or ignored.',  # CB
-                        'be between 0 and min(n_samples, n_features)',  # DR*
-                        'excess of max_free_parameters:',  # MLP
-                        'Pipeline already failed/locked before!',
-                        # Preemptvely avoid
-                        'Timed out!',
-                        'Mahalanobis for too big data',
-                        'MemoryError',
-                        'On entry to DLASCL parameter number',  # Mahala knn
-                        'excess of neighbors!',  # KNN
-                        ]
-
-                if any([str(e).__contains__(msg) for msg in msgs]):
-                    testout = None
-                    self.warning(e)
-                else:
-                    traceback.print_exc()
-                    raise ExceptionInApplyOrUse(e)
-
-            return testout, time_spent
-
-        return function
-
-    def apply(self, data=None):
-        """Todo the doc string
-        """
-        print('Applying component...', self.name)
-        self.data_used_for_apply = data
-        if self.model is None:
-            raise ApplyWithoutBuild('build() should be called before '
-                                    'apply() <-' + self.name)
+    def handle_warnings(self):
         # Mahalanobis in KNN needs to supress warnings due to NaN in linear
         # algebra calculations. MLP is also verbose due to nonconvergence
         # issues among other problems.
         if not self.show_warns:
             np.warnings.filterwarnings('ignore')
 
-        if not data or self.failed or self.locked:
-            self.warning('Trying to apply() failed/locked component or nodata!')
-            return None
-
-        f = self.handle_exceptions(self.apply_impl)
-        if self.storage is None:
-            output_data, time_spent = f(data, data)
-        else:
-            output_data, time_spent = self.storage.get_or_run(
-                self, data, data, f)
-        self.unfit = self.failed or self.locked
-
+    def dishandle_warnings(self):
         if not self.show_warns:
             np.warnings.filterwarnings('always')
+
+    def lock(self, data):
+        if self.storage is None:
+            self.storage.lock(self, data)
+        else:
+            self.locked = True
+
+    def get_result(self, data):
+        return self.storage and self.storage.get_result(self, data)
+
+    def apply(self, data=None):
+        """Todo the doc string
+        """
+        if self.serialized_val is None:
+            raise ApplyWithoutBuild('No serialized_val defined for', self.name)
+
+        # Checklist / get from storage -----------------------------------
+        if data is None:
+            self.warning(f"Applying {self.name} on None returns None.")
+            return None
+
+        print('Trying to apply component...', self.name)
+        self.uuid_train = data.uuid
+        output_data = self.get_result(data)
+
+        if self.locked:
+            self.warning(f"Won't apply on data {self.uuid_train}"
+                         f"Current {self.name} probably working elsewhere.")
+            return output_data
+
+        if self.failed:
+            self.warning(f"Won't apply on data {self.uuid_train}"
+                         f"Current {self.name} already failed before.")
+            return output_data
+
+        # Apply if still needed  ----------------------------------
+        if output_data is None:
+            self.lock(data)
+
+            self.handle_warnings()
+            print('Applying component...', self.name)
+            start = time.clock()
+            output_data = self.apply_impl(data)  # TODO:handle excps mark failed
+            self.time_spent = time.clock() - start
+            print('Component ', self.name, 'applied.')
+            self.dishandle_warnings()
+
+            if self.storage:
+                self.store_data(data)  # Store training set...
+                self.use(data)  # ...and its predictions.
 
         return output_data
 
     def use(self, data: Data = None):
         """Todo the doc string
         """
-        print('Using component...', self.name)
-        if not data or self.failed or self.locked:
-            self.warning('Trying to use() failed/locked component or nodata!')
+        if self.uuid_train is None:
+            raise UseWithoutApply(f'No uuid_train was defined for {self.name}!')
+
+        # Checklist / get from storage -----------------------------------
+        if data is None:
+            self.warning(f"Using {self.name} on None returns None.")
             return None
-        if self.unfit:
-            raise UseWithoutApply('apply() should be called before '
-                                  'use() <-' + self.name)
 
-        f = self.handle_exceptions(self.use_impl)
-        if self.storage is None:
-            output_data, time_spent = f(self.data_used_for_apply, data)
-        else:
-            output_data, time_spent = self.storage.get_or_run(
-                self, self.data_used_for_apply, data, f)
+        print('Trying to use component...', self.name)
+        output_data = self.get_result(data)
 
+        if self.locked:
+            self.warning(f"Won't use on data {data.uuid}"
+                         f"Current {self.name} probably working elsewhere.")
+            return output_data
+
+        if self.failed:
+            self.warning(f"Won't use on data {data.uuid}"
+                         f"Current {self.name} already failed before.")
+            return output_data
+
+        print('Using component...', self.name)
+
+        # Use if still needed  ----------------------------------
+        if output_data is None:
+            self.lock(data)
+
+            self.handle_warnings()
+            print('Using component...', self.name)
+            start = time.clock()
+            output_data = self.use_impl(data)  # TODO:handle excps mark failed
+            self.time_spent = time.clock() - start
+            print('Component ', self.name, 'used.')
+            self.dishandle_warnings()
+
+            if self.storage:
+                self.store_result(data, output_data)
         return output_data
 
     def uuid(self):
@@ -273,6 +269,37 @@ class Component(ABC):
                                     'uuid() <-' + self.name)
         return self.already_uuid
 
+    def __str__(self, depth=''):
+        return self.name + " " + str(self.dic)
+
+    __repr__ = __str__
+
+    def warning(self, msg):
+        if self.show_warns:
+            warning(msg)
+
+    def error(self, msg):
+        raise Exception(msg)
+
+    def serialized(self):
+        if self.serialized_val is None:
+            raise ApplyWithoutBuild('build() should be called before '
+                                    'serialized() <-' + self.name)
+        return self.serialized_val
+
+    def store_data(self, data):
+        if self.storage:
+            self.storage.store_dset(self, data)
+
+    def store_result(self, input_data, output_data):
+        """
+        :param input_data:
+        :param output_data:
+        :return:
+        """
+        if self.storage:
+            self.storage.store(self, input_data, output_data)
+
 
 class UseWithoutApply(Exception):
     pass
@@ -280,3 +307,48 @@ class UseWithoutApply(Exception):
 
 class ApplyWithoutBuild(Exception):
     pass
+
+
+class ExceptionHandler:
+    def handle_exceptions(self, train, test, apply, maxtime=60):
+        try:
+            if not apply and self.unfit:
+                raise UseWithoutApply('build() should be called before '
+                                      'apply() <-' + self.name)
+            elif self.model is None:
+                raise UseWithoutApply('apply() should be called before '
+                                      'use() <-' + self.name)
+
+            if self.storage is not None:
+                self.storage.lock(self, train, test)
+            with time_limit(maxtime):
+                start = time.clock()
+                tstout = self.apply_impl(test) if apply else self.use_impl(test)
+                time_spent = time.clock() - start
+        except Exception as e:
+            self.failed = True
+            time_spent = None
+            # Fake predictions for curated errors.
+            self.warning('Trying to circumvent exception: >' + str(e) + '<')
+            msgs = ['All features are either constant or ignored.',  # CB
+                    'be between 0 and min(n_samples, n_features)',  # DR*
+                    'excess of max_free_parameters:',  # MLP
+                    'Trying to apply/use()',
+                    # Preemptvely avoid
+                    'Timed out!',
+                    'Mahalanobis for too big data',
+                    'MemoryError',
+                    'On entry to DLASCL parameter number',  # Mahala knn
+                    'excess of neighbors!',  # KNN
+                    'subcomponent failed',  # nested failure
+                    'Combination already exists, while locking',
+                    ]
+
+            if any([str(e).__contains__(msg) for msg in msgs]):
+                tstout = None
+                self.warning(e)
+            else:
+                traceback.print_exc()
+                raise ExceptionInApplyOrUse(e)
+
+        return tstout, time_spent

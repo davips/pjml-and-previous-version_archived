@@ -22,7 +22,6 @@ class Switch(Composer):
         dic = dics[0].copy()
         dic['random_state'] = self.dic['random_state']  # TODO: check this
         del dic["component"]
-        print('swithccccc', dic)
         # TODO: is switch ready?
 
         self.components = [self.components[component_idx].build(**dic)]
@@ -37,7 +36,7 @@ class Switch(Composer):
                 idx, component.name)]]}, [tree])
             forest.append(comp_hptree)
 
-        return HPTree({}, children=forest)
+        return HPTree({}, children=forest, name=self.name)
 
     def __str__(self, depth=''):
         newdepth = depth + '    '

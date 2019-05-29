@@ -11,3 +11,6 @@ class SQLite(SQL):
     def start(self):
         self.connection = sqlite3.connect(self.database)
         self.cursor = self.connection.cursor()
+
+    def now_function(self):
+        return 'datetime()'

@@ -62,7 +62,8 @@ class HPTree(object):
                 args, last = self.moduletree_to_dic(tree)
                 children = last.children
             argss.append(args)
-        return {'dics': argss}, tree.children
+        # Remove 'End' from EndPipeline, EndConcat etc.
+        return {'name':tree.name[3:], 'dics': argss}, tree.children
 
     def __str__(self, depth=''):
         rows = [str(self.dic)]

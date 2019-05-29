@@ -40,13 +40,11 @@ class Pipeline(Composer):
             # component.instantiate(**dic)
 
     def set_leaf(self, tree, f):
-        # TODO: verify why there is a excess of EndPipelines
-        # print('setleaf',tree.name)
         if len(tree.children) > 0:
             for child in tree.children:
                 self.set_leaf(child, f)
         else:
-            if not (tree.name.startswith('End')
+            if not (tree.name and tree.name.startswith('End')
                     and tree.tmp_uuid == self.tmp_uuid):
                 tree.children.append(f())
 
@@ -63,7 +61,7 @@ class Pipeline(Composer):
             for i in reversed(range(1, len(trees))):
                 self.set_leaf(trees[i - 1], lambda: trees[i])
 
-            self.mytree = HPTree({}, [trees[0]], self.name)
+            self.mytree = HPTree({}, [trees[0]], name=self.name)
 
         return self.mytree
 

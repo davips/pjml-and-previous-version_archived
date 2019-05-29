@@ -15,9 +15,13 @@ class Composer(Component):
     def apply_impl(self, data):
         for component in self.components:
             data = component.apply(data)
+            if component.failed:
+                raise Exception('Applying subcomponent failed! ', component)
         return data
 
     def use_impl(self, data):
         for component in self.components:
             data = component.use(data)
+            if component.failed:
+                raise Exception('Using subcomponent failed! ', component)
         return data
