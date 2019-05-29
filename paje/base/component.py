@@ -39,7 +39,6 @@ class Component(ABC):
         self.failed = False
         self.time_spent = None
         self.max_time = max_time
-        self.discard_new_time = False
 
         # if True show warnings
         self.show_warns = show_warns
@@ -197,12 +196,12 @@ class Component(ABC):
         output_data = self.get_result(data)
 
         if self.locked:
-            self.warning(f"Won't apply on data {self.uuid_train}"
+            self.warning(f"Won't apply on data {self.uuid_train}\n"
                          f"Current {self.name} probably working elsewhere.")
             return output_data
 
         if self.failed:
-            self.warning(f"Won't apply on data {self.uuid_train}"
+            self.warning(f"Won't apply on data {self.uuid_train}\n"
                          f"Current {self.name} already failed before.")
             return output_data
 
@@ -222,16 +221,15 @@ class Component(ABC):
             except Exception as e:
                 self.failed = False
                 handle_exception(self, e)
-            if not self.discard_new_time:
-                self.time_spent = time.clock() - start
+            self.time_spent = time.clock() - start
             self.log('Component ' + self.name + ' applied.')
             self.dishandle_warnings()
 
-            if self.storage:
+            if self.storage is not None:
                 self.store_data(data)  # Store training set...
-                self.discard_new_time = True  # ...and time spent training...
-                self.use(data)  # ...and the training predictions.
-                self.discard_new_time = False
+                output_train_data = self.use_impl(
+                    data)  # ...and its predictions.
+                self.store_result(data, output_train_data)
 
         return output_data
 
@@ -249,12 +247,12 @@ class Component(ABC):
         output_data = self.get_result(data)
 
         if self.locked:
-            self.warning(f"Won't use on data {data.uuid}"
+            self.warning(f"Won't use on data {data.uuid}\n"
                          f"Current {self.name} probably working elsewhere.")
             return output_data
 
         if self.failed:
-            self.warning(f"Won't use on data {data.uuid}"
+            self.warning(f"Won't use on data {data.uuid}\n"
                          f"Current {self.name} already failed before.")
             return output_data
 
@@ -268,13 +266,12 @@ class Component(ABC):
             # TODO: put time limit and/or exception handling like in apply()?
             start = time.clock()
             output_data = self.use_impl(data)  # TODO:handle excps mark failed
-            if not self.discard_new_time:
-                self.time_spent = time.clock() - start
+            self.time_spent = time.clock() - start
 
             self.log('Component ' + self.name + 'used.')
             self.dishandle_warnings()
 
-            if self.storage:
+            if self.storage is not None:
                 self.store_result(data, output_data)
         return output_data
 
@@ -307,8 +304,7 @@ class Component(ABC):
         return self.cached_serialization
 
     def store_data(self, data):
-        if self.storage:
-            self.storage.store_dset(data)
+        self.storage.store_dset(data)
 
     def store_result(self, input_data, output_data):
         """
@@ -316,5 +312,4 @@ class Component(ABC):
         :param output_data:
         :return:
         """
-        if self.storage:
-            self.storage.store(self, input_data, output_data)
+        self.storage.store(self, input_data, output_data)
