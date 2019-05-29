@@ -9,7 +9,6 @@ from uuid import uuid4
 
 import numpy as np
 
-from paje.base.data import Data
 from paje.base.exceptions import ApplyWithoutBuild, UseWithoutApply, \
     handle_exception
 from paje.evaluator.time import time_limit

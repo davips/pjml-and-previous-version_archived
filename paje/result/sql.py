@@ -128,16 +128,13 @@ class SQL(Cache):
 
     def store(self, component, test, testout):
         """
-        Unlock component and store result.
+
         :param component:
-        :param train:
         :param test:
         :param testout:
-        :param time_spent:
         :return:
         """
-        slimtstout = testout and testout.sub(
-            component.fields_to_store_after_use())
+        slimout = testout and testout.sub(component.fields_to_store_after_use())
         # try:
         #     dump = pack(component)
         # except:
@@ -151,18 +148,17 @@ class SQL(Cache):
                    "testout=?, timespent=?, dump=?, failed=?, "
                    "start=start, end=" + self.now_function() +
                    " where idcomp=? and idtrain=? and idtest=?",
-                   [pack(slimtstout), component.time_spent, dump,
+                   [pack(slimout), component.time_spent, dump,
                     1 if component.failed else 0,
                     component.uuid(), uuid_tr, test.uuid])
-        self.connection.commit()
 
         if not self.component_exists(component):
             self.query("insert into args values (?, ?)",
                        [component.uuid(), component.serialized()])
-            self.connection.commit()
         else:
             component.warning(
                 'Component already exists:' + str(component.serialized()))
+        self.connection.commit()
 
         self.store_dset(test)
         component.locked = False

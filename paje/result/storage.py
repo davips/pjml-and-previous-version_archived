@@ -79,29 +79,6 @@ class Cache(ABC):
     def store(self, component, test, testout):
         pass
 
-    # @profile
-    def get_or_run(self, component, train, test, f):
-        # TODO: Repeated calls to this function with the same parameters can
-        #  be memoized, to avoid network delays, for instance.
-        testout, time_spent, failed, locked = self.get_result(component,
-                                                              train, test)
-        print('failed', failed)
-        if failed is not None:
-            component.failed = failed
-            component.locked = locked
-            if locked:
-                component.warning('Already locked!')
-        else:
-            # Process data...
-            testout, time_spent = f(train, test)
-
-            # Store result.
-            print('memoizing results...  failed?:', component.failed)
-            self.store(component, train, test, testout, time_spent)
-            print('memoized!')
-            print()
-        return testout, time_spent
-
     @abstractmethod
     def lock(self, component, train, test):
         pass

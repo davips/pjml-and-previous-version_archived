@@ -26,16 +26,16 @@ def main():
         for dataset in datasets:
             data = Data.read_arff(path + dataset, "class")
             component = mfe.build()
-            output_train, _ = storage.get_or_run(component, data,
-                                                 fields_to_store=['X'],
-                                                 fields_to_keep=[])
-            rows.append(output_train.X[0])
-
-        X = np.array(rows)
-        noop = Noop()
-        component = noop.build()
-        metadata = Data(X=X, Y=[[round(x) for x in X[..., 0]]])
-        storage.get_or_run(component, metadata, Data(), fields_to_store=['X'])
+        #     output_train, _ = storage.get_or_run(component, data,
+        #                                          fields_to_store=['X'],
+        #                                          fields_to_keep=[])
+        #     rows.append(output_train.X[0])
+        #
+        # X = np.array(rows)
+        # noop = Noop()
+        # component = noop.build()
+        # metadata = Data(X=X, Y=[[round(x) for x in X[..., 0]]])
+        # storage.get_or_run(component, metadata, Data(), fields_to_store=['X'])
 
         nb = NB().build()
         nb.apply(metadata)
