@@ -140,13 +140,14 @@ class SQL(Cache):
         #     from paje.module.modelling.classifier.nb import NB
         # TODO: dumps are not saved anymore!
         dump = None
+        fail = 1 if component.failed else 0
+        now = self.now_function()
         uuid_tr = component.uuid_train
-        self.query("update result set "
-                   "testout=?, timespent=?, dump=?, failed=?, "
-                   "start=start, end=" + self.now_function() +
-                   " where idcomp=? and idtrain=? and idtest=?",
-                   [pack(slimout), component.time_spent, dump,
-                    1 if component.failed else 0,
+        setters = f"testout=?, timespent=?, dump=?, failed=?"
+        conditions = "idcomp=? and idtrain=? and idtest=?"
+        self.query(f"update result set {setters}, start=start, end={now} "
+                   f"where {conditions}",
+                   [pack(slimout), component.time_spent, dump, fail,
                     component.uuid(), uuid_tr, test.uuid])
 
         if not self.component_exists(component):
