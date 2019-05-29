@@ -42,7 +42,7 @@ class Component(ABC):
 
         # if True show warnings
         self.show_warns = show_warns
-        self.show_logs = False
+        self.show_logs = not False
 
         self.cached_serialization = None
 
@@ -171,10 +171,9 @@ class Component(ABC):
             np.warnings.filterwarnings('always')
 
     def lock(self, data):
-        if self.storage is None:
-            self.locked = True
-        else:
+        if self.storage is not None:
             self.storage.lock(self, data)
+            self.log('Locked!')
 
     def get_result(self, data):
         return self.storage and self.storage.get_result(self, data)
@@ -194,15 +193,14 @@ class Component(ABC):
         # print('Trying to apply component...', self.name)
         self.uuid_train = data.uuid
         output_data = self.get_result(data)
-
         if self.locked:
-            self.warning(f"Won't apply on data {self.uuid_train}\n"
-                         f"Current {self.name} probably working elsewhere.")
+            self.log(f"Won't apply on data {self.uuid_train}\n"
+                     f"Current {self.name} probably working elsewhere.")
             return output_data
 
         if self.failed:
-            self.warning(f"Won't apply on data {self.uuid_train}\n"
-                         f"Current {self.name} already failed before.")
+            self.log(f"Won't apply on data {self.uuid_train}\n"
+                     f"Current {self.name} already failed before.")
             return output_data
 
         # Apply if still needed  ----------------------------------
@@ -219,16 +217,15 @@ class Component(ABC):
                     with time_limit(self.max_time):
                         output_data = self.apply_impl(data)
             except Exception as e:
-                self.failed = False
+                self.failed = True
                 handle_exception(self, e)
             self.time_spent = time.clock() - start
             self.log('Component ' + self.name + ' applied.')
             self.dishandle_warnings()
 
             if self.storage is not None:
-                self.store_data(data)  # Store training set...
-                output_train_data = self.use_impl(
-                    data)  # ...and its predictions.
+                self.store_data(data)  # Store training set.
+                output_train_data = None if self.failed else self.use_impl(data)
                 self.store_result(data, output_train_data)
 
         return output_data
@@ -241,19 +238,19 @@ class Component(ABC):
 
         # Checklist / get from storage -----------------------------------
         if data is None:
-            self.warning(f"Using {self.name} on None returns None.")
+            self.log(f"Using {self.name} on None returns None.")
             return None
 
         output_data = self.get_result(data)
 
         if self.locked:
-            self.warning(f"Won't use on data {data.uuid}\n"
-                         f"Current {self.name} probably working elsewhere.")
+            self.log(f"Won't use on data {data.uuid}\n"
+                     f"Current {self.name} probably working elsewhere.")
             return output_data
 
         if self.failed:
-            self.warning(f"Won't use on data {data.uuid}\n"
-                         f"Current {self.name} already failed before.")
+            self.log(f"Won't use on data {data.uuid}\n"
+                     f"Current {self.name} already failed before.")
             return output_data
 
         # Use if still needed  ----------------------------------

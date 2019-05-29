@@ -41,9 +41,6 @@ class SQL(Cache):
                 None, None, None, 0]
         self.query(txt, args)
         self.connection.commit()
-        component.locked = True
-        if self.debug:
-            print('Locked!')
 
     def result_exists(self, component, train, test):
         return self.get_result(component, train, test, True) != (None, None,
@@ -161,7 +158,6 @@ class SQL(Cache):
         self.connection.commit()
 
         self.store_dset(test)
-        component.locked = False
         print('Stored!')
 
     @staticmethod
