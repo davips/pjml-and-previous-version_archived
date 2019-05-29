@@ -130,7 +130,7 @@ class SQL(Cache):
                 return rows[0]
 
     def data_exists(self, data):
-        return data is None or self.get_data(data, True) is not None
+        return self.get_data(data, True) is not None
 
     def component_exists(self, component):
         return self.get_component(component, True) is not None
@@ -173,15 +173,13 @@ class SQL(Cache):
             raise e
 
     def get_data(self, data, just_check_exists=False):
-        field = 'data'
-        if just_check_exists:
-            field = '1'
+        field = '1' if just_check_exists else 'data'
         self.query(f'select {field} from dset where iddset=?', [data.uuid])
         res = self._process_result()
         if res is None:
-            return None, None
+            return None
         else:
-            return Data(**unpack(res[0]))
+            return just_check_exists or Data(**unpack(res[0]))
 
     def get_component_dump(self, component):
         raise NotImplementedError('get model')
@@ -192,4 +190,3 @@ class SQL(Cache):
 
     def __del__(self):
         self.connection.close()
-
