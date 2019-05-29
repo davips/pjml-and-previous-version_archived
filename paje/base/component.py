@@ -38,6 +38,7 @@ class Component(ABC):
         self.locked = False
         self.failed = False
         self.time_spent = None
+        self.node = None
         self.max_time = max_time
 
         # if True show warnings
@@ -194,8 +195,8 @@ class Component(ABC):
         self.uuid_train = data.uuid
         output_data = self.get_result(data)
         if self.locked:
-            self.log(f"Won't apply on data {self.uuid_train}\n"
-                     f"Current {self.name} probably working elsewhere.")
+            print(f"Won't apply {self.name} on data {self.uuid_train}\n"
+                     f"Current probably working at node [{self.node}].")
             return output_data
 
         if self.failed:
@@ -244,8 +245,8 @@ class Component(ABC):
         output_data = self.get_result(data)
 
         if self.locked:
-            self.log(f"Won't use on data {data.uuid}\n"
-                     f"Current {self.name} probably working elsewhere.")
+            self.log(f"Won't use {self.name} on data {self.uuid_train}\n"
+                     f"Current probably working at {self.node}.")
             return output_data
 
         if self.failed:
