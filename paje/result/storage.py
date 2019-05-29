@@ -1,13 +1,8 @@
 import codecs
 import hashlib
-import time
-import traceback
 from abc import ABC, abstractmethod
 
 import _pickle as pickle
-
-from paje.base.exceptions import ExceptionInApplyOrUse
-from paje.evaluator.time import time_limit
 
 
 # @profile
@@ -59,7 +54,6 @@ class Cache(ABC):
     def store(self, component, test, testout):
         pass
 
-
     # TODO: other useful methods implemented by sql.py,
     #  but not used direcly by Component.
     # @abstractmethod
@@ -81,4 +75,3 @@ class Cache(ABC):
     # @abstractmethod
     # def get_data(self, data):
     #     pass
-

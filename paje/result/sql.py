@@ -65,6 +65,7 @@ class SQL(Cache):
             return testout
 
     def store_dset(self, data):
+        print('1111111111', self.data_exists(data))
         if not self.data_exists(data):
             self.query("insert into dset values (?, ?)",
                        [data.uuid, pack(data)])
