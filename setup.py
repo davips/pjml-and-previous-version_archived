@@ -21,7 +21,8 @@ setup(name='paje',
           "imbalanced-learn",
           "liac-arff",
           "numpy",
-          "pandas"
+          "pandas",
+          "pymysql"
       ],
       setup_requires=["pytest-runner"],
       tests_require=["pytest"],
