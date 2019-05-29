@@ -42,7 +42,7 @@ class Component(ABC):
 
         # if True show warnings
         self.show_warns = show_warns
-        self.show_logs = not False
+        self.show_logs = False
 
         self.cached_serialization = None
 
