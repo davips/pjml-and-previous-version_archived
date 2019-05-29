@@ -140,7 +140,7 @@ class SQL(Cache):
             field = '1'
         self.query(f'select {field} from args where idcomp=?',
                    [component.uuid()])
-        res = self.process_result()
+        res = self._process_result()
         if res is None:
             return None
         else:
@@ -176,7 +176,7 @@ class SQL(Cache):
         if just_check_exists:
             field = '1'
         self.query(f'select {field} from dset where iddset=?', [data.uuid])
-        res = self.process_result()
+        res = self._process_result()
         if res is None:
             return None, None
         else:
