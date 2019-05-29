@@ -13,7 +13,7 @@ class MySQL(SQL):
         self.user, self.host = database.split('@')
         self.debug = debug
 
-    def start(self):
+    def open(self):
         if self.debug:
             print('getting connection...')
         self.connection = pymysql.connect(host=self.host,
@@ -27,7 +27,7 @@ class MySQL(SQL):
 
         # Create db if it doesn't exist yet.
         self.query(f"SHOW DATABASES LIKE '{self.db}'")
-        if self.process_result() is None:
+        if self._process_result() is None:
             if self.debug:
                 print('creating database', self.db, 'on', self.database, '...')
             self.cursor.execute("create database if not exists " + self.db)

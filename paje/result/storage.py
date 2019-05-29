@@ -36,7 +36,7 @@ class Cache(ABC):
     """
 
     @abstractmethod
-    def start(self):
+    def open(self):
         pass
 
     @abstractmethod
@@ -44,31 +44,11 @@ class Cache(ABC):
         pass
 
     @abstractmethod
-    def get_result(self, component, data):
-        pass
-
-    @abstractmethod
     def lock(self, component, test):
         pass
 
     @abstractmethod
-    def get_component_dump(self, component):
-        pass
-
-    @abstractmethod
-    def get_component(self, component, just_check_exists=False):
-        pass
-
-    @abstractmethod
-    def result_exists(self, component, train, test):
-        pass
-
-    @abstractmethod
-    def data_exists(self, data):
-        pass
-
-    @abstractmethod
-    def get_data(self, data):
+    def get_result(self, component, data):
         pass
 
     @abstractmethod
@@ -79,7 +59,26 @@ class Cache(ABC):
     def store(self, component, test, testout):
         pass
 
-    @abstractmethod
-    def lock(self, component, train, test):
-        pass
+
+    # TODO: other useful methods implemented by sql.py,
+    #  but not used direcly by Component.
+    # @abstractmethod
+    # def get_component_dump(self, component):
+    #     pass
+    #
+    # @abstractmethod
+    # def get_component(self, component, just_check_exists=False):
+    #     pass
+    #
+    # @abstractmethod
+    # def result_exists(self, component, train, test):
+    #     pass
+    #
+    # @abstractmethod
+    # def data_exists(self, data):
+    #     pass
+    #
+    # @abstractmethod
+    # def get_data(self, data):
+    #     pass
 

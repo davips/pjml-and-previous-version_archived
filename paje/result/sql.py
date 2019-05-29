@@ -42,33 +42,6 @@ class SQL(Cache):
         self.query(txt, args)
         self.connection.commit()
 
-    def result_exists(self, component, train, test):
-        return self.get_result(component, train, test, True) != (None, None,
-                                                                 None, None)
-
-    def component_exists(self, component):
-        return self.get_component(component, True) is not None
-
-    def data_exists(self, data):
-        return data is None or self.get_data(data, True) is not None
-
-    def process_result(self):
-        rows = self.cursor.fetchall()
-        if rows is None or len(rows) == 0:
-            return None
-        else:
-            if len(rows) is not 1:
-                for r in rows:
-                    print(r)
-                # TODO: use general error handling to show messages
-                print('get_model: exiting sql...')
-                exit(0)
-            from paje.result.mysql import MySQL
-            if isinstance(self, MySQL):
-                return list(rows[0].values())
-            else:
-                return rows[0]
-
     def get_result(self, component, test):
         """
         Look for a result in database.
@@ -79,7 +52,7 @@ class SQL(Cache):
             "idcomp=? and idtrain=? and idtest=?",
             [component.uuid(), component.uuid_train, test.uuid])
 
-        r = self.process_result()
+        r = self._process_result()
         if r is None:
             return None
         else:
@@ -90,29 +63,6 @@ class SQL(Cache):
             component.failed = True if r[2] == 1 else False
             component.locked = True if r[3] == '0000-00-00 00:00:00' else False
             return testout
-
-    def get_component(self, component, just_check_exists=False):
-        field = 'dic'
-        if just_check_exists:
-            field = '1'
-        self.query(f'select {field} from args where idcomp=?',
-                   [component.uuid()])
-        res = self.process_result()
-        if res is None:
-            return None
-        else:
-            return res[0]
-
-    def get_data(self, data, just_check_exists=False):
-        field = 'data'
-        if just_check_exists:
-            field = '1'
-        self.query(f'select {field} from dset where iddset=?', [data.uuid])
-        res = self.process_result()
-        if res is None:
-            return None, None
-        else:
-            return Data(**unpack(res[0]))
 
     def store_dset(self, data):
         if not self.data_exists(data):
@@ -161,6 +111,41 @@ class SQL(Cache):
         self.store_dset(test)
         print('Stored!')
 
+    def _process_result(self):
+        rows = self.cursor.fetchall()
+        if rows is None or len(rows) == 0:
+            return None
+        else:
+            if len(rows) is not 1:
+                for r in rows:
+                    print(r)
+                # TODO: use general error handling to show messages
+                print('get_model: exiting sql...')
+                exit(0)
+            from paje.result.mysql import MySQL
+            if isinstance(self, MySQL):
+                return list(rows[0].values())
+            else:
+                return rows[0]
+
+    def data_exists(self, data):
+        return data is None or self.get_data(data, True) is not None
+
+    def component_exists(self, component):
+        return self.get_component(component, True) is not None
+
+    def get_component(self, component, just_check_exists=False):
+        field = 'dic'
+        if just_check_exists:
+            field = '1'
+        self.query(f'select {field} from args where idcomp=?',
+                   [component.uuid()])
+        res = self.process_result()
+        if res is None:
+            return None
+        else:
+            return res[0]
+
     @staticmethod
     def interpolate(sql, lst):
         zipped = zip(sql.replace('?', '"?"').split('?'), map(str, lst + ['']))
@@ -186,6 +171,17 @@ class SQL(Cache):
             print(msg)
             raise e
 
+    def get_data(self, data, just_check_exists=False):
+        field = 'data'
+        if just_check_exists:
+            field = '1'
+        self.query(f'select {field} from dset where iddset=?', [data.uuid])
+        res = self.process_result()
+        if res is None:
+            return None, None
+        else:
+            return Data(**unpack(res[0]))
+
     def get_component_dump(self, component):
         raise NotImplementedError('get model')
 
@@ -195,3 +191,4 @@ class SQL(Cache):
 
     def __del__(self):
         self.connection.close()
+

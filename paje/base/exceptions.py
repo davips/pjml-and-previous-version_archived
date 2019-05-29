@@ -3,8 +3,6 @@ import traceback
 msgs = ['All features are either constant or ignored.',  # CB
         'be between 0 and min(n_samples, n_features)',  # DR*
         'excess of max_free_parameters:',  # MLP
-        # 'Trying to apply/use()',
-        # Preemptvely avoid
         'Timed out!',
         'Mahalanobis for too big data',
         'MemoryError',

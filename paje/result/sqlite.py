@@ -8,7 +8,7 @@ class SQLite(SQL):
         self.database = database
         self.debug = debug
 
-    def start(self):
+    def open(self):
         self.connection = sqlite3.connect(self.database)
         self.cursor = self.connection.cursor()
 

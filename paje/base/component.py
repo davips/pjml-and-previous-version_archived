@@ -147,7 +147,7 @@ class Component(ABC):
             self.error('Build cannot be called twice!')
         self = copy.copy(self)
         if self.storage is not None:
-            self.storage.start()
+            self.storage.open()
         self.dic = dic
         if self.isdeterministic() and "random_state" in self.dic:
             del self.dic["random_state"]
