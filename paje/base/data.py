@@ -95,19 +95,26 @@ class Data:
 
     @staticmethod
     def read_arff(file, target):
-        try:
-            data = arff.load(open(file, 'r'), encode_nominal=True)
+        data = arff.load(open(file, 'r'), encode_nominal=True)
 
-            columns = data["attributes"]
-            df = pd.DataFrame(data['data'],
-                              columns=[attr[0] for attr in data['attributes']])
+        columns = data["attributes"]
+        df = pd.DataFrame(data['data'],
+                          columns=[attr[0] for attr in data['attributes']])
 
-            Y = [df.pop(target).values]
-            X = df.values.astype('float')
-        except:
-            raise Exception('Problems loading ', file)
+        Y = np.array([df.pop(target).values])
+        X = df.values.astype('float')
 
-        return Data(X, Y, columns, name=file)
+        return Data(X=X, Y=Y, columns=columns, name=file)
+
+    @staticmethod
+    def read_csv(file, target):
+        df = pd.read_csv(file)
+        Y = np.array([df.pop(target).values])
+        columns = df.columns
+        X = df.values.astype('float')
+
+        return Data(X=X, Y=Y, columns=columns, name=file)
+
 
     @staticmethod
     def random(n_attributes, n_classes, n_instances):

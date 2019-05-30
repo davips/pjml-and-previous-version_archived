@@ -46,17 +46,17 @@ class SQL(Cache):
         r = self._process_result()
         if r is None:
             return None
-        else:
-            data = r[0] and unpack(r[0])
-            testout = data and test.sub(component.fields_to_keep_after_use()) \
-                .updated(**data.fields)
-            component.time_spent = r[1]
-            component.failed = True if r[2] == 1 else False
-            component.locked = True if r[3] == '0000-00-00 00:00:00' else False
-            component.node = r[4]
-            return testout
 
-    def store_data(self, data):
+        data = r[0] and unpack(r[0])
+        testout = data and test.sub(component.fields_to_keep_after_use()) \
+            .updated(**data.fields)
+        component.time_spent = r[1]
+        component.failed = r[2] == 1
+        component.locked = r[3] == '0000-00-00 00:00:00'
+        component.node = r[4]
+        return testout
+
+    def store_dset(self, data):
         if not self.data_exists(data):
             self.query("insert into dset values (?, ?)",
                        [data.uuid, pack(data)])
