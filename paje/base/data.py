@@ -18,9 +18,9 @@ class Data:
         self.q = q  # Predicted probabilities for unlabeled set
     """
 
-    def __init__(self, X=None, Y=None, Z=None, P=None,
+    def __init__(self, name, X=None, Y=None, Z=None, P=None,
                  U=None, V=None, W=None, Q=None,
-                 columns=None, name=None):
+                 columns=None):
         # Init instance vars and dic to factory new instances in the future.
         args = {k: v for k, v in locals().items() if k != 'self'}
         self.__dict__.update(args)
@@ -36,7 +36,8 @@ class Data:
                 raise e
 
         alldata = X, Y, Z, U, V, W, P, Q
-        serialized = pack(alldata)
+
+
 
         # Consider the first non None list in the args for extracting metadata.
         def get_first_non_none(l):
@@ -47,9 +48,10 @@ class Data:
         n_instances = len(get_first_non_none(alldata))
         n_attributes = len(get_first_non_none([X, U])[0])
         fields = {k: v for k, v in self._dic.items() if v is not None}
+        id = uuid(pack(alldata))
 
         def dematrixfy(m):
-            return m[0] if m is not None else None
+            return m and m[0]
 
         self.__dict__.update({
             'n_classes': n_classes,
@@ -60,9 +62,9 @@ class Data:
             # 'predictions': {k: v for k, v in dic.items()
             #                 if k in ['z', 'w', 'p', 'q']},
             'all': alldata,
-            'serialized': serialized,
-            'uuid': uuid(serialized),
-            'fields': fields
+            'uuid': id,
+            'fields': fields,
+            'name': (name or id) +'_'+','.join(non_nones)
         })
 
         # Add vectorized shortcuts for matrices.
@@ -104,7 +106,7 @@ class Data:
         Y = np.array([df.pop(target).values])
         X = df.values.astype('float')
 
-        return Data(X=X, Y=Y, columns=columns, name=file)
+        return Data(file, X=X, Y=Y, columns=columns)
 
     @staticmethod
     def read_csv(file, target):
@@ -114,8 +116,7 @@ class Data:
         columns = df.columns
         X = df.values.astype('float')
 
-        return Data(X=X, Y=Y, columns=columns, name=file)
-
+        return Data(file, X=X, Y=Y, columns=columns)
 
     @staticmethod
     def random(n_attributes, n_classes, n_instances):
@@ -124,29 +125,29 @@ class Data:
                                       n_classes=n_classes,
                                       n_informative=int(
                                           np.sqrt(2 * n_classes)) + 1)
-        return Data(X, [y])
-
+        return Data(None, X, [y])
 
     def updated(self, **kwargs):
         dic = self._dic.copy()
         dic.update(kwargs)
         for l in self.vectors:
             if l in dic:
-                dic[l.upper()] = [dic.pop(l)]
+                dic[l.upper()] = np.array([dic.pop(l)])
         return Data(**dic)
 
     def select(self, fields):
         # Convert vectorized shortcuts to matrices.
         fields = [(x.upper() if x in self.vectors else x) for x in fields]
+
         return {k: v for k, v in self._dic.items() if k in fields}
 
     def sub(self, fields):
         return Data(**self.select(fields))
 
-    def __setattr__(self, name, value):
+    def __setattr__(self, attr, value):
         raise MutabilityException(
             'Cannot set attributes on Data! (%s %r)'
-            % (self.__class__.__name__, name))
+            % (self.__class__.__name__, attr))
 
     def _set(self, attr, value):
         object.__setattr__(self, attr, value)
