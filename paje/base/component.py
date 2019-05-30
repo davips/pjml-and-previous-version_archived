@@ -2,7 +2,7 @@
 """
 import copy
 import json
-import time
+import os
 from abc import ABC, abstractmethod
 from logging import warning
 from uuid import uuid4
@@ -196,7 +196,7 @@ class Component(ABC):
         output_data = self.get_result(data)
         if self.locked:
             print(f"Won't apply {self.name} on data {self.uuid_train}\n"
-                     f"Current probably working at node [{self.node}].")
+                  f"Current probably working at node [{self.node}].")
             return output_data
 
         if self.failed:
@@ -210,7 +210,7 @@ class Component(ABC):
 
             self.handle_warnings()
             self.log('Applying component' + self.name + '...')
-            start = time.clock()
+            start = self.clock()
             try:
                 if self.max_time is None:
                     output_data = self.apply_impl(data)
@@ -220,7 +220,7 @@ class Component(ABC):
             except Exception as e:
                 self.failed = True
                 handle_exception(self, e)
-            self.time_spent = time.clock() - start
+            self.time_spent = self.clock() - start
             self.log('Component ' + self.name + ' applied.')
             self.dishandle_warnings()
 
@@ -262,9 +262,9 @@ class Component(ABC):
             print('Using component', self.name, '...')
 
             # TODO: put time limit and/or exception handling like in apply()?
-            start = time.clock()
+            start = self.clock()
             output_data = self.use_impl(data)  # TODO:handle excps mark failed
-            self.time_spent = time.clock() - start
+            self.time_spent = self.clock() - start
 
             self.log('Component ' + self.name + 'used.')
             self.dishandle_warnings()
@@ -311,3 +311,7 @@ class Component(ABC):
         :return:
         """
         self.storage.store(self, input_data, output_data)
+
+    def clock(self):
+        usage = os.times()
+        return usage[0] + usage[1]
