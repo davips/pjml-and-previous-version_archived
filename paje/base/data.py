@@ -134,7 +134,9 @@ class Data:
             if l in dic:
                 L = l.upper()
                 dic[L] = as_column_vector(dic.pop(l))
-        return Data(name=self.name(), **dic)
+        if 'name' not in dic:
+            dic['name'] = self.name()
+        return Data(**dic)
 
     def select(self, fields):
         """
@@ -189,8 +191,8 @@ class Data:
         train_size = 0.25  # TODO: set it as parameter
         name = f'{self.name()}_seed{random_state}_split{train_size}_fold'
         trainset = Data(name=name + '0', X=X_train).updated(y=y_train)
-        testset = Data(name=name + '1', X=X_test)
-        return trainset, testset, y_test
+        testset = Data(name=name + '1', X=X_test).updated(y=y_test)
+        return trainset, testset
 
 
 class MutabilityException(Exception):

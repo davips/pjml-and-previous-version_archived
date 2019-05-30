@@ -33,7 +33,7 @@ def main():
         for a in argv:
             print(a)
         print('seed=', random_state)
-        trainset, testset, y = data.split()
+        trainset, testset = data.split()
 
         # SQLite().setup()
         automl_rs = RandomAutoML(storage_for_components=storage,
@@ -45,7 +45,7 @@ def main():
                                  random_state=random_state).build()
         automl_rs.apply(trainset)
         testout = automl_rs.use(testset)
-        print("Accuracy score", Metrics.error(testout.updated(y=y)))
+        print("Accuracy score", Metrics.error(testout))
         print()
 
 

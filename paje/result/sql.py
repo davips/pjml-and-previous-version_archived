@@ -50,9 +50,9 @@ class SQL(Cache):
         if result is None:
             return None
 
-        fields = result[0] and unpack(result[0])
-        testout = fields and test.sub(component.fields_to_keep_after_use()) \
-            .updated(**fields)
+        dic = result[0] and unpack(result[0])
+        testout = dic and \
+                  test.sub(component.fields_to_keep_after_use()).updated(**dic)
         component.time_spent = result[1]
         component.failed = result[2] == 1
         component.locked = result[3] == '0000-00-00 00:00:00'
