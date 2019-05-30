@@ -46,4 +46,4 @@ class Concat(Pipeline):
         for attr in self.matrices:
             M = reduce(lambda A, B: self.concat(A, B, attr), datas)
             dic[attr] = M
-        return Data(**dic)
+        return Data(name='concat', **dic) #TODO: choose a proper name

@@ -1,6 +1,7 @@
 import arff
 import numpy as np
 import pandas as pd
+import sklearn
 import sklearn.datasets as ds
 from sklearn.utils import check_X_y
 
@@ -32,19 +33,11 @@ class Data:
         :param columns:
         """
         # Init instance vars and dic to factory new instances in the future.
-        args = {k: v for k, v in locals().items() if k != 'self'}
+        args = {k: v for k, v in locals().items() if
+                k != 'self' and k != 'name'}
         self.__dict__.update(args)
         dic = args.copy()
         self._set('_dic', dic)
-
-        # Check list
-        if X is not None and Y is not None:
-            try:
-                check_X_y(X, Y[0])
-            except Exception as e:
-                print(X.shape)
-                print(Y[0].shape)
-                raise e
 
         alldata = X, Y, Z, U, V, W, P, Q
 
@@ -73,7 +66,22 @@ class Data:
         # Add lazy cache for dump and uuid
         self._set('_dump', None)
         self._set('_uuid', None)
-        self._set('_fullname', None)
+        self._set('_name', name)
+        self._set('_fields_str', None)
+
+        # Check list
+        if not isinstance(name, str):
+            raise Exception('Wrong parameter passed as name', name)
+        if X is not None and Y is not None:
+            try:
+                check_X_y(X, self.__dict__['y'])
+            except Exception as e:
+                print('X', X)
+                print('Y', Y)
+                print()
+                print('X', X.shape)
+                print('Y', Y.shape)
+                raise e
 
         # TODO
         # check if exits dtype indefined == object
@@ -117,7 +125,7 @@ class Data:
                                       n_classes=n_classes,
                                       n_informative=int(
                                           np.sqrt(2 * n_classes)) + 1)
-        return Data(None, X, as_column_vector(y))
+        return Data(name=None, X=X, Y=as_column_vector(y))
 
     def updated(self, **kwargs):
         dic = self._dic.copy()
@@ -125,8 +133,8 @@ class Data:
         for l in self.vectors:
             if l in dic:
                 L = l.upper()
-                dic[L] = dic.pop(L)
-        return Data(**dic)
+                dic[L] = as_column_vector(dic.pop(l))
+        return Data(name=self.name(), **dic)
 
     def select(self, fields):
         """
@@ -139,31 +147,50 @@ class Data:
         return {k: v for k, v in self._dic.items() if k in fields}
 
     def sub(self, fields):
-        return Data(**self.select(fields))
+        return Data(name=self.name(), **self.select(fields))
 
     def __setattr__(self, attr, value):
         raise MutabilityException(
             'Cannot set attributes on Data! (%s %r)'
             % (self.__class__.__name__, attr))
 
-    def _set(self, attr, value):
-        object.__setattr__(self, attr, value)
+    def _set(self, name, value):
+        object.__setattr__(self, name, value)
 
     def dump(self):
         if self._dump is None:
-            self._dump = pack(self.alldata)
+            self._set('_dump', pack(self.all))
         return self._dump
 
     def uuid(self):
         if self._uuid is None:
-            self._uuid = uuid(self.dump())
+            self._set('_uuid', uuid(self.dump()))
         return self._uuid
 
-    def fullname(self):
-        if self._fullname is None:
-            self._fullname = f'unnamed[{self.uuid()}]' + \
-                             ','.join(self.fields.keys())
-        return self._fullname
+    def name(self):
+        if self._name is None:
+            self._set('_name', f'unnamed[{self.uuid()}]')
+        return self._name
+
+    def fields_str(self):
+        if self._fields_str is None:
+            self._set('_fullname', ','.join(self.fields.keys()))
+        return self._fields_str
+
+    def __str__(self):
+        txt = []
+        [txt.append(f'{k}: {str(v)}') for k, v in self.fields.items()]
+        return '\n'.join(txt) + self.fullname()
+
+    def split(self, random_state=1):
+        X, y = self.Xy
+        X_train, X_test, y_train, y_test = \
+            sklearn.model_selection.train_test_split(X, y, random_state=1)
+        train_size = 0.25  # TODO: set it as parameter
+        name = f'{self.name()}_seed{random_state}_split{train_size}_fold'
+        trainset = Data(name=name + '0', X=X_train).updated(y=y_train)
+        testset = Data(name=name + '1', X=X_test)
+        return trainset, testset, y_test
 
 
 class MutabilityException(Exception):
@@ -179,7 +206,7 @@ def as_column_vector(vec):
 
 
 def dematrixfy(m):
-    return m and as_vector(m)
+    return None if m is None else as_vector(m)
 
 
 def get_first_non_none(l):
@@ -195,4 +222,5 @@ def get_first_non_none(l):
 def df_to_data(df, columns, file, target):
     Y = as_column_vector(df.pop(target).values.astype('float'))
     X = df.values.astype('float')
-    return Data(file, X=X, Y=Y, columns=columns)
+    arq = file.split('/')[-1]
+    return Data(name='file_' + arq, X=X, Y=Y, columns=columns)

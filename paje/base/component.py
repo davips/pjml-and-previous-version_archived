@@ -192,7 +192,7 @@ class Component(ABC):
             return None
 
         # print('Trying to apply component...', self.name)
-        self.uuid_train = data.uuid
+        self.uuid_train = data.uuid()
         output_data = self.get_result(data)
         if self.locked:
             print(f"Won't apply {self.name} on data {self.uuid_train}\n"
@@ -250,7 +250,7 @@ class Component(ABC):
             return output_data
 
         if self.failed:
-            self.log(f"Won't use on data {data.uuid}\n"
+            self.log(f"Won't use on data {data.uuid()}\n"
                      f"Current {self.name} already failed before.")
             return output_data
 
