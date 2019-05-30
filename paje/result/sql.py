@@ -56,7 +56,7 @@ class SQL(Cache):
         component.node = r[4]
         return testout
 
-    def store_dset(self, data):
+    def store_data(self, data):
         if not self.data_exists(data):
             self.query("insert into dset values (?, ?)",
                        [data.uuid, pack(data)])
