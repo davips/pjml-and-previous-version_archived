@@ -109,6 +109,7 @@ class Data:
     @staticmethod
     def read_csv(file, target):
         df = pd.read_csv(file)
+        print(df.shape)
         Y = np.array([df.pop(target).values])
         columns = df.columns
         X = df.values.astype('float')
@@ -125,8 +126,6 @@ class Data:
                                           np.sqrt(2 * n_classes)) + 1)
         return Data(X, [y])
 
-    def read_csv(self, file, target):
-        raise NotImplementedError("Method read_csv should be implement!")
 
     def updated(self, **kwargs):
         dic = self._dic.copy()
