@@ -184,4 +184,9 @@ class SQL(Cache):
         pass
 
     def __del__(self):
-        self.connection.close()
+        try:
+            self.connection.close()
+        except Exception as e:
+            # print('Couldn\'t close database, but that\'s ok...', e)
+            pass
+
