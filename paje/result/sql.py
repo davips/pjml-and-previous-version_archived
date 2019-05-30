@@ -139,7 +139,8 @@ class SQL(Cache):
             return res[0]
 
     @staticmethod
-    def interpolate(sql, lst):
+    def interpolate(sql, lst0):
+        lst = [str(w)[:100] for w in lst0]
         zipped = zip(sql.replace('?', '"?"').split('?'), map(str, lst + ['']))
         return ''.join(list(sum(zipped, ())))
 
