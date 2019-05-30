@@ -56,8 +56,7 @@ class SQL(Cache):
             component.node = r[4]
             return testout
 
-    def store_dset(self, data):
-        print('1111111111', self.data_exists(data))
+    def store_data(self, data):
         if not self.data_exists(data):
             self.query("insert into dset values (?, ?)",
                        [data.uuid, pack(data)])
@@ -101,7 +100,7 @@ class SQL(Cache):
                 'Component already exists:' + str(component.serialized()))
         self.connection.commit()
 
-        self.store_dset(test)
+        self.store_data(test)
         print('Stored!')
 
     def _process_result(self):
@@ -165,8 +164,11 @@ class SQL(Cache):
             raise e
 
     def get_data(self, data, just_check_exists=False):
+            return self.get_data_by_uuid(data.uuid, just_check_exists)
+
+    def get_data_by_uuid(self, datauuid, just_check_exists=False):
         field = '1' if just_check_exists else 'data'
-        self.query(f'select {field} from dset where iddset=?', [data.uuid])
+        self.query(f'select {field} from dset where iddset=?', [datauuid])
         res = self._process_result()
         if res is None:
             return None

@@ -302,7 +302,7 @@ class Component(ABC):
         return self.cached_serialization
 
     def store_data(self, data):
-        self.storage.store_dset(data)
+        self.storage.store_data(data)
 
     def store_result(self, input_data, output_data):
         """

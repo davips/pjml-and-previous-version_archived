@@ -47,11 +47,19 @@ class Cache(ABC):
         pass
 
     @abstractmethod
-    def store_dset(self, data):
+    def store_data(self, data):
         pass
 
     @abstractmethod
     def store(self, component, test, testout):
+        pass
+
+    @abstractmethod
+    def get_data(self, data):
+        pass
+
+    @abstractmethod
+    def get_data_by_uuid(self, data):
         pass
 
     # TODO: other useful methods implemented by sql.py,
@@ -72,6 +80,4 @@ class Cache(ABC):
     # def data_exists(self, data):
     #     pass
     #
-    # @abstractmethod
-    # def get_data(self, data):
-    #     pass
+
