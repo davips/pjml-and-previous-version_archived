@@ -21,7 +21,7 @@ def main():
         storage = MySQL(debug=not True) if len(argv) >= 3 and argv[2] == \
                                            'True' else None
         # # First setup of a SGBD:
-        # storage.start()
+        # storage.open()
         # storage.setup()
         # print('Please disable setup of db in toy.py')
         # exit(0)

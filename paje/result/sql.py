@@ -1,5 +1,5 @@
+import socket
 from abc import abstractmethod
-from time import sleep
 
 from paje.base.data import Data
 from paje.result.storage import Cache, unpack, pack
@@ -14,29 +14,20 @@ class SQL(Cache):
                    ", testout LONGBLOB, timespent FLOAT, dump LONGBLOB"
                    ", failed TINYINT"
                    ", start TIMESTAMP, end TIMESTAMP"
+                   ", node varchar(32)"
                    ", PRIMARY KEY(idcomp, idtrain, idtest))")
-        # idtest field is not strictly needed for now, but may have some use.
-        # self.cursor.execute("CREATE INDEX if not exists idx_res ON result "
-        #                     "(idcomp, idtrain, idtest)")
-
         self.query("create table if not exists args "
                    "(idcomp varchar(32) PRIMARY KEY, dic TEXT)")
-        # self.cursor.execute("CREATE INDEX if not exists idx_comp ON args "
-        #                     "(idcomp)")
-        # self.cursor.execute("CREATE INDEX if not exists idx_dic ON args "
-        #                     "(dic)")
-
         self.query("create table if not exists dset "
                    "(iddset varchar(32) PRIMARY KEY, data LONGBLOB)")
-        # self.cursor.execute("CREATE INDEX if not exists idx_dset ON dset "
-        #                     "(iddset)")
         self.connection.commit()
 
     def lock(self, component, test):
         if self.debug:
             print('Locking...')
+        node = socket.gethostname()
         txt = "insert into result values (?, ?, ?, ?, ?, ?, ?, " + \
-              self.now_function() + ", '0000-00-00 00:00:00')"
+              self.now_function() + f", '0000-00-00 00:00:00', '{node}')"
         args = [component.uuid(), component.uuid_train, test.uuid,
                 None, None, None, 0]
         self.query(txt, args)
@@ -48,7 +39,7 @@ class SQL(Cache):
         :return:
         """
         self.query(
-            "select testout, timespent, failed, end from result where "
+            "select testout, timespent, failed, end, node from result where "
             "idcomp=? and idtrain=? and idtest=?",
             [component.uuid(), component.uuid_train, test.uuid])
 
@@ -62,6 +53,7 @@ class SQL(Cache):
         component.time_spent = r[1]
         component.failed = r[2] == 1
         component.locked = r[3] == '0000-00-00 00:00:00'
+        component.node = r[4]
         return testout
 
     def store_dset(self, data):
