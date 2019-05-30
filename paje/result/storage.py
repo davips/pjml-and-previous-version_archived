@@ -14,14 +14,15 @@ def uuid(description):
 # @profile
 def pack(data):
     dump = pickle.dumps(data)  # irrelevant time (mozilla set)
-    return codecs.encode(dump, "base64")  # 5X slower than decode (mozilla set)
+    # return codecs.encode(dump, "base64")  # 5X slower than decode (mozilla set)
+    return dump
 
 
 # @profile
 def unpack(dump):
-    decoded = codecs.decode(dump, "base64")
-    return pickle.loads(decoded)  # irrelevant time (mozilla set)
-
+    # decoded = codecs.decode(dump, "base64")
+    # return pickle.loads(decoded)  # irrelevant time (mozilla set)
+    return pickle.loads(dump)
 
 class Cache(ABC):
     """
