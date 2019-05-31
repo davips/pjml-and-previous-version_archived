@@ -9,26 +9,43 @@ class SQL(Cache):
     def setup(self):
         if self.debug:
             print('creating tables...')
+        self.query("create table if not exists args ("
+                   f"id int NOT NULL primary key {self.auto_incr()}, "
+                   "idcomp varchar(32) UNIQUE, "
+                   "dic TEXT, "
+                   "unique(dic(190)))")
+
         self.query("create table if not exists result ("
+                   f"id int NOT NULL primary key {self.auto_incr()}, "
                    "idcomp varchar(32), idtrain varchar(32), idtest varchar(32)"
-                   ", testout LONGBLOB, timespent FLOAT, dump LONGBLOB"
+                   ", testout LONGBLOB"
+                   ", timespent FLOAT"
+                   ", dump LONGBLOB"
                    ", failed TINYINT"
                    ", start TIMESTAMP, end TIMESTAMP"
                    ", node varchar(32)"
-                   ", PRIMARY KEY(idcomp, idtrain, idtest))")
-        self.query("create table if not exists args "
-                   "(idcomp varchar(32) PRIMARY KEY, dic TEXT)")
-        self.query("create table if not exists dset "
-                   "(iddset varchar(32) PRIMARY KEY, "
-                   "name varchar(256), fields varchar(32), data LONGBLOB, "
-                   "key(name(190), fields))")
+                   ", UNIQUE(idcomp, idtrain, idtest))")
+        self.query('CREATE INDEX idx1 ON result (timespent)')
+        self.query('CREATE INDEX idx2 ON result (start)')
+        self.query('CREATE INDEX idx3 ON result (end)')
+        self.query('CREATE INDEX idx4 ON result (node)')
+
+        self.query("create table if not exists dset ("
+                   f"id int NOT NULL primary key {self.auto_incr()}, "
+                   "iddset varchar(32) UNIQUE, "
+                   "name varchar(256), "
+                   "fields varchar(32), "
+                   "data LONGBLOB)")
+        self.query('CREATE INDEX idx5 ON dset (name(190))')
+        self.query('CREATE INDEX idx6 ON dset (fields)')
+
         self.connection.commit()
 
     def lock(self, component, test):
         if self.debug:
             print('Locking...')
         node = socket.gethostname()
-        txt = "insert into result values (?, ?, ?, ?, ?, ?, ?, " + \
+        txt = "insert into result values (null, ?, ?, ?, ?, ?, ?, ?, " + \
               self.now_function() + f", '0000-00-00 00:00:00', '{node}')"
         args = [component.uuid(), component.uuid_train, test.uuid(),
                 None, None, None, 0]
@@ -60,7 +77,7 @@ class SQL(Cache):
 
     def store_data(self, data):
         if not self.data_exists(data):
-            self.query("insert into dset values (?, ?, ?, ?)",
+            self.query("insert into dset values (NULL, ?, ?, ?, ?)",
                        [data.uuid(), data.name(),
                         data.fields_str(), pack(data.all)])
             self.connection.commit()
@@ -96,7 +113,7 @@ class SQL(Cache):
                     component.uuid(), uuid_tr, test.uuid()])
 
         if not self.component_exists(component):
-            self.query("insert into args values (?, ?)",
+            self.query("insert into args values (NULL, ?, ?)",
                        [component.uuid(), component.serialized()])
         else:
             component.warning(
@@ -184,6 +201,10 @@ class SQL(Cache):
 
     @abstractmethod
     def now_function(self):
+        pass
+
+    @abstractmethod
+    def auto_incr(self):
         pass
 
     def __del__(self):

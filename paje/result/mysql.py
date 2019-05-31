@@ -38,3 +38,6 @@ class MySQL(SQL):
 
     def now_function(self):
         return 'now()'
+
+    def auto_incr(self):
+        return 'AUTO_INCREMENT'
