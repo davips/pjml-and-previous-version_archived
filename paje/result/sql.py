@@ -102,9 +102,8 @@ class SQL(Cache):
         else:
             component.warning(
                 'Component already exists:' + str(component.serialized()))
-        self.connection.commit()
 
-        self.store_data(test)
+        self.store_data(test) # commit happens here!
         print('Stored!')
 
     def _process_result(self):
