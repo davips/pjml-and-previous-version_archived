@@ -29,15 +29,18 @@ class MySQL(SQL):
 
         # Create db if it doesn't exist yet.
         self.query(f"SHOW DATABASES LIKE '{self.db}'")
-        if self._process_result() is None:
+        setup = self._process_result() is None
+        if setup:
             if self.debug:
                 print('creating database', self.db, 'on', self.database, '...')
             self.cursor.execute("create database if not exists " + self.db)
-            self.setup()
 
         if self.debug:
             print('using database', self.db, 'on', self.database, '...')
         self.cursor.execute("use " + self.db)
+
+        if setup:
+            self.setup()
 
     def now_function(self):
         return 'now()'
