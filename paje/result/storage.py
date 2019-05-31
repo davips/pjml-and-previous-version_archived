@@ -40,7 +40,7 @@ class Cache(ABC):
         pass
 
     @abstractmethod
-    def lock(self, component, test):
+    def lock(self, component, test, postpone_commit=False):
         pass
 
     @abstractmethod
@@ -48,11 +48,11 @@ class Cache(ABC):
         pass
 
     @abstractmethod
-    def store_data(self, data):
+    def store_data(self, data, postpone_commit=False):
         pass
 
     @abstractmethod
-    def store(self, component, test, testout):
+    def store(self, component, test, testout, postpone_commit=False):
         pass
 
     @abstractmethod

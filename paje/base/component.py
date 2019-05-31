@@ -171,9 +171,9 @@ class Component(ABC):
         if not self.show_warns:
             np.warnings.filterwarnings('always')
 
-    def lock(self, data):
-        if self.storage is not None:
-            self.storage.lock(self, data)
+    def lock(self, data, postpone_commit=False):
+        self.storage.lock(self, data, postpone_commit)
+        if not postpone_commit:
             self.log('Locked!')
 
     def get_result(self, data):
@@ -206,7 +206,8 @@ class Component(ABC):
 
         # Apply if still needed  ----------------------------------
         if output_data is None:
-            self.lock(data)
+            if self.storage is not None:
+                self.lock(data)
 
             self.handle_warnings()
             self.log('Applying component' + self.name + '...')
@@ -225,9 +226,9 @@ class Component(ABC):
             self.dishandle_warnings()
 
             if self.storage is not None:
-                self.store_data(data)  # Store training set.
                 output_train_data = None if self.failed else self.use_impl(data)
-                self.store_result(data, output_train_data)
+                self.store_result(data, output_train_data, postpone_commit=True)
+                self.store_data(data)  # Store training set.
 
         return output_data
 
@@ -256,7 +257,8 @@ class Component(ABC):
 
         # Use if still needed  ----------------------------------
         if output_data is None:
-            self.lock(data)
+            if self.storage is not None:
+                self.lock(data)
 
             self.handle_warnings()
             print('Using component', self.name, '...')
@@ -304,13 +306,13 @@ class Component(ABC):
     def store_data(self, data):
         self.storage.store_data(data)
 
-    def store_result(self, input_data, output_data):
+    def store_result(self, input_data, output_data, postpone_commit=False):
         """
         :param input_data:
         :param output_data:
         :return:
         """
-        self.storage.store(self, input_data, output_data)
+        self.storage.store(self, input_data, output_data, postpone_commit)
 
     def clock(self):
         usage = os.times()

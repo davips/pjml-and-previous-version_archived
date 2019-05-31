@@ -25,7 +25,7 @@ class SQL(Cache):
                    "unique(name(128), fields))")
         self.connection.commit()
 
-    def lock(self, component, test):
+    def lock(self, component, test, postpone_commit=False):
         if self.debug:
             print('Locking...')
         node = socket.gethostname()
@@ -34,7 +34,8 @@ class SQL(Cache):
         args = [component.uuid(), component.uuid_train, test.uuid(),
                 None, None, None, 0]
         self.query(txt, args)
-        self.connection.commit()
+        if not postpone_commit:
+            self.connection.commit()
 
     def get_result(self, component, test):
         """
@@ -59,22 +60,24 @@ class SQL(Cache):
         component.node = result[4]
         return testout
 
-    def store_data(self, data):
+    def store_data(self, data, postpone_commit=False):
         if not self.data_exists(data):
             self.query("insert into dset values (?, ?, ?, ?)",
                        [data.uuid(), data.name(),
                         data.fields_str(), pack(data.all)])
-            self.connection.commit()
+            if not postpone_commit:
+                self.connection.commit()
         else:
             if self.debug:
                 print('Testset already exists:' + data.uuid())
 
-    def store(self, component, test, testout):
+    def store(self, component, test, testout, postpone_commit=False):
         """
 
         :param component:
         :param test:
         :param testout:
+        :param postpone_commit:
         :return:
         """
         slim = testout and testout.select(component.fields_to_store_after_use())
@@ -103,7 +106,9 @@ class SQL(Cache):
             component.warning(
                 'Component already exists:' + str(component.serialized()))
 
-        self.store_data(test) # commit happens here!
+        self.store_data(test, postpone_commit=True)
+        if not postpone_commit:
+            self.connection.commit()
         print('Stored!')
 
     def _process_result(self):
