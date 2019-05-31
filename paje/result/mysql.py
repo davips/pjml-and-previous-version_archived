@@ -12,6 +12,8 @@ class MySQL(SQL):
         self.db = db
         self.user, self.host = database.split('@')
         self.debug = debug
+        if '-' in db:
+            raise Exception("'-' not allowed in db name!")
 
     def open(self):
         if self.debug:
@@ -31,6 +33,7 @@ class MySQL(SQL):
             if self.debug:
                 print('creating database', self.db, 'on', self.database, '...')
             self.cursor.execute("create database if not exists " + self.db)
+            self.setup()
 
         if self.debug:
             print('using database', self.db, 'on', self.database, '...')
