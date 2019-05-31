@@ -79,7 +79,7 @@ class SQL(Cache):
         if not self.data_exists(data):
             self.query("insert into dset values (NULL, ?, ?, ?, ?)",
                        [data.uuid(), data.name(),
-                        data.fields_str(), pack(data.all)])
+                        data.fields_str(), data.dump])
             self.connection.commit()
         else:
             if self.debug:
