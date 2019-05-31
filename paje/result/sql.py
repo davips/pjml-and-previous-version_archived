@@ -20,9 +20,8 @@ class SQL(Cache):
                    "(idcomp varchar(32) PRIMARY KEY, dic TEXT)")
         self.query("create table if not exists dset "
                    "(iddset varchar(32) PRIMARY KEY, "
-                   "name varchar(256), fields varchar(16), "
-                   "data LONGBLOB, "
-                   "unique(name(128), fields))")
+                   "name varchar(256), fields varchar(32), data LONGBLOB, "
+                   "key(name(190), fields))")
         self.connection.commit()
 
     def lock(self, component, test):
