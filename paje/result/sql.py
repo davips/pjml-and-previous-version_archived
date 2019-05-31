@@ -35,7 +35,7 @@ class SQL(Cache):
                    "iddset varchar(32) UNIQUE, "
                    "name varchar(256), "
                    "fields varchar(32), "
-                   "data LONGBLOB)")
+                   "data LONGBLOB, inserted timestamp)")
         self.query('CREATE INDEX idx5 ON dset (name(190))')
         self.query('CREATE INDEX idx6 ON dset (fields)')
 
@@ -77,7 +77,8 @@ class SQL(Cache):
 
     def store_data(self, data):
         if not self.data_exists(data):
-            self.query("insert into dset values (NULL, ?, ?, ?, ?)",
+            self.query("insert into dset values (NULL, ?, ?, ?, ?, "
+                       f"{self.now_function()})",
                        [data.uuid(), data.name(),
                         data.fields_str(), data.dump])
             self.connection.commit()
