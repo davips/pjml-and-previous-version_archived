@@ -176,7 +176,7 @@ class Data:
 
     def fields_str(self):
         if self._fields_str is None:
-            self._set('_fullname', ','.join(self.fields.keys()))
+            self._set('_fields_str', ','.join(self.fields.keys()))
         return self._fields_str
 
     def __str__(self):
