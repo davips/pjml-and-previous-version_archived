@@ -12,8 +12,7 @@ class SQL(Cache):
         self.query("create table if not exists args ("
                    f"id int NOT NULL primary key {self.auto_incr()}, "
                    "idcomp varchar(32) UNIQUE, "
-                   "dic TEXT, "
-                   "unique(dic(190)))")
+                   "dic TEXT)")
 
         self.query("create table if not exists result ("
                    f"id int NOT NULL primary key {self.auto_incr()}, "
