@@ -4,6 +4,8 @@ from abc import ABC, abstractmethod
 
 import _pickle as pickle
 
+import blosc
+
 
 # @profile
 def uuid(description):
@@ -24,6 +26,21 @@ def unpack(dump):
     # return pickle.loads(decoded)  # irrelevant time (mozilla set)
     return pickle.loads(dump)
 
+
+def zip_array(X):
+    """
+    Parameters optimized for digits dataset. 115008 rows, 64 attrs
+    :param X:
+    :return:
+    """
+    return blosc.compress(X.reshape(1, 115008), cname='blosclz',
+                          shuffle=blosc.BITSHUFFLE)
+
+
+def unzip_array(zipped):
+    return blosc.decompress(zipped)
+
+
 class Cache(ABC):
     """
     This class stores and recovers results from some place.
@@ -40,7 +57,7 @@ class Cache(ABC):
         pass
 
     @abstractmethod
-    def lock(self, component, test):
+    def lock(self, component, test, postpone_commit=False):
         pass
 
     @abstractmethod
@@ -48,11 +65,11 @@ class Cache(ABC):
         pass
 
     @abstractmethod
-    def store_data(self, data):
+    def store_data(self, data, postpone_commit=False):
         pass
 
     @abstractmethod
-    def store(self, component, test, testout):
+    def store(self, component, test, testout, postpone_commit=False):
         pass
 
     @abstractmethod
@@ -81,4 +98,3 @@ class Cache(ABC):
     # def data_exists(self, data):
     #     pass
     #
-
