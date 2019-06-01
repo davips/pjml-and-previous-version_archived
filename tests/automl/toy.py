@@ -4,6 +4,7 @@ import sklearn.metrics
 
 from paje.automl.random import RandomAutoML
 from paje.base.data import Data
+from paje.evaluator.metrics import Metrics
 from paje.module.modules import default_preprocessors, default_modelers
 
 # @profile
@@ -18,8 +19,9 @@ def main():
     else:
         # storage = SQLite(debug=not True) if len(argv) >= 3 and argv[2] == \
         #                                     'True' else None
-        storage = MySQL(debug=not True) if len(argv) >= 3 and argv[2] == \
-                                           'True' else None
+        storage = MySQL(db='teste', debug=not True) \
+            if len(argv) >= 3 and argv[2] == 'True' else None
+
         # # First setup of a SGBD:
         # storage.open()
         # storage.setup()
@@ -32,11 +34,7 @@ def main():
         for a in argv:
             print(a)
         print('seed=', random_state)
-        X, y = data.Xy
-        X_train, X_test, y_train, y_test = \
-            sklearn.model_selection.train_test_split(X, y, random_state=1)
-        trainset = Data(X_train, [y_train])
-        testset = Data(X_test)
+        trainset, testset = data.split()
 
         # SQLite().setup()
         automl_rs = RandomAutoML(storage_for_components=storage,
@@ -47,9 +45,8 @@ def main():
                                  show_warns=False,
                                  random_state=random_state).build()
         automl_rs.apply(trainset)
-        print("Accuracy score",
-              sklearn.metrics.accuracy_score(y_test, automl_rs.use(testset).z)
-              )
+        testout = automl_rs.use(testset)
+        print("Accuracy score", Metrics.error(testout))
         print()
 
 

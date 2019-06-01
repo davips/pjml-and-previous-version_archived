@@ -16,7 +16,7 @@ class SupMtFe(Component):
         X = np.array([values])
         # TODO: suppressing NaNs with 0s
         X[~np.isfinite(X)] = 0
-        return Data(X=X)
+        return Data(name='meta', X=X) #TODO: choose a proper name
 
     def build_impl(self):
         self.model = MFE()
