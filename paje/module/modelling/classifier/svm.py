@@ -9,32 +9,20 @@ class SVM(Classifier):
     def build_impl(self):
         self.model = NuSVC(**self.dic)
 
-    def apply_impl(self, data):
-        try:
-            return super().apply_impl(data)
-        except:
-            if self.show_warns:
-                print(
-                    'Falling back to random classifier, possible due to '
-                    'convergence problems (bad "nu" value, for instance).')
-            self.model = DummyClassifier(strategy='uniform')
-            return super().apply_impl(data)
-
     @classmethod
     def tree_impl(cls, data):
         cls.check_data(data)
         # todo: set random seed; set 'cache_size'
-        max_iter = data.n_instances
         dic = {
-            'nu': ['r', [0.00000001, 1.0]],
+            'nu': ['r', [0.0001, 0.8]],
             'shrinking': ['c', [True, False]],
-            'probability': ['c', [True, False]],
+            'probability': ['c', [False]],
             'tol': ['o',
                     [0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100,
                      1000, 10000]],
-            # 'class_weight': [None],
+            'class_weight': ['c', [None, 'balanced']],
             # 'verbose': [False],
-            'max_iter': ['z', [1, max_iter]],
+            'max_iter': ['c', [1000000]],
             'decision_function_shape': ['c', ['ovr', 'ovo']]
         }
 

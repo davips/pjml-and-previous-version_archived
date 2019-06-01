@@ -14,3 +14,6 @@ class SQLite(SQL):
 
     def now_function(self):
         return 'datetime()'
+
+    def auto_incr(self):
+        return 'AUTOINCREMENT'

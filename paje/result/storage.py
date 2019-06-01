@@ -4,8 +4,10 @@ from abc import ABC, abstractmethod
 
 import _pickle as pickle
 
-
 # @profile
+import blosc
+
+
 def uuid(description):
     # TODO: compact with zlib uglyly to reduce the size by half
     return hashlib.md5(description).hexdigest()  # double time of pickle (moz.)
@@ -23,6 +25,21 @@ def unpack(dump):
     # decoded = codecs.decode(dump, "base64")
     # return pickle.loads(decoded)  # irrelevant time (mozilla set)
     return pickle.loads(dump)
+
+
+def zip_array(X):
+    """
+    Parameters optimized for digits dataset. 115008 rows, 64 attrs
+    :param X:
+    :return:
+    """
+    return blosc.compress(X.reshape(1, 115008), cname='blosclz',
+                          shuffle=blosc.BITSHUFFLE)
+
+
+def unzip_array(zipped):
+    return blosc.decompress(zipped)
+
 
 class Cache(ABC):
     """
@@ -81,4 +98,3 @@ class Cache(ABC):
     # def data_exists(self, data):
     #     pass
     #
-

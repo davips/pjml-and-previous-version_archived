@@ -12,6 +12,8 @@ class MySQL(SQL):
         self.db = db
         self.user, self.host = database.split('@')
         self.debug = debug
+        if '-' in db:
+            raise Exception("'-' not allowed in db name!")
 
     def open(self):
         if self.debug:
@@ -27,7 +29,8 @@ class MySQL(SQL):
 
         # Create db if it doesn't exist yet.
         self.query(f"SHOW DATABASES LIKE '{self.db}'")
-        if self._process_result() is None:
+        setup = self._process_result() is None
+        if setup:
             if self.debug:
                 print('creating database', self.db, 'on', self.database, '...')
             self.cursor.execute("create database if not exists " + self.db)
@@ -36,5 +39,11 @@ class MySQL(SQL):
             print('using database', self.db, 'on', self.database, '...')
         self.cursor.execute("use " + self.db)
 
+        if setup:
+            self.setup()
+
     def now_function(self):
         return 'now()'
+
+    def auto_incr(self):
+        return 'AUTO_INCREMENT'

@@ -176,7 +176,11 @@ class Data:
 
     def fields_str(self):
         if self._fields_str is None:
-            self._set('_fullname', ','.join(self.fields.keys()))
+            sorted = list(self.fields.keys())
+            if 'columns' in sorted:
+                sorted.remove('columns')
+            sorted.sort()
+            self._set('_fields_str', ','.join(sorted))
         return self._fields_str
 
     def __str__(self):
