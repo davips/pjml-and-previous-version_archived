@@ -29,9 +29,11 @@ class DT(Classifier):
             'max_leaf_nodes': ['o',
                                [2, 4, 7, 11, 16, 22, 29, 37, 46, 56, 999999]],
             # 999999 ~ None
-            'min_impurity_decrease': ['r', [0, 1]]
-            # 'min_impurity_split': None, # deprecated in favour of min_impurity_decrease
-            # 'class_weight': None, # We assume classes have equal weights.
-            # 'presort': False # Strange setting that slow down large datasets and speed up small ones.
+            'min_impurity_decrease': ['r', [0, 1]],
+            # 'min_impurity_split': None, # deprecated in favour
+            # of min_impurity_decrease
+            'class_weight': ['c', [None, 'balanced']],
+            # 'presort': False # Strange setting that slow down large datasets
+            # and speed up small ones.
         }
         return HPTree(dic, children=[])
