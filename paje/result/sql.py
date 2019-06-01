@@ -18,17 +18,18 @@ class SQL(Cache):
         self.query("create table if not exists result ("
                    f"id int NOT NULL primary key {self.auto_incr()}, "
                    "idcomp varchar(32), idtrain varchar(32), idtest varchar(32)"
-                   ", testout LONGBLOB"
+                   ", idtestout varchar(32)"
                    ", timespent FLOAT"
                    ", dump LONGBLOB"
                    ", failed TINYINT"
                    ", start TIMESTAMP, end TIMESTAMP"
-                   ", node varchar(32)"
+                   ", node varchar(32), attempts int NOT NULL"
                    ", UNIQUE(idcomp, idtrain, idtest))")
         self.query('CREATE INDEX idx1 ON result (timespent)')
         self.query('CREATE INDEX idx2 ON result (start)')
         self.query('CREATE INDEX idx3 ON result (end)')
         self.query('CREATE INDEX idx4 ON result (node)')
+        self.query('CREATE INDEX idx5 ON result (attempts)')
 
         self.query("create table if not exists dset ("
                    f"id int NOT NULL primary key {self.auto_incr()}, "
@@ -45,8 +46,10 @@ class SQL(Cache):
         if self.debug:
             print('Locking...')
         node = socket.gethostname()
-        txt = "insert into result values (null, ?, ?, ?, ?, ?, ?, ?, " + \
-              self.now_function() + f", '0000-00-00 00:00:00', '{node}')"
+        txt = "insert into result values (null, " \
+              "?, ?, ?, " \
+              "?, ?, ?, ?, " + \
+              self.now_function() + f", '0000-00-00 00:00:00', '{node}', 0)"
         args = [component.uuid(), component.uuid_train, test.uuid(),
                 None, None, None, 0]
         self.query(txt, args)
@@ -58,7 +61,7 @@ class SQL(Cache):
         :return:
         """
         self.query(
-            "select testout, timespent, failed, end, node from result where "
+            "select idtestout, timespent, failed, end, node from result where "
             "idcomp=? and idtrain=? and idtest=?",
             [component.uuid(), component.uuid_train, test.uuid()])
 
@@ -66,9 +69,9 @@ class SQL(Cache):
         if result is None:
             return None
 
-        dic = result[0] and unpack(result[0])
-        testout = dic and \
-                  test.sub(component.fields_to_keep_after_use()).updated(**dic)
+        slim_testout = result[0] and self.get_data_by_uuid(result[0])
+
+        testout = test.sub(component.fields_to_keep_after_use()).updated(**dic)
         component.time_spent = result[1]
         component.failed = result[2] == 1
         component.locked = result[3] == '0000-00-00 00:00:00'
@@ -106,11 +109,14 @@ class SQL(Cache):
         failed = 1 if component.failed else 0
         now = self.now_function()
         uuid_tr = component.uuid_train
-        setters = f"testout=?, timespent=?, dump=?, failed=?"
+
+        ????pack(slim)
+
+        setters = f"idtestout=?, timespent=?, dump=?, failed=?"
         conditions = "idcomp=? and idtrain=? and idtest=?"
         self.query(f"update result set {setters}, start=start, end={now} "
                    f"where {conditions}",
-                   [pack(slim), component.time_spent, dump, failed,
+                   [????????/, component.time_spent, dump, failed,
                     component.uuid(), uuid_tr, test.uuid()])
 
         if not self.component_exists(component):
