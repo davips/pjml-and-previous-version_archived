@@ -44,8 +44,7 @@ def unpack(dump):
     if isinstance(instance, Component):
         return instance
     elif isinstance(instance, dict):
-        from paje.base.data import Data
-        return Data(**instance)
+        return instance
     else:
         raise Exception('Unexpected obj unpacked!', instance)
 
