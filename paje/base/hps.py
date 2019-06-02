@@ -25,7 +25,8 @@ class HPTree(object):
         return self.pipeline_to_dic_rec(self)[0]
 
     def moduletree_to_dic(self, tree):
-        args = {'name': tree.name}
+        # args = {'name': tree.name} # this bad line may be obsolete by now
+        args = {}
         for k, kind_interval in tree.dic.items():
             args[k] = sample(*kind_interval)
         if tree.children:
@@ -63,7 +64,7 @@ class HPTree(object):
                 children = last.children
             argss.append(args)
         # Remove 'End' from EndPipeline, EndConcat etc.
-        return {'name':tree.name[3:], 'dics': argss}, tree.children
+        return {'name': tree.name[3:], 'dics': argss}, tree.children
 
     def __str__(self, depth=''):
         rows = [str(self.dic)]
