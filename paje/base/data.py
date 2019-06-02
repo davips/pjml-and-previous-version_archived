@@ -55,6 +55,8 @@ class Data:
             'Uv': (U, dematrixfy(V)),
             'all': alldata,
             'fields': fields,
+            'columns': None  # TODO: make columns effective, and save it to
+                             #     storage also
         })
 
         # Add vectorized shortcuts for matrices.
