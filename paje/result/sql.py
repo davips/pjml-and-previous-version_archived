@@ -39,10 +39,6 @@ class SQL(Cache):
         self.query('CREATE INDEX idx7 ON dset (fields)')
         self.query('CREATE INDEX idx8 ON dset (inserted)')
 
-        if self.debug:
-            print('commit')
-        self.connection.commit()
-
     def lock(self, component, test):
         if self.debug:
             print('Locking...')
@@ -56,9 +52,6 @@ class SQL(Cache):
                 None, None, None,
                 0]
         self.query(txt, args)
-        if self.debug:
-            print('commit')
-        self.connection.commit()
 
     def get_result(self, component, test):
         """
@@ -97,9 +90,6 @@ class SQL(Cache):
                        [data.uuid(),
                         data.name(), data.fields_str(),
                         data.dump()])
-            if self.debug:
-                print('commit')
-            self.connection.commit()
         else:
             if self.debug:
                 print('Testset already exists:' + data.uuid(), data.name())
@@ -127,7 +117,6 @@ class SQL(Cache):
                    [slim and slim.uuid(),
                     component.time_spent, dump, failed,
                     component.uuid(), uuid_tr, test.uuid()])
-
         if not self.component_exists(component):
             self.query("insert into args values (NULL, ?, ?)",
                        [component.uuid(), component.serialized()])
@@ -137,9 +126,6 @@ class SQL(Cache):
 
         self.store_data(test)
         slim and self.store_data(slim)
-        if self.debug:
-            print('commit')
-        self.connection.commit()
         print('Stored!')
 
     def _process_result(self):
@@ -194,6 +180,9 @@ class SQL(Cache):
             # self.connection.ping(reconnect=True)
         try:
             self.cursor.execute(sql, args)
+            if self.debug:
+                print('commit')
+            self.connection.commit()
         except Exception as e:
             print(e)
             print()
