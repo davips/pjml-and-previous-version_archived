@@ -198,7 +198,7 @@ class Data:
 
     def fields_str(self):
         if self._fields_str is None:
-            sorted = list(self.fields.keys())
+            sorted = list(self.used_vars.keys())
             if 'columns' in sorted:
                 sorted.remove('columns')
             sorted.sort()

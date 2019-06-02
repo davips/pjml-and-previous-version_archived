@@ -224,9 +224,6 @@ class SQL(Cache):
             return True
         return just_check_exists or Data(name=name, **unpack_data(res['data']))
 
-    def get_component_dump(self, component):
-        raise NotImplementedError('get model')
-
     @abstractmethod
     def keylimit(self):
         pass

@@ -5,8 +5,6 @@ import _pickle as pickle
 import blosc
 import zstd as zs
 
-import blosc
-
 
 # @profile
 def uuid(packed_content):
@@ -56,7 +54,6 @@ def zip_array(X):
 
 def unzip_array(zipped):
     return blosc.decompress(zipped)
-
 
 
 def zip_array(X):
@@ -111,6 +108,10 @@ class Cache(ABC):
     @abstractmethod
     def get_data_by_uuid(self, data):
         pass
+
+    def get_component_dump(self, component):
+        raise NotImplementedError('get model')
+
 
     # TODO: other useful methods implemented by sql.py,
     #  but not used direcly by Component.
