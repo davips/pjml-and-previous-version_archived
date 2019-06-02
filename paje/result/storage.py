@@ -5,6 +5,8 @@ import _pickle as pickle
 import blosc
 import zstd as zs
 
+import blosc
+
 
 # @profile
 def uuid(packed_content):
@@ -45,6 +47,21 @@ def zip_array(X):
     ps. 2
     The hope of speed gains with this method is probably not worth the
     trouble of applying it to individual parts of Data.
+    :param X:
+    :return:
+    """
+    return blosc.compress(X.reshape(1, 115008), cname='blosclz',
+                          shuffle=blosc.BITSHUFFLE)
+
+
+def unzip_array(zipped):
+    return blosc.decompress(zipped)
+
+
+
+def zip_array(X):
+    """
+    Parameters optimized for digits dataset. 115008 rows, 64 attrs
     :param X:
     :return:
     """
