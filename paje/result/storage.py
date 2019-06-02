@@ -27,11 +27,10 @@ def pack(obj):
     :return: reasonably compressed obj
     """
     from paje.base.component import Component
-    from paje.base.data import Data
     if isinstance(obj, Component):
         return blosc.compress(pickle.dumps(obj),
                               shuffle=blosc.NOSHUFFLE, cname='zstd', clevel=3)
-    elif isinstance(obj, Data):
+    elif isinstance(obj, dict):
         return blosc.compress(pickle.dumps(obj.all),
                               shuffle=blosc.SHUFFLE, cname='zstd', clevel=3)
     else:

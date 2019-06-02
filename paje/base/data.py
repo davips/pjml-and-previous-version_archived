@@ -34,7 +34,7 @@ class Data:
         """
         # Init instance vars and dic to factory new instances in the future.
         args = {k: v for k, v in locals().items() if
-                k != 'self' and k != 'name'}
+                k != 'self' and k != 'name' and k != 'columns'}
         self.__dict__.update(args)
         dic = args.copy()
         self._set('_dic', dic)
@@ -166,7 +166,7 @@ class Data:
 
     def dump(self):
         if self._dump is None:
-            self._set('_dump', pack(self.all))
+            self._set('_dump', pack(self._dic))
         return self._dump
 
     def uuid(self):
@@ -228,5 +228,3 @@ def get_first_non_none(l):
     """
     filtered = list(filter(None.__ne__, l))
     return [[]] if filtered == [] else filtered[0]
-
-
