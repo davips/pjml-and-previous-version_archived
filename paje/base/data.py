@@ -107,16 +107,21 @@ class Data:
     @staticmethod
     def read_arff(file, target):
         data = arff.load(open(file, 'r'), encode_nominal=True)
-        columns = data["attributes"]
         df = pd.DataFrame(data['data'],
                           columns=[attr[0] for attr in data['attributes']])
-        return df_to_data(df, columns, file, target)
+        return Data.read_data_frame(df, file, target)
 
     @staticmethod
     def read_csv(file, target):
         df = pd.read_csv(file)
-        columns = df.columns
-        return df_to_data(df, columns, file, target)
+        return Data.read_data_frame(df, file, target)
+
+    @staticmethod
+    def read_data_frame(df, file, target):
+        Y = as_column_vector(df.pop(target).values.astype('float'))
+        X = df.values.astype('float')
+        arq = file.split('/')[-1]
+        return Data(name='file_' + arq, X=X, Y=Y, columns=df.columns)
 
     @staticmethod
     def random(n_attributes, n_classes, n_instances):
@@ -225,8 +230,3 @@ def get_first_non_none(l):
     return [[]] if filtered == [] else filtered[0]
 
 
-def df_to_data(df, columns, file, target):
-    Y = as_column_vector(df.pop(target).values.astype('float'))
-    X = df.values.astype('float')
-    arq = file.split('/')[-1]
-    return Data(name='file_' + arq, X=X, Y=Y, columns=columns)

@@ -1,35 +1,59 @@
-import codecs
 import hashlib
 from abc import ABC, abstractmethod
 
 import _pickle as pickle
-
-# @profile
 import blosc
 
 
-def uuid(description):
-    # TODO: compact with zlib uglyly to reduce the size by half
-    return hashlib.md5(description).hexdigest()  # double time of pickle (moz.)
+# @profile
+def uuid(packed_content):
+    """
+    Generates a UUID for any reasonable finite universe.
+    It is preferred to generate such MD5 on compressed data,
+    since MD5 is much slower for bigger data than the compression itself.
+    :param packed_content: packed Data of Xy... or a JSON dump of Component args
+    :return: currently a MD5 hash in hex format
+    """
+    return hashlib.md5(packed_content).hexdigest()
 
 
 # @profile
-def pack(data):
-    dump = pickle.dumps(data)  # irrelevant time (mozilla set)
-    # return codecs.encode(dump, "base64")  # 5X slower than decode (mozilla set)
-    return dump
+def pack(obj):
+    """
+    Pickle and compress the relevant part of the given object.
+    It can be Data or Component. The fastest approach is adopted for each case.
+    :param obj:
+    :return: reasonably compressed obj
+    """
+    from paje.base.component import Component
+    from paje.base.data import Data
+    if isinstance(obj, Component):
+        blosc.compress(pickle.dumps(obj),
+                       shuffle=blosc.SHUFFLE, cname='zstd', clevel=2)
+        return pickle.dumps(obj)
+    elif isinstance(obj, Data):
+        blosc.compress(pickle.dumps(obj),
+                       shuffle=blosc.SHUFFLE, cname='zstd', clevel=2)
+        return pickle.dumps(obj)
 
 
 # @profile
 def unpack(dump):
-    # decoded = codecs.decode(dump, "base64")
-    # return pickle.loads(decoded)  # irrelevant time (mozilla set)
     return pickle.loads(dump)
+
+
+def zip(obj):
+    return blosc.compress(obj, )
 
 
 def zip_array(X):
     """
+    Attempt to zip faster than with pack, but benchmarks are still needed.
+    ps. 1
     Parameters optimized for digits dataset. 115008 rows, 64 attrs
+    ps. 2
+    The hope of speed gains with this method is probably not worth the
+    trouble of applying it to individual parts of Data.
     :param X:
     :return:
     """
