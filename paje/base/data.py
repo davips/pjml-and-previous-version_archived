@@ -42,28 +42,28 @@ class Data:
         alldata = X, Y, Z, U, V, W, P, Q
 
         # Metadata
-        n_classes = len(set(get_first_non_none([Y, V, Z, W])[0]))
+        n_classes = len(set(dematrixify(get_first_non_none([Y, V, Z, W]), [0])))
         n_instances = len(get_first_non_none(alldata))
-        n_attributes = len(get_first_non_none([X, U])[0])
+        n_attributes = len(get_first_non_none([X, U], [[]])[0])
         fields = {k: v for k, v in self._dic.items() if v is not None}
 
         self.__dict__.update({
             'n_classes': n_classes,
             'n_instances': n_instances,
             'n_attributes': n_attributes,
-            'Xy': (X, dematrixfy(Y)),
-            'Uv': (U, dematrixfy(V)),
+            'Xy': (X, dematrixify(Y)),
+            'Uv': (U, dematrixify(V)),
             'all': alldata,
             'fields': fields,
             'columns': None  # TODO: make columns effective, and save it to
-                             #     storage also
+            #     storage also
         })
 
         # Add vectorized shortcuts for matrices.
         vectors = ['y', 'z', 'v', 'w']
         self._set('vectors', vectors)
         for vec in vectors:
-            self.__dict__[vec] = dematrixfy(self.__dict__[vec.upper()])
+            self.__dict__[vec] = dematrixify(self.__dict__[vec.upper()])
 
         # Add lazy cache for dump and uuid
         self._set('_dump', None)
@@ -218,15 +218,15 @@ def as_column_vector(vec):
     return vec.reshape(len(vec), 1)
 
 
-def dematrixfy(m):
-    return None if m is None else as_vector(m)
+def dematrixify(m, default=None):
+    return default if m is None else as_vector(m)
 
 
-def get_first_non_none(l):
+def get_first_non_none(l, default=None):
     """
     Consider the first non None list in the args for extracting metadata.
     :param l:
     :return:
     """
     filtered = list(filter(None.__ne__, l))
-    return [[]] if filtered == [] else filtered[0]
+    return default if filtered == [] else filtered[0]

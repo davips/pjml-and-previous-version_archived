@@ -47,3 +47,6 @@ class MySQL(SQL):
 
     def auto_incr(self):
         return 'AUTO_INCREMENT'
+
+    def keylimit(self):
+        return '(190)'

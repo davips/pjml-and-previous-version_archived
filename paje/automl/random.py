@@ -3,6 +3,7 @@ import random
 
 from paje.automl.automl import AutoML
 from paje.composer.pipeline import Pipeline
+from paje.util.distributions import SamplingException
 
 
 class RandomAutoML(AutoML):
@@ -53,7 +54,11 @@ class RandomAutoML(AutoML):
         self.curr_pipe = Pipeline(modules, show_warns=self.show_warns,
                                   storage=self.storage_for_components)
         tree = self.curr_pipe.tree(data)
-        args = self.next_args(tree)
+        try:
+            args = self.next_args(tree)
+        except SamplingException as e:
+            print(' ========== Pipe:\n', self.curr_pipe)
+            raise Exception(e)
         args.update(random_state=self.random_state)
         # print('tree...\n', tree)
         # print(' args...\n', args)

@@ -12,8 +12,20 @@ class SQLite(SQL):
         self.connection = sqlite3.connect(self.database)
         self.cursor = self.connection.cursor()
 
+        # Create tables if they don't exist yet.
+        try:
+            self.query(f"select 1 from result")
+        except:
+            if self.debug:
+                print('creating database', self.database, '...')
+            self.setup()
+
+
     def now_function(self):
         return 'datetime()'
 
     def auto_incr(self):
         return 'AUTOINCREMENT'
+
+    def keylimit(self):
+        return ''

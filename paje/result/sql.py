@@ -10,13 +10,13 @@ class SQL(Cache):
         if self.debug:
             print('creating tables...')
         self.query("create table if not exists args ("
-                   f"id int NOT NULL primary key {self.auto_incr()}, "
+                   f"id integer NOT NULL primary key {self.auto_incr()}, "
                    "idcomp varchar(32) NOT NULL UNIQUE, "
                    "dic TEXT NOT NULL)")
-        self.query('CREATE INDEX idx0 ON args (dic(190))')
+        self.query(f'CREATE INDEX idx0 ON args (dic{self.keylimit()})')
 
         self.query("create table if not exists result ("
-                   f"id int NOT NULL primary key {self.auto_incr()}, "
+                   f"id integer NOT NULL primary key {self.auto_incr()}, "
                    "idcomp varchar(32) NOT NULL, idtrain varchar(32) NOT NULL ,"
                    "idtest varchar(32) NOT NULL"
                    ", idtestout varchar(32), timespent FLOAT, dump LONGBLOB"
@@ -31,13 +31,13 @@ class SQL(Cache):
         self.query('CREATE INDEX idx5 ON result (attempts)')
 
         self.query("create table if not exists dset ("
-                   f"id int NOT NULL primary key {self.auto_incr()}, "
+                   f"id integer NOT NULL primary key {self.auto_incr()}, "
                    "iddset varchar(32) NOT NULL UNIQUE, "
                    "name varchar(256) NOT NULL, fields varchar(32) NOT NULL, "
                    "data LONGBLOB NOT NULL, inserted timestamp NOT NULL)")
-        self.query('CREATE INDEX idx5 ON dset (name(190))')
-        self.query('CREATE INDEX idx6 ON dset (fields)')
-        self.query('CREATE INDEX idx7 ON dset (inserted)')
+        self.query(f'CREATE INDEX idx6 ON dset (name{self.keylimit()}))')
+        self.query('CREATE INDEX idx7 ON dset (fields)')
+        self.query('CREATE INDEX idx8 ON dset (inserted)')
 
         if self.debug:
             print('commit')
@@ -224,6 +224,10 @@ class SQL(Cache):
 
     def get_component_dump(self, component):
         raise NotImplementedError('get model')
+
+    @abstractmethod
+    def keylimit(self):
+        pass
 
     @abstractmethod
     def now_function(self):
