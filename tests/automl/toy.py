@@ -1,17 +1,12 @@
 from sys import argv
 
-import sklearn.metrics
-from sklearn.decomposition import PCA
-
 from paje.automl.random import RandomAutoML
 from paje.base.data import Data
 from paje.evaluator.metrics import Metrics
-from paje.module.modules import default_preprocessors, default_modelers
-
+from paje.module.modules import default_modelers
 # @profile
 from paje.module.preprocessing.unsupervised.feature.transformer.drpca import \
     DRPCA
-from paje.result.mysql import MySQL
 from paje.result.sqlite import SQLite
 
 

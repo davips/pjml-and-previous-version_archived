@@ -5,7 +5,7 @@ import sklearn
 import sklearn.datasets as ds
 from sklearn.utils import check_X_y
 
-from paje.result.storage import uuid, pack
+from paje.result.storage import uuid, pack_data
 
 
 # TODO: convert in dataclass
@@ -43,7 +43,7 @@ class Data:
 
         # Metadata
         n_classes = len(set(dematrixify(get_first_non_none([Y, V, Z, W]), [0])))
-        n_instances = len(get_first_non_none(alldata))
+        n_instances = len(get_first_non_none(alldata, []))
         n_attributes = len(get_first_non_none([X, U], [[]])[0])
         fields = {k: v for k, v in self._dic.items() if v is not None}
 
@@ -168,7 +168,7 @@ class Data:
 
     def dump(self):
         if self._dump is None:
-            self._set('_dump', pack(self._dic))
+            self._set('_dump', pack_data(self._dic))
         return self._dump
 
     def uuid(self):

@@ -12,7 +12,7 @@ import numpy as np
 from paje.base.exceptions import ApplyWithoutBuild, UseWithoutApply, \
     handle_exception
 from paje.evaluator.time import time_limit
-from paje.result.storage import uuid, pack
+from paje.result.storage import uuid, pack_comp
 
 
 class Component(ABC):
@@ -329,7 +329,7 @@ class Component(ABC):
     def dump(self):
         self.check_if_applied()  # It makes no sense to store an unapplied comp.
         if self._dump is None:
-            self._dump = pack(self)
+            self._dump = pack_comp(self)
         return self._dump
 
     def uuid_train(self):

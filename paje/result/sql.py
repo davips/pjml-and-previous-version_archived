@@ -2,7 +2,7 @@ import socket
 from abc import abstractmethod
 
 from paje.base.data import Data
-from paje.result.storage import Cache, unpack
+from paje.result.storage import Cache, unpack_data
 
 
 class SQL(Cache):
@@ -211,7 +211,7 @@ class SQL(Cache):
         if res is None:
             return None
         else:
-            return just_check_exists or Data(name=res[0], **unpack(res[1]))
+            return just_check_exists or Data(name=res[0], **unpack_data(res[1]))
 
     def get_data_by_name(self, name, just_check_exists=False):
         field = '1' if just_check_exists else 'iddset, data'
@@ -220,7 +220,7 @@ class SQL(Cache):
         if res is None:
             return None
         else:
-            return just_check_exists or Data(name=name, **unpack(res[1]))
+            return just_check_exists or Data(name=name, **unpack_data(res[1]))
 
     def get_component_dump(self, component):
         raise NotImplementedError('get model')

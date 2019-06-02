@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 
 import _pickle as pickle
 import blosc
+import zstd as zs
 
 
 # @profile
@@ -18,35 +19,22 @@ def uuid(packed_content):
 
 
 # @profile
-def pack(obj):
-    """
-    Pickle and compress the relevant part or all of the given object.
-    It can be Data or Component.
-    The fastest approach (ZSTD SHUFFLE/NOSHUFFLE) is adopted for each case.
-    :param obj:
-    :return: reasonably compressed obj
-    """
-    from paje.base.component import Component
-    if isinstance(obj, Component):
-        shuffle = blosc.NOSHUFFLE
-    elif isinstance(obj, dict):
-        shuffle = blosc.SHUFFLE
-    else:
-        raise Exception('Unexpected obj to pack!', obj)
-    return pickle.dumps(obj)
-                              # shuffle=shuffle, cname='zstd', clevel=3
+def pack_comp(obj):
+    return blosc.compress(pickle.dumps(obj),
+                          shuffle=blosc.NOSHUFFLE, cname='zstd', clevel=3)
+
+
+def pack_data(obj):
+    return zs.compress(pickle.dumps(obj))
 
 
 # @profile
-def unpack(dump):
-    instance = pickle.loads((dump))
-    from paje.base.component import Component
-    if isinstance(instance, Component):
-        return instance
-    elif isinstance(instance, dict):
-        return instance
-    else:
-        raise Exception('Unexpected obj unpacked!', instance)
+def unpack_comp(dump):
+    return pickle.loads(blosc.decompress(dump))
+
+
+def unpack_data(dump):
+    return pickle.loads(zs.decompress(dump))
 
 
 def zip_array(X):
