@@ -145,17 +145,12 @@ class SQL(Cache):
             return None
         else:
             if len(rows) is not 1:
-                print('More than 1 row found!')
                 for r in rows:
                     print(r)
                 # TODO: use general error handling to show messages
                 print('get_model: exiting sql...')
-                exit(0)
-            from paje.result.mysql import MySQL
-            if isinstance(self, MySQL):
-                return list(rows[0].values())
-            else:
-                return rows[0]
+                raise Exception('More than 1 row found!')
+            return list(rows[0].values())
 
     def data_exists(self, data):
         return self.get_data(data, True) is not None

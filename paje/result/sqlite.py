@@ -10,6 +10,7 @@ class SQLite(SQL):
 
     def open(self):
         self.connection = sqlite3.connect(self.database)
+        self.connection.row_factory = sqlite3.Row
         self.cursor = self.connection.cursor()
 
         # Create tables if they don't exist yet.

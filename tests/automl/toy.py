@@ -16,8 +16,8 @@ def main():
         print('Usage: \npython toy.py dataset.arff '
               '[memoize? True/False] [iterations] [seed]')
     else:
-        # storage = SQLite(debug=not True) if len(argv) >= 3 and argv[2] == \
-        #                                     'True' else None
+        storage = SQLite(debug=not True) if len(argv) >= 3 and argv[2] == \
+                                            'True' else None
         storage = MySQL(db='teste', debug=not True) \
             if len(argv) >= 3 and argv[2] == 'True' else None
         storage.open()
