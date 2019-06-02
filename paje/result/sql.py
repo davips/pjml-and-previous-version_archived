@@ -35,7 +35,7 @@ class SQL(Cache):
                    "iddset varchar(32) NOT NULL UNIQUE, "
                    "name varchar(256) NOT NULL, fields varchar(32) NOT NULL, "
                    "data LONGBLOB NOT NULL, inserted timestamp NOT NULL)")
-        self.query(f'CREATE INDEX idx6 ON dset (name{self.keylimit()}))')
+        self.query(f'CREATE INDEX idx6 ON dset (name{self.keylimit()})')
         self.query('CREATE INDEX idx7 ON dset (fields)')
         self.query('CREATE INDEX idx8 ON dset (inserted)')
 
