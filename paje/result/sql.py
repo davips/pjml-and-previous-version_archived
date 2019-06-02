@@ -37,6 +37,8 @@ class SQL(Cache):
         self.query('CREATE INDEX idx6 ON dset (fields)')
         self.query('CREATE INDEX idx7 ON dset (inserted)')
 
+        if self.debug:
+            print('commit')
         self.connection.commit()
 
     def lock(self, component, test, postpone_commit=False):
@@ -53,6 +55,8 @@ class SQL(Cache):
                 0]
         self.query(txt, args)
         if not postpone_commit:
+            if self.debug:
+                print('commit')
             self.connection.commit()
 
     def get_result(self, component, test):
@@ -88,6 +92,8 @@ class SQL(Cache):
                         data.name(), data.fields_str(),
                         data.dump()])
             if not postpone_commit:
+                if self.debug:
+                    print('commit')
                 self.connection.commit()
         else:
             if self.debug:
@@ -128,6 +134,8 @@ class SQL(Cache):
         self.store_data(test, postpone_commit=True)
         slim and self.store_data(slim, postpone_commit=True)
         if not postpone_commit:
+            if self.debug:
+                print('commit')
             self.connection.commit()
             print('Stored!')
 
