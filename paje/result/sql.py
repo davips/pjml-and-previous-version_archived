@@ -198,8 +198,8 @@ class SQL(Cache):
         except Exception as e:
             print(e)
             print()
-            print(msg)
-            raise e
+            print(e, msg)
+            raise Exception('\nMaybe you should call storage.open()')
 
     def get_data(self, data, just_check_exists=False):
         return self.get_data_by_uuid(data.uuid(), just_check_exists)
