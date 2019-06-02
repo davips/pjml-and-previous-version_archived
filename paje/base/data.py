@@ -166,7 +166,7 @@ class Data:
 
     def dump(self):
         if self._dump is None:
-            self._set('_dump', pack(self))
+            self._set('_dump', pack(self.all))
         return self._dump
 
     def uuid(self):

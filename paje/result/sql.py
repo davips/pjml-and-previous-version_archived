@@ -2,7 +2,7 @@ import socket
 from abc import abstractmethod
 
 from paje.base.data import Data
-from paje.result.storage import Cache, unpack, pack
+from paje.result.storage import Cache, unpack
 
 
 class SQL(Cache):

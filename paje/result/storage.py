@@ -48,7 +48,7 @@ def unpack(dump):
         from paje.base.data import Data
         return Data(**instance)
     else:
-        raise Exception('Unexpected obj unpacked!', obj)
+        raise Exception('Unexpected obj unpacked!', instance)
 
 
 def zip_array(X):
