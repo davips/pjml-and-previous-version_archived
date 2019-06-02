@@ -40,7 +40,7 @@ class AutoML(Component, ABC):
         evaluator = Evaluator(Metrics.error, "cv", 3,
                               random_state=self.random_state)
 
-        failed, locked, tot = 0, 0, 0
+        failed, locked, succ, tot = 0, 0, 0, 0
         for i in range(self.max_iter):
             # Evaluates current hyperparameter (space-values) combination.
             pipelines = self.next_pipelines(data)
@@ -53,15 +53,16 @@ class AutoML(Component, ABC):
                 error = np.mean(evaluator.eval(pipe, data))
                 if pipe.failed:
                     failed += 1
-                if pipe.locked:
+                elif pipe.locked:
                     locked += 1
+                else:
+                    succ += 1
                 errors.append(error)
             self.process(errors)
             if self.verbose:
                 print("Current Error: ", error)
-                print("Best Error: ", self.best_error, 'Locked/failed/total '
-                                                       'pipelines:',
-                      locked, '/', failed, '/', tot, '\n', )
+                print("Best Error: ", self.best_error, 'Locks/fails/successes:',
+                      locked, '/', failed, '/', succ, '\n', )
 
         if self.verbose:
             print("Best pipeline found:")

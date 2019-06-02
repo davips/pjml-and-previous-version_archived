@@ -177,10 +177,9 @@ class Component(ABC):
         if not self.show_warns:
             np.warnings.filterwarnings('always')
 
-    def lock(self, data, postpone_commit=False):
-        self.storage.lock(self, data, postpone_commit)
-        if not postpone_commit:
-            self.log('Locked!')
+    def lock(self, data):
+        self.storage.lock(self, data)
+        self.log('Locked!')
 
     def look_for_result(self, data):
         return self.storage and self.storage.get_result(self, data)
@@ -201,17 +200,16 @@ class Component(ABC):
             # self.log(f"Applying {self.name} on None returns None.")
             return None
 
-        # print('Trying to apply component...', self.name)
         self._uuid_train__mutable = data.uuid()
         output_data = self.look_for_result(data)
-        if self.locked:
-            print(f"Won't apply {self.name} on data {self.uuid_train()}\n"
-                  f"Current probably working at node [{self.node}].")
-            return output_data
-
         if self.failed:
             self.log(f"Won't apply on data {self.uuid_train()}\n"
                      f"Current {self.name} already failed before.")
+            return output_data
+
+        if self.locked:
+            print(f"Won't apply {self.name} on data {self.uuid_train()}\n"
+                  f"Current probably working at node [{self.node}].")
             return output_data
 
         # Apply if still needed  ----------------------------------
@@ -230,6 +228,7 @@ class Component(ABC):
                         output_data = self.apply_impl(data)
             except Exception as e:
                 self.failed = True
+                self.locked = False
                 handle_exception(self, e)
             self.time_spent = self.clock() - start
             self.log('Component ' + self.name + ' applied.')
@@ -237,7 +236,7 @@ class Component(ABC):
 
             if self.storage is not None:
                 output_train_data = None if self.failed else self.use_impl(data)
-                self.store_result(data, output_train_data, postpone_commit=True)
+                self.store_result(data, output_train_data)
                 self.store_data(data)  # Store training set.
 
         return output_data
@@ -315,13 +314,13 @@ class Component(ABC):
     def store_data(self, data):
         self.storage.store_data(data)
 
-    def store_result(self, input_data, output_data, postpone_commit=False):
+    def store_result(self, input_data, output_data):
         """
         :param input_data:
         :param output_data:
         :return:
         """
-        self.storage.store(self, input_data, output_data, postpone_commit)
+        self.storage.store(self, input_data, output_data)
 
     def clock(self):
         usage = os.times()

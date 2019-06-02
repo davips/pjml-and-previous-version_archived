@@ -43,7 +43,7 @@ class SQL(Cache):
             print('commit')
         self.connection.commit()
 
-    def lock(self, component, test, postpone_commit=False):
+    def lock(self, component, test):
         if self.debug:
             print('Locking...')
         node = socket.gethostname()
@@ -56,16 +56,17 @@ class SQL(Cache):
                 None, None, None,
                 0]
         self.query(txt, args)
-        if not postpone_commit:
-            if self.debug:
-                print('commit')
-            self.connection.commit()
+        if self.debug:
+            print('commit')
+        self.connection.commit()
 
     def get_result(self, component, test):
         """
         Look for a result in database.
         :return:
         """
+        if component.failed or component.locked:
+            return None
         self.query(
             "select idtestout, timespent, failed, end, node from result where "
             "idcomp=? and idtrain=? and idtest=?",
@@ -84,7 +85,7 @@ class SQL(Cache):
         component.node = result[4]
         return testout
 
-    def store_data(self, data, postpone_commit=False):
+    def store_data(self, data):
         if not self.data_exists(data):
             self.query("insert into dset values (NULL, "
                        "?, "
@@ -93,21 +94,19 @@ class SQL(Cache):
                        [data.uuid(),
                         data.name(), data.fields_str(),
                         data.dump()])
-            if not postpone_commit:
-                if self.debug:
-                    print('commit')
-                self.connection.commit()
+            if self.debug:
+                print('commit')
+            self.connection.commit()
         else:
             if self.debug:
                 print('Testset already exists:' + data.uuid(), data.name())
 
-    def store(self, component, test, testout, postpone_commit=False):
+    def store(self, component, test, testout):
         """
 
         :param component:
         :param test:
         :param testout:
-        :param postpone_commit:
         :return:
         """
         slim = testout and \
@@ -133,13 +132,12 @@ class SQL(Cache):
             component.warning(
                 'Component already exists:' + str(component.serialized()))
 
-        self.store_data(test, postpone_commit=True)
-        slim and self.store_data(slim, postpone_commit=True)
-        if not postpone_commit:
-            if self.debug:
-                print('commit')
-            self.connection.commit()
-            print('Stored!')
+        self.store_data(test)
+        slim and self.store_data(slim)
+        if self.debug:
+            print('commit')
+        self.connection.commit()
+        print('Stored!')
 
     def _process_result(self):
         rows = self.cursor.fetchall()
