@@ -14,6 +14,7 @@ class MySQL(SQL):
         self.debug = debug
         if '-' in db:
             raise Exception("'-' not allowed in db name!")
+        self.open()
 
     def open(self):
         """

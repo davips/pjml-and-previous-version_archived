@@ -7,6 +7,7 @@ class SQLite(SQL):
     def __init__(self, database='/tmp/paje.db', debug=False):
         self.database = database
         self.debug = debug
+        self.open()
 
     def open(self):
         self.connection = sqlite3.connect(self.database)
