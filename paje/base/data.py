@@ -45,7 +45,7 @@ class Data:
         n_classes = len(set(dematrixify(get_first_non_none([Y, V, Z, W]), [0])))
         n_instances = len(get_first_non_none(alldata, []))
         n_attributes = len(get_first_non_none([X, U], [[]])[0])
-        fields = {k: v for k, v in self._dic.items() if v is not None}
+        used_vars = {k: v for k, v in self._dic.items() if v is not None}
 
         self.__dict__.update({
             'n_classes': n_classes,
@@ -54,7 +54,7 @@ class Data:
             'Xy': (X, dematrixify(Y)),
             'Uv': (U, dematrixify(V)),
             'all': alldata,
-            'fields': fields,
+            'used_vars': used_vars,
             'columns': None  # TODO: make columns effective, and save it to
             #     storage also
         })
@@ -145,6 +145,21 @@ class Data:
             dic['name'] = self.name()
         return Data(**dic)
 
+    def merged(self, data):
+        """
+        Same as updated, but not replacing any field by None.
+        :param data:
+        :return:
+        """
+        return self.updated(**data.used_vars)
+
+    def shrink(self):
+        """
+        Remove None fields
+        :return:
+        """
+        return Data(name=self.name(), **self.used_vars)
+
     def select(self, fields):
         """
         Return a subset of the dictionary of kwargs.
@@ -155,7 +170,7 @@ class Data:
         fields = [(x.upper() if x in self.vectors else x) for x in fields]
         return {k: v for k, v in self._dic.items() if k in fields}
 
-    def reduce_to(self, fields):
+    def reduced_to(self, fields):
         return Data(name=self.name(), **self.select(fields))
 
     def __setattr__(self, attr, value):
@@ -192,7 +207,7 @@ class Data:
 
     def __str__(self):
         txt = []
-        [txt.append(f'{k}: {str(v)}') for k, v in self.fields.items()]
+        [txt.append(f'{k}: {str(v)}') for k, v in self.used_vars.items()]
         return '\n'.join(txt) + self.name()
 
     def split(self, random_state=1):

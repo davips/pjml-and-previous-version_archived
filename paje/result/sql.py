@@ -68,21 +68,24 @@ class SQL(Cache):
         if component.failed or component.locked:
             return None
         self.query(
-            "select idtestout, timespent, failed, end, node from result where "
-            "idcomp=? and idtrain=? and idtest=?",
+            "select data, timespent, failed, end, node, name "
+            "from result left join dset on idtestout=iddset "
+            "where idcomp=? and idtrain=? and idtest=?",
             [component.uuid(), component.uuid_train(), test.uuid()])
 
         result = self._process_result()
         if result is None:
             return None
-
-        slim = result[0] and self.get_data_by_uuid(result[0])
-        keep = test.select(component.fields_to_keep_after_use())
-        testout = slim and slim.updated(**keep)
-        component.time_spent = result[1]
-        component.failed = result[2] == 1
-        component.locked = result[3] == '0000-00-00 00:00:00'
-        component.node = result[4]
+        if result['data'] is not None:
+            slim = Data(name=result['name'], **unpack_data(result['data']))
+            testout = slim.merged(
+                test.reduced_to(component.fields_to_keep_after_use()))
+        else:
+            testout = None
+        component.time_spent = result['timespent']
+        component.failed = result['failed'] == 1
+        component.locked = result['end'] == '0000-00-00 00:00:00'
+        component.node = result['node']
         return testout
 
     def store_data(self, data):
@@ -110,7 +113,7 @@ class SQL(Cache):
         :return:
         """
         slim = testout and \
-               testout.reduce_to(component.fields_to_store_after_use())
+               testout.reduced_to(component.fields_to_store_after_use())
         # TODO: try to store dumps again?
         dump = None
         failed = 1 if component.failed else 0
@@ -150,7 +153,7 @@ class SQL(Cache):
                 # TODO: use general error handling to show messages
                 print('get_model: exiting sql...')
                 raise Exception('More than 1 row found!')
-            return list(rows[0].values())
+            return rows[0]
 
     def data_exists(self, data):
         return self.get_data(data, True) is not None
@@ -167,8 +170,9 @@ class SQL(Cache):
         res = self._process_result()
         if res is None:
             return None
-        else:
-            return res[0]
+        if just_check_exists:
+            return True
+        return res[field]
 
     @staticmethod
     def interpolate(sql, lst0):
@@ -177,7 +181,7 @@ class SQL(Cache):
         return ''.join(list(sum(zipped, ())))
 
     # @profile
-    def query(self, sql, args=None):  # 300ms per query  (mozilla set)
+    def query(self, sql, args=None):
         if args is None:
             args = []
         from paje.result.mysql import MySQL
@@ -205,17 +209,20 @@ class SQL(Cache):
         res = self._process_result()
         if res is None:
             return None
-        else:
-            return just_check_exists or Data(name=res[0], **unpack_data(res[1]))
+        if just_check_exists:
+            return True
+        return just_check_exists or Data(name=res['name'],
+                                         **unpack_data(res['data']))
 
     def get_data_by_name(self, name, just_check_exists=False):
-        field = '1' if just_check_exists else 'iddset, data'
+        field = '1' if just_check_exists else 'data'
         self.query(f'select {field} from dset where name=?', [name])
         res = self._process_result()
         if res is None:
             return None
-        else:
-            return just_check_exists or Data(name=name, **unpack_data(res[1]))
+        if just_check_exists:
+            return True
+        return just_check_exists or Data(name=name, **unpack_data(res['data']))
 
     def get_component_dump(self, component):
         raise NotImplementedError('get model')
