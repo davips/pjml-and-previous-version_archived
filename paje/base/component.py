@@ -2,9 +2,9 @@
 """
 import copy
 import json
+from paje.util.log import *
 import os
 from abc import ABC, abstractmethod
-from logging import warning
 from uuid import uuid4
 
 import numpy as np
@@ -42,9 +42,11 @@ class Component(ABC):
         self.max_time = max_time
         self._dump = None
 
+        self.log = logging.getLogger('component')
         # if True show warnings
-        self.show_warns = show_warns
+        self.log.setLevel(3)
         self.show_logs = False
+        self.show_warns = show_warns
 
         self._serialized = None
 
@@ -179,7 +181,7 @@ class Component(ABC):
 
     def lock(self, data):
         self.storage.lock(self, data)
-        self.log('Locked!')
+        self.msg('Locked!')
 
     def look_for_result(self, data):
         return self.storage and self.storage.get_result(self, data)
@@ -203,7 +205,7 @@ class Component(ABC):
         self._uuid_train__mutable = data.uuid()
         output_data = self.look_for_result(data)
         if self.failed:
-            self.log(f"Won't apply on data {self.uuid_train()}\n"
+            self.msg(f"Won't apply on data {self.uuid_train()}\n"
                      f"Current {self.name} already failed before.")
             return output_data
 
@@ -218,7 +220,7 @@ class Component(ABC):
                 self.lock(data)
 
             self.handle_warnings()
-            self.log('Applying component' + self.name + '...')
+            self.msg('Applying component' + self.name + '...')
             start = self.clock()
             try:
                 if self.max_time is None:
@@ -231,7 +233,7 @@ class Component(ABC):
                 self.locked = False
                 handle_exception(self, e)
             self.time_spent = self.clock() - start
-            self.log('Component ' + self.name + ' applied.')
+            self.msg('Component ' + self.name + ' applied.')
             self.dishandle_warnings()
 
             if self.storage is not None:
@@ -248,18 +250,18 @@ class Component(ABC):
 
         # Checklist / get from storage -----------------------------------
         if data is None:
-            self.log(f"Using {self.name} on None returns None.")
+            self.msg(f"Using {self.name} on None returns None.")
             return None
 
         output_data = self.look_for_result(data)
 
         if self.locked:
-            self.log(f"Won't use {self.name} on data {self.uuid_train()}\n"
+            self.msg(f"Won't use {self.name} on data {self.uuid_train()}\n"
                      f"Current probably working at {self.node}.")
             return output_data
 
         if self.failed:
-            self.log(f"Won't use on data {data.uuid()}\n"
+            self.msg(f"Won't use on data {data.uuid()}\n"
                      f"Current {self.name} already failed before.")
             return output_data
 
@@ -276,7 +278,7 @@ class Component(ABC):
             output_data = self.use_impl(data)  # TODO:handle excps mark failed
             self.time_spent = self.clock() - start
 
-            self.log('Component ' + self.name + 'used.')
+            self.msg('Component ' + self.name + 'used.')
             self.dishandle_warnings()
 
             if self.storage is not None:
@@ -294,15 +296,17 @@ class Component(ABC):
 
     __repr__ = __str__
 
-    def warning(self, msg):
-        if self.show_warns:
-            warning(msg)
+    def msg(self, msg):
+        self.log.log(1, msg)
 
-    def log(self, msg):
-        if self.show_logs:
-            print(msg)
+    def warning(self, msg):
+        self.log.warning(2, msg)
+
+    def debug(self, msg):
+        self.log.debug(3, msg)
 
     def error(self, msg):
+        self.log.error(4, msg)
         raise Exception(msg)
 
     def serialized(self):

@@ -56,20 +56,6 @@ def unzip_array(zipped):
     return blosc.decompress(zipped)
 
 
-def zip_array(X):
-    """
-    Parameters optimized for digits dataset. 115008 rows, 64 attrs
-    :param X:
-    :return:
-    """
-    return blosc.compress(X.reshape(1, 115008), cname='blosclz',
-                          shuffle=blosc.BITSHUFFLE)
-
-
-def unzip_array(zipped):
-    return blosc.decompress(zipped)
-
-
 class Cache(ABC):
     """
     This class stores and recovers results from some place.
@@ -111,7 +97,6 @@ class Cache(ABC):
 
     def get_component_dump(self, component):
         raise NotImplementedError('get model')
-
 
     # TODO: other useful methods implemented by sql.py,
     #  but not used direcly by Component.

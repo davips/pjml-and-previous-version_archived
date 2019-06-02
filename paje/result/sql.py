@@ -132,7 +132,7 @@ class SQL(Cache):
             self.query("insert into args values (NULL, ?, ?)",
                        [component.uuid(), component.serialized()])
         else:
-            component.warning(
+            component.msg(
                 'Component already exists:' + str(component.serialized()))
 
         self.store_data(test)
