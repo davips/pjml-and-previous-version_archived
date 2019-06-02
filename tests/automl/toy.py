@@ -7,6 +7,7 @@ from paje.module.modules import default_modelers
 # @profile
 from paje.module.preprocessing.unsupervised.feature.transformer.drpca import \
     DRPCA
+from paje.result.mysql import MySQL
 from paje.result.sqlite import SQLite
 
 
