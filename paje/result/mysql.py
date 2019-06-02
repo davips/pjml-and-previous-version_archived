@@ -16,6 +16,10 @@ class MySQL(SQL):
             raise Exception("'-' not allowed in db name!")
 
     def open(self):
+        """
+        Each reconnection has a cost of approximately 150ms in ADSL (ping=30ms).
+        :return:
+        """
         if self.debug:
             print('getting connection...')
         self.connection = pymysql.connect(host=self.host,

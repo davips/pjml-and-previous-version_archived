@@ -20,6 +20,7 @@ def main():
         #                                     'True' else None
         storage = MySQL(db='teste', debug=not True) \
             if len(argv) >= 3 and argv[2] == 'True' else None
+        storage.open()
 
         iterations = 30 if len(argv) < 4 else int(argv[3])
         random_state = 0 if len(argv) < 5 else int(argv[4])
