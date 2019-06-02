@@ -33,13 +33,13 @@ def pack(obj):
         shuffle = blosc.SHUFFLE
     else:
         raise Exception('Unexpected obj to pack!', obj)
-    return blosc.compress(pickle.dumps(obj),
-                              shuffle=shuffle, cname='zstd', clevel=3)
+    return pickle.dumps(obj)
+                              # shuffle=shuffle, cname='zstd', clevel=3
 
 
 # @profile
 def unpack(dump):
-    instance = pickle.loads(blosc.decompress(dump))
+    instance = pickle.loads((dump))
     from paje.base.component import Component
     if isinstance(instance, Component):
         return instance

@@ -182,7 +182,7 @@ class Component(ABC):
         if not postpone_commit:
             self.log('Locked!')
 
-    def get_result(self, data):
+    def look_for_result(self, data):
         return self.storage and self.storage.get_result(self, data)
 
     def check_if_applied(self):
@@ -203,7 +203,7 @@ class Component(ABC):
 
         # print('Trying to apply component...', self.name)
         self._uuid_train__mutable = data.uuid()
-        output_data = self.get_result(data)
+        output_data = self.look_for_result(data)
         if self.locked:
             print(f"Won't apply {self.name} on data {self.uuid_train()}\n"
                   f"Current probably working at node [{self.node}].")
@@ -252,7 +252,7 @@ class Component(ABC):
             self.log(f"Using {self.name} on None returns None.")
             return None
 
-        output_data = self.get_result(data)
+        output_data = self.look_for_result(data)
 
         if self.locked:
             self.log(f"Won't use {self.name} on data {self.uuid_train()}\n"
@@ -328,7 +328,7 @@ class Component(ABC):
         return usage[0] + usage[1]
 
     def dump(self):
-        self.check_if_applied() # It makes no sense to store an unapplied comp.
+        self.check_if_applied()  # It makes no sense to store an unapplied comp.
         if self._dump is None:
             self._dump = pack(self)
         return self._dump

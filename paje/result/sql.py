@@ -11,16 +11,18 @@ class SQL(Cache):
             print('creating tables...')
         self.query("create table if not exists args ("
                    f"id int NOT NULL primary key {self.auto_incr()}, "
-                   "idcomp varchar(32) UNIQUE, "
-                   "dic TEXT)")
+                   "idcomp varchar(32) NOT NULL UNIQUE, "
+                   "dic TEXT NOT NULL)")
         self.query('CREATE INDEX idx0 ON args (dic(190))')
 
         self.query("create table if not exists result ("
                    f"id int NOT NULL primary key {self.auto_incr()}, "
-                   "idcomp varchar(32), idtrain varchar(32), idtest varchar(32)"
+                   "idcomp varchar(32) NOT NULL, idtrain varchar(32) NOT NULL ,"
+                   "idtest varchar(32) NOT NULL"
                    ", idtestout varchar(32), timespent FLOAT, dump LONGBLOB"
-                   ", failed TINYINT, start TIMESTAMP, end TIMESTAMP"
-                   ", node varchar(32), attempts int NOT NULL"
+                   ", failed TINYINT NOT NULL, start TIMESTAMP NOT NULL"
+                   ", end TIMESTAMP NOT NULL"
+                   ", node varchar(32) NOT NULL, attempts int NOT NULL"
                    ", UNIQUE(idcomp, idtrain, idtest))")
         self.query('CREATE INDEX idx1 ON result (timespent)')
         self.query('CREATE INDEX idx2 ON result (start)')
@@ -30,9 +32,9 @@ class SQL(Cache):
 
         self.query("create table if not exists dset ("
                    f"id int NOT NULL primary key {self.auto_incr()}, "
-                   "iddset varchar(32) UNIQUE, "
-                   "name varchar(256), fields varchar(32), "
-                   "data LONGBLOB, inserted timestamp)")
+                   "iddset varchar(32) NOT NULL UNIQUE, "
+                   "name varchar(256) NOT NULL, fields varchar(32) NOT NULL, "
+                   "data LONGBLOB NOT NULL, inserted timestamp NOT NULL)")
         self.query('CREATE INDEX idx5 ON dset (name(190))')
         self.query('CREATE INDEX idx6 ON dset (fields)')
         self.query('CREATE INDEX idx7 ON dset (inserted)')
@@ -97,7 +99,7 @@ class SQL(Cache):
                 self.connection.commit()
         else:
             if self.debug:
-                print('Testset already exists:' + data.uuid(), data.name)
+                print('Testset already exists:' + data.uuid(), data.name())
 
     def store(self, component, test, testout, postpone_commit=False):
         """

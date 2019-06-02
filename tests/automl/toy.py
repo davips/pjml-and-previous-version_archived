@@ -1,6 +1,7 @@
 from sys import argv
 
 import sklearn.metrics
+from sklearn.decomposition import PCA
 
 from paje.automl.random import RandomAutoML
 from paje.base.data import Data
@@ -8,6 +9,8 @@ from paje.evaluator.metrics import Metrics
 from paje.module.modules import default_preprocessors, default_modelers
 
 # @profile
+from paje.module.preprocessing.unsupervised.feature.transformer.drpca import \
+    DRPCA
 from paje.result.mysql import MySQL
 from paje.result.sqlite import SQLite
 
@@ -19,8 +22,8 @@ def main():
     else:
         # storage = SQLite(debug=not True) if len(argv) >= 3 and argv[2] == \
         #                                     'True' else None
-        storage = MySQL(db='teste', debug=not True) \
-            if len(argv) >= 3 and argv[2] == 'True' else None
+        storage = None #MySQL(db='teste', debug=not True) \
+            # if len(argv) >= 3 and argv[2] == 'True' else None
 
         iterations = 30 if len(argv) < 4 else int(argv[3])
         random_state = 0 if len(argv) < 5 else int(argv[4])
@@ -32,10 +35,10 @@ def main():
 
         # SQLite().setup()
         automl_rs = RandomAutoML(storage_for_components=storage,
-                                 preprocessors=default_preprocessors,
+                                 preprocessors=[DRPCA()],
                                  modelers=default_modelers, max_iter=iterations,
                                  static=False, fixed=False,
-                                 max_depth=15, repetitions=2, method="all",
+                                 max_depth=15, repetitions=0, method="all",
                                  show_warns=False,
                                  random_state=random_state).build()
         automl_rs.apply(trainset)

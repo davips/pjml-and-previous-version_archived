@@ -24,12 +24,15 @@ class Evaluator:
         for train_index, test_index in self.split.split(*data.Xy):
             name = f'{data.name()}_seed{self.random_state}' \
                 f'_split{self.split.__class__.__name__}_fold'
+            print(train_index)
             data_train = data.updated(name=name + 'tr' + str(fold),
                                       X=data.X[train_index],
                                       y=data.y[train_index])
+            print('uuid   tr ', data_train.uuid())
             data_test = data.updated(name=name + 'ts' + str(fold),
                                      X=data.X[test_index],
                                      y=data.y[test_index])
+            # print('uuid   tS ', data_test.uuid())
 
             # TODO: if output_train is needed, it should come from
             #  component.use(), not from component.apply()!

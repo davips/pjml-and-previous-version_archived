@@ -9,8 +9,9 @@ msgs = ['All features are either constant or ignored.',  # CB
         'On entry to DLASCL parameter number',  # Mahala knn
         'excess of neighbors!',  # KNN
         'subcomponent failed',  # nested failure
+        'specified nu is infeasible',  # SVM
+        'excess of neurons',
         ]
-
 
 def handle_exception(component, e):
     component.warning('Trying to handle: ' + str(e))

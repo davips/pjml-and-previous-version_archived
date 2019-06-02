@@ -193,7 +193,7 @@ class Data:
     def __str__(self):
         txt = []
         [txt.append(f'{k}: {str(v)}') for k, v in self.fields.items()]
-        return '\n'.join(txt) + self.fullname()
+        return '\n'.join(txt) + self.name()
 
     def split(self, random_state=1):
         X, y = self.Xy
