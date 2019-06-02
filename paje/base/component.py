@@ -12,7 +12,7 @@ import numpy as np
 from paje.base.exceptions import ApplyWithoutBuild, UseWithoutApply, \
     handle_exception
 from paje.evaluator.time import time_limit
-from paje.result.storage import uuid
+from paje.result.storage import uuid, pack
 
 
 class Component(ABC):
@@ -28,24 +28,25 @@ class Component(ABC):
         # that has self.model.
         self.unfit = True
         self.model = None
-        self.cached_uuid = None  # UUID will be known only after build()
         self.dic = {}
         self.name = self.__class__.__name__
         self.tmp_uuid = uuid4().hex
 
         self.storage = storage
-        self.uuid_train = None
+        self._uuid = None  # UUID will be known only after build()
+        self._uuid_train__mutable = None
         self.locked = False
         self.failed = False
         self.time_spent = None
         self.node = None
         self.max_time = max_time
+        self._dump = None
 
         # if True show warnings
         self.show_warns = show_warns
         self.show_logs = False
 
-        self.cached_serialization = None
+        self._serialized = None
 
     @abstractmethod
     def fields_to_store_after_use(self):
@@ -144,7 +145,7 @@ class Component(ABC):
 
     def build(self, **dic):
         # Check if build has already been called.
-        if self.cached_uuid is not None:
+        if self._uuid is not None:
             self.error('Build cannot be called twice!')
         self = copy.copy(self)
         if self.storage is not None:
@@ -152,9 +153,14 @@ class Component(ABC):
         self.dic = dic
         if self.isdeterministic() and "random_state" in self.dic:
             del self.dic["random_state"]
-        self.cached_serialization = \
-            json.dumps(self.dic, sort_keys=True).encode()
-        self.cached_uuid = uuid(self.cached_serialization)
+
+        # When the build is not created by a dic coming from a HPTree,
+        #  it can be lacking a name.
+        if 'name' not in self.dic:
+            self.dic['name'] = self.name
+
+        self._serialized = json.dumps(self.dic, sort_keys=True).encode()
+        self._uuid = uuid(self.serialized())
         if 'name' in self.dic:
             del self.dic['name']
         self.build_impl()
@@ -179,6 +185,10 @@ class Component(ABC):
     def get_result(self, data):
         return self.storage and self.storage.get_result(self, data)
 
+    def check_if_applied(self):
+        if self._uuid_train__mutable is None:
+            raise UseWithoutApply(f'{self.name} should be applied!')
+
     def check_if_built(self):
         self.serialized()  # Call just to raise exception, if needed.
 
@@ -192,15 +202,15 @@ class Component(ABC):
             return None
 
         # print('Trying to apply component...', self.name)
-        self.uuid_train = data.uuid()
+        self._uuid_train__mutable = data.uuid()
         output_data = self.get_result(data)
         if self.locked:
-            print(f"Won't apply {self.name} on data {self.uuid_train}\n"
+            print(f"Won't apply {self.name} on data {self.uuid_train()}\n"
                   f"Current probably working at node [{self.node}].")
             return output_data
 
         if self.failed:
-            self.log(f"Won't apply on data {self.uuid_train}\n"
+            self.log(f"Won't apply on data {self.uuid_train()}\n"
                      f"Current {self.name} already failed before.")
             return output_data
 
@@ -235,8 +245,7 @@ class Component(ABC):
     def use(self, data=None):
         """Todo the doc string
         """
-        if self.uuid_train is None:
-            raise UseWithoutApply(f'No uuid_train was defined for {self.name}!')
+        self.check_if_applied()
 
         # Checklist / get from storage -----------------------------------
         if data is None:
@@ -246,7 +255,7 @@ class Component(ABC):
         output_data = self.get_result(data)
 
         if self.locked:
-            self.log(f"Won't use {self.name} on data {self.uuid_train}\n"
+            self.log(f"Won't use {self.name} on data {self.uuid_train()}\n"
                      f"Current probably working at {self.node}.")
             return output_data
 
@@ -276,10 +285,10 @@ class Component(ABC):
         return output_data
 
     def uuid(self):
-        if self.cached_uuid is None:
+        if self._uuid is None:
             raise ApplyWithoutBuild('build() should be called before '
                                     'uuid() <-' + self.name)
-        return self.cached_uuid
+        return self._uuid
 
     def __str__(self, depth=''):
         return self.name + " " + str(self.dic)
@@ -298,10 +307,10 @@ class Component(ABC):
         raise Exception(msg)
 
     def serialized(self):
-        if self.cached_serialization is None:
+        if self._serialized is None:
             raise ApplyWithoutBuild('build() should be called before '
                                     'serialized() <-' + self.name)
-        return self.cached_serialization
+        return self._serialized
 
     def store_data(self, data):
         self.storage.store_data(data)
@@ -317,3 +326,15 @@ class Component(ABC):
     def clock(self):
         usage = os.times()
         return usage[0] + usage[1]
+
+    def dump(self):
+        self.check_if_applied() # It makes no sense to store an unapplied comp.
+        if self._dump is None:
+            self._dump = pack(self)
+        return self._dump
+
+    def uuid_train(self):
+        if self._uuid_train__mutable is None:
+            raise Exception('This component should be applied to have '
+                            'a UUID of the training Data.', self.name)
+        return self._uuid_train__mutable

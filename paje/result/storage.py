@@ -20,30 +20,35 @@ def uuid(packed_content):
 # @profile
 def pack(obj):
     """
-    Pickle and compress the relevant part of the given object.
-    It can be Data or Component. The fastest approach is adopted for each case.
+    Pickle and compress the relevant part or all of the given object.
+    It can be Data or Component.
+    The fastest approach (ZSTD SHUFFLE/NOSHUFFLE) is adopted for each case.
     :param obj:
     :return: reasonably compressed obj
     """
     from paje.base.component import Component
     from paje.base.data import Data
     if isinstance(obj, Component):
-        blosc.compress(pickle.dumps(obj),
-                       shuffle=blosc.SHUFFLE, cname='zstd', clevel=2)
-        return pickle.dumps(obj)
+        return blosc.compress(pickle.dumps(obj),
+                              shuffle=blosc.NOSHUFFLE, cname='zstd', clevel=3)
     elif isinstance(obj, Data):
-        blosc.compress(pickle.dumps(obj),
-                       shuffle=blosc.SHUFFLE, cname='zstd', clevel=2)
-        return pickle.dumps(obj)
+        return blosc.compress(pickle.dumps(obj.all),
+                              shuffle=blosc.SHUFFLE, cname='zstd', clevel=3)
+    else:
+        raise Exception('Unexpected obj to pack!', obj)
 
 
 # @profile
 def unpack(dump):
-    return pickle.loads(dump)
-
-
-def zip(obj):
-    return blosc.compress(obj, )
+    instance = pickle.loads(blosc.decompress(dump))
+    from paje.base.component import Component
+    if isinstance(instance, Component):
+        return instance
+    elif isinstance(instance, dict):
+        from paje.base.data import Data
+        return Data(**instance)
+    else:
+        raise Exception('Unexpected obj unpacked!', obj)
 
 
 def zip_array(X):

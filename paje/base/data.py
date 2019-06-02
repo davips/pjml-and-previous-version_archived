@@ -153,7 +153,7 @@ class Data:
         fields = [(x.upper() if x in self.vectors else x) for x in fields]
         return {k: v for k, v in self._dic.items() if k in fields}
 
-    def sub(self, fields):
+    def reduce_to(self, fields):
         return Data(name=self.name(), **self.select(fields))
 
     def __setattr__(self, attr, value):
@@ -166,7 +166,7 @@ class Data:
 
     def dump(self):
         if self._dump is None:
-            self._set('_dump', pack(self.all))
+            self._set('_dump', pack(self))
         return self._dump
 
     def uuid(self):

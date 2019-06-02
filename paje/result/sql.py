@@ -13,15 +13,13 @@ class SQL(Cache):
                    f"id int NOT NULL primary key {self.auto_incr()}, "
                    "idcomp varchar(32) UNIQUE, "
                    "dic TEXT)")
+        self.query('CREATE INDEX idx0 ON args (dic(190))')
 
         self.query("create table if not exists result ("
                    f"id int NOT NULL primary key {self.auto_incr()}, "
                    "idcomp varchar(32), idtrain varchar(32), idtest varchar(32)"
-                   ", idtestout varchar(32)"
-                   ", timespent FLOAT"
-                   ", dump LONGBLOB"
-                   ", failed TINYINT"
-                   ", start TIMESTAMP, end TIMESTAMP"
+                   ", idtestout varchar(32), timespent FLOAT, dump LONGBLOB"
+                   ", failed TINYINT, start TIMESTAMP, end TIMESTAMP"
                    ", node varchar(32), attempts int NOT NULL"
                    ", UNIQUE(idcomp, idtrain, idtest))")
         self.query('CREATE INDEX idx1 ON result (timespent)')
@@ -33,11 +31,11 @@ class SQL(Cache):
         self.query("create table if not exists dset ("
                    f"id int NOT NULL primary key {self.auto_incr()}, "
                    "iddset varchar(32) UNIQUE, "
-                   "name varchar(256), "
-                   "fields varchar(32), "
+                   "name varchar(256), fields varchar(32), "
                    "data LONGBLOB, inserted timestamp)")
         self.query('CREATE INDEX idx5 ON dset (name(190))')
         self.query('CREATE INDEX idx6 ON dset (fields)')
+        self.query('CREATE INDEX idx7 ON dset (inserted)')
 
         self.connection.commit()
 
@@ -47,10 +45,12 @@ class SQL(Cache):
         node = socket.gethostname()
         txt = "insert into result values (null, " \
               "?, ?, ?, " \
-              "?, ?, ?, ?, " + \
-              self.now_function() + f", '0000-00-00 00:00:00', '{node}', 0)"
-        args = [component.uuid(), component.uuid_train, test.uuid(),
-                None, None, None, 0]
+              "?, ?, ?, " \
+              "?, " + self.now_function() + f", '0000-00-00 00:00:00', " \
+                  f"'{node}', 0)"
+        args = [component.uuid(), component.uuid_train(), test.uuid(),
+                None, None, None,
+                0]
         self.query(txt, args)
         if not postpone_commit:
             self.connection.commit()
@@ -63,15 +63,15 @@ class SQL(Cache):
         self.query(
             "select idtestout, timespent, failed, end, node from result where "
             "idcomp=? and idtrain=? and idtest=?",
-            [component.uuid(), component.uuid_train, test.uuid()])
+            [component.uuid(), component.uuid_train(), test.uuid()])
 
         result = self._process_result()
         if result is None:
             return None
 
-        slim_testout = result[0] and self.get_data_by_uuid(result[0])
-
-        testout = test.sub(component.fields_to_keep_after_use()).updated(**dic)
+        slim = result[0] and self.get_data_by_uuid(result[0])
+        keep = test.select(component.fields_to_keep_after_use())
+        testout = slim and slim.updated(**keep)
         component.time_spent = result[1]
         component.failed = result[2] == 1
         component.locked = result[3] == '0000-00-00 00:00:00'
@@ -80,15 +80,18 @@ class SQL(Cache):
 
     def store_data(self, data, postpone_commit=False):
         if not self.data_exists(data):
-            self.query("insert into dset values (NULL, ?, ?, ?, ?, "
-                       f"{self.now_function()})",
-                       [data.uuid(), data.name(),
-                        data.fields_str(), data.dump()])
+            self.query("insert into dset values (NULL, "
+                       "?, "
+                       "?, ?, "
+                       f"?, {self.now_function()})",
+                       [data.uuid(),
+                        data.name(), data.fields_str(),
+                        data.dump()])
             if not postpone_commit:
                 self.connection.commit()
         else:
             if self.debug:
-                print('Testset already exists:' + data.uuid())
+                print('Testset already exists:' + data.uuid(), data.name)
 
     def store(self, component, test, testout, postpone_commit=False):
         """
@@ -99,26 +102,20 @@ class SQL(Cache):
         :param postpone_commit:
         :return:
         """
-        slim = testout and testout.select(component.fields_to_store_after_use())
-        # try:
-        #     dump = pack(component)
-        # except:
-        # # except MemoryError as error:
-        #     component.warning('Aborting dump storing due to memory issues.')
-        #     from paje.module.modelling.classifier.nb import NB
-        # TODO: dumps are not saved anymore!
+        slim = testout and \
+               testout.reduce_to(component.fields_to_store_after_use())
+        # TODO: try to store dumps again?
         dump = None
         failed = 1 if component.failed else 0
         now = self.now_function()
-        uuid_tr = component.uuid_train
-
-        ????pack(slim)
+        uuid_tr = component.uuid_train()
 
         setters = f"idtestout=?, timespent=?, dump=?, failed=?"
         conditions = "idcomp=? and idtrain=? and idtest=?"
         self.query(f"update result set {setters}, start=start, end={now} "
                    f"where {conditions}",
-                   [????????/, component.time_spent, dump, failed,
+                   [slim and slim.uuid(),
+                    component.time_spent, dump, failed,
                     component.uuid(), uuid_tr, test.uuid()])
 
         if not self.component_exists(component):
@@ -129,9 +126,10 @@ class SQL(Cache):
                 'Component already exists:' + str(component.serialized()))
 
         self.store_data(test, postpone_commit=True)
+        slim and self.store_data(slim, postpone_commit=True)
         if not postpone_commit:
             self.connection.commit()
-        print('Stored!')
+            print('Stored!')
 
     def _process_result(self):
         rows = self.cursor.fetchall()
@@ -139,6 +137,7 @@ class SQL(Cache):
             return None
         else:
             if len(rows) is not 1:
+                print('More than 1 row found!')
                 for r in rows:
                     print(r)
                 # TODO: use general error handling to show messages
@@ -205,6 +204,15 @@ class SQL(Cache):
             return None
         else:
             return just_check_exists or Data(name=res[0], **unpack(res[1]))
+
+    def get_data_by_name(self, name, just_check_exists=False):
+        field = '1' if just_check_exists else 'iddset, data'
+        self.query(f'select {field} from dset where name=?', [name])
+        res = self._process_result()
+        if res is None:
+            return None
+        else:
+            return just_check_exists or Data(name=name, **unpack(res[1]))
 
     def get_component_dump(self, component):
         raise NotImplementedError('get model')

@@ -22,12 +22,6 @@ def main():
         storage = MySQL(db='teste', debug=not True) \
             if len(argv) >= 3 and argv[2] == 'True' else None
 
-        # # First setup of a SGBD:
-        # storage.open()
-        # storage.setup()
-        # print('Please disable setup of db in toy.py')
-        # exit(0)
-
         iterations = 30 if len(argv) < 4 else int(argv[3])
         random_state = 0 if len(argv) < 5 else int(argv[4])
         data = Data.read_arff(argv[1], "class")
