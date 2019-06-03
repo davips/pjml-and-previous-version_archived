@@ -44,8 +44,7 @@ class Component(ABC):
 
         self.log = logging.getLogger('component')
         # if True show warnings
-        self.log.setLevel(3)
-        self.show_logs = False
+        self.log.setLevel(0)
         self.show_warns = show_warns
 
         self._serialized = None
