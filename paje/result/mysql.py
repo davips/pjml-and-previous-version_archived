@@ -9,6 +9,7 @@ from paje.result.sql import SQL
 class MySQL(SQL):
     def __init__(self, database='paje@143.107.183.114',
                  password='pajelanca19', db='curumim', debug=False):
+        self.info = database + ', ' + db
         self.database = database
         self.password = password
         self.db = db

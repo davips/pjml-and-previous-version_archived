@@ -6,6 +6,7 @@ from paje.result.sql import SQL
 
 class SQLite(SQL):
     def __init__(self, database='/tmp/paje.db', debug=False):
+        self.info = database
         self.hostname = socket.gethostname()
         self.database = database
         self.debug = debug
