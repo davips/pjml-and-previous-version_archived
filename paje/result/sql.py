@@ -205,13 +205,15 @@ class SQL(Cache):
 
     def get_data_by_name(self, name, just_check_exists=False):
         field = '1' if just_check_exists else 'data'
-        self.query(f'select {field} from dset where name=?', [name])
-        res = self._process_result()
-        if res is None:
+        self.query(f'select {field} from dset where name=? order by id', [name])
+        rows = self.cursor.fetchall()
+        if rows is None or len(rows) == 0:
             return None
         if just_check_exists:
             return True
-        return just_check_exists or Data(name=name, **unpack_data(res['data']))
+        datats = Data(name=name, **unpack_data(rows[1]['data'])).shrink()
+        data = Data(name=name, **unpack_data(rows[0]['data'])).merged(datats)
+        return just_check_exists or data
 
     def get_finished(self):
         self.query('select name '
