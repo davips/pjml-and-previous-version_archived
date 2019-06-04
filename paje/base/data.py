@@ -5,7 +5,6 @@ import sklearn
 import sklearn.datasets as ds
 from sklearn.utils import check_X_y
 
-from paje.result.mysql import MySQL
 from paje.result.storage import uuid, pack_data
 
 
