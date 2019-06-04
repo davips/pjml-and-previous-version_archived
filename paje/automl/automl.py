@@ -37,7 +37,7 @@ class AutoML(Component, ABC):
         # print('max_iter', self.max_iter, '  max_depth', self.max_depth,
         #       '  static', self.static, '  fixed', self.fixed,
         #       '  repetitions', self.repetitions)
-        evaluator = Evaluator(Metrics.error, "cv", 3,
+        evaluator = Evaluator(Metrics.error, "cv", 10,
                               random_state=self.random_state)
 
         failed, locked, succ, tot = 0, 0, 0, 0
