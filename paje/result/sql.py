@@ -221,7 +221,7 @@ class SQL(Cache):
         if rows is None or len(rows) == 0:
             return None
         else:
-            return list(rows.values)
+            return [i['name'] for i in rows]
 
     @abstractmethod
     def keylimit(self):
