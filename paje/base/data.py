@@ -152,7 +152,7 @@ class Data:
         return storage.get_data_by_name(name, fields)
 
     def store(self, storage):
-        storage.storage_data(self)
+        storage.store_data(self)
 
     def updated(self, **kwargs):
         dic = self._dic.copy()
