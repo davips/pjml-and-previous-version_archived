@@ -44,16 +44,16 @@ class MLP(Classifier):
                 new_kwargs['hidden_layer_sizes'] = values
         self.model = MLPClassifier(**new_kwargs)
 
-    def apply_impl(self, data):
-        max_neurons = int((data.n_instances / (data.n_attributes +
-                                           data.n_classes)))
-
-        neurons = np.sum(self.model.hidden_layer_sizes)
-        if neurons > max_neurons + 28:
-            raise ExceptionInApplyOrUse('excess of neurons:',
-                                        neurons, '>',
-                                        max_neurons)
-        return super().apply_impl(data)
+    # def apply_impl(self, data):
+    #     max_neurons = int((data.n_instances / (data.n_attributes +
+    #                                        data.n_classes)))
+    #
+    #     neurons = np.sum(self.model.hidden_layer_sizes)
+    #     if neurons > max_neurons:
+    #         raise ExceptionInApplyOrUse('excess of neurons:',
+    #                                     neurons, '>',
+    #                                     max_neurons)
+    #     return super().apply_impl(data)
 
     @classmethod
     def tree_impl(cls, data=None):
