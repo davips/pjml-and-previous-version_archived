@@ -326,8 +326,9 @@ class Component(ABC):
         self.storage.store(self, input_data, output_data)
 
     def clock(self):
-        usage = os.times()
-        return usage[0] + usage[1]
+        t = os.times()
+        return t[4]/1000
+        # return usage[0] + usage[1]  # TOTAL CPU whole-system time
 
     def dump(self):
         self.check_if_applied()  # It makes no sense to store an unapplied comp.
