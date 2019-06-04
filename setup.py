@@ -22,7 +22,7 @@ setup(name='paje',
           "liac-arff",
           "numpy",
           "pandas",
-          "pymysql", 'blosc', 'zstd'
+          "pymysql", 'blosc', 'zstd', 'lz4'
       ],
       setup_requires=["pytest-runner"],
       tests_require=["pytest"],
