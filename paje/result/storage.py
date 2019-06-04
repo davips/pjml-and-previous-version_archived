@@ -96,6 +96,10 @@ class Cache(ABC):
         pass
 
     @abstractmethod
+    def get_data_after_apply_by_name(self, name, just_check_exists=False):
+        pass
+
+    @abstractmethod
     def get_data_by_name(self, name, just_check_exists=False):
         pass
 
