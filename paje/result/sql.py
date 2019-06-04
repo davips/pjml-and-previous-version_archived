@@ -214,18 +214,32 @@ class SQL(Cache):
         data = Data(name=name, **unpack_data(rows[0]['data'])).merged(datats)
         return just_check_exists or data
 
-    def get_data_by_name(self, name, fields='X,y',
-                                    just_check_exists=False):
-        field = '1' if just_check_exists else 'data'
-        self.query(f'select {field} from dset '
-                   f'where name=? fields={fields.upper()} order by id', [name])
+    def get_data_by_name(self, name, fields=None,
+                         just_check_exists=False):
+        """
+        To just recover an original data set you can pass fields='X,y'
+        (case insensitive).
+        'None' means to recover as many fields as stored at the moment.
+        :param name:
+        :param fields: if None, get completa Data including predictions if any
+        :param just_check_exists:
+        :return:
+        """
+        one = '1' if just_check_exists else 'data'
+        restrict = '' if fields is None else f"and fields='{fields.upper()}'"
+        self.query(f'select {one} from dset '
+                   f'where name=? {restrict} order by id', [name])
         rows = self.cursor.fetchall()
         if rows is None or len(rows) == 0:
             return None
         if just_check_exists:
             return True
-        data = Data(name=name, **unpack_data(rows[1]['data']))
-        return just_check_exists or data
+        dic = {}
+        for row in rows:
+            print(unpack_data(row['data']))
+            dic.update({k: v for k, v in unpack_data(row['data']).items()
+                        if v is not None})
+        return just_check_exists or Data(name=name, **dic)
 
     def get_finished(self):
         self.query('select name '
@@ -235,7 +249,7 @@ class SQL(Cache):
         if rows is None or len(rows) == 0:
             return None
         else:
-            return list(rows.values)
+            return [row['name'] for row in rows]
 
     @abstractmethod
     def keylimit(self):
