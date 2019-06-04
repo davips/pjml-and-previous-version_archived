@@ -5,6 +5,7 @@ import sklearn
 import sklearn.datasets as ds
 from sklearn.utils import check_X_y
 
+from paje.result.mysql import MySQL
 from paje.result.storage import uuid, pack_data
 
 
@@ -133,6 +134,11 @@ class Data:
                                       n_informative=int(
                                           np.sqrt(2 * n_classes)) + 1)
         return Data(name=None, X=X, Y=as_column_vector(y))
+
+
+    @staticmethod
+    def read_from_storage(name, storage):
+        return storage.get_data_by_name(name)
 
     def updated(self, **kwargs):
         dic = self._dic.copy()
