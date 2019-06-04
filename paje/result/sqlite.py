@@ -1,3 +1,4 @@
+import socket
 import sqlite3
 
 from paje.result.sql import SQL
@@ -5,6 +6,7 @@ from paje.result.sql import SQL
 
 class SQLite(SQL):
     def __init__(self, database='/tmp/paje.db', debug=False):
+        self.hostname = socket.gethostname()
         self.database = database
         self.debug = debug
         self.intransaction = False

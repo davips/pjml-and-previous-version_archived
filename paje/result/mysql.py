@@ -1,3 +1,5 @@
+import socket
+
 import pymysql
 import pymysql.cursors
 
@@ -14,6 +16,7 @@ class MySQL(SQL):
         self.debug = debug
         if '-' in db:
             raise Exception("'-' not allowed in db name!")
+        self.hostname = socket.gethostname()
         self.intransaction = False
         self.open()
 

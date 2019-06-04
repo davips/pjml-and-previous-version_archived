@@ -42,7 +42,7 @@ class SQL(Cache):
     def lock(self, component, test):
         if self.debug:
             print('Locking...')
-        node = socket.gethostname()
+        node = self.hostname
         txt = "insert into result values (null, " \
               "?, ?, ?, " \
               "?, ?, ?, " \
