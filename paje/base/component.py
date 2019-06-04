@@ -327,7 +327,7 @@ class Component(ABC):
 
     def clock(self):
         t = os.times()
-        return t[4]/1000
+        return t[4] /1000
         # return usage[0] + usage[1]  # TOTAL CPU whole-system time
 
     def dump(self):
