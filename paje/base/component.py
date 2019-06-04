@@ -228,6 +228,7 @@ class Component(ABC):
                     with time_limit(self.max_time):
                         output_data = self.apply_impl(data)
             except Exception as e:
+                print(e)
                 self.failed = True
                 self.locked = False
                 handle_exception(self, e)
@@ -296,16 +297,20 @@ class Component(ABC):
     __repr__ = __str__
 
     def msg(self, msg):
-        self.log.log(1, msg)
+        print(msg)
+        # self.log.log(1, msg)
 
     def warning(self, msg):
-        self.log.warning(2, msg)
+        print(msg)
+        # self.log.warning(2, msg)
 
     def debug(self, msg):
-        self.log.debug(3, msg)
+        print(msg)
+        # self.log.debug(3, msg)
 
     def error(self, msg):
-        self.log.error(4, msg)
+        print(msg)
+        # self.log.error(4, msg)
         raise Exception(msg)
 
     def serialized(self):
@@ -327,7 +332,7 @@ class Component(ABC):
 
     def clock(self):
         t = os.times()
-        return t[4] /1000
+        return t[4]
         # return usage[0] + usage[1]  # TOTAL CPU whole-system time
 
     def dump(self):
