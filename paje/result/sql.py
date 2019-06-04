@@ -203,7 +203,7 @@ class SQL(Cache):
         return just_check_exists or Data(name=res['name'],
                                          **unpack_data(res['data']))
 
-    def get_data_by_name(self, name, just_check_exists=False):
+    def get_data_after_apply_by_name(self, name, just_check_exists=False):
         field = '1' if just_check_exists else 'data'
         self.query(f'select {field} from dset where name=? order by id', [name])
         rows = self.cursor.fetchall()
@@ -213,6 +213,19 @@ class SQL(Cache):
             return True
         datats = Data(name=name, **unpack_data(rows[1]['data'])).shrink()
         data = Data(name=name, **unpack_data(rows[0]['data'])).merged(datats)
+        return just_check_exists or data
+
+    def get_data_by_name(self, name, fields='X,y',
+                                    just_check_exists=False):
+        field = '1' if just_check_exists else 'data'
+        self.query(f'select {field} from dset '
+                   f'where name=? fields={fields.upper()} order by id', [name])
+        rows = self.cursor.fetchall()
+        if rows is None or len(rows) == 0:
+            return None
+        if just_check_exists:
+            return True
+        data = Data(name=name, **unpack_data(rows[1]['data']))
         return just_check_exists or data
 
     def get_finished(self):

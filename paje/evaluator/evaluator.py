@@ -8,6 +8,7 @@ class Evaluator:
 
         self.metric = metric
         self.random_state = random_state
+        self.steps = steps
         if split == "cv":
             self.split = StratifiedKFold(n_splits=steps,
                                          shuffle=True,
@@ -25,11 +26,15 @@ class Evaluator:
             name = f'{data.name()}_seed{self.random_state}' \
                 f'_split{self.split.__class__.__name__}_fold'
             # print(train_index)
-            data_train = data.updated(name=name + 'tr' + str(fold),
+            data_train = data.updated(name=name + 'tr' + str(fold) +
+                                           'steps' + str(self.steps) + 'split' +
+                                           self.split.__class__.__name__,
                                       X=data.X[train_index],
                                       y=data.y[train_index])
             # print('uuid   tr ', data_train.uuid())
-            data_test = data.updated(name=name + 'ts' + str(fold),
+            data_test = data.updated(name=name + 'ts' + str(fold) +
+                                          'steps' + str(self.steps) + 'split' +
+                                          self.split.__class__.__name__,
                                      X=data.X[test_index],
                                      y=data.y[test_index])
             # print('uuid   tS ', data_test.uuid())
