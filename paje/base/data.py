@@ -33,6 +33,10 @@ class Data:
         :param Q: Predicted probabilities for unlabeled set
         :param columns:
         """
+        if len(name) > 158:
+            raise Exception(f'Name {name} too long.{len(name)} > 158. fields=32'
+                            f'Default limit on mysql UNIQ name+fields is 190.')
+
         # Init instance vars and dic to factory new instances in the future.
         args = {k: v for k, v in locals().items() if
                 k != 'self' and k != 'name' and k != 'columns'}
