@@ -100,7 +100,7 @@ class Cache(ABC):
         pass
 
     @abstractmethod
-    def get_data_by_name(self, name, just_check_exists=False):
+    def get_data_by_name(self, name, fields=None, just_check_exists=False):
         pass
 
     def get_component_dump(self, component):

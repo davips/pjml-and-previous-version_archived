@@ -140,8 +140,16 @@ class Data:
 
 
     @staticmethod
-    def read_from_storage(name, storage):
-        return storage.get_data_by_name(name)
+    def read_from_storage(name, storage, fields=None):
+        """
+        To just recover an original dataset you can pass fields='X,y'
+        (case insensitive)
+        or just None to recover as many fields as stored at the moment.
+        :param name:
+        :param fields: if None, get complete Data, including predictions if any
+        :return:
+        """
+        return storage.get_data_by_name(name, fields)
 
     def updated(self, **kwargs):
         dic = self._dic.copy()
@@ -156,7 +164,8 @@ class Data:
 
     def merged(self, data):
         """
-        Same as updated, but not replacing any field by None.
+        Get news values/fields from another Data.
+        Do not replace any field by None.
         :param data:
         :return:
         """
@@ -172,7 +181,7 @@ class Data:
     def select(self, fields):
         """
         Return a subset of the dictionary of kwargs.
-        ps.:Convert vectorized shortcuts to matrices.
+        ps.: Automatically convert vectorized shortcuts to matrices.
         :param fields:
         :return:
         """
@@ -192,7 +201,7 @@ class Data:
 
     def dump(self):
         if self._dump is None:
-            self._set('_dump', pack_data(self._dic))
+            self._set('_dump', pack_data(self.used_vars))
         return self._dump
 
     def uuid(self):

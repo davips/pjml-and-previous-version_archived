@@ -236,9 +236,7 @@ class SQL(Cache):
             return True
         dic = {}
         for row in rows:
-            print(unpack_data(row['data']))
-            dic.update({k: v for k, v in unpack_data(row['data']).items()
-                        if v is not None})
+            dic.update(unpack_data(row['data']))
         return just_check_exists or Data(name=name, **dic)
 
     def get_finished(self):
