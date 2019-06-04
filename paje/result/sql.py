@@ -258,14 +258,10 @@ class SQL(Cache):
         if rows is None or len(rows) == 0:
             return None
         else:
-<<<<<<< HEAD
-            return [i['name'] for i in rows]
-=======
             return [row['name'] for row in rows]
 
     def start_transaction(self):
         self.intransaction = True
->>>>>>> 30b6f1364d5fdf3d3070ffeb8d979f78bea021b8
 
     @abstractmethod
     def keylimit(self):
