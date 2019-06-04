@@ -214,7 +214,7 @@ class SQL(Cache):
         return just_check_exists or Data(name=name, **unpack_data(res['data']))
 
     def get_finished(self):
-        self.query('select name as name '
+        self.query('select name '
                    'from result join dset on idtrain=iddset '
                    "where end!='0000-00-00 00:00:00' and failed=0")
         rows = self.cursor.fetchall()
