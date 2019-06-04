@@ -7,6 +7,7 @@ from paje.base.hps import HPTree
 from paje.module.modelling.classifier.classifier import Classifier
 from paje.util.distributions import exponential_integers
 
+
 class MLP(Classifier):
     def build_impl(self):
         # Convert '@' hyperparameters to sklearn format.
@@ -44,23 +45,6 @@ class MLP(Classifier):
                 new_kwargs['hidden_layer_sizes'] = values
         self.model = MLPClassifier(**new_kwargs)
 
-    # def apply_impl(self, data):
-    #     max_neurons = int((data.n_instances / (data.n_attributes +
-    #                                        data.n_classes)))
-    #
-    #     print("X = ", data.X.shape)
-    #     print("y = ", set(data.y))
-    #     print("Input = ", data.n_attributes)
-    #     print("Output = ", data.n_classes)
-    #     print("Hidden = ", self.model.hidden_layer_sizes)
-    #     neurons = np.sum(self.model.hidden_layer_sizes)
-    #     print("Free param = ", neurons)
-    #     print("Max free param = ", max_neurons)
-    #     if neurons > max_neurons + 28:
-    #         raise ExceptionInApplyOrUse('excess of neurons:',
-    #                                     neurons, '>',
-    #                                     max_neurons)
-    #     return super().apply_impl(data)
 
     @classmethod
     def tree_impl(cls, data=None):
@@ -76,7 +60,7 @@ class MLP(Classifier):
                       [0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100,
                        1000, 10000]],
             # https://scikit-learn.org/stable/auto_examples/neural_networks/plot_mlp_alpha.html
-            'max_iter': ['z', [1, 10000]],
+            'max_iter': ['c', [10000]],  # We assume that non converged is bad.
             # 'Number of epochs'/'gradient steps'.
             'tol': ['o',
                     [0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100,
@@ -118,7 +102,8 @@ class MLP(Classifier):
         early_stopping = HPTree({
             'early_stopping': ['c', [True]],
             # Only effective when solver=’sgd’ or ‘adam’.
-            'validation_fraction': ['r', [0.0001, 0.5]],
+            'validation_fraction': ['c', [0.01, 0.05, 0.1, 0.15,
+                                          0.20, 0.25, 0.30]],
             # Only used if early_stopping is True.
         }, children=layers)
 
@@ -166,7 +151,7 @@ class MLP(Classifier):
                      learning_rate_adaptive])
 
         solver_non_newton = HPTree({
-            'n_iter_no_change': ['z', [2, 1000]],
+            'n_iter_no_change': ['c', [10]],
             # Only effective when solver=’sgd’ or ‘adam’.
             'batch_size': ['c', ['auto']],
             #                      min([1000, floor(data.n_instances / 2)])]],

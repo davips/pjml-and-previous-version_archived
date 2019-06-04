@@ -1,10 +1,12 @@
-""" Automl Module
+""" TODO the docstring documentation
 """
-
+# from python
 from abc import ABC, abstractmethod
 
+# from other packages
 import numpy as np
 
+# from paje
 from paje.base.component import Component
 from paje.evaluator.evaluator import Evaluator
 from paje.evaluator.metrics import Metrics
@@ -12,11 +14,15 @@ from paje.module.modules import default_preprocessors, default_modelers
 
 
 class AutoML(Component, ABC):
+    """ TODO the docstring documentation
+    """
     def __init__(self, preprocessors=None, modelers=None,
                  storage_for_components=None, verbose=True,
                  random_state=0, storage=None,
                  show_warns=True, max_time=None, **kwargs):
         super().__init__(storage, show_warns, max_time, **kwargs)
+        """ TODO the docstring documentation
+        """
         self.preprocessors = default_preprocessors \
             if preprocessors is None else preprocessors
         self.modelers = default_modelers if modelers is None else modelers
@@ -27,17 +33,14 @@ class AutoML(Component, ABC):
         self.storage_for_components = storage_for_components
         self.storage = None  # TODO: AutoML is only storing Pipelins for now
 
-    def build_impl(self):
-        # TODO: uncomment:
-        # raise Exception('It is not clear if this class is instantiable yet.')
-        pass
-
     def apply_impl(self, data):
+        """ TODO the docstring documentation
+        """
         print('--------------------------------------------------------------')
         # print('max_iter', self.max_iter, '  max_depth', self.max_depth,
         #       '  static', self.static, '  fixed', self.fixed,
         #       '  repetitions', self.repetitions)
-        evaluator = Evaluator(Metrics.error, "cv", 3,
+        evaluator = Evaluator(Metrics.error, "cv", 10,
                               random_state=self.random_state)
 
         failed, locked, succ, tot = 0, 0, 0, 0
@@ -71,6 +74,14 @@ class AutoML(Component, ABC):
         self.model = self.best()
         return self.model.apply(data)
 
+    def use_impl(self, data):
+        return self.model.use(data)
+
+    def build_impl(self):
+        # TODO: uncomment:
+        # raise Exception('It is not clear if this class is instantiable yet.')
+        pass
+
     @abstractmethod
     def best(self):
         pass
@@ -79,30 +90,24 @@ class AutoML(Component, ABC):
     def process(self, errors):
         pass
 
-    def use_impl(self, data):
-        return self.model.use(data)
-
     @abstractmethod
     def next_pipelines(self, data):
-        pass
-
-    # @abstractmethod
-    # def next_dicts(self, forest):
-    #     """
-    #     This method defines the search heuristic and should be implemented by
-    #     the child class.
-    #     :return: a list of dictionaries or list of nested lists of dictionaries
-    #     """
-    #     pass
+        raise NotImplementedError(
+            "AutoML has no next_pipelines() implemented!"
+        )
 
     @classmethod
     def tree_impl(cls, data=None):
-        raise NotImplementedError("AutoML has no tree() implemented!")
+        raise NotImplementedError(
+            "AutoML has no tree() implemented!"
+        )
 
     def fields_to_store_after_use(self):
         raise NotImplementedError(
-            "AutoML has no fields_to_store_after_use() implemented!")
+            "AutoML has no fields_to_store_after_use() implemented!"
+        )
 
     def fields_to_keep_after_use(self):
         raise NotImplementedError(
-            "AutoML has no fields_to_keep_after_use() implemented!")
+            "AutoML has no fields_to_keep_after_use() implemented!"
+        )
