@@ -213,6 +213,16 @@ class SQL(Cache):
             return True
         return just_check_exists or Data(name=name, **unpack_data(res['data']))
 
+    def get_finished(self):
+        self.query('select substr(name,6,999999) as name '
+                   'from result join dset on idtrain=iddset '
+                   "where end!='0000-00-00 00:00:00'")
+        rows = self.cursor.fetchall()
+        if rows is None or len(rows) == 0:
+            return None
+        else:
+            return list(rows.values)
+
     @abstractmethod
     def keylimit(self):
         pass
