@@ -69,7 +69,7 @@ class MLP(Classifier):
                       [0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100,
                        1000, 10000]],
             # https://scikit-learn.org/stable/auto_examples/neural_networks/plot_mlp_alpha.html
-            'max_iter': ['z', [1, 10000]],
+            'max_iter': ['c', [10000]],  # We assume that non converged is bad.
             # 'Number of epochs'/'gradient steps'.
             'tol': ['o',
                     [0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100,
@@ -111,7 +111,8 @@ class MLP(Classifier):
         early_stopping = HPTree({
             'early_stopping': ['c', [True]],
             # Only effective when solver=’sgd’ or ‘adam’.
-            'validation_fraction': ['r', [0.0001, 0.5]],
+            'validation_fraction': ['c', [0.01, 0.05, 0.1, 0.15,
+                                          0.20, 0.25, 0.30]],
             # Only used if early_stopping is True.
         }, children=layers)
 
@@ -159,7 +160,7 @@ class MLP(Classifier):
                      learning_rate_adaptive])
 
         solver_non_newton = HPTree({
-            'n_iter_no_change': ['z', [2, 1000]],
+            'n_iter_no_change': ['c', [10]],
             # Only effective when solver=’sgd’ or ‘adam’.
             'batch_size': ['c', ['auto']],
             #                      min([1000, floor(data.n_instances / 2)])]],
