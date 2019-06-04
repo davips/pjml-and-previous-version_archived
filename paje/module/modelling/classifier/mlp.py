@@ -48,14 +48,7 @@ class MLP(Classifier):
         max_neurons = int((data.n_instances / (data.n_attributes +
                                            data.n_classes)))
 
-        print("X = ", data.X.shape)
-        print("y = ", set(data.y))
-        print("Input = ", data.n_attributes)
-        print("Output = ", data.n_classes)
-        print("Hidden = ", self.model.hidden_layer_sizes)
         neurons = np.sum(self.model.hidden_layer_sizes)
-        print("Free param = ", neurons)
-        print("Max free param = ", max_neurons)
         if neurons > max_neurons + 28:
             raise ExceptionInApplyOrUse('excess of neurons:',
                                         neurons, '>',
