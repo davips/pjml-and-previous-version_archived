@@ -216,7 +216,7 @@ class SQL(Cache):
     def get_finished(self):
         self.query('select substr(name,6,999999) as name '
                    'from result join dset on idtrain=iddset '
-                   "where end!='0000-00-00 00:00:00'")
+                   "where end!='0000-00-00 00:00:00' and failed=0")
         rows = self.cursor.fetchall()
         if rows is None or len(rows) == 0:
             return None
