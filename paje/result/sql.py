@@ -29,15 +29,15 @@ class SQL(Cache):
         self.query('CREATE INDEX idx3 ON result (end)')
         self.query('CREATE INDEX idx4 ON result (node)')
         self.query('CREATE INDEX idx5 ON result (attempts)')
-
         self.query("create table if not exists dset ("
                    f"id integer NOT NULL primary key {self.auto_incr()}, "
                    "iddset varchar(32) NOT NULL UNIQUE, "
-                   "name varchar(256) NOT NULL, fields varchar(32) NOT NULL, "
+                   "name varchar(158) NOT NULL, fields varchar(32) NOT NULL, "
                    "data LONGBLOB NOT NULL, inserted timestamp NOT NULL)")
-        self.query(f'CREATE INDEX idx6 ON dset (name{self.keylimit()})')
+        self.query(f'CREATE INDEX idx6 ON dset (name, fields)')
         self.query('CREATE INDEX idx7 ON dset (fields)')
         self.query('CREATE INDEX idx8 ON dset (inserted)')
+        self.commit()
 
     def lock(self, component, test):
         if self.debug:
@@ -94,12 +94,13 @@ class SQL(Cache):
             if self.debug:
                 print('Testset already exists:' + data.uuid(), data.name())
 
-    def store(self, component, test, testout):
+    def store(self, component, test, testout, train=None):
         """
 
         :param component:
         :param test:
         :param testout:
+        :param train:
         :return:
         """
         slim = testout and \
@@ -110,6 +111,7 @@ class SQL(Cache):
         now = self.now_function()
         uuid_tr = component.uuid_train()
 
+        self.start_transaction()
         setters = f"idtestout=?, timespent=?, dump=?, failed=?"
         conditions = "idcomp=? and idtrain=? and idtest=?"
         self.query(f"update result set {setters}, start=start, end={now} "
@@ -124,8 +126,11 @@ class SQL(Cache):
             component.msg(
                 'Component already exists:' + str(component.serialized()))
 
+        if train is not None:
+            self.store_data(train)
         self.store_data(test)
         slim and self.store_data(slim)
+        self.commit()
         print('Stored!')
 
     def _process_result(self):
@@ -166,6 +171,12 @@ class SQL(Cache):
         zipped = zip(sql.replace('?', '"?"').split('?'), map(str, lst + ['']))
         return ''.join(list(sum(zipped, ())))
 
+    def commit(self):
+        if self.debug:
+            print('commit')
+        self.connection.commit()
+        self.intransaction = False
+
     # @profile
     def query(self, sql, args=None):
         if args is None:
@@ -180,9 +191,8 @@ class SQL(Cache):
             # self.connection.ping(reconnect=True)
         try:
             self.cursor.execute(sql, args)
-            if self.debug:
-                print('commit')
-            self.connection.commit()
+            if not self.intransaction:
+                self.connection.commit()
         except Exception as e:
             print(e)
             print()
@@ -215,18 +225,30 @@ class SQL(Cache):
         data = Data(name=name, **unpack_data(rows[0]['data'])).merged(datats)
         return just_check_exists or data
 
-    def get_data_by_name(self, name, fields='X,y',
-                                    just_check_exists=False):
-        field = '1' if just_check_exists else 'data'
-        self.query(f'select {field} from dset '
-                   f'where name=? fields={fields.upper()} order by id', [name])
+    def get_data_by_name(self, name, fields=None,
+                         just_check_exists=False):
+        """
+        To just recover an original data set you can pass fields='X,y'
+        (case insensitive).
+        'None' means to recover as many fields as stored at the moment.
+        :param name:
+        :param fields: if None, get completa Data including predictions if any
+        :param just_check_exists:
+        :return:
+        """
+        one = '1' if just_check_exists else 'data'
+        restrict = '' if fields is None else f"and fields='{fields.upper()}'"
+        self.query(f'select {one} from dset '
+                   f'where name=? {restrict} order by id', [name])
         rows = self.cursor.fetchall()
         if rows is None or len(rows) == 0:
             return None
         if just_check_exists:
             return True
-        data = Data(name=name, **unpack_data(rows[1]['data']))
-        return just_check_exists or data
+        dic = {}
+        for row in rows:
+            dic.update(unpack_data(row['data']))
+        return just_check_exists or Data(name=name, **dic)
 
     def get_finished(self):
         self.query('select name '
@@ -236,7 +258,14 @@ class SQL(Cache):
         if rows is None or len(rows) == 0:
             return None
         else:
+<<<<<<< HEAD
             return [i['name'] for i in rows]
+=======
+            return [row['name'] for row in rows]
+
+    def start_transaction(self):
+        self.intransaction = True
+>>>>>>> 30b6f1364d5fdf3d3070ffeb8d979f78bea021b8
 
     @abstractmethod
     def keylimit(self):

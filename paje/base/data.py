@@ -32,6 +32,10 @@ class Data:
         :param Q: Predicted probabilities for unlabeled set
         :param columns:
         """
+        if len(name) > 158:
+            raise Exception(f'Name {name} too long.{len(name)} > 158. fields=32'
+                            f'Default limit on mysql UNIQ name+fields is 190.')
+
         # Init instance vars and dic to factory new instances in the future.
         args = {k: v for k, v in locals().items() if
                 k != 'self' and k != 'name' and k != 'columns'}
@@ -123,7 +127,7 @@ class Data:
         Y = as_column_vector(df.pop(target).values.astype('float'))
         X = df.values.astype('float')
         arq = file.split('/')[-1]
-        return Data(name='file_' + arq, X=X, Y=Y, columns=df.columns)
+        return Data(name=arq, X=X, Y=Y, columns=df.columns)
 
     @staticmethod
     def random(n_attributes, n_classes, n_instances):
@@ -136,8 +140,16 @@ class Data:
 
 
     @staticmethod
-    def read_from_storage(name, storage):
-        return storage.get_data_by_name(name)
+    def read_from_storage(name, storage, fields=None):
+        """
+        To just recover an original dataset you can pass fields='X,y'
+        (case insensitive)
+        or just None to recover as many fields as stored at the moment.
+        :param name:
+        :param fields: if None, get complete Data, including predictions if any
+        :return:
+        """
+        return storage.get_data_by_name(name, fields)
 
     def updated(self, **kwargs):
         dic = self._dic.copy()
@@ -152,7 +164,8 @@ class Data:
 
     def merged(self, data):
         """
-        Same as updated, but not replacing any field by None.
+        Get news values/fields from another Data.
+        Do not replace any field by None.
         :param data:
         :return:
         """
@@ -168,7 +181,7 @@ class Data:
     def select(self, fields):
         """
         Return a subset of the dictionary of kwargs.
-        ps.:Convert vectorized shortcuts to matrices.
+        ps.: Automatically convert vectorized shortcuts to matrices.
         :param fields:
         :return:
         """
@@ -188,7 +201,7 @@ class Data:
 
     def dump(self):
         if self._dump is None:
-            self._set('_dump', pack_data(self._dic))
+            self._set('_dump', pack_data(self.used_vars))
         return self._dump
 
     def uuid(self):
