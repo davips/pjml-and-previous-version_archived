@@ -75,39 +75,55 @@ class AutoML(Component, ABC):
         return self.model.apply(data)
 
     def use_impl(self, data):
+        """ TODO the docstring documentation
+        """
         return self.model.use(data)
 
     def build_impl(self):
+        """ TODO the docstring documentation
+        """
         # TODO: uncomment:
         # raise Exception('It is not clear if this class is instantiable yet.')
         pass
 
     @abstractmethod
     def best(self):
+        """ TODO the docstring documentation
+        """
         pass
 
     @abstractmethod
     def process(self, errors):
+        """ TODO the docstring documentation
+        """
         pass
 
     @abstractmethod
     def next_pipelines(self, data):
+        """ TODO the docstring documentation
+        """
         raise NotImplementedError(
             "AutoML has no next_pipelines() implemented!"
         )
 
     @classmethod
     def tree_impl(cls, data=None):
+        """ TODO the docstring documentation
+        """
         raise NotImplementedError(
             "AutoML has no tree() implemented!"
         )
 
     def fields_to_store_after_use(self):
+        """ TODO the docstring documentation
+        """
         raise NotImplementedError(
             "AutoML has no fields_to_store_after_use() implemented!"
         )
 
     def fields_to_keep_after_use(self):
+        """ TODO the docstring documentation
+        """
         raise NotImplementedError(
             "AutoML has no fields_to_keep_after_use() implemented!"
         )
