@@ -237,8 +237,7 @@ class Component(ABC):
 
             if self.storage is not None:
                 output_train_data = None if self.failed else self.use_impl(data)
-                self.store_result(data, output_train_data)
-                self.store_data(data)  # Store training set.
+                self.store_result(data, output_train_data, data)
 
         return output_data
 
@@ -317,17 +316,17 @@ class Component(ABC):
     def store_data(self, data):
         self.storage.store_data(data)
 
-    def store_result(self, input_data, output_data):
+    def store_result(self, input_data, output_data, train=None):
         """
         :param input_data:
         :param output_data:
         :return:
         """
-        self.storage.store(self, input_data, output_data)
+        self.storage.store(self, input_data, output_data, train)
 
     def clock(self):
         t = os.times()
-        return t[4] /1000
+        return t[4]
         # return usage[0] + usage[1]  # TOTAL CPU whole-system time
 
     def dump(self):

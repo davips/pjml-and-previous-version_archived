@@ -37,6 +37,7 @@ class SQL(Cache):
         self.query(f'CREATE INDEX idx6 ON dset (name, fields)')
         self.query('CREATE INDEX idx7 ON dset (fields)')
         self.query('CREATE INDEX idx8 ON dset (inserted)')
+        self.commit()
 
     def lock(self, component, test):
         if self.debug:
@@ -93,12 +94,13 @@ class SQL(Cache):
             if self.debug:
                 print('Testset already exists:' + data.uuid(), data.name())
 
-    def store(self, component, test, testout):
+    def store(self, component, test, testout, train=None):
         """
 
         :param component:
         :param test:
         :param testout:
+        :param train:
         :return:
         """
         slim = testout and \
@@ -109,6 +111,7 @@ class SQL(Cache):
         now = self.now_function()
         uuid_tr = component.uuid_train()
 
+        self.start_transaction()
         setters = f"idtestout=?, timespent=?, dump=?, failed=?"
         conditions = "idcomp=? and idtrain=? and idtest=?"
         self.query(f"update result set {setters}, start=start, end={now} "
@@ -123,8 +126,11 @@ class SQL(Cache):
             component.msg(
                 'Component already exists:' + str(component.serialized()))
 
+        if train is not None:
+            self.store_data(train)
         self.store_data(test)
         slim and self.store_data(slim)
+        self.commit()
         print('Stored!')
 
     def _process_result(self):
@@ -165,6 +171,12 @@ class SQL(Cache):
         zipped = zip(sql.replace('?', '"?"').split('?'), map(str, lst + ['']))
         return ''.join(list(sum(zipped, ())))
 
+    def commit(self):
+        if self.debug:
+            print('commit')
+        self.connection.commit()
+        self.intransaction = False
+
     # @profile
     def query(self, sql, args=None):
         if args is None:
@@ -179,9 +191,8 @@ class SQL(Cache):
             # self.connection.ping(reconnect=True)
         try:
             self.cursor.execute(sql, args)
-            if self.debug:
-                print('commit')
-            self.connection.commit()
+            if not self.intransaction:
+                self.connection.commit()
         except Exception as e:
             print(e)
             print()
@@ -248,6 +259,9 @@ class SQL(Cache):
             return None
         else:
             return [row['name'] for row in rows]
+
+    def start_transaction(self):
+        self.intransaction = True
 
     @abstractmethod
     def keylimit(self):

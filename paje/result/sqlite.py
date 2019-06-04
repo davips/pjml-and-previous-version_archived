@@ -7,6 +7,7 @@ class SQLite(SQL):
     def __init__(self, database='/tmp/paje.db', debug=False):
         self.database = database
         self.debug = debug
+        self.intransaction = False
         self.open()
 
     def open(self):
@@ -21,7 +22,6 @@ class SQLite(SQL):
             if self.debug:
                 print('creating database', self.database, '...')
             self.setup()
-
 
     def now_function(self):
         return 'datetime()'
