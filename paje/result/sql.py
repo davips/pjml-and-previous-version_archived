@@ -21,22 +21,23 @@ class SQL(Cache):
                    "idtest varchar(32) NOT NULL"
                    ", idtestout varchar(32), timespent FLOAT, dump LONGBLOB"
                    ", failed TINYINT NOT NULL, start TIMESTAMP NOT NULL"
-                   ", end TIMESTAMP NOT NULL"
+                   ", end TIMESTAMP NOT NULL, alive TIMESTAMP NOT NULL"
                    ", node varchar(32) NOT NULL, attempts int NOT NULL"
                    ", UNIQUE(idcomp, idtrain, idtest))")
         self.query('CREATE INDEX idx1 ON result (timespent)')
         self.query('CREATE INDEX idx2 ON result (start)')
         self.query('CREATE INDEX idx3 ON result (end)')
-        self.query('CREATE INDEX idx4 ON result (node)')
-        self.query('CREATE INDEX idx5 ON result (attempts)')
+        self.query('CREATE INDEX idx4 ON result (alive)')
+        self.query('CREATE INDEX idx5 ON result (node)')
+        self.query('CREATE INDEX idx6 ON result (attempts)')
         self.query("create table if not exists dset ("
                    f"id integer NOT NULL primary key {self.auto_incr()}, "
                    "iddset varchar(32) NOT NULL UNIQUE, "
                    "name varchar(158) NOT NULL, fields varchar(32) NOT NULL, "
                    "data LONGBLOB NOT NULL, inserted timestamp NOT NULL)")
-        self.query(f'CREATE INDEX idx6 ON dset (name, fields)')
-        self.query('CREATE INDEX idx7 ON dset (fields)')
-        self.query('CREATE INDEX idx8 ON dset (inserted)')
+        self.query(f'CREATE INDEX idx7 ON dset (name, fields)')
+        self.query('CREATE INDEX idx8 ON dset (fields)')
+        self.query('CREATE INDEX idx9 ON dset (inserted)')
         self.commit()
 
     def lock(self, component, test):
@@ -47,7 +48,7 @@ class SQL(Cache):
               "?, ?, ?, " \
               "?, ?, ?, " \
               "?, " + self.now_function() + f", '0000-00-00 00:00:00', " \
-                  f"'{node}', 0)"
+                  f"'0000-00-00 00:00:00', '{node}', 0)"
         args = [component.uuid(), component.uuid_train(), test.uuid(),
                 None, None, None,
                 0]
@@ -114,7 +115,8 @@ class SQL(Cache):
         self.start_transaction()
         setters = f"idtestout=?, timespent=?, dump=?, failed=?"
         conditions = "idcomp=? and idtrain=? and idtest=?"
-        self.query(f"update result set {setters}, start=start, end={now} "
+        self.query(f"update result set {setters}, start=start, "
+                   f"end={now}, alive={now} "
                    f"where {conditions}",
                    [slim and slim.uuid(),
                     component.time_spent, dump, failed,
