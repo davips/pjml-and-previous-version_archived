@@ -127,7 +127,7 @@ class Data:
         Y = as_column_vector(df.pop(target).values.astype('float'))
         X = df.values.astype('float')
         arq = file.split('/')[-1]
-        return Data(name='file_' + arq, X=X, Y=Y, columns=df.columns)
+        return Data(name=arq, X=X, Y=Y, columns=df.columns)
 
     @staticmethod
     def random(n_attributes, n_classes, n_instances):
