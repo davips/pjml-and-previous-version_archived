@@ -227,10 +227,10 @@ class Data:
         return self._dump
 
     def uuid(self):
-        print('calc uiud...')
         if self._uuid is None:
+            print('calc uiud...')
             self._set('_uuid', uuid(self.dump()))
-        print('calc uiud ok')
+            print('calc uiud ok')
         return self._uuid
 
     def name(self):
