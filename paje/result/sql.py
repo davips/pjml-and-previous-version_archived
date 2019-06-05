@@ -216,18 +216,6 @@ class SQL(Cache):
         return just_check_exists or Data(name=res['name'],
                                          **unpack_data(res['data']))
 
-    def get_data_after_apply_by_name(self, name, just_check_exists=False):
-        field = '1' if just_check_exists else 'data'
-        self.query(f'select {field} from dset where name=? order by id', [name])
-        rows = self.cursor.fetchall()
-        if rows is None or len(rows) == 0:
-            return None
-        if just_check_exists:
-            return True
-        datats = Data(name=name, **unpack_data(rows[1]['data'])).shrink()
-        data = Data(name=name, **unpack_data(rows[0]['data'])).merged(datats)
-        return just_check_exists or data
-
     def get_data_by_name(self, name, fields=None,
                          just_check_exists=False):
         """
@@ -253,7 +241,28 @@ class SQL(Cache):
             dic.update(unpack_data(row['data']))
         return just_check_exists or Data(name=name, **dic)
 
-    def get_finished(self):
+    def get_data_uuid_by_name(self, name, fields='X,y',
+                              just_check_exists=False):
+        """
+        UUID for a combination of name and fields.
+        :param name:
+        :param fields: which view of Data we are being asked for.
+        :param just_check_exists:
+        :return:
+        """
+        one = '1' if just_check_exists else 'iddset'
+        self.query(f"select {one} from dset where "
+                   f"name=? and fields='{fields.upper()}' order by id", [name])
+        rows = self.cursor.fetchall()
+        if rows is None or len(rows) == 0:
+            return None
+        if just_check_exists:
+            return True
+        if len(rows) > 1 :
+            raise Exception('Excess of rows!', f'{len(rows)} > 1', rows)
+        return just_check_exists or rows[0]['iddset']
+
+    def get_finished(self):  # TODO: specify search criteria (by component?)
         self.query('select name '
                    'from result join dset on idtrain=iddset '
                    "where end!='0000-00-00 00:00:00' and failed=0")
