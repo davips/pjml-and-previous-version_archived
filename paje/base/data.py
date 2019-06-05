@@ -141,7 +141,8 @@ class Data:
     @staticmethod
     def read_data_frame(df, file, target, storage=None):
         arq = file.split('/')[-1]
-        data = storage and Data.read_from_storage(name=arq, storage=storage)
+        data = storage and \
+               Data.read_from_storage(name=arq, storage=storage, fields='X,y')
         if data is not None:
             return data
         X = df.values.astype('float')
