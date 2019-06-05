@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 import _pickle as pickle
 import blosc
 import zstd as zs
+import lz4.frame as lz
 
 
 # @profile
@@ -20,25 +21,34 @@ def uuid(packed_content):
 
 # @profile
 def pack_comp(obj):
-    return blosc.compress(pickle.dumps(obj),
+    pickled = pickle.dumps(obj)
+    fast_reduced = lz.compress(pickled, compression_level=1)
+    return blosc.compress(fast_reduced,
                           shuffle=blosc.NOSHUFFLE, cname='zstd', clevel=3)
 
 
 def pack_data(obj):
-    return zs.compress(pickle.dumps(obj))
+    pickled = pickle.dumps(obj)
+    fast_reduced = lz.compress(pickled, compression_level=1)
+    return zs.compress(fast_reduced)
 
 
 # @profile
 def unpack_comp(dump):
-    return pickle.loads(blosc.decompress(dump))
+    decompressed = blosc.decompress(dump)
+    fast_decompressed = lz.decompress(decompressed)
+    return pickle.loads(fast_decompressed)
 
 
 def unpack_data(dump):
-    return pickle.loads(zs.decompress(dump))
+    decompressed = zs.decompress(dump)
+    fast_decompressed = lz.decompress(decompressed)
+    return pickle.loads(fast_decompressed)
 
 
 def zip_array(X):
     """
+    WARNING, blosc size limits:
     Attempt to zip faster than with pack, but benchmarks are still needed.
     ps. 1
     Parameters optimized for digits dataset. 115008 rows, 64 attrs

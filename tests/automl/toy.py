@@ -29,7 +29,6 @@ def main():
         print('seed=', random_state)
         trainset, testset = data.split()
 
-        # SQLite().setup()
         automl_rs = RandomAutoML(storage_for_components=storage,
                                  preprocessors=[DRPCA()],
                                  modelers=default_modelers, max_iter=iterations,

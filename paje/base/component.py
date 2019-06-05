@@ -19,8 +19,7 @@ class Component(ABC):
     """Todo the docs string
     """
 
-    def __init__(self, storage=None, show_warns=True,
-                 max_time=None):
+    def __init__(self, storage=None, show_warns=True):
 
         # self.model here refers to classifiers, preprocessors and, possibly,
         # some representation of pipelines or the autoML itself.
@@ -39,7 +38,7 @@ class Component(ABC):
         self.failed = False
         self.time_spent = None
         self.node = None
-        self.max_time = max_time
+        self.max_time = None
         self._dump = None
 
         self.log = logging.getLogger('component')
@@ -159,11 +158,12 @@ class Component(ABC):
         #  it can be lacking a name.
         if 'name' not in self.dic:
             self.dic['name'] = self.name
-
         self._serialized = json.dumps(self.dic, sort_keys=True).encode()
         self._uuid = uuid(self.serialized())
         if 'name' in self.dic:
-            del self.dic['name']
+            self.name = self.dic.pop('name')
+        if 'max_time' in self.dic:
+            self.max_time = self.dic.pop('max_time')
         self.build_impl()
         return self
 
