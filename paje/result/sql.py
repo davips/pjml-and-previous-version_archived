@@ -259,7 +259,8 @@ class SQL(Cache):
         if just_check_exists:
             return True
         if len(rows) > 1 :
-            raise Exception('Excess of rows!', f'{len(rows)} > 1', rows)
+            raise Exception(f'Excess of rows for {name} {fields}!',
+                            f'{len(rows)} > 1', rows)
         return just_check_exists or rows[0]['iddset']
 
     def get_finished(self):  # TODO: specify search criteria (by component?)
