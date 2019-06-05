@@ -2,7 +2,6 @@
 """
 import copy
 import json
-from paje.util.log import *
 import os
 from abc import ABC, abstractmethod
 from uuid import uuid4
@@ -13,6 +12,7 @@ from paje.base.exceptions import ApplyWithoutBuild, UseWithoutApply, \
     handle_exception
 from paje.evaluator.time import time_limit
 from paje.result.storage import uuid, pack_comp
+from paje.util.log import *
 
 
 class Component(ABC):
@@ -216,7 +216,11 @@ class Component(ABC):
         # Apply if still needed  ----------------------------------
         if output_data is None:
             if self.storage is not None:
-                self.lock(data)
+                try:
+                    self.lock(data)
+                except Exception as e:
+                    print('Unexpected lock! Giving up my turn...', e)
+                    return None
 
             self.handle_warnings()
             self.msg('Applying component' + self.name + '...')
