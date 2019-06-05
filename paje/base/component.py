@@ -19,8 +19,7 @@ class Component(ABC):
     """Todo the docs string
     """
 
-    def __init__(self, storage=None, show_warns=True,
-                 max_time=None):
+    def __init__(self, storage=None, show_warns=True):
 
         # self.model here refers to classifiers, preprocessors and, possibly,
         # some representation of pipelines or the autoML itself.
