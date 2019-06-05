@@ -47,10 +47,10 @@ class SQL(Cache):
               "?, ?, ?, " \
               "?, ?, ?, " \
               "?, " + self.now_function() + f", '0000-00-00 00:00:00', " \
-                  f"'0000-00-00 00:00:00', '{node}', 0)"
+                  f"'0000-00-00 00:00:00', ?, 0)"
         args = [component.uuid(), component.uuid_train(), test.uuid(),
                 None, None, None,
-                0]
+                0, node]
         self.query(txt, args)
 
     def get_result(self, component, test):
@@ -180,6 +180,11 @@ class SQL(Cache):
 
     # @profile
     def query(self, sql, args=None):
+        if self.read_only and not sql.startswith('select '):
+            print('========================================\n',
+                  'Attempt to write onto read-only storage!', sql)
+            self.cursor.execute('select 1')
+            return
         if args is None:
             args = []
         from paje.result.mysql import MySQL
@@ -227,9 +232,9 @@ class SQL(Cache):
         :return:
         """
         one = '1' if just_check_exists else 'data,iddset'
-        restrict = '' if fields is None else f"and fields='{fields.upper()}'"
-        self.query(f'select {one} from dset '
-                   f'where name=? {restrict} order by id', [name])
+        restrict = '' if fields is None else f"and fields=?"
+        self.query(f'select {one} from dset where '
+                   f'name=? {restrict} order by id', [name, fields.upper()])
         rows = self.cursor.fetchall()
         if rows is None or len(rows) == 0:
             return None
@@ -255,7 +260,7 @@ class SQL(Cache):
         """
         one = '1' if just_check_exists else 'iddset'
         self.query(f"select {one} from dset where "
-                   f"name=? and fields='{fields.upper()}' order by id", [name])
+                   f"name=? and fields=? order by id", [name, fields.upper()])
         rows = self.cursor.fetchall()
         if rows is None or len(rows) == 0:
             return None
