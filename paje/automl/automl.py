@@ -16,10 +16,17 @@ from paje.module.modules import default_preprocessors, default_modelers
 class AutoML(Component, ABC):
     """ TODO the docstring documentation
     """
-    def __init__(self, preprocessors=None, modelers=None,
-                 storage_for_components=None, verbose=True,
-                 random_state=0, storage=None,
-                 show_warns=True, max_time=None, **kwargs):
+    def __init__(self,
+                 preprocessors=None,
+                 modelers=None,
+                 storage_for_components=None,
+                 verbose=True,
+                 max_iter=50,
+                 random_state=0,
+                 storage=None,
+                 show_warns=True,
+                 max_time=None,
+                 **kwargs):
         super().__init__(storage, show_warns, max_time, **kwargs)
         """ TODO the docstring documentation
         """
@@ -32,18 +39,19 @@ class AutoML(Component, ABC):
         self.verbose = verbose
         self.storage_for_components = storage_for_components
         self.storage = None  # TODO: AutoML is only storing Pipelins for now
+        self.max_iter = max_iter
 
     def apply_impl(self, data):
         """ TODO the docstring documentation
         """
-        print('--------------------------------------------------------------')
-        # print('max_iter', self.max_iter, '  max_depth', self.max_depth,
-        #       '  static', self.static, '  fixed', self.fixed,
-        #       '  repetitions', self.repetitions)
         evaluator = Evaluator(Metrics.error, "cv", 10,
                               random_state=self.random_state)
 
         failed, locked, succ, tot = 0, 0, 0, 0
+
+        # if is a time requirement
+
+        # if is a iteration requirement
         for i in range(self.max_iter):
             # Evaluates current hyperparameter (space-values) combination.
             pipelines = self.next_pipelines(data)
