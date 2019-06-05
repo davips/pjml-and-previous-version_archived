@@ -27,7 +27,7 @@ class AutoML(Component, ABC):
                  show_warns=True,
                  max_time=None,
                  **kwargs):
-        super().__init__(storage, show_warns, max_time, **kwargs)
+        super().__init__(storage, show_warns, **kwargs)
         """ TODO the docstring documentation
         """
         self.preprocessors = default_preprocessors \
