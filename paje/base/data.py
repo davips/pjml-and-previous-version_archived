@@ -113,6 +113,8 @@ class Data:
     @staticmethod
     def with_uuid(uuid, **kwargs):
         data = Data(**kwargs)
+        if uuid is None:
+            raise Exception('with_uuid() needs uuid of Data')
         data._set('_uuid', uuid)
         return data
 
@@ -141,11 +143,11 @@ class Data:
         X = df.values.astype('float')
         Y = as_column_vector(df.pop(target).values.astype('float'))
         arq = file.split('/')[-1]
-        if storage is not None:
-            uuid = storage and storage.get_data_uuid_by_name(arq, 'X,y')
-            return Data.with_uuid(uuid, name=arq, X=X, Y=Y, columns=df.columns)
-        else:
+        uuid = storage and storage.get_data_uuid_by_name(arq, 'X,y')
+        if uuid is None:
             return Data(name=arq, X=X, Y=Y, columns=df.columns)
+        else:
+            return Data.with_uuid(uuid, name=arq, X=X, Y=Y, columns=df.columns)
 
     @staticmethod
     def random(n_attributes, n_classes, n_instances):
@@ -225,8 +227,10 @@ class Data:
         return self._dump
 
     def uuid(self):
+        print('calc uiud...')
         if self._uuid is None:
             self._set('_uuid', uuid(self.dump()))
+        print('calc uiud ok')
         return self._uuid
 
     def name(self):
