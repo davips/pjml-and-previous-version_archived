@@ -29,7 +29,7 @@ class RandomAutoML(AutoML):
         AutoML.__init__(self, preprocessors=preprocessors, modelers=modelers,
                         storage_for_components=storage_for_components, verbose=verbose,
                         random_state=random_state,
-                        storage=storage, show_warns=show_warns, max_time=max_time)
+                        storage=storage, show_warns=show_warns)
 
         self.best_error = 9999999
         if static and not fixed:

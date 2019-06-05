@@ -111,23 +111,41 @@ class Data:
         #         self.is_clusterization = True
 
     @staticmethod
-    def read_arff(file, target):
+    def with_uuid(uuid, **kwargs):
+        data = Data(**kwargs)
+        if uuid is not None:
+            data._set('_uuid', uuid)
+        else:
+            print('uuid = None given to with_uuid() !')
+        return data
+
+    @staticmethod
+    def read_arff(file, target, storage=None):
         data = arff.load(open(file, 'r'), encode_nominal=True)
         df = pd.DataFrame(data['data'],
                           columns=[attr[0] for attr in data['attributes']])
-        return Data.read_data_frame(df, file, target)
+        return Data.read_data_frame(df, file, target, storage)
 
     @staticmethod
-    def read_csv(file, target):
+    def read_csv(file, target, storage=None):
+        """
+        Create Data from CSV file.
+        :param file:
+        :param target:
+        :param storage: Where to look for UUID if possible,
+        to avoid useless waits recalculating it for big datasets.
+        :return:
+        """
         df = pd.read_csv(file)
-        return Data.read_data_frame(df, file, target)
+        return Data.read_data_frame(df, file, target, storage)
 
     @staticmethod
-    def read_data_frame(df, file, target):
-        Y = as_column_vector(df.pop(target).values.astype('float'))
+    def read_data_frame(df, file, target, storage=None):
         X = df.values.astype('float')
+        Y = as_column_vector(df.pop(target).values.astype('float'))
         arq = file.split('/')[-1]
-        return Data(name=arq, X=X, Y=Y, columns=df.columns)
+        uuid = storage and storage.get_data_uuid_by_name(arq, 'X,y')
+        return Data.with_uuid(uuid, name=arq, X=X, Y=Y, columns=df.columns)
 
     @staticmethod
     def random(n_attributes, n_classes, n_instances):
@@ -137,7 +155,6 @@ class Data:
                                       n_informative=int(
                                           np.sqrt(2 * n_classes)) + 1)
         return Data(name=None, X=X, Y=as_column_vector(y))
-
 
     @staticmethod
     def read_from_storage(name, storage, fields=None):
