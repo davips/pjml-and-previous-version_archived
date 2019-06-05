@@ -131,8 +131,8 @@ class Data:
         Create Data from CSV file.
         :param file:
         :param target:
-        :param storage: Where to look for UUID if possible,
-        to avoid useless waits recalculating it for big datasets.
+        :param storage: Where to look for previously stored data if possible,
+        to avoid useless waits loading from file and recalculating UUID.
         :return:
         """
         df = pd.read_csv(file)
@@ -140,14 +140,13 @@ class Data:
 
     @staticmethod
     def read_data_frame(df, file, target, storage=None):
+        arq = file.split('/')[-1]
+        data = storage and Data.read_from_storage(name=arq, storage=storage)
+        if data is not None:
+            return data
         X = df.values.astype('float')
         Y = as_column_vector(df.pop(target).values.astype('float'))
-        arq = file.split('/')[-1]
-        uuid = storage and storage.get_data_uuid_by_name(arq, 'X,y')
-        if uuid is None:
-            return Data(name=arq, X=X, Y=Y, columns=df.columns)
-        else:
-            return Data.with_uuid(uuid, name=arq, X=X, Y=Y, columns=df.columns)
+        return Data(name=arq, X=X, Y=Y, columns=df.columns)
 
     @staticmethod
     def random(n_attributes, n_classes, n_instances):
