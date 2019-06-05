@@ -25,7 +25,6 @@ class HPTree(object):
         return self.pipeline_to_dic_rec(self)[0]
 
     def moduletree_to_dic(self, tree):
-        # args = {'name': tree.name} # this bad line may be obsolete by now
         args = {}
         for k, kind_interval in tree.dic.items():
             args[k] = sample(*kind_interval)
@@ -38,6 +37,10 @@ class HPTree(object):
                 dic, tree = self.moduletree_to_dic(child)
                 # del dic['name'] # TODO: what was this for?
                 args.update(dic)
+        if 'name' in args:
+            raise Exception('Field "name" found in HPTree!')
+        if tree.name is not None:  # If it is not an internal node like 'kernel'
+            args['name'] = tree.name
         return args, tree
 
     # TODO: A hyperParameter (?) 'p' can be used to define the probabilities
