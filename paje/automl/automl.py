@@ -25,7 +25,6 @@ class AutoML(Component, ABC):
                  random_state=0,
                  storage=None,
                  show_warns=True,
-                 max_time=None,
                  **kwargs):
         super().__init__(storage, show_warns, **kwargs)
         """ TODO the docstring documentation

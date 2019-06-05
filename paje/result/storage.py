@@ -106,7 +106,8 @@ class Cache(ABC):
         pass
 
     @abstractmethod
-    def get_data_after_apply_by_name(self, name, just_check_exists=False):
+    def get_data_uuid_by_name(self, name, fields='X,y',
+                              just_check_exists=False):
         pass
 
     @abstractmethod
