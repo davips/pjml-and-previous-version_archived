@@ -18,7 +18,7 @@ def main():
     else:
         # storage = SQLite(debug=not True) if len(argv) >= 3 and argv[2] == \
         #                                     'True' else None
-        storage = MySQL(db='teste', debug=not True) \
+        storage = MySQL(db='teste', debug=not True, read_only=False) \
             if len(argv) >= 3 and argv[2] == 'True' else None
 
         iterations = 30 if len(argv) < 4 else int(argv[3])
