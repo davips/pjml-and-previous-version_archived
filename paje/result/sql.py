@@ -1,4 +1,3 @@
-import socket
 from abc import abstractmethod
 
 from paje.base.data import Data
@@ -227,7 +226,7 @@ class SQL(Cache):
         :param just_check_exists:
         :return:
         """
-        one = '1' if just_check_exists else 'data'
+        one = '1' if just_check_exists else 'data,iddset'
         restrict = '' if fields is None else f"and fields='{fields.upper()}'"
         self.query(f'select {one} from dset '
                    f'where name=? {restrict} order by id', [name])
@@ -239,7 +238,11 @@ class SQL(Cache):
         dic = {}
         for row in rows:
             dic.update(unpack_data(row['data']))
-        return just_check_exists or Data(name=name, **dic)
+        if len(rows) > 1:
+            data = Data(name=name, **dic)
+        else:
+            data = Data.with_uuid(uuid=rows[0]['iddset'], name=name, **dic)
+        return just_check_exists or data
 
     def get_data_uuid_by_name(self, name, fields='X,y',
                               just_check_exists=False):
@@ -258,7 +261,7 @@ class SQL(Cache):
             return None
         if just_check_exists:
             return True
-        if len(rows) > 1 :
+        if len(rows) > 1:
             raise Exception(f'Excess of rows for {name} {fields}!',
                             f'{len(rows)} > 1', rows)
         return just_check_exists or rows[0]['iddset']
