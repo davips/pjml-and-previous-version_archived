@@ -110,7 +110,7 @@ class SQL(Cache):
                        "?, ?, "
                        f"?, {self.now_function()})",
                        [data.uuid(),
-                        data.name(), data.fields_str(),
+                        data.name(), data.fields(),
                         data.dump()])
         else:
             if self.debug:
