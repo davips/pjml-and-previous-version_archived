@@ -25,7 +25,7 @@ class NB(Classifier):
             self.model = ComplementNB()
             self.model = GaussianNB()
         elif self.nb_type == "BernoulliNB":
-            self.model = BernoulliNB()
+            self.model = BernoulliNB()#
 
     def apply_impl(self, data):
         X, y = data.Xy
