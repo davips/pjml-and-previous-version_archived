@@ -251,7 +251,18 @@ class Component(ABC):
             if self.storage is not None:
                 output_train_data = None if self.failed else self.use_impl(data)
                 self.store_result(data, output_train_data)
-
+        else:
+            if self.storage is not None:
+                # Check if use() will need a model. Assumes two results per set
+                count = self.storage.count_results(self,data)
+                if count == 1:
+                    print('apply just for use() because results were '
+                          'partially stored in a previous execution.')
+                    output_data = self.apply_impl(data)
+                # print('It is possible that a previous apply() was '
+                #       'successfully stored, but its use() wasn\'t.',
+                #       'Please remove stored results for data', data.uuid(),
+                #       'and component', self.uuid())
         return output_data
 
     def use(self, data=None):

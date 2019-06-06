@@ -302,6 +302,15 @@ class SQL(Cache):
     def start_transaction(self):
         self.intransaction = True
 
+    def count_results(self, component, data):
+        self.query('select id from result where idcomp=? and idtrain=?',
+                   [component.uuid(), data.uuid()])
+        rows = self.cursor.fetchall()
+        if rows is None or len(rows) == 0:
+            return 0
+        else:
+            return len(rows)
+
     @abstractmethod
     def keylimit(self):
         pass
