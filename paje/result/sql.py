@@ -57,15 +57,12 @@ class SQL(Cache):
         if self.debug:
             print('Locking...')
 
+        self.store_data(test)
+
         self.start_transaction()
         now = self.now_function()
-        if not self.component_exists(component):
-            self.query("insert into args values (NULL, ?, ?, ?)",
-                       [component.uuid(), component.serialized(), now])
-        else:
-            component.msg(
-                'Component already exists:' + str(component.serialized()))
-        self.store_data(test)
+        self.query("insert or ignore into args values (NULL, ?, ?, ?)",
+                   [component.uuid(), component.serialized(), now])
 
         txt = "insert into result values (null, " \
               "?, ?, ?, " \
@@ -107,6 +104,8 @@ class SQL(Cache):
 
     def store_data(self, data):
         if not self.data_exists(data):
+            # TODO: in the mean time another job can have inserted the same data
+            #  change to insert or ignore, or would it increase network traffic?
             self.query("insert into dset values (NULL, "
                        "?, "
                        "?, ?, "
