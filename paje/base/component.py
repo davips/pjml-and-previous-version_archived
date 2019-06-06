@@ -205,7 +205,7 @@ class Component(ABC):
         """Todo the doc string
         """
         # Checklist / get from storage -----------------------------------
-        self.check_if_built(data)
+        self.check_if_built()
         if data is None:
             raise Exception(f"Applying {self.name} on None !")
 
@@ -257,7 +257,7 @@ class Component(ABC):
     def use(self, data=None):
         """Todo the doc string
         """
-        self.check_if_applied()
+        self.check_if_applied(data)
 
         # Checklist / get from storage -----------------------------------
         if data is None:
