@@ -259,7 +259,8 @@ class Component(ABC):
                 count = self.storage.count_results(self, data)
                 if count == 1:
                     print('apply just for use() because results were '
-                          'partially stored in a previous execution.')
+                          'partially stored in a previous execution:'
+                          f'comp: {self.uuid()}  data: {data.uuid()}')
                     output_data = self.apply_impl(data)
                 # print('It is possible that a previous apply() was '
                 #       'successfully stored, but its use() wasn\'t.',
