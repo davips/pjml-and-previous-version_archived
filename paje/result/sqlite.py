@@ -12,9 +12,9 @@ class SQLite(SQL):
         self.database = database
         self.debug = debug
         self.intransaction = False
-        self.open()
+        self._open()
 
-    def open(self):
+    def _open(self):
         self.connection = sqlite3.connect(self.database)
         self.connection.row_factory = sqlite3.Row
         self.cursor = self.connection.cursor()
@@ -26,7 +26,6 @@ class SQLite(SQL):
             if self.debug:
                 print('creating database', self.database, '...')
             self.setup()
-        return self
 
     def now_function(self):
         return 'datetime()'

@@ -13,7 +13,7 @@ class SQL(Cache):
                    "idcomp varchar(32) NOT NULL UNIQUE, "
                    "dic TEXT NOT NULL, inserted timestamp NOT NULL)")
         self.query(f'CREATE INDEX idx0 ON args (dic{self.keylimit()})')
-        self.query('CREATE INDEX idx10 ON dset (inserted)')
+        self.query('CREATE INDEX idx10 ON args (inserted)')
 
         self.query("create table if not exists result ("
                    f"id integer NOT NULL primary key {self.auto_incr()}, "

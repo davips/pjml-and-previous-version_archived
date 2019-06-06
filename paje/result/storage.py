@@ -74,10 +74,6 @@ class Cache(ABC):
     """
 
     @abstractmethod
-    def open(self):
-        pass
-
-    @abstractmethod
     def setup(self):
         pass
 

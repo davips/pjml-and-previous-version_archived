@@ -20,9 +20,9 @@ class MySQL(SQL):
             raise Exception("'-' not allowed in db name!")
         self.hostname = socket.gethostname()
         self.intransaction = False
-        self.open()
+        self._open()
 
-    def open(self):
+    def _open(self):
         """
         Each reconnection has a cost of approximately 150ms in ADSL (ping=30ms).
         :return:
