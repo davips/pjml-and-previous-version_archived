@@ -16,9 +16,8 @@ class AutoML(Component, ABC):
     def __init__(self,
                  evaluator,
                  n_jobs=1,
-                 storage_for_components=None,
                  verbose=True,
-                 max_iter=50,
+                 max_iter=10,
                  random_state=0,
                  storage=None,
                  show_warns=True,
@@ -28,7 +27,6 @@ class AutoML(Component, ABC):
         """
         self.evaluator = evaluator
         self.n_jobs = n_jobs
-        self.storage_for_components = storage_for_components
         self.max_iter = max_iter
         self.verbose = verbose
         self.random_state = random_state
@@ -68,8 +66,6 @@ class AutoML(Component, ABC):
     def apply_impl(self, data):
         """ TODO the docstring documentation
         """
-        # evaluator = Evaluator(Metrics.error, "cv", 10,
-        #                       random_state=self.random_state)
         for iteration in range(1, self.max_iter+1):
             self.current_iteration = iteration
             if self.verbose:
