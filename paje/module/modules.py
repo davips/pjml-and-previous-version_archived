@@ -1,9 +1,3 @@
-import numpy as np
-from paje.base.component import Component
-from paje.evaluator.evaluator import Evaluator
-from paje.evaluator.metrics import Metrics
-from paje.module.modelling.classifier.ab import AB
-from paje.module.modelling.classifier.cb import CB
 from paje.module.modelling.classifier.dt import DT
 from paje.module.modelling.classifier.knn import KNN
 from paje.module.modelling.classifier.mlp import MLP
@@ -19,16 +13,10 @@ from paje.module.preprocessing.supervised.instance.noise_detector.distance_based
 from paje.module.preprocessing.unsupervised.feature.scaler.standard \
     import Standard
 from paje.module.preprocessing.unsupervised.feature.transformer.drfa import DRFA
-from paje.module.preprocessing.unsupervised.feature.transformer.drftag import \
-    DRFtAg
 from paje.module.preprocessing.unsupervised.feature.transformer.drgrp import \
     DRGRP
-from paje.module.preprocessing.unsupervised.feature.transformer.drica import \
-    DRICA
 from paje.module.preprocessing.unsupervised.feature.transformer.drpca \
     import DRPCA
-from paje.module.preprocessing.supervised.feature.selector.statistical.cfs \
-    import FilterCFS
 from paje.module.preprocessing.supervised.feature.selector.statistical. \
     chi_square import FilterChiSquare
 from paje.module.preprocessing.supervised.feature.selector.statistical. \
@@ -41,11 +29,8 @@ from paje.module.preprocessing.unsupervised.feature.scaler.equalization \
     import Equalization
 from paje.module.preprocessing.unsupervised.feature.transformer.drsrp import \
     DRSRP
-from paje.module.preprocessing.unsupervised.feature.transformer.drsvd import \
-    DRSVD
 from paje.composer.pipeline import Pipeline
-from paje.composer.switch import Switch
-from paje.base.frozen import Frozen
+from composer.frozen import Frozen
 
 # TODO: Extract list of all modules automatically from the root package module?
 # TODO: add DRFtAg, DRICA when try/catch is implemented in pipeline execution
