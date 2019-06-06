@@ -160,10 +160,15 @@ class Component(ABC):
             self.dic['name'] = self.name
         self._serialized = json.dumps(self.dic, sort_keys=True).encode()
         self._uuid = uuid(self.serialized())
-        if 'name' in self.dic:
-            self.name = self.dic.pop('name')
+
+        # If 'name' is by some obscure reason a real argument, don't remove it!
+        if self.dic['name'] == self.name:
+            del self.dic['name']
+
+        # Not like 'name', 'max_time' is a reserved word, not for building.
         if 'max_time' in self.dic:
             self.max_time = self.dic.pop('max_time')
+
         self.build_impl()
         return self
 
