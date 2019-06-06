@@ -248,9 +248,12 @@ class SQL(Cache):
         :return:
         """
         one = '1' if just_check_exists else 'data,iddset'
-        restrict = '' if fields is None else f"and fields=?"
-        self.query(f'select {one} from dset where '
-                   f'name=? {restrict} order by id', [name, fields.upper()])
+        if fields is None:
+            self.query(f'select {one} from dset where '
+                       f'name=? and fields=? order by id', [name, fields])
+        else:
+            self.query(f'select {one} from dset '
+                       f'where name=? order by id', [name])
         rows = self.cursor.fetchall()
         if rows is None or len(rows) == 0:
             return None
