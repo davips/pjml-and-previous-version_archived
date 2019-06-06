@@ -78,7 +78,7 @@ class Cache(ABC):
         pass
 
     @abstractmethod
-    def lock(self, component, test):
+    def lock(self, component, test, txt=''):
         pass
 
     @abstractmethod

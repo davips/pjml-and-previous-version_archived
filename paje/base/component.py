@@ -34,7 +34,7 @@ class Component(ABC):
         self.storage = storage
         self._uuid = None  # UUID will be known only after build()
         self._uuid_train__mutable = None
-        self.locked = False
+        self.locked_by_others = False
         self.failed = False
         self.time_spent = None
         self.node = None
@@ -183,8 +183,7 @@ class Component(ABC):
             np.warnings.filterwarnings('always')
 
     def lock(self, data, txt=''):
-        self.storage.lock(self, data)
-        self.msg(f'Locked [{txt}]!')
+        self.storage.lock(self, data, txt)
 
     def look_for_result(self, data):
         return self.storage and self.storage.get_result(self, data)
@@ -224,13 +223,7 @@ class Component(ABC):
         # Apply if still needed  ----------------------------------
         if output_data is None:
             if self.storage is not None:
-                try:
-                    self.lock(data, 'apply')
-                except Exception as e:
-                    print('Unexpected lock! Giving up my turn on apply()', e)
-                    self.locked = True
-                    print(data, 'giving up apply()')
-                    return None
+                self.lock(data, 'apply')
 
             self.handle_warnings()
             self.msg('Applying component' + self.name + '...')
@@ -244,7 +237,7 @@ class Component(ABC):
             except Exception as e:
                 print(e)
                 self.failed = True
-                self.locked = False
+                self.locked_by_others = False
                 handle_exception(self, e)
             self.time_spent = self.clock() - start
             self.msg('Component ' + self.name + ' applied.')
@@ -280,7 +273,7 @@ class Component(ABC):
 
         output_data = self.look_for_result(data)
 
-        if self.locked:
+        if self.locked_by_others:
             self.msg(f"Won't use {self.name} on data {self.uuid_train()}\n"
                      f"Current probably working at {self.node}.")
             return output_data
@@ -293,13 +286,7 @@ class Component(ABC):
         # Use if still needed  ----------------------------------
         if output_data is None:
             if self.storage is not None:
-                try:
-                    self.lock(data, 'using')
-                except Exception as e:
-                    print('Unexpected lock! Giving up my turn on use()...', e)
-                    self.locked = True
-                    print(data, 'giving up use()')
-                    return None
+                self.lock(data, 'using')
 
             self.handle_warnings()
             print('Using component', self.name, '...')

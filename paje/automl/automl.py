@@ -63,7 +63,7 @@ class AutoML(Component, ABC):
                 error = np.mean(evaluator.eval(pipe, data))
                 if pipe.failed:
                     failed += 1
-                elif pipe.locked:
+                elif pipe.locked_by_others:
                     locked += 1
                 else:
                     succ += 1
