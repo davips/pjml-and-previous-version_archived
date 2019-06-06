@@ -202,7 +202,7 @@ class Component(ABC):
         # Checklist / get from storage -----------------------------------
         self.check_if_built()
         if data is None:
-            # self.log(f"Applying {self.name} on None returns None.")
+            raise Exception(f"Applying {self.name} on None !")
             return None
 
         self._uuid_train__mutable = data.uuid()
