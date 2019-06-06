@@ -4,7 +4,6 @@ from paje.base.hps import HPTree
 
 
 class Switch(Composer):
-
     def build_impl(self):
         """
         The only parameter is dics with the dic of each component.

@@ -74,10 +74,6 @@ class Cache(ABC):
     """
 
     @abstractmethod
-    def open(self):
-        pass
-
-    @abstractmethod
     def setup(self):
         pass
 
@@ -94,7 +90,7 @@ class Cache(ABC):
         pass
 
     @abstractmethod
-    def store(self, component, test, testout, train=None):
+    def store(self, component, test, testout):
         pass
 
     @abstractmethod
@@ -103,6 +99,10 @@ class Cache(ABC):
 
     @abstractmethod
     def get_data_by_uuid(self, data, just_check_exists=False):
+        pass
+
+    @abstractmethod
+    def count_results(self,component, data):
         pass
 
     @abstractmethod

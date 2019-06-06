@@ -5,15 +5,16 @@ from paje.result.sql import SQL
 
 
 class SQLite(SQL):
-    def __init__(self, database='/tmp/paje.db', debug=False):
+    def __init__(self, database='/tmp/paje.db', debug=False, read_only=False):
         self.info = database
+        self.read_only = read_only
         self.hostname = socket.gethostname()
         self.database = database
         self.debug = debug
         self.intransaction = False
-        self.open()
+        self._open()
 
-    def open(self):
+    def _open(self):
         self.connection = sqlite3.connect(self.database)
         self.connection.row_factory = sqlite3.Row
         self.cursor = self.connection.cursor()

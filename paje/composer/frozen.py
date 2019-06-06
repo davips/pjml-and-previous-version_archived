@@ -30,7 +30,7 @@ class Frozen(Composer):
 
     def tree_impl(self, data=None):
         return HPTree(dic=self.freeze_hptree(), children=[],
-                      name=self.name + ': ' + self.components[0].name)
+                      name=self.name + self.components[0].name)
 
     def __str__(self, depth=''):
         return self.name + ' { ' + str(self.components[0]) + ' }'

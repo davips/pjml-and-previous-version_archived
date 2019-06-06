@@ -1,4 +1,3 @@
-import socket
 from abc import abstractmethod
 
 from paje.base.data import Data
@@ -12,15 +11,16 @@ class SQL(Cache):
         self.query("create table if not exists args ("
                    f"id integer NOT NULL primary key {self.auto_incr()}, "
                    "idcomp varchar(32) NOT NULL UNIQUE, "
-                   "dic TEXT NOT NULL)")
+                   "dic TEXT NOT NULL, inserted timestamp NOT NULL)")
         self.query(f'CREATE INDEX idx0 ON args (dic{self.keylimit()})')
+        self.query('CREATE INDEX idx10 ON args (inserted)')
 
         self.query("create table if not exists result ("
                    f"id integer NOT NULL primary key {self.auto_incr()}, "
                    "idcomp varchar(32) NOT NULL, idtrain varchar(32) NOT NULL ,"
                    "idtest varchar(32) NOT NULL"
                    ", idtestout varchar(32), timespent FLOAT, dump LONGBLOB"
-                   ", failed TINYINT NOT NULL, start TIMESTAMP NOT NULL"
+                   ", failed TINYINT, start TIMESTAMP NOT NULL"
                    ", end TIMESTAMP NOT NULL, alive TIMESTAMP NOT NULL"
                    ", node varchar(32) NOT NULL, attempts int NOT NULL"
                    ", UNIQUE(idcomp, idtrain, idtest))")
@@ -38,21 +38,42 @@ class SQL(Cache):
         self.query(f'CREATE INDEX idx7 ON dset (name, fields)')
         self.query('CREATE INDEX idx8 ON dset (fields)')
         self.query('CREATE INDEX idx9 ON dset (inserted)')
+
+        self.query('ALTER TABLE result ADD FOREIGN KEY (idcomp) '
+                   'REFERENCES args(idcomp)')
+        self.query('ALTER TABLE result ADD FOREIGN KEY (idtrain) '
+                   'REFERENCES dset(iddset)')
+        self.query('ALTER TABLE result ADD FOREIGN KEY (idtest) '
+                   'REFERENCES dset(iddset);')
         self.commit()
 
     def lock(self, component, test):
+        """
+        Store 'test' and 'component' if they are not yet stored.
+        :param component:
+        :param test:
+        :return:
+        """
         if self.debug:
             print('Locking...')
-        node = self.hostname
+
+        self.store_data(test)
+
+        self.start_transaction()
+        now = self.now_function()
+        self.query("insert or ignore into args values (NULL, ?, ?, " +
+                   self.now_function() + ")",
+                   [component.uuid(), component.serialized()])
+
         txt = "insert into result values (null, " \
               "?, ?, ?, " \
               "?, ?, ?, " \
-              "?, " + self.now_function() + f", '0000-00-00 00:00:00', " \
-                  f"'0000-00-00 00:00:00', '{node}', 0)"
+              "null, " + self.now_function() + f", '0000-00-00 00:00:00', " \
+                  f"'0000-00-00 00:00:00', ?, 0)"
         args = [component.uuid(), component.uuid_train(), test.uuid(),
-                None, None, None,
-                0]
+                None, None, None, self.hostname]
         self.query(txt, args)
+        self.commit()
 
     def get_result(self, component, test):
         """
@@ -77,13 +98,15 @@ class SQL(Cache):
         else:
             testout = None
         component.time_spent = result['timespent']
-        component.failed = result['failed'] == 1
+        component.failed = result['failed'] and result['failed'] == 1
         component.locked = result['end'] == '0000-00-00 00:00:00'
         component.node = result['node']
         return testout
 
     def store_data(self, data):
         if not self.data_exists(data):
+            # TODO: in the mean time another job can have inserted the same data
+            #  change to insert or ignore, or would it increase network traffic?
             self.query("insert into dset values (NULL, "
                        "?, "
                        "?, ?, "
@@ -95,7 +118,7 @@ class SQL(Cache):
             if self.debug:
                 print('Testset already exists:' + data.uuid(), data.name())
 
-    def store(self, component, test, testout, train=None):
+    def store(self, component, test, testout):
         """
 
         :param component:
@@ -121,16 +144,7 @@ class SQL(Cache):
                    [slim and slim.uuid(),
                     component.time_spent, dump, failed,
                     component.uuid(), uuid_tr, test.uuid()])
-        if not self.component_exists(component):
-            self.query("insert into args values (NULL, ?, ?)",
-                       [component.uuid(), component.serialized()])
-        else:
-            component.msg(
-                'Component already exists:' + str(component.serialized()))
 
-        if train is not None:
-            self.store_data(train)
-        self.store_data(test)
         slim and self.store_data(slim)
         self.commit()
         print('Stored!')
@@ -181,6 +195,11 @@ class SQL(Cache):
 
     # @profile
     def query(self, sql, args=None):
+        if self.read_only and not sql.startswith('select '):
+            print('========================================\n',
+                  'Attempt to write onto read-only storage!', sql)
+            self.cursor.execute('select 1')
+            return
         if args is None:
             args = []
         from paje.result.mysql import MySQL
@@ -199,8 +218,7 @@ class SQL(Cache):
             print(e)
             print()
             print(e, msg)
-            raise Exception('\nMaybe you should call storage.open()',
-                            self.info)
+            raise Exception(self.info)
 
     def get_data(self, data, just_check_exists=False):
         return self.get_data_by_uuid(data.uuid(), just_check_exists)
@@ -227,10 +245,13 @@ class SQL(Cache):
         :param just_check_exists:
         :return:
         """
-        one = '1' if just_check_exists else 'data'
-        restrict = '' if fields is None else f"and fields='{fields.upper()}'"
-        self.query(f'select {one} from dset '
-                   f'where name=? {restrict} order by id', [name])
+        one = '1' if just_check_exists else 'data,iddset'
+        if fields is None:
+            self.query(f'select {one} from dset '
+                       f'where name=? order by id', [name])
+        else:
+            self.query(f'select {one} from dset where '
+                       f'name=? and fields=? order by id', [name, fields])
         rows = self.cursor.fetchall()
         if rows is None or len(rows) == 0:
             return None
@@ -239,7 +260,11 @@ class SQL(Cache):
         dic = {}
         for row in rows:
             dic.update(unpack_data(row['data']))
-        return just_check_exists or Data(name=name, **dic)
+        if len(rows) > 1:
+            data = Data(name=name, **dic)
+        else:
+            data = Data.with_uuid(uuid=rows[0]['iddset'], name=name, **dic)
+        return just_check_exists or data
 
     def get_data_uuid_by_name(self, name, fields='X,y',
                               just_check_exists=False):
@@ -252,14 +277,15 @@ class SQL(Cache):
         """
         one = '1' if just_check_exists else 'iddset'
         self.query(f"select {one} from dset where "
-                   f"name=? and fields='{fields.upper()}' order by id", [name])
+                   f"name=? and fields=? order by id", [name, fields.upper()])
         rows = self.cursor.fetchall()
         if rows is None or len(rows) == 0:
             return None
         if just_check_exists:
             return True
-        if len(rows) > 1 :
-            raise Exception('Excess of rows!', f'{len(rows)} > 1', rows)
+        if len(rows) > 1:
+            raise Exception(f'Excess of rows for {name} {fields}!',
+                            f'{len(rows)} > 1', rows)
         return just_check_exists or rows[0]['iddset']
 
     def get_finished(self):  # TODO: specify search criteria (by component?)
@@ -274,6 +300,15 @@ class SQL(Cache):
 
     def start_transaction(self):
         self.intransaction = True
+
+    def count_results(self, component, data):
+        self.query('select id from result where idcomp=? and idtrain=?',
+                   [component.uuid(), data.uuid()])
+        rows = self.cursor.fetchall()
+        if rows is None or len(rows) == 0:
+            return 0
+        else:
+            return len(rows)
 
     @abstractmethod
     def keylimit(self):

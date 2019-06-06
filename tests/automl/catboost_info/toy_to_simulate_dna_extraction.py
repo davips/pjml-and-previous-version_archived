@@ -1,7 +1,7 @@
 from sys import argv
 
 from paje.base.data import Data
-from paje.composer.Concat import Concat
+from paje.composer.concat import Concat
 from paje.evaluator.metrics import Metrics
 from paje.module.modelling.classifier.nb import NB
 from paje.module.noop import Noop

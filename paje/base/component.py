@@ -2,7 +2,6 @@
 """
 import copy
 import json
-from paje.util.log import *
 import os
 from abc import ABC, abstractmethod
 from uuid import uuid4
@@ -13,6 +12,7 @@ from paje.base.exceptions import ApplyWithoutBuild, UseWithoutApply, \
     handle_exception
 from paje.evaluator.time import time_limit
 from paje.result.storage import uuid, pack_comp
+from paje.util.log import *
 
 
 class Component(ABC):
@@ -106,7 +106,8 @@ class Component(ABC):
         #  instance method?
         tree = self.tree_impl(data)
         self.check_tree(tree)
-        tree.name = self.name
+        if tree.name is None:
+            tree.name = self.name
         return tree
 
     @classmethod
@@ -158,12 +159,15 @@ class Component(ABC):
         #  it can be lacking a name.
         if 'name' not in self.dic:
             self.dic['name'] = self.name
+
         self._serialized = json.dumps(self.dic, sort_keys=True).encode()
         self._uuid = uuid(self.serialized())
-        if 'name' in self.dic:
-            self.name = self.dic.pop('name')
+
+        # 'name' and 'max_time' are reserved words, not for building.
+        del self.dic['name']
         if 'max_time' in self.dic:
             self.max_time = self.dic.pop('max_time')
+
         self.build_impl()
         return self
 
@@ -178,15 +182,20 @@ class Component(ABC):
         if not self.show_warns:
             np.warnings.filterwarnings('always')
 
-    def lock(self, data):
+    def lock(self, data, txt=''):
         self.storage.lock(self, data)
-        self.msg('Locked!')
+        self.msg(f'Locked [{txt}]!')
 
     def look_for_result(self, data):
         return self.storage and self.storage.get_result(self, data)
 
-    def check_if_applied(self):
+    def check_if_applied(self, data):
         if self._uuid_train__mutable is None:
+            if self.storage is not None:
+                print('It is possible that a previous apply() was '
+                      'successfully stored, but its use() wasn\'t.',
+                      'Please remove stored results for data', data.uuid(),
+                      'and component', self.uuid())
             raise UseWithoutApply(f'{self.name} should be applied!')
 
     def check_if_built(self):
@@ -198,8 +207,7 @@ class Component(ABC):
         # Checklist / get from storage -----------------------------------
         self.check_if_built()
         if data is None:
-            # self.log(f"Applying {self.name} on None returns None.")
-            return None
+            raise Exception(f"Applying {self.name} on None !")
 
         self._uuid_train__mutable = data.uuid()
         output_data = self.look_for_result(data)
@@ -216,7 +224,13 @@ class Component(ABC):
         # Apply if still needed  ----------------------------------
         if output_data is None:
             if self.storage is not None:
-                self.lock(data)
+                try:
+                    self.lock(data)
+                except Exception as e:
+                    print('Unexpected lock! Giving up my turn on apply()', e)
+                    self.locked = True
+                    print(data, 'giving up apply()')
+                    return None
 
             self.handle_warnings()
             self.msg('Applying component' + self.name + '...')
@@ -238,14 +252,26 @@ class Component(ABC):
 
             if self.storage is not None:
                 output_train_data = None if self.failed else self.use_impl(data)
-                self.store_result(data, output_train_data, data)
-
+                self.store_result(data, output_train_data)
+        else:
+            if self.storage is not None:
+                # Check if use() will need a model. Assumes two results per set
+                count = self.storage.count_results(self, data)
+                if count == 1:
+                    print('apply just for use() because results were '
+                          'partially stored in a previous execution:'
+                          f'comp: {self.uuid()}  data: {data.uuid()}')
+                    output_data = self.apply_impl(data)
+                # print('It is possible that a previous apply() was '
+                #       'successfully stored, but its use() wasn\'t.',
+                #       'Please remove stored results for data', data.uuid(),
+                #       'and component', self.uuid())
         return output_data
 
     def use(self, data=None):
         """Todo the doc string
         """
-        self.check_if_applied()
+        self.check_if_applied(data)
 
         # Checklist / get from storage -----------------------------------
         if data is None:
@@ -267,7 +293,13 @@ class Component(ABC):
         # Use if still needed  ----------------------------------
         if output_data is None:
             if self.storage is not None:
-                self.lock(data)
+                try:
+                    self.lock(data, 'using')
+                except Exception as e:
+                    print('Unexpected lock! Giving up my turn on use()...', e)
+                    self.locked = True
+                    print(data, 'giving up use()')
+                    return None
 
             self.handle_warnings()
             print('Using component', self.name, '...')
@@ -321,13 +353,13 @@ class Component(ABC):
     def store_data(self, data):
         self.storage.store_data(data)
 
-    def store_result(self, input_data, output_data, train=None):
+    def store_result(self, input_data, output_data):
         """
         :param input_data:
         :param output_data:
         :return:
         """
-        self.storage.store(self, input_data, output_data, train)
+        self.storage.store(self, input_data, output_data)
 
     def clock(self):
         t = os.times()

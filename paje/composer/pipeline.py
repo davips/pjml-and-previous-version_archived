@@ -22,22 +22,13 @@ class Pipeline(Composer):
 
         if 'dics' in self.dic:
             dics = self.dic['dics']
-        # if 'random_state' in self.dic:
-        #     self.random_state = self.dic['random_state']
         self.components = self.components.copy()
-        # exit(0)
         zipped = zip(range(0, len(self.components)), dics)
         for idx, dic in zipped:
             # TODO: setar showwarns?
-            # if isinstance(self.components[idx], Composer):
-            #     dic = {'dics': dic.copy()}
-
             dic = dic.copy()
             dic['random_state'] = self.random_state
-            # print('comp',self.components[idx])
-            # print('dic', dic)
             self.components[idx] = self.components[idx].build(**dic)
-            # component.instantiate(**dic)
 
     def set_leaf(self, tree, f):
         if len(tree.children) > 0:

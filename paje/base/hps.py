@@ -22,31 +22,34 @@ class HPTree(object):
         :param tree:
         :return: kwargs for Component constructor
         """
-        return self.pipeline_to_dic_rec(self)[0]
+        return self.pipeline_to_dic(self)[0]
 
     def moduletree_to_dic(self, tree):
-        # args = {'name': tree.name} # this bad line may be obsolete by now
         args = {}
+
+        # This is needed here because composers
+        # when building forget subcomponent names.
+        if tree.name is not None:
+            args['name'] = tree.name
+
         for k, kind_interval in tree.dic.items():
             args[k] = sample(*kind_interval)
         if tree.children:
             child = random.choice(tree.children)
-            # if tree.name is 'EndPipeline':
-            #     return {'name': ''}, tree
+
             # if child is not a component (it is a, e.g., a kernel)
             if child.name is None:
                 dic, tree = self.moduletree_to_dic(child)
-                # del dic['name'] # TODO: what was this for?
                 args.update(dic)
+
         return args, tree
 
-    # TODO: A hyperParameter (?) 'p' can be used to define the probabilities
+    # TODO: A hyperParameter (?) 'p' could be used to define the probabilities
     #  to weight each node.
     #  It could be defined during the construction of the tree according to
     #  the size of its subtrees.
 
-    def pipeline_to_dic_rec(self, tree):
-        # ignoring dic of pipline, assumes it is empty
+    def pipeline_to_dic(self, tree):
         argss = []
         args, children = tree.expand()
         if len(children) != 1:
@@ -57,19 +60,20 @@ class HPTree(object):
             tree = random.choice(children)
             if tree.name.startswith('End'):
                 break
+
+            # TODO: this IF should be more general:
             if tree.name == 'Pipeline' or tree.name == 'Concat':
-                args, children = self.pipeline_to_dic_rec(tree)
+                args, children = self.pipeline_to_dic(tree)
             else:
                 args, last = self.moduletree_to_dic(tree)
                 children = last.children
+
             argss.append(args)
-        # Remove 'End' from EndPipeline, EndConcat etc.
-        return {'name': tree.name[3:], 'dics': argss}, tree.children
+        return {'dics': argss}, tree.children
 
     def __str__(self, depth=''):
         rows = [str(self.dic)]
         for child in self.children:
-            # if not child.name.startswith('End'):
             rows.append(child.__str__(depth + '   '))
         return depth + self.name + '\n'.join(rows)
 

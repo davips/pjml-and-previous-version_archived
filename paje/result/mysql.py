@@ -7,9 +7,10 @@ from paje.result.sql import SQL
 
 
 class MySQL(SQL):
-    def __init__(self, database='paje@143.107.183.114',
-                 password='pajelanca19', db='curumim', debug=False):
+    def __init__(self, database='paje@143.107.183.114', password='pajelanca19',
+                 db='curumim', debug=False, read_only=False):
         self.info = database + ', ' + db
+        self.read_only = read_only
         self.database = database
         self.password = password
         self.db = db
@@ -19,9 +20,9 @@ class MySQL(SQL):
             raise Exception("'-' not allowed in db name!")
         self.hostname = socket.gethostname()
         self.intransaction = False
-        self.open()
+        self._open()
 
-    def open(self):
+    def _open(self):
         """
         Each reconnection has a cost of approximately 150ms in ADSL (ping=30ms).
         :return:
@@ -51,6 +52,7 @@ class MySQL(SQL):
 
         if setup:
             self.setup()
+        return self
 
     def now_function(self):
         return 'now()'
