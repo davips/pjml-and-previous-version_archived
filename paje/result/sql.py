@@ -100,7 +100,7 @@ class SQL(Cache):
         else:
             testout = None
         component.time_spent = result['timespent']
-        component.failed = result['failed'] == 1
+        component.failed = result['failed'] and result['failed'] == 1
         component.locked = result['end'] == '0000-00-00 00:00:00'
         component.node = result['node']
         return testout

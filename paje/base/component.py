@@ -203,7 +203,6 @@ class Component(ABC):
         self.check_if_built()
         if data is None:
             raise Exception(f"Applying {self.name} on None !")
-            return None
 
         self._uuid_train__mutable = data.uuid()
         output_data = self.look_for_result(data)
