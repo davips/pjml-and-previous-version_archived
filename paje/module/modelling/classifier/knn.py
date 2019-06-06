@@ -38,9 +38,9 @@ class KNN(Classifier):
             # if self.model.metric == 'mahalanobis' and self.model.n_neighbors>500 \
             #         or data.n_instances>10000:
 
-            if len(X) > 5000:
+            if data.n_instances*data.n_attributes > 500000:
                 raise ExceptionInApplyOrUse('Mahalanobis for too big data, '
-                                            'matrix size:', len(X))
+                                            'matrix size:', X.shape)
             cov = np.cov(X)
             inv = np.linalg.pinv(cov)
             self.model.metric_params = {'VI': inv}
