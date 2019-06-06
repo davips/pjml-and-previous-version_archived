@@ -4,21 +4,18 @@
 from abc import ABC, abstractmethod
 
 # from other packages
-import numpy as np
+# import numpy as np
 
 # from paje
 from paje.base.component import Component
-from paje.evaluator.evaluator import Evaluator
-from paje.evaluator.metrics import Metrics
-from paje.module.modules import default_preprocessors, default_modelers
 
 
 class AutoML(Component, ABC):
     """ TODO the docstring documentation
     """
     def __init__(self,
-                 preprocessors=None,
-                 modelers=None,
+                 evaluator,
+                 n_jobs=1,
                  storage_for_components=None,
                  verbose=True,
                  max_iter=50,
@@ -29,56 +26,87 @@ class AutoML(Component, ABC):
         super().__init__(storage, show_warns, **kwargs)
         """ TODO the docstring documentation
         """
-        self.preprocessors = default_preprocessors \
-            if preprocessors is None else preprocessors
-        self.modelers = default_modelers if modelers is None else modelers
-        if self.modelers is None:
-            self.warning('No modelers given')
-        self.random_state = random_state
-        self.verbose = verbose
+        self.evaluator = evaluator
+        self.n_jobs = n_jobs
         self.storage_for_components = storage_for_components
-        self.storage = None  # TODO: AutoML is only storing Pipelins for now
         self.max_iter = max_iter
+        self.verbose = verbose
+        self.random_state = random_state
+
+        # internal class atributes
+        self.model = None
+        self.all_eval_results = []
+        self.fails, self.locks, self.successes, self.total = 0, 0, 0, 0
+        self.current_iteration = 0
+
+    def build_impl(self):
+        """ TODO the docstring documentation
+        """
+        # It is not clear if this class is instantiable yet.
+        return self
+
+    def eval_pipelines_par(self, pipelines, data, eval_results):
+        """ TODO the docstring documentation
+        """
+
+    def eval_pipelines_seq(self, pipelines, data, eval_results):
+        """ TODO the docstring documentation
+        """
+        for pipe in pipelines:
+            self.total += 1
+            if self.verbose:
+                print(pipe)
+            eval_result = self.evaluator.eval(pipe, data)
+            if pipe.failed:
+                self.fails += 1
+            elif pipe.locked:
+                self.locks += 1
+            else:
+                self.successes += 1
+            eval_results.append(eval_result)
 
     def apply_impl(self, data):
         """ TODO the docstring documentation
         """
-        evaluator = Evaluator(Metrics.error, "cv", 10,
-                              random_state=self.random_state)
-
-        failed, locked, succ, tot = 0, 0, 0, 0
-
-        # if is a time requirement
-
-        # if is a iteration requirement
-        for i in range(self.max_iter):
+        # evaluator = Evaluator(Metrics.error, "cv", 10,
+        #                       random_state=self.random_state)
+        for iteration in range(1, self.max_iter+1):
+            self.current_iteration = iteration
+            if self.verbose:
+                print("####------##-----##-----##-----##-----##-----####")
+                print("Current iteration = ", self.current_iteration)
             # Evaluates current hyperparameter (space-values) combination.
             pipelines = self.next_pipelines(data)
 
-            errors = []
-            for pipe in pipelines:
-                tot += 1
-                if self.verbose:
-                    print(pipe)
-                error = np.mean(evaluator.eval(pipe, data))
-                if pipe.failed:
-                    failed += 1
-                elif pipe.locked:
-                    locked += 1
-                else:
-                    succ += 1
-                errors.append(error)
-            self.process(errors)
-            if self.verbose:
-                print("Current Error: ", error)
-                print("Best Error: ", self.best_error, 'Locks/fails/successes:',
-                      locked, '/', failed, '/', succ, '\n', )
+            # this variable saves the results of the current iteration
+            eval_result = []
+            if self.n_jobs > 1:
+                # Runs all pipelines generated in this iteration (parallelly)
+                # and put the results in the eval_result variable
+                self.eval_pipelines_par(pipelines, data, eval_result)
+            else:
+                # Runs all pipelines generated in this iteration (sequentially)
+                # and put the results in the eval_result variable
+                self.eval_pipelines_seq(pipelines, data, eval_result)
 
+            # This attribute save all results
+            self.all_eval_results.append(eval_result)
+
+            self.process_step(eval_result)
+            if self.verbose:
+                print("Current ...............: ", self.get_current_eval())
+                print("Best ..................: ", self.get_best_eval())
+                print("Locks/fails/successes .: {0}/{1}/{2}".format(
+                    self.locks, self.fails, self.successes))
+                print("####------##-----##-----##-----##-----##-----####\n")
+
+        self.process_all_steps(self.all_eval_results)
+
+        self.model = self.get_best_pipeline()
         if self.verbose:
             print("Best pipeline found:")
-            print(self.best())
+            print(self.model)
 
-        self.model = self.best()
         return self.model.apply(data)
 
     def use_impl(self, data):
@@ -86,24 +114,29 @@ class AutoML(Component, ABC):
         """
         return self.model.use(data)
 
-    def build_impl(self):
+    def get_best_eval(self):
         """ TODO the docstring documentation
         """
-        # TODO: uncomment:
-        # raise Exception('It is not clear if this class is instantiable yet.')
-        pass
+
+    def get_current_eval(self):
+        """ TODO the docstring documentation
+        """
+
+    def process_step(self, eval_result):
+        """ TODO the docstring documentation
+        """
+
+    def process_all_steps(self, eval_results):
+        """ TODO the docstring documentation
+        """
 
     @abstractmethod
-    def best(self):
+    def get_best_pipeline(self):
         """ TODO the docstring documentation
         """
-        pass
-
-    @abstractmethod
-    def process(self, errors):
-        """ TODO the docstring documentation
-        """
-        pass
+        raise NotImplementedError(
+            "AutoML has no get_best_pipeline() implemented!"
+        )
 
     @abstractmethod
     def next_pipelines(self, data):
