@@ -184,7 +184,7 @@ class Component(ABC):
 
     def lock(self, data, txt=''):
         self.storage.lock(self, data)
-        self.msg(f'Locked {txt}!')
+        self.msg(f'Locked [{txt}]!')
 
     def look_for_result(self, data):
         return self.storage and self.storage.get_result(self, data)
@@ -227,7 +227,9 @@ class Component(ABC):
                 try:
                     self.lock(data)
                 except Exception as e:
-                    print('Unexpected lock! Giving up my turn...', e)
+                    print('Unexpected lock! Giving up my turn on apply()', e)
+                    self.locked = True
+                    print(data, 'giving up apply()')
                     return None
 
             self.handle_warnings()
@@ -254,7 +256,7 @@ class Component(ABC):
         else:
             if self.storage is not None:
                 # Check if use() will need a model. Assumes two results per set
-                count = self.storage.count_results(self,data)
+                count = self.storage.count_results(self, data)
                 if count == 1:
                     print('apply just for use() because results were '
                           'partially stored in a previous execution.')
@@ -293,7 +295,9 @@ class Component(ABC):
                 try:
                     self.lock(data, 'using')
                 except Exception as e:
-                    print('Unexpected lock! Giving up my turn...', e)
+                    print('Unexpected lock! Giving up my turn on use()...', e)
+                    self.locked = True
+                    print(data, 'giving up use()')
                     return None
 
             self.handle_warnings()
