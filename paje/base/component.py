@@ -106,7 +106,8 @@ class Component(ABC):
         #  instance method?
         tree = self.tree_impl(data)
         self.check_tree(tree)
-        tree.name = self.name
+        if tree.name is None:
+            tree.name = self.name
         return tree
 
     @classmethod
@@ -158,14 +159,12 @@ class Component(ABC):
         #  it can be lacking a name.
         if 'name' not in self.dic:
             self.dic['name'] = self.name
+
         self._serialized = json.dumps(self.dic, sort_keys=True).encode()
         self._uuid = uuid(self.serialized())
 
-        # If 'name' is by some obscure reason a real argument, don't remove it!
-        if self.dic['name'] == self.name:
-            del self.dic['name']
-
-        # Not like 'name', 'max_time' is a reserved word, not for building.
+        # 'name' and 'max_time' are reserved words, not for building.
+        del self.dic['name']
         if 'max_time' in self.dic:
             self.max_time = self.dic.pop('max_time')
 

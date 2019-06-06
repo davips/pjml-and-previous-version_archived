@@ -27,7 +27,8 @@ class HPTree(object):
     def moduletree_to_dic(self, tree):
         args = {}
 
-        # This is needed here because pipe.build() forgets subcomponent names.
+        # This is needed here because composers
+        # when building forget subcomponent names.
         if tree.name is not None:
             args['name'] = tree.name
 
