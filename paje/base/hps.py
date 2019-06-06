@@ -69,7 +69,7 @@ class HPTree(object):
                 children = last.children
 
             argss.append(args)
-        return {'dics': argss}, tree.children
+        return {'name': tree.name[3:], 'dics': argss}, tree.children
 
     def __str__(self, depth=''):
         rows = [str(self.dic)]
