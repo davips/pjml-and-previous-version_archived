@@ -57,7 +57,7 @@ class SQL(Cache):
         if self.debug:
             print('Locking...')
 
-        self.store_data(test)
+        self.store_data(test.reduced_to(component.fields_to_keep_after_use()))
 
         self.start_transaction()
         nf = self.now_function()
@@ -104,7 +104,7 @@ class SQL(Cache):
     def store_data(self, data):
         if not self.data_exists(data):
             # TODO: in the mean time another job can have inserted the same data
-            #  change to insert or ignore, or would it increase network traffic?
+            #  Change to insert or ignore, or would it increase network traffic?
             self.query("insert into dset values (NULL, "
                        "?, "
                        "?, ?, "
