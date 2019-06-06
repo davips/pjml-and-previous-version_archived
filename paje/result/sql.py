@@ -61,8 +61,9 @@ class SQL(Cache):
 
         self.start_transaction()
         now = self.now_function()
-        self.query("insert or ignore into args values (NULL, ?, ?, ?)",
-                   [component.uuid(), component.serialized(), now])
+        self.query("insert or ignore into args values (NULL, ?, ?, " +
+                   self.now_function() + ")",
+                   [component.uuid(), component.serialized()])
 
         txt = "insert into result values (null, " \
               "?, ?, ?, " \
