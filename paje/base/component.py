@@ -189,8 +189,13 @@ class Component(ABC):
     def look_for_result(self, data):
         return self.storage and self.storage.get_result(self, data)
 
-    def check_if_applied(self):
+    def check_if_applied(self, data):
         if self._uuid_train__mutable is None:
+            if self.storage is not None:
+                print('It is possible that a previous apply() was '
+                      'successfully stored, but its use() wasn\'t.',
+                      'Please remove stored results for data', data.uuid(),
+                      'and component', self.uuid())
             raise UseWithoutApply(f'{self.name} should be applied!')
 
     def check_if_built(self):
@@ -200,7 +205,7 @@ class Component(ABC):
         """Todo the doc string
         """
         # Checklist / get from storage -----------------------------------
-        self.check_if_built()
+        self.check_if_built(data)
         if data is None:
             raise Exception(f"Applying {self.name} on None !")
 
