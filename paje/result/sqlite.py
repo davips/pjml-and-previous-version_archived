@@ -26,6 +26,7 @@ class SQLite(SQL):
             if self.debug:
                 print('creating database', self.database, '...')
             self.setup()
+        return self
 
     def now_function(self):
         return 'datetime()'

@@ -52,6 +52,7 @@ class MySQL(SQL):
 
         if setup:
             self.setup()
+        return self
 
     def now_function(self):
         return 'now()'
