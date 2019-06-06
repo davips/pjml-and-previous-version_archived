@@ -8,10 +8,10 @@ from paje.base.data import Data
 
 class Scaler(Component, ABC):
     def fields_to_store_after_use(self):
-        return ['X']
+        return 'X'
 
     def fields_to_keep_after_use(self):
-        return ['y']
+        return 'y'
 
     def apply_impl(self, data):
         # self.model will be set in the child class

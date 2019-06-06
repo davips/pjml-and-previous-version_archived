@@ -3,10 +3,10 @@ from paje.base.component import Component
 
 class Resampler(Component):
     def fields_to_store_after_use(self):
-        return ['X', 'y']
+        return 'Xy'
 
     def fields_to_keep_after_use(self):
-        return []
+        return ''
 
     def apply_impl(self, data):
         X, y = self.model.fit_resample(*data.Xy)
