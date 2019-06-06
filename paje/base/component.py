@@ -182,9 +182,9 @@ class Component(ABC):
         if not self.show_warns:
             np.warnings.filterwarnings('always')
 
-    def lock(self, data):
+    def lock(self, data, txt=''):
         self.storage.lock(self, data)
-        self.msg('Locked!')
+        self.msg(f'Locked {txt}!')
 
     def look_for_result(self, data):
         return self.storage and self.storage.get_result(self, data)
@@ -280,7 +280,7 @@ class Component(ABC):
         if output_data is None:
             if self.storage is not None:
                 try:
-                    self.lock(data)
+                    self.lock(data, 'using')
                 except Exception as e:
                     print('Unexpected lock! Giving up my turn...', e)
                     return None
