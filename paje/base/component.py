@@ -215,7 +215,7 @@ class Component(ABC):
                      f"Current {self.name} already failed before.")
             return output_data
 
-        if self.locked:
+        if self.locked_by_others:
             print(f"Won't apply {self.name} on data {self.uuid_train()}\n"
                   f"Current probably working at node [{self.node}].")
             return output_data
