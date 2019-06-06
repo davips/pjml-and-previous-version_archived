@@ -1,4 +1,4 @@
-from composer.frozen import Frozen
+from paje.composer.frozen import Frozen
 from paje.composer.pipeline import Pipeline
 from paje.module.modelling.classifier.dt import DT
 from paje.module.modelling.classifier.knn import KNN
