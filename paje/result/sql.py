@@ -60,16 +60,14 @@ class SQL(Cache):
         self.store_data(test)
 
         self.start_transaction()
-        now = self.now_function()
-        self.query("insert or ignore into args values (NULL, ?, ?, " +
-                   self.now_function() + ")",
+        nf = self.now_function()
+        self.query(f"insert or ignore into args values (NULL, ?, ?, {nf})",
                    [component.uuid(), component.serialized()])
 
         txt = "insert into result values (null, " \
               "?, ?, ?, " \
               "?, ?, ?, " \
-              "null, " + self.now_function() + f", '0000-00-00 00:00:00', " \
-                  f"'0000-00-00 00:00:00', ?, 0)"
+              f"null, {nf}, '0000-00-00 00:00:00', '0000-00-00 00:00:00', ?, 0)"
         args = [component.uuid(), component.uuid_train(), test.uuid(),
                 None, None, None, self.hostname]
         self.query(txt, args)
@@ -129,7 +127,7 @@ class SQL(Cache):
         """
         slim = testout and \
                testout.reduced_to(component.fields_to_store_after_use())
-        # TODO: try to store dumps again?
+        # TODO: try to store component dumps again?
         dump = None
         failed = 1 if component.failed else 0
         now = self.now_function()
