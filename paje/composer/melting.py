@@ -1,4 +1,4 @@
-from composer.frozen import Frozen
+from paje.composer.frozen import Frozen
 
 
 class Melting(Frozen):
