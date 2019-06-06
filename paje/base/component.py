@@ -225,7 +225,7 @@ class Component(ABC):
         if output_data is None:
             if self.storage is not None:
                 try:
-                    self.lock(data)
+                    self.lock(data, 'apply')
                 except Exception as e:
                     print('Unexpected lock! Giving up my turn on apply()', e)
                     self.locked = True
