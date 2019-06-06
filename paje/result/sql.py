@@ -118,7 +118,7 @@ class SQL(Cache):
             if self.debug:
                 print('Testset already exists:' + data.uuid(), data.name())
 
-    def store(self, component, test, testout, train=None):
+    def store(self, component, test, testout):
         """
 
         :param component:
@@ -145,8 +145,6 @@ class SQL(Cache):
                     component.time_spent, dump, failed,
                     component.uuid(), uuid_tr, test.uuid()])
 
-        if train is not None:
-            self.store_data(train)
         slim and self.store_data(slim)
         self.commit()
         print('Stored!')

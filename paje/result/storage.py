@@ -90,7 +90,7 @@ class Cache(ABC):
         pass
 
     @abstractmethod
-    def store(self, component, test, testout, train=None):
+    def store(self, component, test, testout):
         pass
 
     @abstractmethod

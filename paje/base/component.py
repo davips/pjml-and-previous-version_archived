@@ -353,13 +353,13 @@ class Component(ABC):
     def store_data(self, data):
         self.storage.store_data(data)
 
-    def store_result(self, input_data, output_data, train=None):
+    def store_result(self, input_data, output_data):
         """
         :param input_data:
         :param output_data:
         :return:
         """
-        self.storage.store(self, input_data, output_data, train)
+        self.storage.store(self, input_data, output_data)
 
     def clock(self):
         t = os.times()
