@@ -37,12 +37,34 @@ class SQL(Cache):
         self.query(f'CREATE INDEX idx7 ON dset (name, fields)')
         self.query('CREATE INDEX idx8 ON dset (fields)')
         self.query('CREATE INDEX idx9 ON dset (inserted)')
+
+        self.query('ALTER TABLE result ADD FOREIGN KEY (idcomp) '
+                   'REFERENCES args(idcomp)')
+        self.query('ALTER TABLE result ADD FOREIGN KEY (idtrain) '
+                   'REFERENCES dset(iddset)')
+        self.query('ALTER TABLE result ADD FOREIGN KEY (idtest) '
+                   'REFERENCES dset(iddset);')
         self.commit()
 
     def lock(self, component, test):
+        """
+        Store 'test' and 'component' if they are not yet stored.
+        :param component:
+        :param test:
+        :return:
+        """
         if self.debug:
             print('Locking...')
-        node = self.hostname
+
+        self.start_transaction()
+        if not self.component_exists(component):
+            self.query("insert into args values (NULL, ?, ?)",
+                       [component.uuid(), component.serialized()])
+        else:
+            component.msg(
+                'Component already exists:' + str(component.serialized()))
+        self.store_data(test)
+
         txt = "insert into result values (null, " \
               "?, ?, ?, " \
               "?, ?, ?, " \
@@ -50,8 +72,9 @@ class SQL(Cache):
                   f"'0000-00-00 00:00:00', ?, 0)"
         args = [component.uuid(), component.uuid_train(), test.uuid(),
                 None, None, None,
-                0, node]
+                0, self.hostname]
         self.query(txt, args)
+        self.commit()
 
     def get_result(self, component, test):
         """
@@ -120,16 +143,9 @@ class SQL(Cache):
                    [slim and slim.uuid(),
                     component.time_spent, dump, failed,
                     component.uuid(), uuid_tr, test.uuid()])
-        if not self.component_exists(component):
-            self.query("insert into args values (NULL, ?, ?)",
-                       [component.uuid(), component.serialized()])
-        else:
-            component.msg(
-                'Component already exists:' + str(component.serialized()))
 
         if train is not None:
             self.store_data(train)
-        self.store_data(test)
         slim and self.store_data(slim)
         self.commit()
         print('Stored!')

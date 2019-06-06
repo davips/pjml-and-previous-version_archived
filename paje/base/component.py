@@ -242,7 +242,7 @@ class Component(ABC):
 
             if self.storage is not None:
                 output_train_data = None if self.failed else self.use_impl(data)
-                self.store_result(data, output_train_data, data)
+                self.store_result(data, output_train_data)
 
         return output_data
 
@@ -271,7 +271,11 @@ class Component(ABC):
         # Use if still needed  ----------------------------------
         if output_data is None:
             if self.storage is not None:
-                self.lock(data)
+                try:
+                    self.lock(data)
+                except Exception as e:
+                    print('Unexpected lock! Giving up my turn...', e)
+                    return None
 
             self.handle_warnings()
             print('Using component', self.name, '...')
