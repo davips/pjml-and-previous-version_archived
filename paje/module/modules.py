@@ -1,22 +1,10 @@
+from paje.composer.pipeline import Pipeline
 from paje.module.modelling.classifier.dt import DT
 from paje.module.modelling.classifier.knn import KNN
 from paje.module.modelling.classifier.mlp import MLP
 from paje.module.modelling.classifier.nb import NB
 from paje.module.modelling.classifier.rf import RF
 from paje.module.modelling.classifier.svm import SVM
-from paje.module.preprocessing.supervised.instance.balancer.over. \
-    ran_over_sampler import RanOverSampler
-from paje.module.preprocessing.supervised.instance.balancer.under. \
-    ran_under_sampler import RanUnderSampler
-from paje.module.preprocessing.supervised.instance.noise_detector.distance_based.nn import \
-    NRNN
-from paje.module.preprocessing.unsupervised.feature.scaler.standard \
-    import Standard
-from paje.module.preprocessing.unsupervised.feature.transformer.drfa import DRFA
-from paje.module.preprocessing.unsupervised.feature.transformer.drgrp import \
-    DRGRP
-from paje.module.preprocessing.unsupervised.feature.transformer.drpca \
-    import DRPCA
 from paje.module.preprocessing.supervised.feature.selector.statistical. \
     chi_square import FilterChiSquare
 from paje.module.preprocessing.supervised.feature.selector.statistical. \
@@ -25,12 +13,23 @@ from paje.module.preprocessing.supervised.feature.selector.statistical. \
     gini_index import FilterGiniIndex
 from paje.module.preprocessing.supervised.feature.selector.statistical. \
     t_score import FilterTScore
+from paje.module.preprocessing.supervised.instance.balancer.over. \
+    ran_over_sampler import RanOverSampler
+from paje.module.preprocessing.supervised.instance.balancer.under. \
+    ran_under_sampler import RanUnderSampler
+from paje.module.preprocessing.supervised.instance.noise_detector.distance_based.nn import \
+    NRNN
 from paje.module.preprocessing.unsupervised.feature.scaler.equalization \
     import Equalization
+from paje.module.preprocessing.unsupervised.feature.scaler.standard \
+    import Standard
+from paje.module.preprocessing.unsupervised.feature.transformer.drfa import DRFA
+from paje.module.preprocessing.unsupervised.feature.transformer.drgrp import \
+    DRGRP
+from paje.module.preprocessing.unsupervised.feature.transformer.drpca \
+    import DRPCA
 from paje.module.preprocessing.unsupervised.feature.transformer.drsrp import \
     DRSRP
-from paje.composer.pipeline import Pipeline
-from composer.frozen import Frozen
 
 # TODO: Extract list of all modules automatically from the root package module?
 # TODO: add DRFtAg, DRICA when try/catch is implemented in pipeline execution
