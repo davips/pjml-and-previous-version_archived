@@ -11,15 +11,16 @@ class SQL(Cache):
         self.query("create table if not exists args ("
                    f"id integer NOT NULL primary key {self.auto_incr()}, "
                    "idcomp varchar(32) NOT NULL UNIQUE, "
-                   "dic TEXT NOT NULL)")
+                   "dic TEXT NOT NULL, inserted timestamp NOT NULL)")
         self.query(f'CREATE INDEX idx0 ON args (dic{self.keylimit()})')
+        self.query('CREATE INDEX idx10 ON dset (inserted)')
 
         self.query("create table if not exists result ("
                    f"id integer NOT NULL primary key {self.auto_incr()}, "
                    "idcomp varchar(32) NOT NULL, idtrain varchar(32) NOT NULL ,"
                    "idtest varchar(32) NOT NULL"
                    ", idtestout varchar(32), timespent FLOAT, dump LONGBLOB"
-                   ", failed TINYINT NOT NULL, start TIMESTAMP NOT NULL"
+                   ", failed TINYINT, start TIMESTAMP NOT NULL"
                    ", end TIMESTAMP NOT NULL, alive TIMESTAMP NOT NULL"
                    ", node varchar(32) NOT NULL, attempts int NOT NULL"
                    ", UNIQUE(idcomp, idtrain, idtest))")
@@ -57,9 +58,10 @@ class SQL(Cache):
             print('Locking...')
 
         self.start_transaction()
+        now = self.now_function()
         if not self.component_exists(component):
-            self.query("insert into args values (NULL, ?, ?)",
-                       [component.uuid(), component.serialized()])
+            self.query("insert into args values (NULL, ?, ?, ?)",
+                       [component.uuid(), component.serialized(), now])
         else:
             component.msg(
                 'Component already exists:' + str(component.serialized()))
@@ -68,11 +70,10 @@ class SQL(Cache):
         txt = "insert into result values (null, " \
               "?, ?, ?, " \
               "?, ?, ?, " \
-              "?, " + self.now_function() + f", '0000-00-00 00:00:00', " \
+              "null, " + self.now_function() + f", '0000-00-00 00:00:00', " \
                   f"'0000-00-00 00:00:00', ?, 0)"
         args = [component.uuid(), component.uuid_train(), test.uuid(),
-                None, None, None,
-                0, self.hostname]
+                None, None, None, self.hostname]
         self.query(txt, args)
         self.commit()
 
