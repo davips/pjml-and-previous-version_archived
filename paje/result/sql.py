@@ -249,11 +249,11 @@ class SQL(Cache):
         """
         one = '1' if just_check_exists else 'data,iddset'
         if fields is None:
-            self.query(f'select {one} from dset where '
-                       f'name=? and fields=? order by id', [name, fields])
-        else:
             self.query(f'select {one} from dset '
                        f'where name=? order by id', [name])
+        else:
+            self.query(f'select {one} from dset where '
+                       f'name=? and fields=? order by id', [name, fields])
         rows = self.cursor.fetchall()
         if rows is None or len(rows) == 0:
             return None
