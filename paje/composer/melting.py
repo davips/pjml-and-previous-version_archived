@@ -10,4 +10,4 @@ class Melting(Frozen):
         self.components[0] = self.components[0].build(**self.dic)
 
     def tree_impl(self, data=None):
-        return self.components[0].tree()
+        return self.components[0].tree(data)
