@@ -19,7 +19,6 @@ class MySQL(SQL):
         if '-' in db:
             raise Exception("'-' not allowed in db name!")
         self.hostname = socket.gethostname()
-        self.intransaction = False
         self._open()
 
     def _open(self):
@@ -34,6 +33,8 @@ class MySQL(SQL):
                                           password=self.password,
                                           charset='utf8mb4',
                                           cursorclass=pymysql.cursors.DictCursor)
+        self.connection.autocommit(False)
+
         if self.debug:
             print('getting cursor...')
         self.cursor = self.connection.cursor()
