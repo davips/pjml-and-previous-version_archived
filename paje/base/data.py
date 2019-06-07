@@ -72,6 +72,7 @@ class Data:
         # Add lazy cache for dump and uuid
         self._set('_dump', None)
         self._set('_uuid', None)
+        self._set('_name_uuid', None)
         self._set('_name', name)
         self._set('_fields', None)
 
@@ -231,6 +232,11 @@ class Data:
         if self._uuid is None:
             self._set('_uuid', uuid(self.dump()))
         return self._uuid
+
+    def name_uuid(self):
+        if self._name_uuid is None:
+            self._set('_name_uuid', uuid(self.name()))
+        return self._name_uuid
 
     def name(self):
         if self._name is None:
