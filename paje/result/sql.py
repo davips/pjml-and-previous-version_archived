@@ -1,95 +1,166 @@
 from abc import abstractmethod
+from sqlite3 import IntegrityError as IntegrityErrorSQLite
 
 from paje.base.data import Data
 from paje.result.storage import Cache, unpack_data
 from pymysql import IntegrityError as IntegrityErrorMySQL
-from sqlite3 import IntegrityError as IntegrityErrorSQLite
 
 
 class SQL(Cache):
     def setup(self):
         if self.debug:
             print('creating tables...')
-        self.query("create table if not exists args ("
-                   f"id integer NOT NULL primary key {self.auto_incr()}, "
-                   "idcomp varchar(32) NOT NULL UNIQUE, "
-                   "dic TEXT NOT NULL, inserted timestamp NOT NULL"
-                   ")")
-        self.query(f'CREATE INDEX idx0 ON args (dic{self.keylimit()})')
-        self.query('CREATE INDEX idx10 ON args (inserted)')
 
-        self.query("create table if not exists result ("
-                   f"id integer NOT NULL primary key {self.auto_incr()}, "
-                   "idcomp varchar(32) NOT NULL, idtrain varchar(32) NOT NULL ,"
-                   "idtest varchar(32) NOT NULL"
-                   ", idtestout varchar(32), timespent FLOAT, dump LONGBLOB"
-                   ", failed TINYINT, start TIMESTAMP NOT NULL"
-                   ", end TIMESTAMP NOT NULL, alive TIMESTAMP NOT NULL"
-                   ", node varchar(32) NOT NULL, attempts int NOT NULL"
-                   ", UNIQUE(idcomp, idtrain, idtest))")
-        self.query('CREATE INDEX idx1 ON result (timespent)')
-        self.query('CREATE INDEX idx2 ON result (start)')
-        self.query('CREATE INDEX idx3 ON result (end)')
-        self.query('CREATE INDEX idx4 ON result (alive)')
-        self.query('CREATE INDEX idx5 ON result (node)')
-        self.query('CREATE INDEX idx6 ON result (attempts)')
-        self.query("create table if not exists dset ("
-                   f"id integer NOT NULL primary key {self.auto_incr()}, "
-                   "iddset varchar(32) NOT NULL UNIQUE, "
-                   "name varchar(158) NOT NULL, fields varchar(32) NOT NULL, "
-                   "data LONGBLOB NOT NULL, inserted timestamp NOT NULL"
-                   ")")
-        self.query(f'CREATE INDEX idx7 ON dset (name, fields)')
-        self.query('CREATE INDEX idx8 ON dset (fields)')
-        self.query('CREATE INDEX idx9 ON dset (inserted)')
+        self.query(f'''
+            create table if not exists name (
+                n integer NOT NULL primary key {self.auto_incr()},
 
-        self.query('ALTER TABLE result ADD FOREIGN KEY (idcomp) '
-                   'REFERENCES args(idcomp)')
-        self.query('ALTER TABLE result ADD FOREIGN KEY (idtrain) '
-                   'REFERENCES dset(iddset)')
-        self.query('ALTER TABLE result ADD FOREIGN KEY (idtest) '
-                   'REFERENCES dset(iddset);')
-        self.commit()
+                nid char(32) NOT NULL UNIQUE,
+                txt TEXT NOT NULL
+            )''')
+        self.query(f'CREATE INDEX nam0 ON name (txt{self.keylimit()})')
 
-    def lock(self, component, test, txt=''):
+        self.query(f'''
+            create table if not exists dump (
+                n integer NOT NULL primary key {self.auto_incr()},
+
+                duid char(32) NOT NULL UNIQUE,
+                bytes LONGBLOB NOT NULL
+            )''')
+
+        self.query(f'''
+            create table if not exists log (
+                n integer NOT NULL primary key {self.auto_incr()},
+
+                lid char(32) NOT NULL UNIQUE,
+                msg TEXT NOT NULL,
+                insl timestamp NOT NULL
+            )''')
+        self.query(f'CREATE INDEX log0 ON log (msg{self.keylimit()})')
+        self.query(f'CREATE INDEX log1 ON log (insl{self.keylimit()})')
+
+        self.query(f'''
+            create table if not exists com (
+                n integer NOT NULL primary key {self.auto_incr()},
+                
+                cid char(32) NOT NULL UNIQUE,
+                arg TEXT NOT NULL,
+                
+                insc timestamp NOT NULL
+            )''')
+        self.query(f'CREATE INDEX com0 ON com (arg{self.keylimit()})')
+        self.query(f'CREATE INDEX com1 ON com (insc)')
+
+        self.query(f'''
+            create table if not exists data (
+                n integer NOT NULL primary key {self.auto_incr()},
+
+                fields varchar(32) NOT NULL,
+                name char(32) NOT NULL,
+
+                did char(32) NOT NULL,  <---- uuid(name + fields)
+                shape varchar(32) NOT NULL,
+
+                insd timestamp NOT NULL,
+
+                UNIQUE(fields, name),
+                FOREIGN KEY (did) REFERENCES dump(duid),
+               )''')
+        self.query(f'CREATE INDEX data0 ON data (shape{self.keylimit()})')
+        self.query(f'CREATE INDEX data1 ON data (insd)')
+
+        self.query(f'''
+            create table if not exists res (
+                n integer NOT NULL primary key {self.auto_incr()},
+
+                node varchar(32) NOT NULL,
+
+                com char(32) NOT NULL,
+                dtr char(32) NOT NULL,
+                din char(32) NOT NULL,
+                log char(32),
+
+                dout char(32),
+                spent FLOAT,
+                dumpr char(32),
+
+                fail TINYINT,
+
+                start TIMESTAMP NOT NULL,
+                end TIMESTAMP NOT NULL,
+                alive TIMESTAMP NOT NULL,
+
+                tries int NOT NULL,
+                locks int NOT NULL,
+
+                UNIQUE(com, dtr, din),
+                FOREIGN KEY (com) REFERENCES com(cid),
+                FOREIGN KEY (dtr) REFERENCES data(did),
+                FOREIGN KEY (din) REFERENCES data(did),
+                FOREIGN KEY (dumpr) REFERENCES dump(duid),
+                FOREIGN KEY (log) REFERENCES log(lid)
+            )''')
+        self.query('CREATE INDEX res0 ON res (dout)')
+        self.query('CREATE INDEX res1 ON res (spent)')
+        self.query('CREATE INDEX res2 ON res (dumpr)')
+        self.query('CREATE INDEX res3 ON res (fail)')
+        self.query('CREATE INDEX res4 ON res (start)')
+        self.query('CREATE INDEX res5 ON res (end)')
+        self.query('CREATE INDEX res6 ON res (alive)')
+        self.query('CREATE INDEX res7 ON res (node)')
+        self.query('CREATE INDEX res8 ON res (tries)')
+        self.query('CREATE INDEX res9 ON res (locks)')
+        self.query('CREATE INDEX res10 ON res (log)')
+
+    def lock(self, component, input_data, txtres=''):
         """
         Store 'test' and 'component' if they are not yet stored.
+        Insert a locking row corresponding to comp,training_data,input_data.
         :param component:
-        :param test:
-        :param txt: for logging purposes
+        :param input_data:
+        :param txtres: for logging purposes
         :return:
         """
         if self.debug:
             print('Locking...')
 
-        self.store_data(test.reduced_to(component.fields_to_keep_after_use()))
+        # Store testing set if (inexistent yet).
+        self.store_data(
+            input_data.reduced_to(component.fields_to_keep_after_use()))
 
-        self.start_transaction()
+        # Store component (if inexistent yet) and attempt to acquire lock.
+        # Mark as locked_by_others otherwise.
         nf = self.now_function()
-        self.query(f"insert or ignore into args values (NULL, ?, ?, {nf})",
-                   [component.uuid(), component.serialized()])
-
-        txt = "insert into result values (null, " \
-              "?, ?, ?, " \
-              "?, ?, ?, " \
-            f"null, {nf}, '0000-00-00 00:00:00', '0000-00-00 00:00:00', ?, 0)"
-        args = [component.uuid(), component.uuid_train(), test.uuid(),
-                None, None, None, self.hostname]
-
+        args_comp = [component.uuid(), component.serialized()]
+        args_res = [self.hostname,
+                    component.uuid(), component.uuid_train(), input_data.uuid()]
+        sql = f'''
+            begin;
+            insert or ignore into com values (
+                NULL,
+                ?, ?,
+                {nf}
+            );
+            insert into res values (
+                null,
+                ?
+                ?, ?, ?, null
+                null, null, null,
+                null,
+                {nf}, '0000-00-00 00:00:00', '0000-00-00 00:00:00',
+                0, 0
+            end;'''
         try:
-            self.query(txt, args)
-            self.commit()
+            self.query(sql, args_comp + args_res)
         except IntegrityErrorSQLite as e:
-            print(f'Unexpected lock! Giving up my turn on {txt}', e)
+            print(f'Unexpected lock! Giving up my turn on {txtres}', e)
             component.locked_by_others = True
         except IntegrityErrorMySQL as e:
-            print(f'Unexpected lock! Giving up my turn on {txt}', e)
+            print(f'Unexpected lock! Giving up my turn on {txtres}', e)
             component.locked_by_others = True
         else:
             component.locked_by_others = False
-            print(f'Locked [{txt}]!')
-        finally:
-            self.end_transaction()
+            print(f'Locked [{txtres}]!')
 
     def get_result(self, component, test):
         """
@@ -98,41 +169,65 @@ class SQL(Cache):
         """
         if component.failed or component.locked_by_others:
             return None
-        self.query(
-            "select data, timespent, failed, end, node, name "
-            "from result left join dset on idtestout=iddset "
-            "where idcomp=? and idtrain=? and idtest=?",
-            [component.uuid(), component.uuid_train(), test.uuid()])
+        self.query(f'''
+            select 
+                bytes, spent, fail, end, node, name
+            from 
+                result left join dset on dout = did
+                    left join dump on dumpd = duid
+                    left join name on name = nid
+            where                
+                cid=? and dtr=? and dts=?''',
+                   [component.uuid(), component.uuid_train(), test.uuid()])
 
         result = self._process_result()
         if result is None:
             return None
-        if result['data'] is not None:
-            slim = Data(name=result['name'], **unpack_data(result['data']))
+        if result['bytes'] is not None:
+            slim = Data(name=result['name'], **unpack_data(result['bytes']))
             testout = slim.merged(
                 test.reduced_to(component.fields_to_keep_after_use()))
         else:
             testout = None
-        component.time_spent = result['timespent']
-        component.failed = result['failed'] and result['failed'] == 1
+        component.time_spent = result['spent']
+        component.failed = result['fail'] and result['fail'] == 1
         component.locked_by_others = result['end'] == '0000-00-00 00:00:00'
         component.node = result['node']
         return testout
 
     def store_data(self, data):
-        if not self.data_exists(data):
-            # TODO: in the mean time another job can have inserted the same data
-            #  Change to insert or ignore, or would it increase network traffic?
-            self.query("insert into dset values (NULL, "
-                       "?, "
-                       "?, ?, "
-                       f"?, {self.now_function()})",
-                       [data.uuid(),
-                        data.name(), data.fields(),
-                        data.dump()])
-        else:
+        # Check first with a low cost query if data already exists.
+        if self.data_exists(data):
             if self.debug:
-                print('Testset already exists:' + data.uuid(), data.name())
+                print('Data already exists:' + data.uuid(), data.name())
+            return
+
+        # Insert dump of data and data info.
+        # Ignore insertion if the event of another job winning the race.
+        sql = f'''
+            begin;
+            insert or ignore into dump values (
+                null,
+                ?, ?
+            );
+            insert or ignore into data values (
+                NULL,
+                ?, ?, 
+                ?, ?,
+                {self.now_function()}
+            );
+            end;'''
+        dump_args = [data.uuid(), data.dump()]
+        data_args = [data.uuid(), data.fields(), data.name(),
+                     data.shapes()]
+        try:
+            self.query(sql, dump_args + data_args)
+        except IntegrityErrorSQLite as e:
+            print(f'Data already store before!', data.uuid())
+        except IntegrityErrorMySQL as e:
+            print(f'Data already store before!', data.uuid())
+        else:
+            print(f'Data inserted', data.uuid())
 
     def store(self, component, test, testout):
         """
@@ -151,19 +246,19 @@ class SQL(Cache):
         now = self.now_function()
         uuid_tr = component.uuid_train()
 
-        self.start_transaction()
-        setters = f"idtestout=?, timespent=?, dump=?, failed=?"
-        conditions = "idcomp=? and idtrain=? and idtest=?"
-        # TODO: is there any important exception to threat here?
-        self.query(f"update result set {setters}, start=start, "
+        # TODO: is there any important exception to handle here?
+        sql = f'''
+            update result set 
+                idtestout=?, timespent=?, dump=?, failed=?,
+                 start=start, "
                    f"end={now}, alive={now} "
-                   f"where {conditions}",
-                   [slim and slim.uuid(),
-                    component.time_spent, dump, failed,
-                    component.uuid(), uuid_tr, test.uuid()])
+                   f"where 
+                   idcomp=? and idtrain=? and idtest=?'''
+        args = [slim and slim.uuid(),
+                component.time_spent, dump, failed,
+                component.uuid(), uuid_tr, test.uuid()]
 
         slim and self.store_data(slim)
-        self.commit()
         print('Stored!')
 
     def _process_result(self):
@@ -204,15 +299,6 @@ class SQL(Cache):
         zipped = zip(sql.replace('?', '"?"').split('?'), map(str, lst + ['']))
         return ''.join(list(sum(zipped, ())))
 
-    def commit(self):
-        if self.debug:
-            print('commit')
-        self.connection.commit()
-        self.end_transaction()
-
-    def end_transaction(self):
-        self.intransaction = False
-
     # @profile
     def query(self, sql, args=None):
         if self.read_only and not sql.startswith('select '):
@@ -230,15 +316,24 @@ class SQL(Cache):
             sql = sql.replace('?', '%s')
             sql = sql.replace('insert or ignore', 'insert ignore')
             # self.connection.ping(reconnect=True)
+
+        import sys
+        import traceback
+
         try:
             self.cursor.execute(sql, args)
-            if not self.intransaction:
-                self.connection.commit()
-        except Exception as e:
-            print(e)
-            print()
-            print(e, msg)
-            raise Exception(self.info)
+            self.connection.commit()
+        except Exception as ex:
+            # From StackOverflow
+            msg = self.info + msg
+            # Gather the information from the original exception:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            # Format the original exception for a nice printout:
+            traceback_string = ''.join(traceback.format_exception(
+                exc_type, exc_value, exc_traceback))
+            # Re-raise a new exception of the same class as the original one
+            raise type(ex)(
+                "%s\norig. trac.:\n%s\n" % (msg, traceback_string))
 
     def get_data(self, data, just_check_exists=False):
         return self.get_data_by_uuid(data.uuid(), just_check_exists)
@@ -317,9 +412,6 @@ class SQL(Cache):
             return None
         else:
             return [row['name'] for row in rows]
-
-    def start_transaction(self):
-        self.intransaction = True
 
     def count_results(self, component, data):
         self.query('select id from result where idcomp=? and idtrain=?',
