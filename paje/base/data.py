@@ -267,6 +267,12 @@ class Data:
         testset = Data(name=name + '1', X=X_test).updated(y=y_test)
         return trainset, testset
 
+    def shapes(self):
+        """
+        Return the shape of all non None variables.
+        :return:
+        """
+        return [v.shape() for v in self.vars.values()]
 
 class MutabilityException(Exception):
     pass
