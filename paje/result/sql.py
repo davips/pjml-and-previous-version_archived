@@ -11,39 +11,62 @@ class SQL(Cache):
         if self.debug:
             print('creating tables...')
 
+        # History of Data
+        # ========================================================
+        self.query(f'''
+            create table if not exists hist (
+                n integer NOT NULL primary key {self.auto_incr()},
+
+                hid char(19) NOT NULL UNIQUE,
+
+                txt TEXT NOT NULL,
+            )''')
+        self.query(f'CREATE INDEX nam0 ON hist (txt{self.keylimit()})')
+
+        # Names of Data ========================================================
         self.query(f'''
             create table if not exists name (
                 n integer NOT NULL primary key {self.auto_incr()},
 
-                nid char(32) NOT NULL UNIQUE,
-                txt TEXT NOT NULL
-            )''')
-        self.query(f'CREATE INDEX nam0 ON name (txt{self.keylimit()})')
+                nid char(19) NOT NULL UNIQUE,
 
+                des TEXT NOT NULL,
+
+                cols TEXT
+            )''')
+        self.query(f'CREATE INDEX nam0 ON name (des{self.keylimit()})')
+        self.query(f'CREATE INDEX nam1 ON name (cols{self.keylimit()})')
+
+        # Dumps of Data and Component ==========================================
         self.query(f'''
             create table if not exists dump (
                 n integer NOT NULL primary key {self.auto_incr()},
 
-                duid char(32) NOT NULL UNIQUE,
+                duid char(19) NOT NULL UNIQUE,
+
                 bytes LONGBLOB NOT NULL
             )''')
 
+        # Logs for Component ===================================================
         self.query(f'''
             create table if not exists log (
                 n integer NOT NULL primary key {self.auto_incr()},
 
-                lid char(32) NOT NULL UNIQUE,
+                lid char(19) NOT NULL UNIQUE,
+
                 msg TEXT NOT NULL,
                 insl timestamp NOT NULL
             )''')
         self.query(f'CREATE INDEX log0 ON log (msg{self.keylimit()})')
         self.query(f'CREATE INDEX log1 ON log (insl{self.keylimit()})')
 
+        # Components ===========================================================
         self.query(f'''
             create table if not exists com (
                 n integer NOT NULL primary key {self.auto_incr()},
                 
-                cid char(32) NOT NULL UNIQUE,
+                cid char(19) NOT NULL UNIQUE,
+
                 arg TEXT NOT NULL,
                 
                 insc timestamp NOT NULL
@@ -51,38 +74,52 @@ class SQL(Cache):
         self.query(f'CREATE INDEX com0 ON com (arg{self.keylimit()})')
         self.query(f'CREATE INDEX com1 ON com (insc)')
 
+        # Datasets =============================================================
         self.query(f'''
             create table if not exists data (
                 n integer NOT NULL primary key {self.auto_incr()},
 
-                fields varchar(32) NOT NULL,
-                name char(32) NOT NULL,
+                did char(19) NOT NULL UNIQUE,
 
-                did char(32) NOT NULL,  <---- uuid(name + fields)
-                shape varchar(32) NOT NULL,
+                name char(19) NOT NULL,
+                fields varchar(32) NOT NULL,
+                hist char(19),
+
+                dumpd char(19) NOT NULL,
+                shape varchar(256) NOT NULL,
 
                 insd timestamp NOT NULL,
 
-                UNIQUE(fields, name),
-                FOREIGN KEY (did) REFERENCES dump(duid),
+                unique(name, fields, hist),
+                FOREIGN KEY (name) REFERENCES name(nid),
+                FOREIGN KEY (dumpd) REFERENCES dump(duid),
+                FOREIGN KEY (hist) REFERENCES hist(hid)
                )''')
+        # apontar pro data anterior? <- nao precisa pq estah na 'res'
+        # mostrar comp <-nao adianta pq o msm comp pode ser aplicado varias vezes
+        # provav. history não vai conter comps inuteis como pipes e switches
         self.query(f'CREATE INDEX data0 ON data (shape{self.keylimit()})')
         self.query(f'CREATE INDEX data1 ON data (insd)')
+        self.query(f'CREATE INDEX data2 ON data (dumpd)')
+        self.query(f'CREATE INDEX data3 ON data (fields)')  # needed?
+        self.query(f'CREATE INDEX data4 ON data (name)')  # needed?
+        self.query(f'CREATE INDEX data5 ON data (hist)')  # needed?
 
+        # Results ==============================================================
         self.query(f'''
             create table if not exists res (
                 n integer NOT NULL primary key {self.auto_incr()},
 
-                node varchar(32) NOT NULL,
+                node varchar(19) NOT NULL,
 
-                com char(32) NOT NULL,
-                dtr char(32) NOT NULL,
-                din char(32) NOT NULL,
-                log char(32),
+                com char(19) NOT NULL,
+                dtr char(19) NOT NULL,
+                din char(19) NOT NULL,
+                log char(19),
 
-                dout char(32),
+                dout char(19),
                 spent FLOAT,
-                dumpr char(32),
+                dumpc char(19),
 
                 fail TINYINT,
 
@@ -97,12 +134,13 @@ class SQL(Cache):
                 FOREIGN KEY (com) REFERENCES com(cid),
                 FOREIGN KEY (dtr) REFERENCES data(did),
                 FOREIGN KEY (din) REFERENCES data(did),
-                FOREIGN KEY (dumpr) REFERENCES dump(duid),
+                FOREIGN KEY (dout) REFERENCES data(did),
+                FOREIGN KEY (dumpc) REFERENCES dump(duid),
                 FOREIGN KEY (log) REFERENCES log(lid)
             )''')
         self.query('CREATE INDEX res0 ON res (dout)')
         self.query('CREATE INDEX res1 ON res (spent)')
-        self.query('CREATE INDEX res2 ON res (dumpr)')
+        self.query('CREATE INDEX res2 ON res (dumpc)')
         self.query('CREATE INDEX res3 ON res (fail)')
         self.query('CREATE INDEX res4 ON res (start)')
         self.query('CREATE INDEX res5 ON res (end)')
@@ -138,7 +176,8 @@ class SQL(Cache):
             begin;
             insert or ignore into com values (
                 NULL,
-                ?, ?,
+                ?,
+                ?,
                 {nf}
             );
             insert into res values (
@@ -162,6 +201,15 @@ class SQL(Cache):
             component.locked_by_others = False
             print(f'Locked [{txtres}]!')
 
+    def get_one(self):
+        row = self.cursor.fetchone()
+        if row is None:
+            return None
+        row2 = self.cursor.fetchone()
+        if row2 is not None:
+            raise Exception('Excess of rows, after ', row, ':', row2)
+        return row
+
     def get_result(self, component, test):
         """
         Look for a result in database.
@@ -171,18 +219,17 @@ class SQL(Cache):
             return None
         self.query(f'''
             select 
-                bytes, spent, fail, end, node, name
+                name, bytes, spent, fail, end, node
             from 
-                result left join dset on dout = did
+                result 
+                    left join dset on dout = did
                     left join dump on dumpd = duid
                     left join name on name = nid
             where                
                 cid=? and dtr=? and dts=?''',
                    [component.uuid(), component.uuid_train(), test.uuid()])
 
-        result = self._process_result()
-        if result is None:
-            return None
+        result = self.get_one()
         if result['bytes'] is not None:
             slim = Data(name=result['name'], **unpack_data(result['bytes']))
             testout = slim.merged(
@@ -203,25 +250,53 @@ class SQL(Cache):
             return
 
         # Insert dump of data and data info.
-        # Ignore insertion if the event of another job winning the race.
+        # Catch exception in the event of another job winning the race.
+        # Dumps can have duplicate, e.g. when two models give the same
+        # predictions (usually in the same dataset), so 'insert or ignore'.
+        # In the case of descriptions (e.g. only X,y) the same Data can be
+        # inserted twice by different components, but this is checked above
+        # by data_exists. If in the meantime, while the interpreter is
+        # reading this comment, someone else insert just the same Data,
+        # we will have to handle it as an exception.
+        # ps. : in the presence of predictions, UUID will change accordingly,
+        #  otherwise, it will depend only on 'Data.name' and 'Data.fields'.
         sql = f'''
             begin;
             insert or ignore into dump values (
                 null,
-                ?, ?
+                ?,
+                ?
             );
-            insert or ignore into data values (
+            insert or ignore into name values (
                 NULL,
-                ?, ?, 
+                ?,
+                ?,
+                NULL
+            );
+            insert or ignore into hist values (
+                NULL,
+                ?,
+                ?,
+            );
+            insert into data values (
+                NULL,
+                ?,
+                ?, ?,
                 ?, ?,
                 {self.now_function()}
             );
             end;'''
-        dump_args = [data.uuid(), data.dump()]
-        data_args = [data.uuid(), data.fields(), data.name(),
-                     data.shapes()]
+        dump_args = [data.dump_uuid(),
+                     data.dump()]
+        name_args = [data.name_uuid(),
+                     data.name()]
+        hist_args = [data.hist_uuid(),
+                     data.history()]
+        data_args = [data.uuid(),
+                     data.name(), data.fields(),
+                     data.dump_uuid(), data.shapes()]
         try:
-            self.query(sql, dump_args + data_args)
+            self.query(sql, dump_args + name_args + hist_args + data_args)
         except IntegrityErrorSQLite as e:
             print(f'Data already store before!', data.uuid())
         except IntegrityErrorMySQL as e:
@@ -229,69 +304,55 @@ class SQL(Cache):
         else:
             print(f'Data inserted', data.uuid())
 
-    def store(self, component, test, testout):
+    def store(self, component, input_data, testout):
         """
 
         :param component:
-        :param test:
+        :param input_data:
         :param testout:
         :param train:
         :return:
         """
-        slim = testout and \
-               testout.reduced_to(component.fields_to_store_after_use())
-        # TODO: try to store component dumps again?
-        dump = None
-        failed = 1 if component.failed else 0
-        now = self.now_function()
-        uuid_tr = component.uuid_train()
+        # Store resulting Data
+        slim = testout and testout.reduced_to(
+            component.fields_to_store_after_use())
+        slim and self.store_data(slim)
 
+        # Remove lock and point result to data inserted above.
+        # TODO: try to store component dumps again?
         # TODO: is there any important exception to handle here?
+        # We should set all timestamp fields even if with the same old value.
+        now = self.now_function()
         sql = f'''
             update result set 
-                idtestout=?, timespent=?, dump=?, failed=?,
-                 start=start, "
-                   f"end={now}, alive={now} "
-                   f"where 
-                   idcomp=? and idtrain=? and idtest=?'''
-        args = [slim and slim.uuid(),
-                component.time_spent, dump, failed,
-                component.uuid(), uuid_tr, test.uuid()]
-
-        slim and self.store_data(slim)
+                dout=?, spent=?, dumpc=?,
+                fail=?,
+                start=start, end={now}, alive={now}
+            where
+                com=? and dtr=? and din=?'''
+        set_args = [slim and slim.uuid(), component.time_spent, None,
+                    1 if component.failed else 0]
+        whe_args = [component.uuid(), component.uuid_train(), input_data.uuid()]
+        self.query(sql, set_args + whe_args)
         print('Stored!')
 
-    def _process_result(self):
-        rows = self.cursor.fetchall()
-        if rows is None or len(rows) == 0:
-            return None
-        else:
-            if len(rows) is not 1:
-                for r in rows:
-                    print(r)
-                # TODO: use general error handling to show messages
-                print('get_model: exiting sql...')
-                raise Exception('More than 1 row found!')
-            return rows[0]
-
     def data_exists(self, data):
-        return self.get_data(data, True) is not None
+        return self.get_data_by_uuid(data.uuid(), True) is not None
 
     def component_exists(self, component):
         return self.get_component(component, True) is not None
 
     def get_component(self, component, just_check_exists=False):
-        field = 'dic'
+        field = 'arg'
         if just_check_exists:
             field = '1'
-        self.query(f'select {field} from args where idcomp=?',
-                   [component.uuid()])
-        res = self._process_result()
-        if res is None:
+        self.query(f'select {field} from com where cid=?', [component.uuid()])
+        result = self.get_one()
+        if result is None:
             return None
         if just_check_exists:
             return True
-        return res[field]
+        return result[field]
 
     @staticmethod
     def interpolate(sql, lst0):
@@ -335,28 +396,38 @@ class SQL(Cache):
             raise type(ex)(
                 "%s\norig. trac.:\n%s\n" % (msg, traceback_string))
 
-    def get_data(self, data, just_check_exists=False):
-        return self.get_data_by_uuid(data.uuid(), just_check_exists)
-
     def get_data_by_uuid(self, datauuid, just_check_exists=False):
-        field = '1' if just_check_exists else 'name, data'
-        self.query(f'select {field} from dset where iddset=?', [datauuid])
-        res = self._process_result()
-        if res is None:
+        field = '1' if just_check_exists else 'des, bytes'
+        self.query(f'''
+            select 
+                {field} 
+            from 
+                data 
+                    left join name on name=nid 
+                    left join dump on dumpd=duid
+            where 
+                did=?''', [datauuid])
+        result = self.get_one()
+        if result is None:
             return None
         if just_check_exists:
             return True
-        return just_check_exists or Data(name=res['name'],
-                                         **unpack_data(res['data']))
+        falta
+        pegar
+        history
+        return Data(name=result['des'], **unpack_data(result['bytes']))
 
-    def get_data_by_name(self, name, fields=None,
+    def get_data_by_name(self, name, fields=None, component=None,
                          just_check_exists=False):
         """
-        To just recover an original data set you can pass fields='X,y'
+        To just recover an original classic dataset you can pass fields='X,y'
         (case insensitive).
         'None' means to recover as many fields as stored at the moment.
+        When getting prediction data (i.e., results), it is better to specify
+        which component made the predictions, otherwise a list of all found
+        results is returned.
         :param name:
-        :param fields: if None, get completa Data including predictions if any
+        :param fields: if None, get complet Data including predictions if any
         :param just_check_exists:
         :return:
         """

@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import sklearn
 import sklearn.datasets as ds
-from paje.util.encoders import pack_data, uuid
+from paje.util.encoders import pack_data, uuid, uuid_enumerated_dic
 from sklearn.utils import check_X_y
 
 
@@ -12,7 +12,7 @@ class Data:
 
     def __init__(self, name, X=None, Y=None, Z=None, P=None,
                  U=None, V=None, W=None, Q=None,
-                 columns=None):
+                 columns=None, transformations=None):
         """
             Immutable lazy data for all machine learning scenarios
              we could imagine.
@@ -30,18 +30,23 @@ class Data:
         :param W: Predictions for unlabeled set
         :param Q: Predicted probabilities for unlabeled set
         :param columns:
+        :param component: component that generated current Data
+        :param transformations: History of transformations suffered by the data
         """
 
         # Init instance matrices and matrices_including_Nones to factory new
         # instances in the future.
         args = {k: v for k, v in locals().items() if v is not None
-                and k != 'self' and k != 'name' and k != 'columns'}
+                and k != 'self' and k != 'name' and k != 'columns'
+                and k != 'component'}
+        if not inhibit_transf_warning and transformations is None:
+            print('Warning: no component provided to Data, we will assume it '
+                  'did\'t come from a transformation/prediction etc.')
+
         self.__dict__.update(args)
         matrices = args.copy()
-        self._set('matrices', matrices) # TODO: is copy really needed here?
-
-        prediction = {k: v for k, v in set(matrices) & {Z, W, P, Q}
-                      if v is not None}
+        self._set('matrices', matrices)  # TODO: is copy really needed here?
+        prediction = {k: v for k, v in matrices if k in ['Z', 'W', 'P', 'Q']}
 
         # Metadata
         n_classes = len(set(dematrixify(get_first_non_none([Y, V, Z, W]), [0])))
@@ -55,9 +60,11 @@ class Data:
             'Xy': (X, dematrixify(Y)),
             'Uv': (U, dematrixify(V)),
             'prediction': prediction,
+            'transformations': transformations or [],
             'matrices': matrices,
-            'columns': None  # TODO: make columns effective, and save it to
-            #     storage also
+            # TODO: make columns effective, and save it to storage also
+            'columns': None,
+            'has_prediction_data': bool(prediction)
         })
 
         # Add vectorized shortcuts for matrices.
@@ -68,7 +75,9 @@ class Data:
 
         # Add lazy cache for dump and uuid
         self._set('_dump', None)
+        self._set('_dump_prediction', None)
         self._set('_uuid', None)
+        self._set('_dump_uuid', None)
         self._set('_name_uuid', None)
         self._set('_name', name)
         self._set('_fields', None)
@@ -130,6 +139,14 @@ class Data:
 
     @staticmethod
     def read_data_frame(df, file, target, storage=None):
+        """
+        ps. Assume there was no transformations on this Data.
+        :param df:
+        :param file:
+        :param target:
+        :param storage:
+        :return:
+        """
         arq = file.split('/')[-1]
         data = storage and \
                Data.read_from_storage(name=arq, storage=storage, fields='X,y')
@@ -137,7 +154,8 @@ class Data:
             return data
         X = df.values.astype('float')
         Y = as_column_vector(df.pop(target).values.astype('float'))
-        return Data(name=arq, X=X, Y=Y, columns=df.columns)
+        return Data(name=arq, X=X, Y=Y, columns=df.columns,
+                    transformations=[])
 
     @staticmethod
     def random(n_attributes, n_classes, n_instances):
@@ -146,7 +164,8 @@ class Data:
                                       n_classes=n_classes,
                                       n_informative=int(
                                           np.sqrt(2 * n_classes)) + 1)
-        return Data(name=None, X=X, Y=as_column_vector(y))
+        return Data(name=None, X=X, Y=as_column_vector(y),
+                    transformations=[])
 
     @staticmethod
     def read_from_storage(name, storage, fields=None):
@@ -158,12 +177,20 @@ class Data:
         :param fields: if None, get complete Data, including predictions if any
         :return:
         """
+        como ficam transformations?
         return storage.get_data_by_name(name, fields)
 
     def store(self, storage):
         storage.store_data(self)
 
-    def updated(self, **kwargs):
+    def updated(self, component, **kwargs):
+        """
+        Return a new Data updated by given values.
+        :param component: component to put into transformations list for
+        history purposes
+        :param kwargs:
+        :return:
+        """
         new_kwargs = self.matrices.copy()
         new_kwargs.update(kwargs)
         for l in self.vectors:
@@ -172,14 +199,33 @@ class Data:
                 new_kwargs[L] = as_column_vector(new_kwargs.pop(l))
         if 'name' not in new_kwargs:
             new_kwargs['name'] = self.name()
+        if 'transformations' not in new_kwargs:
+            new_kwargs['transformations'] = \
+                self.transformations + [component.serialized()]
+        else:
+            print('Warning, giving transformations from outside update().')
         return Data(**new_kwargs)
 
     def merged(self, data):
         """
-        Get more matrices from another Data.
+        Get more matrices (or new values) from another Data.
+        The longest history will be kept.
+        They should have the same name and be different by at most one
+        transformation.
+        Otherwise, an exception will be raised.
         :param data:
         :return:
         """
+        dica = uuid_enumerated_dic(data.transformations)
+        dicb = uuid_enumerated_dic(self.transformations)
+        uuids = set(dica.keys()).symmetric_difference(set(dicb.keys()))
+        if len(uuids) > 1:
+            raise Exception(f'Warning merging {self.name()}: excess of '
+                            f'transformations in one of the Data instances',
+                            data.transformations, self.transformations)
+
+        if self.name() != data.name():
+            raise Exception(f'Warning merging {self.name()} with {data.name()}')
         return self.updated(**data.matrices)
 
     def select(self, fields):
@@ -200,7 +246,8 @@ class Data:
         return {k: v for k, v in self.matrices.items() if k in matrixnames}
 
     def reduced_to(self, fields):
-        return Data(name=self.name(), **self.select(fields))
+        return Data(name=self.name(), transformations=self.transformations,
+                    **self.select(fields))
 
     def __setattr__(self, attr, value):
         raise MutabilityException(
@@ -212,18 +259,42 @@ class Data:
 
     def dump(self):
         if self._dump is None:
-            self._set('_dump', pack_data(self.matrices))
+            # This if is needed to avoid useless redumping of the same data.
+            if self.is_prediction_data:
+                self._set('_dump', self.dump_prediction_only())
+            else:
+                self._set('_dump', pack_data(self.matrices))
         return self._dump
+
+    def dump_prediction_only(self):
+        if self._dump_prediction is None:
+            self._set('_dump_prediction', pack_data(self.prediction))
+        return self._dump_prediction
 
     def uuid(self):
         if self._uuid is None:
-            self._set('_uuid', uuid(self.name() + self.fields()))
+            # The scenario when a dataset with the same name and fields
+            # has more than a row in the storage is when different
+            # models provide different dataset predictions/transformations.
+            # This is solved by adding the history_uuid of transformations
+            # into the data.UUID.
+            # Opting by a dual key composed by both name-fields-history and
+            # UUID, we have faster UUID calculations than calculating UUID
+            # on the matrices dump; and also enforce human readable integrity
+            # (name and fields and history are more readable than Data.UUID).
+            uuid_ = uuid(self.name_uuid() + self.fields() + self.history_uuid())
+            self._set('_uuid', uuid_)
         return self._uuid
 
     def name_uuid(self):
         if self._name_uuid is None:
             self._set('_name_uuid', uuid(self.name()))
         return self._name_uuid
+
+    def dump_uuid(self):
+        if self._dump_uuid is None:
+            self._set('_dump_uuid', uuid(self.dump()))
+        return self._dump_uuid
 
     def name(self):
         if self._name is None:
@@ -252,6 +323,17 @@ class Data:
         name = f'{self.name()}_seed{random_state}_split{train_size}_fold'
         trainset = Data(name=name + '0', X=X_train).updated(y=y_train)
         testset = Data(name=name + '1', X=X_test).updated(y=y_test)
+        como ficam transformations?
+        implementar tb CVs como Components para resolver a questão de ficar
+        emendando nomes; pode herdar de datastream com apply (ou apply_chunk)
+        ou definir a particao usada via build (poderia memoizar os splits no
+        _init_?)
+        apply recebe que dados?
+
+        # build pode definir os indices e
+        # apply retorna cjttreino e use retorna cjtteste
+        # ambos recebem cjt original
+
         return trainset, testset
 
     def shapes(self):

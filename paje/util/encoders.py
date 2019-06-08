@@ -154,3 +154,7 @@ def zip_array(X):
 
 def unzip_array(zipped):
     return blosc.decompress(zipped)
+
+
+def uuid_enumerated_dic(l):
+    return {uuid(x): x for x in l}
