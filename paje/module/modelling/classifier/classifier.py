@@ -28,4 +28,4 @@ class Classifier(Component, ABC):
         return self.use_impl(data)
 
     def use_impl(self, data):
-        return data.updated(z=self.model.predict(data.X))
+        return data.updated(self, z=self.model.predict(data.X))

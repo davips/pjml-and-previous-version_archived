@@ -12,8 +12,8 @@ class ClassificationDataset(object):
         if random_state != None:
             np.random.seed(random_state)
 
-
-    def new_dataset(self): #TODO: there is a synthetic dataset generator inside Data()
+    # TODO: there is a synthetic dataset generator inside Data()
+    def new_dataset(self): 
         X = np.random.rand(self.n_sample, self.n_attr)
         aux = np.argsort(np.sum(X, axis=1))
         idx = np.array_split(aux, self.n_class)

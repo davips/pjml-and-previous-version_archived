@@ -18,7 +18,7 @@ class Filter(Component, ABC):
         self.model = 42
 
     def use_impl(self, data):
-        return data.updated(X=data.X[:, self.selected()])
+        return data.updated(self, X=data.X[:, self.selected()])
 
     def rank(self):
         return self._rank

@@ -19,7 +19,7 @@ class Scaler(Component, ABC):
         return self.use_impl(data)
 
     def use_impl(self, data):
-        return data.updated(X=self.model.transform(data.X))
+        return data.updated(self, X=self.model.transform(data.X))
 
     def isdeterministic(self):
         return True

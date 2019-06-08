@@ -54,7 +54,7 @@ class DRSVD(Reductor):
         u, s, _ = svds(data.X, **self.dic)
         # If we use V^T in this operation, pc will have the original dimension
         self.model = u @ diag(s)
-        return data.updated(X=self.model)  # TODO: this module is broken
+        return data.updated(self, X=self.model)  # TODO: this module is broken
 
     @classmethod
     def specific_dictionary(cls, data):

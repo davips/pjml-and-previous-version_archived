@@ -10,7 +10,7 @@ class Resampler(Component):
 
     def apply_impl(self, data):
         X, y = self.model.fit_resample(*data.Xy)
-        return data.updated(X=X, y=y)
+        return data.updated(self, X=X, y=y)
 
     def use_impl(self, data):
         return data

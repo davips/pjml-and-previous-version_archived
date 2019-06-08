@@ -39,7 +39,7 @@ class Data:
         args = {k: v for k, v in locals().items() if v is not None
                 and k != 'self' and k != 'name' and k != 'columns'
                 and k != 'component'}
-        if not inhibit_transf_warning and transformations is None:
+        if transformations is None:
             print('Warning: no component provided to Data, we will assume it '
                   'did\'t come from a transformation/prediction etc.')
 
@@ -164,8 +164,7 @@ class Data:
                                       n_classes=n_classes,
                                       n_informative=int(
                                           np.sqrt(2 * n_classes)) + 1)
-        return Data(name=None, X=X, Y=as_column_vector(y),
-                    transformations=[])
+        return Data(X=X, Y=as_column_vector(y), transformations=[])
 
     @staticmethod
     def read_from_storage(name, storage, fields=None):
@@ -177,7 +176,6 @@ class Data:
         :param fields: if None, get complete Data, including predictions if any
         :return:
         """
-        como ficam transformations?
         return storage.get_data_by_name(name, fields)
 
     def store(self, storage):
@@ -186,8 +184,8 @@ class Data:
     def updated(self, component, **kwargs):
         """
         Return a new Data updated by given values.
-        :param component: component to put into transformations list for
-        history purposes
+        :param component: to put into transformations list for history purposes
+        (it can be a list of transformations also for internal use in Data).
         :param kwargs:
         :return:
         """
@@ -199,6 +197,7 @@ class Data:
                 new_kwargs[L] = as_column_vector(new_kwargs.pop(l))
         if 'name' not in new_kwargs:
             new_kwargs['name'] = self.name()
+
         if 'transformations' not in new_kwargs:
             new_kwargs['transformations'] = \
                 self.transformations + [component.serialized()]
@@ -220,13 +219,14 @@ class Data:
         dicb = uuid_enumerated_dic(self.transformations)
         uuids = set(dica.keys()).symmetric_difference(set(dicb.keys()))
         if len(uuids) > 1:
-            raise Exception(f'Warning merging {self.name()}: excess of '
+            raise Exception(f'Merging {self.name()}: excess of '
                             f'transformations in one of the Data instances',
                             data.transformations, self.transformations)
-
+        transformations= data.transformations if len(dica) > len(dicb)\
+            else self.transformations
         if self.name() != data.name():
-            raise Exception(f'Warning merging {self.name()} with {data.name()}')
-        return self.updated(**data.matrices)
+            raise Exception(f'Merging {self.name()} with {data.name()}')
+        return self.updated(transformations=transformations, **data.matrices)
 
     def select(self, fields):
         """
@@ -315,24 +315,15 @@ class Data:
         [txt.append(f'{k}: {str(v)}') for k, v in self.matrices.items()]
         return '\n'.join(txt) + self.name()
 
-    def split(self, random_state=1):
+    def split(self, train_size = 0.25, random_state=1):
         X, y = self.Xy
         X_train, X_test, y_train, y_test = \
             sklearn.model_selection.train_test_split(X, y, random_state=1)
         train_size = 0.25  # TODO: set it as parameter
         name = f'{self.name()}_seed{random_state}_split{train_size}_fold'
-        trainset = Data(name=name + '0', X=X_train).updated(y=y_train)
-        testset = Data(name=name + '1', X=X_test).updated(y=y_test)
-        como ficam transformations?
-        implementar tb CVs como Components para resolver a questão de ficar
-        emendando nomes; pode herdar de datastream com apply (ou apply_chunk)
-        ou definir a particao usada via build (poderia memoizar os splits no
-        _init_?)
-        apply recebe que dados?
-
-        # build pode definir os indices e
-        # apply retorna cjttreino e use retorna cjtteste
-        # ambos recebem cjt original
+        trainset = Data(name=name, X=X_train).updated(y=y_train)
+        testset = Data(name=name, X=X_test).updated(y=y_test)
+        #TODO: usar component CV()
 
         return trainset, testset
 
