@@ -3,9 +3,8 @@ import numpy as np
 import pandas as pd
 import sklearn
 import sklearn.datasets as ds
+from paje.util.encoders import pack_data, uuid
 from sklearn.utils import check_X_y
-
-from paje.result.storage import uuid, pack_data
 
 
 # TODO: convert in dataclass
@@ -230,7 +229,7 @@ class Data:
 
     def uuid(self):
         if self._uuid is None:
-            self._set('_uuid', uuid(self.dump()))
+            self._set('_uuid', uuid(self.name() + self.fields()))
         return self._uuid
 
     def name_uuid(self):
@@ -273,6 +272,7 @@ class Data:
         :return:
         """
         return [v.shape() for v in self.vars.values()]
+
 
 class MutabilityException(Exception):
     pass
