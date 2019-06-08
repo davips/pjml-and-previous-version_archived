@@ -31,24 +31,22 @@ class Data:
         :param Q: Predicted probabilities for unlabeled set
         :param columns:
         """
-        if len(name) > 158:
-            raise Exception(f'Name {name} too long.{len(name)} > 158. fields=32'
-                            f'Default limit on mysql UNIQ name+fields is 190.')
 
-        # Init instance vars and dic to factory new instances in the future.
-        args = {k: v for k, v in locals().items() if
-                k != 'self' and k != 'name' and k != 'columns'}
+        # Init instance matrices and matrices_including_Nones to factory new
+        # instances in the future.
+        args = {k: v for k, v in locals().items() if v is not None
+                and k != 'self' and k != 'name' and k != 'columns'}
         self.__dict__.update(args)
-        dic = args.copy()
-        self._set('_dic', dic)
+        matrices = args.copy()
+        self._set('matrices', matrices) # TODO: is copy really needed here?
 
-        alldata = X, Y, Z, U, V, W, P, Q
+        prediction = {k: v for k, v in set(matrices) & {Z, W, P, Q}
+                      if v is not None}
 
         # Metadata
         n_classes = len(set(dematrixify(get_first_non_none([Y, V, Z, W]), [0])))
-        n_instances = len(get_first_non_none(alldata, []))
+        n_instances = len([] and matrices[0])
         n_attributes = len(get_first_non_none([X, U], [[]])[0])
-        vars = {k: v for k, v in self._dic.items() if v is not None}
 
         self.__dict__.update({
             'n_classes': n_classes,
@@ -56,8 +54,8 @@ class Data:
             'n_attributes': n_attributes,
             'Xy': (X, dematrixify(Y)),
             'Uv': (U, dematrixify(V)),
-            'all': alldata,
-            'vars': vars,
+            'prediction': prediction,
+            'matrices': matrices,
             'columns': None  # TODO: make columns effective, and save it to
             #     storage also
         })
@@ -109,14 +107,6 @@ class Data:
         #             self.is_classification = True
         #     else:
         #         self.is_clusterization = True
-
-    @staticmethod
-    def with_uuid(uuid, **kwargs):
-        data = Data(**kwargs)
-        if uuid is None:
-            raise Exception('with_uuid() needs uuid of Data')
-        data._set('_uuid', uuid)
-        return data
 
     @staticmethod
     def read_arff(file, target, storage=None):
@@ -174,31 +164,23 @@ class Data:
         storage.store_data(self)
 
     def updated(self, **kwargs):
-        dic = self._dic.copy()
-        dic.update(kwargs)
+        new_kwargs = self.matrices.copy()
+        new_kwargs.update(kwargs)
         for l in self.vectors:
-            if l in dic:
+            if l in new_kwargs:
                 L = l.upper()
-                dic[L] = as_column_vector(dic.pop(l))
-        if 'name' not in dic:
-            dic['name'] = self.name()
-        return Data(**dic)
+                new_kwargs[L] = as_column_vector(new_kwargs.pop(l))
+        if 'name' not in new_kwargs:
+            new_kwargs['name'] = self.name()
+        return Data(**new_kwargs)
 
     def merged(self, data):
         """
-        Get new values/fields from another Data.
-        Do not replace any field by None.
+        Get more matrices from another Data.
         :param data:
         :return:
         """
-        return self.updated(**data.vars)
-
-    def shrink(self):
-        """
-        Remove None values
-        :return:
-        """
-        return Data(name=self.name(), **self.vars)
+        return self.updated(**data.matrices)
 
     def select(self, fields):
         """
@@ -208,8 +190,14 @@ class Data:
         :return:
         """
         fields_lst = fields.split(',')
-        varnames = [(x.upper() if x in self.vectors else x) for x in fields_lst]
-        return {k: v for k, v in self._dic.items() if k in varnames}
+        matrixnames = [(x.upper() if x in self.vectors else x)
+                       for x in fields_lst]
+
+        # Raise exception if any requested matrix is None.
+        if any([m not in self.matrices for m in matrixnames]):
+            raise Exception('Requested None matrix', fields, self.matrices.keys)
+
+        return {k: v for k, v in self.matrices.items() if k in matrixnames}
 
     def reduced_to(self, fields):
         return Data(name=self.name(), **self.select(fields))
@@ -224,7 +212,7 @@ class Data:
 
     def dump(self):
         if self._dump is None:
-            self._set('_dump', pack_data(self.vars))
+            self._set('_dump', pack_data(self.matrices))
         return self._dump
 
     def uuid(self):
@@ -244,7 +232,7 @@ class Data:
 
     def fields(self):
         if self._fields is None:
-            sorted = list(self.vars.keys())
+            sorted = list(self.matrices.keys())
             if 'columns' in sorted:
                 sorted.remove('columns')
             sorted.sort()
@@ -253,7 +241,7 @@ class Data:
 
     def __str__(self):
         txt = []
-        [txt.append(f'{k}: {str(v)}') for k, v in self.vars.items()]
+        [txt.append(f'{k}: {str(v)}') for k, v in self.matrices.items()]
         return '\n'.join(txt) + self.name()
 
     def split(self, random_state=1):
@@ -268,10 +256,10 @@ class Data:
 
     def shapes(self):
         """
-        Return the shape of all non None variables.
+        Return the shape of all matrices.
         :return:
         """
-        return [v.shape() for v in self.vars.values()]
+        return [v.shape() for v in self.matrices.values()]
 
 
 class MutabilityException(Exception):
