@@ -11,11 +11,12 @@ class SQLite(SQL):
         self.hostname = socket.gethostname()
         self.database = database
         self.debug = debug
-        self.intransaction = False
         self._open()
 
     def _open(self):
-        self.connection = sqlite3.connect(self.database)
+        # isolation_level=None -> SQLite autocommiting
+        self.connection = sqlite3.connect(self.database,
+                                          isolation_level="DEFERRED")
         self.connection.row_factory = sqlite3.Row
         self.cursor = self.connection.cursor()
 

@@ -49,7 +49,7 @@ class Data:
         n_classes = len(set(dematrixify(get_first_non_none([Y, V, Z, W]), [0])))
         n_instances = len(get_first_non_none(alldata, []))
         n_attributes = len(get_first_non_none([X, U], [[]])[0])
-        used_vars = {k: v for k, v in self._dic.items() if v is not None}
+        vars = {k: v for k, v in self._dic.items() if v is not None}
 
         self.__dict__.update({
             'n_classes': n_classes,
@@ -58,7 +58,7 @@ class Data:
             'Xy': (X, dematrixify(Y)),
             'Uv': (U, dematrixify(V)),
             'all': alldata,
-            'used_vars': used_vars,
+            'vars': vars,
             'columns': None  # TODO: make columns effective, and save it to
             #     storage also
         })
@@ -72,8 +72,9 @@ class Data:
         # Add lazy cache for dump and uuid
         self._set('_dump', None)
         self._set('_uuid', None)
+        self._set('_name_uuid', None)
         self._set('_name', name)
-        self._set('_fields_str', None)
+        self._set('_fields', None)
 
         # Check list
         if not isinstance(name, str):
@@ -186,19 +187,19 @@ class Data:
 
     def merged(self, data):
         """
-        Get news values/fields from another Data.
+        Get new values/fields from another Data.
         Do not replace any field by None.
         :param data:
         :return:
         """
-        return self.updated(**data.used_vars)
+        return self.updated(**data.vars)
 
     def shrink(self):
         """
-        Remove None fields
+        Remove None values
         :return:
         """
-        return Data(name=self.name(), **self.used_vars)
+        return Data(name=self.name(), **self.vars)
 
     def select(self, fields):
         """
@@ -207,8 +208,9 @@ class Data:
         :param fields:
         :return:
         """
-        fields = [(x.upper() if x in self.vectors else x) for x in fields]
-        return {k: v for k, v in self._dic.items() if k in fields}
+        fields_lst = fields.split(',')
+        varnames = [(x.upper() if x in self.vectors else x) for x in fields_lst]
+        return {k: v for k, v in self._dic.items() if k in varnames}
 
     def reduced_to(self, fields):
         return Data(name=self.name(), **self.select(fields))
@@ -223,7 +225,7 @@ class Data:
 
     def dump(self):
         if self._dump is None:
-            self._set('_dump', pack_data(self.used_vars))
+            self._set('_dump', pack_data(self.vars))
         return self._dump
 
     def uuid(self):
@@ -231,23 +233,28 @@ class Data:
             self._set('_uuid', uuid(self.dump()))
         return self._uuid
 
+    def name_uuid(self):
+        if self._name_uuid is None:
+            self._set('_name_uuid', uuid(self.name()))
+        return self._name_uuid
+
     def name(self):
         if self._name is None:
             self._set('_name', f'unnamed[{self.uuid()}]')
         return self._name
 
-    def fields_str(self):
-        if self._fields_str is None:
-            sorted = list(self.used_vars.keys())
+    def fields(self):
+        if self._fields is None:
+            sorted = list(self.vars.keys())
             if 'columns' in sorted:
                 sorted.remove('columns')
             sorted.sort()
-            self._set('_fields_str', ','.join(sorted))
-        return self._fields_str
+            self._set('_fields', ','.join(sorted))
+        return self._fields
 
     def __str__(self):
         txt = []
-        [txt.append(f'{k}: {str(v)}') for k, v in self.used_vars.items()]
+        [txt.append(f'{k}: {str(v)}') for k, v in self.vars.items()]
         return '\n'.join(txt) + self.name()
 
     def split(self, random_state=1):
@@ -260,6 +267,12 @@ class Data:
         testset = Data(name=name + '1', X=X_test).updated(y=y_test)
         return trainset, testset
 
+    def shapes(self):
+        """
+        Return the shape of all non None variables.
+        :return:
+        """
+        return [v.shape() for v in self.vars.values()]
 
 class MutabilityException(Exception):
     pass

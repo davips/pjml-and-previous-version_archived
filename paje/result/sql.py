@@ -2,6 +2,8 @@ from abc import abstractmethod
 
 from paje.base.data import Data
 from paje.result.storage import Cache, unpack_data
+from pymysql import IntegrityError as IntegrityErrorMySQL
+from sqlite3 import IntegrityError as IntegrityErrorSQLite
 
 
 class SQL(Cache):
@@ -11,7 +13,8 @@ class SQL(Cache):
         self.query("create table if not exists args ("
                    f"id integer NOT NULL primary key {self.auto_incr()}, "
                    "idcomp varchar(32) NOT NULL UNIQUE, "
-                   "dic TEXT NOT NULL, inserted timestamp NOT NULL)")
+                   "dic TEXT NOT NULL, inserted timestamp NOT NULL"
+                   ")")
         self.query(f'CREATE INDEX idx0 ON args (dic{self.keylimit()})')
         self.query('CREATE INDEX idx10 ON args (inserted)')
 
@@ -34,7 +37,8 @@ class SQL(Cache):
                    f"id integer NOT NULL primary key {self.auto_incr()}, "
                    "iddset varchar(32) NOT NULL UNIQUE, "
                    "name varchar(158) NOT NULL, fields varchar(32) NOT NULL, "
-                   "data LONGBLOB NOT NULL, inserted timestamp NOT NULL)")
+                   "data LONGBLOB NOT NULL, inserted timestamp NOT NULL"
+                   ")")
         self.query(f'CREATE INDEX idx7 ON dset (name, fields)')
         self.query('CREATE INDEX idx8 ON dset (fields)')
         self.query('CREATE INDEX idx9 ON dset (inserted)')
@@ -47,40 +51,52 @@ class SQL(Cache):
                    'REFERENCES dset(iddset);')
         self.commit()
 
-    def lock(self, component, test):
+    def lock(self, component, test, txt=''):
         """
         Store 'test' and 'component' if they are not yet stored.
         :param component:
         :param test:
+        :param txt: for logging purposes
         :return:
         """
         if self.debug:
             print('Locking...')
 
-        self.store_data(test)
+        self.store_data(test.reduced_to(component.fields_to_keep_after_use()))
 
         self.start_transaction()
-        now = self.now_function()
-        self.query("insert or ignore into args values (NULL, ?, ?, " +
-                   self.now_function() + ")",
+        nf = self.now_function()
+        self.query(f"insert or ignore into args values (NULL, ?, ?, {nf})",
                    [component.uuid(), component.serialized()])
 
         txt = "insert into result values (null, " \
               "?, ?, ?, " \
               "?, ?, ?, " \
-              "null, " + self.now_function() + f", '0000-00-00 00:00:00', " \
-                  f"'0000-00-00 00:00:00', ?, 0)"
+            f"null, {nf}, '0000-00-00 00:00:00', '0000-00-00 00:00:00', ?, 0)"
         args = [component.uuid(), component.uuid_train(), test.uuid(),
                 None, None, None, self.hostname]
-        self.query(txt, args)
-        self.commit()
+
+        try:
+            self.query(txt, args)
+            self.commit()
+        except IntegrityErrorSQLite as e:
+            print(f'Unexpected lock! Giving up my turn on {txt}', e)
+            component.locked_by_others = True
+        except IntegrityErrorMySQL as e:
+            print(f'Unexpected lock! Giving up my turn on {txt}', e)
+            component.locked_by_others = True
+        else:
+            component.locked_by_others = False
+            print(f'Locked [{txt}]!')
+        finally:
+            self.end_transaction()
 
     def get_result(self, component, test):
         """
         Look for a result in database.
         :return:
         """
-        if component.failed or component.locked:
+        if component.failed or component.locked_by_others:
             return None
         self.query(
             "select data, timespent, failed, end, node, name "
@@ -99,20 +115,20 @@ class SQL(Cache):
             testout = None
         component.time_spent = result['timespent']
         component.failed = result['failed'] and result['failed'] == 1
-        component.locked = result['end'] == '0000-00-00 00:00:00'
+        component.locked_by_others = result['end'] == '0000-00-00 00:00:00'
         component.node = result['node']
         return testout
 
     def store_data(self, data):
         if not self.data_exists(data):
             # TODO: in the mean time another job can have inserted the same data
-            #  change to insert or ignore, or would it increase network traffic?
+            #  Change to insert or ignore, or would it increase network traffic?
             self.query("insert into dset values (NULL, "
                        "?, "
                        "?, ?, "
                        f"?, {self.now_function()})",
                        [data.uuid(),
-                        data.name(), data.fields_str(),
+                        data.name(), data.fields(),
                         data.dump()])
         else:
             if self.debug:
@@ -129,7 +145,7 @@ class SQL(Cache):
         """
         slim = testout and \
                testout.reduced_to(component.fields_to_store_after_use())
-        # TODO: try to store dumps again?
+        # TODO: try to store component dumps again?
         dump = None
         failed = 1 if component.failed else 0
         now = self.now_function()
@@ -138,6 +154,7 @@ class SQL(Cache):
         self.start_transaction()
         setters = f"idtestout=?, timespent=?, dump=?, failed=?"
         conditions = "idcomp=? and idtrain=? and idtest=?"
+        # TODO: is there any important exception to threat here?
         self.query(f"update result set {setters}, start=start, "
                    f"end={now}, alive={now} "
                    f"where {conditions}",
@@ -191,6 +208,9 @@ class SQL(Cache):
         if self.debug:
             print('commit')
         self.connection.commit()
+        self.end_transaction()
+
+    def end_transaction(self):
         self.intransaction = False
 
     # @profile

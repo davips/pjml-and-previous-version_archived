@@ -71,7 +71,7 @@ class AutoML(Component, ABC):
             eval_result = self.evaluator.eval(pipe, data)
             if pipe.failed:
                 self.fails += 1
-            elif pipe.locked:
+            elif pipe.locked_by_others:
                 self.locks += 1
             else:
                 self.successes += 1
@@ -140,6 +140,7 @@ class AutoML(Component, ABC):
     def process_all_steps(self, eval_results):
         """ TODO the docstring documentation
         """
+        pass
 
     @abstractmethod
     def get_best_pipeline(self):
