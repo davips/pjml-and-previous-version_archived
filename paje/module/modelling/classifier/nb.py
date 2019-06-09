@@ -42,7 +42,7 @@ class NB(Classifier):
         if self.nb_type in ["MultinomialNB", "ComplementNB"]:
             X = self.scaler.transform(X)
 
-        return data.updated(z=self.model.predict(X))
+        return data.updated(self, z=self.model.predict(X))
 
 
     @classmethod

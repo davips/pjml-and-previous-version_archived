@@ -26,6 +26,7 @@ class Evaluator:
             name = f'{data.name()}_seed{self.random_state}' \
                 f'_split{self.split.__class__.__name__}_fold'
             # print(train_index)
+            #usar CV()
             data_train = data.updated(name=name + 'tr' + str(fold) +
                                            'steps' + str(self.steps) + 'split' +
                                            self.split.__class__.__name__,

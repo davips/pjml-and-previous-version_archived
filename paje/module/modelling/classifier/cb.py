@@ -14,7 +14,7 @@ class CB(Classifier):
         # TODO: catboost seems to return a matrix instead of a vector; check
         #  if this solution applies; Saulo Guedes says it might be predicting
         #  for each tree.
-        return data.updated(z=self.model.predict(data.X).flatten())
+        return data.updated(self, z=self.model.predict(data.X).flatten())
 
     def build_impl(self):
         self.model = CatBoostClassifier(**self.dic, verbose=self.verbose)

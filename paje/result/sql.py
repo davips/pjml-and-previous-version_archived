@@ -219,7 +219,7 @@ class SQL(Cache):
             return None
         self.query(f'''
             select 
-                name, bytes, spent, fail, end, node
+                des, bytes, spent, fail, end, node
             from 
                 result 
                     left join dset on dout = did
@@ -231,7 +231,7 @@ class SQL(Cache):
 
         result = self.get_one()
         if result['bytes'] is not None:
-            slim = Data(name=result['name'], **unpack_data(result['bytes']))
+            slim = Data(name=result['des'], **unpack_data(result['bytes']))
             testout = slim.merged(
                 test.reduced_to(component.fields_to_keep_after_use()))
         else:
@@ -417,7 +417,7 @@ class SQL(Cache):
         history
         return Data(name=result['des'], **unpack_data(result['bytes']))
 
-    def get_data_by_name(self, name, fields=None, component=None,
+    def get_data_by_name(self, name, fields=None, transformations=None,
                          just_check_exists=False):
         """
         To just recover an original classic dataset you can pass fields='X,y'
@@ -428,6 +428,7 @@ class SQL(Cache):
         results is returned.
         :param name:
         :param fields: if None, get complet Data including predictions if any
+        :param component:
         :param just_check_exists:
         :return:
         """
