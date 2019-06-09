@@ -146,30 +146,31 @@ class Component(ABC):
 
     def build(self, **dic):
         # Check if build has already been called.
-        if self._uuid is not None:
-            self.error('Build cannot be called twice!')
-        self = copy.copy(self)
+        # if self._uuid is not None:
+        #     self.error('Build cannot be called twice!')
+        obj_copied = copy.copy(self)
         # if self.storage is not None:
         #     self.storage.open()
-        self.dic = dic
-        if self.isdeterministic() and "random_state" in self.dic:
-            del self.dic["random_state"]
+        obj_copied.dic = dic
+        if obj_copied.isdeterministic() and "random_state" in obj_copied.dic:
+            del obj_copied.dic["random_state"]
 
         # When the build is not created by a dic coming from a HPTree,
         #  it can be lacking a name.
-        if 'name' not in self.dic:
-            self.dic['name'] = self.name
+        if 'name' not in obj_copied.dic:
+            obj_copied.dic['name'] = obj_copied.name
 
-        self._serialized = json.dumps(self.dic, sort_keys=True).encode()
-        self._uuid = uuid(self.serialized())
+        obj_copied._serialized = json.dumps(
+            obj_copied.dic, sort_keys=True).encode()
+        obj_copied._uuid = uuid(obj_copied.serialized())
 
         # 'name' and 'max_time' are reserved words, not for building.
-        del self.dic['name']
-        if 'max_time' in self.dic:
-            self.max_time = self.dic.pop('max_time')
+        del obj_copied.dic['name']
+        if 'max_time' in obj_copied.dic:
+            obj_copied.max_time = obj_copied.dic.pop('max_time')
 
-        self.build_impl()
-        return self
+        obj_copied.build_impl()
+        return obj_copied
 
     def handle_warnings(self):
         # Mahalanobis in KNN needs to supress warnings due to NaN in linear

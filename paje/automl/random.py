@@ -1,51 +1,94 @@
 import copy
 import random
 
+import numpy as np
+
 from paje.automl.automl import AutoML
 from paje.composer.pipeline import Pipeline
 from paje.util.distributions import SamplingException
-
+from paje.evaluator.evaluator import Evaluator
+from paje.evaluator.metrics import Metrics
 
 class RandomAutoML(AutoML):
 
-    def __init__(self, preprocessors=None, modelers=None,
+    DEFAULT_MODELERS = []
+    DEFAULT_PREPROCESSORS = []
+
+    def __init__(self,
                  storage_for_components=None,
-                 max_iter=5, static=True, fixed=True, max_depth=5,
-                 repetitions=0, method="all", verbose=True, random_state=0,
-                 storage=None, show_warns=True, max_time=None):
+                 **kwargs):
         """
         AutoML
-        :param preprocessors: list of modules for balancing, noise removal, sampling etc.
-        :param modelers: list of modules for prediction (classification or regression etc.)
-        :param repetitions: how many times can a module appear in a pipeline
+        :param preprocessors: list of modules for balancing,
+            noise removal, sampling etc.
+        :param modelers: list of modules for prediction
+            (classification or regression etc.)
+        :param repetitions: how many times can a module appear
+            in a pipeline
         :param method: TODO
         :param max_iter: maximum number of pipelines to evaluate
         :param max_depth: maximum length of a pipeline
-        :param static: are the pipelines generated always exactly as given by the ordered list preprocessors + modelers?
-        :param fixed: are the pipelines generated always with length max(max_depth, len(preprocessors + modelers))?
+        :param static: are the pipelines generated always exactly
+            as given by the ordered list preprocessors + modelers?
+        :param fixed: are the pipelines generated always with
+            length max(max_depth, len(preprocessors + modelers))?
         :param random_state: TODO
         :return:
         """
-        AutoML.__init__(self, preprocessors=preprocessors, modelers=modelers,
-                        storage_for_components=storage_for_components, verbose=verbose,
-                        random_state=random_state,
-                        storage=storage, show_warns=show_warns)
 
-        self.best_error = 9999999
-        if static and not fixed:
+        AutoML.__init__(self, **kwargs)
+
+        # Attributes set in the build_impl.
+        # These attributes identify uniquely AutoML.
+        # This structure is necessary because the AutoML is a Component and it
+        # could be used into other Components, like the Pipeline one.
+        self.max_depth = 2
+        self.static = False
+        self.fixed = False
+        self.repetitions = 0
+        self.modelers = self.DEFAULT_MODELERS
+        self.preprocessors = self.DEFAULT_PREPROCESSORS
+
+        # Other class attributes.
+        # These attributes can be set here or in the build_impl method. They
+        # should not influence the AutoML final result.
+        self.storage_for_components = storage_for_components
+
+        # Class internal attributes
+        # Attributes that were not parameterizable
+        self.best_eval = -999999
+        self.current_eval = None
+        self.static_pipeline = None
+
+    def build_impl(self):
+        """ TODO the docstring documentation
+        """
+        # The 'self' is a copy, because of the Component.build().
+        # Be careful, the copy made in the parent (Component) is
+        # shallow (copy.copy(self)).
+        # See more details in the Component.build() method.
+
+        self.evaluator = Evaluator(Metrics.accuracy, "cv", 10,
+                                   random_state=self.random_state)
+
+        # making the build_impl of father
+        super().build_impl(self)
+
+        # maybe it is not necessary
+        self.__dict__.update(self.dic)
+
+        # TODO: check if it is necessary
+        if self.static and not self.fixed:
             self.error('static and not fixed!')
-        if static and repetitions > 0:
+        if self.static and self.repetitions > 0:
             self.error('static and repetitions > 0!')
-        self.max_iter = max_iter
-        self.max_depth = max_depth
-        self.static = static
-        self.fixed = fixed
-        self.repetitions = repetitions
-        if static:
+
+        # TODO: check if it is necessary
+        if self.static:
             if len(self.modelers) > 1:
                 self.warning('Multiple modelers given in static mode.')
             self.static_pipeline = self.preprocessors + self.modelers
-            if max_depth < len(self.static_pipeline):
+            if self.max_depth < len(self.static_pipeline):
                 self.warning('max_depth lesser than given fixed pipeline!')
         random.seed(self.random_state)
 
@@ -86,10 +129,18 @@ class RandomAutoML(AutoML):
         # random.shuffle(tmp)
         # return tmp[:take] + [random.choice(self.modelers)]
 
-    def process(self, errors):
-        if errors[0] is not None and errors[0] < self.best_error:
-            self.best_error = errors[0]
+    def process_step(self, eval_result):
+        self.current_eval = np.mean(eval_result)
+        if self.current_eval is not None\
+           and self.current_eval > self.best_eval:
+            self.best_eval = self.current_eval
             self.best_pipe = self.curr_pipe
 
-    def best(self):
+    def get_best_pipeline(self):
         return self.best_pipe
+
+    def get_current_eval(self):
+        return self.current_eval
+
+    def get_best_eval(self):
+        return self.best_eval

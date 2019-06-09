@@ -9,6 +9,7 @@ from paje.module.preprocessing.unsupervised.feature.transformer.drpca import \
     DRPCA
 from paje.result.mysql import MySQL
 from paje.result.sqlite import SQLite
+from paje.module.modelling.classifier.svmc import SVMC
 
 
 def main():
@@ -18,7 +19,7 @@ def main():
     else:
         # storage = SQLite(debug=not True) if len(argv) >= 3 and argv[2] == \
         #                                     'True' else None
-        storage = MySQL(db='teste', debug=not True, read_only=False) \
+        storage = MySQL(db='edteste', debug=not True) \
             if len(argv) >= 3 and argv[2] == 'True' else None
 
         iterations = 30 if len(argv) < 4 else int(argv[3])
@@ -29,16 +30,20 @@ def main():
         print('seed=', random_state)
         trainset, testset = data.split()
 
-        automl_rs = RandomAutoML(storage_for_components=storage,
-                                 preprocessors=[DRPCA()],
-                                 modelers=default_modelers, max_iter=iterations,
-                                 static=False, fixed=False,
-                                 max_depth=15, repetitions=0, method="all",
-                                 show_warns=False,
-                                 random_state=random_state).build()
+        automl_rs = RandomAutoML(
+            storage_for_components=storage,
+            show_warns=False,
+        ).build(
+            preprocessors=[DRPCA()],
+            modelers=[SVMC()],
+            max_iter=iterations,
+            static=False, fixed=False,
+            max_depth=15, repetitions=0, method="all",
+            random_state=random_state
+        )
         automl_rs.apply(trainset)
         testout = automl_rs.use(testset)
-        print("Accuracy score", Metrics.error(testout))
+        print("Accuracy score", Metrics.accuracy(testout))
         print()
 
 
