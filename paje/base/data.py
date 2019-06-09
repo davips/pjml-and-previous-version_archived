@@ -12,7 +12,8 @@ class Data:
 
     def __init__(self, name, X=None, Y=None, Z=None, P=None,
                  U=None, V=None, W=None, Q=None,
-                 columns=None, transformations=None):
+                 columns=None, transformations=None, task=None):
+        # ALERT: all single-letter args will be considered matrices!
         """
             Immutable lazy data for all machine learning scenarios
              we could imagine.
@@ -34,18 +35,15 @@ class Data:
         :param transformations: History of transformations suffered by the data
         """
 
-        # Init instance matrices and matrices_including_Nones to factory new
-        # instances in the future.
-        args = {k: v for k, v in locals().items() if v is not None
-                and k != 'self' and k != 'name' and k != 'columns'
-                and k != 'component'}
+        # Init instance matrices to factory new Data instances in the future.
+        args = {k: v for k, v in locals().items()
+                if v is not None and len(k) == 1}
         if transformations is None:
             print('Warning: no component provided to Data, we will assume it '
                   'did\'t come from a transformation/prediction etc.')
 
         self.__dict__.update(args)
-        matrices = args.copy()
-        self._set('matrices', matrices)  # TODO: is copy really needed here?
+        matrices = args.copy()  # TODO: is copy really needed here?
         prediction = {k: v for k, v in matrices if k in ['Z', 'W', 'P', 'Q']}
 
         # Metadata
@@ -54,22 +52,25 @@ class Data:
         n_attributes = len(get_first_non_none([X, U], [[]])[0])
 
         self.__dict__.update({
-            'n_classes': n_classes,
-            'n_instances': n_instances,
-            'n_attributes': n_attributes,
+            '_n_classes': n_classes,
+            '_n_instances': n_instances,
+            '_n_attributes': n_attributes,
+            # As a convenient notation for Data, matrices nad vectors are the
+            # only members available directly as variables, not functions.
             'Xy': (X, dematrixify(Y)),
             'Uv': (U, dematrixify(V)),
-            'prediction': prediction,
-            'transformations': transformations or [],
-            'matrices': matrices,
-            # TODO: make columns effective, and save it to storage also
-            'columns': None,
-            'has_prediction_data': bool(prediction)
+            '_prediction': prediction,
+            '_transformations': transformations or [],
+            '_matrices': matrices,
+            '_columns': columns,
+            '_has_prediction_data': bool(prediction),
+            # '_is_prediction_data': bool(set(prediction.keys()) -
+            #                             set(matrices.keys()))
         })
 
         # Add vectorized shortcuts for matrices.
         vectors = ['y', 'z', 'v', 'w']
-        self._set('vectors', vectors)
+        self._set('_vectors', vectors)
         for vec in vectors:
             self.__dict__[vec] = dematrixify(self.__dict__[vec.upper()])
 
@@ -100,22 +101,16 @@ class Data:
         # check if exits dtype indefined == object
         # check dimensions of all matrices and vectors
 
-        # TODO:   Could we check this through Noneness of z,u,v,w?
-        # self._set('is_classification', False)
-        # self._set('is_regression', False)
-        # self._set('is_clusterization', False)
-        #
-        # self.is_supervised = False
-        # self.is_unsupervised = False
-        # if X is not None:
-        #     if y is not None:
-        #         self.is_supervised = True
-        #         if issubclass(y.dtype.type, np.floating):
-        #             self.is_regression = True
-        #         else:
-        #             self.is_classification = True
-        #     else:
-        #         self.is_clusterization = True
+        # TODO: how to properly identify the task?
+        #  Does a dataset really has an inherent task related to it?
+        #  Should it be defined by the user?
+        self._set('_is_classification', None)
+        self._set('_is_regression', None)
+        self._set('?is_clusterization', None)
+        self._set('is_supervised', None)
+        self._set('is_unsupervised', None)
+        self._set('is_multilabel', None)
+        self._set('is_ranking_prediction', None)
 
     @staticmethod
     def read_arff(file, target, storage=None):
@@ -173,6 +168,7 @@ class Data:
         (case insensitive)
         or just None to recover as many fields as stored at the moment.
         :param name:
+        :param storage:
         :param fields: if None, get complete Data, including predictions if any
         :return:
         """
@@ -189,9 +185,9 @@ class Data:
         :param kwargs:
         :return:
         """
-        new_kwargs = self.matrices.copy()
+        new_kwargs = self.matrices().copy()
         new_kwargs.update(kwargs)
-        for l in self.vectors:
+        for l in self.vectors():
             if l in new_kwargs:
                 L = l.upper()
                 new_kwargs[L] = as_column_vector(new_kwargs.pop(l))
@@ -222,11 +218,11 @@ class Data:
             raise Exception(f'Merging {self.name()}: excess of '
                             f'transformations in one of the Data instances',
                             data.transformations, self.transformations)
-        transformations= data.transformations if len(dica) > len(dicb)\
+        transformations = data.transformations if len(dica) > len(dicb) \
             else self.transformations
         if self.name() != data.name():
             raise Exception(f'Merging {self.name()} with {data.name()}')
-        return self.updated(transformations=transformations, **data.matrices)
+        return self.updated(transformations=transformations, **data.matrices())
 
     def select(self, fields):
         """
@@ -240,10 +236,11 @@ class Data:
                        for x in fields_lst]
 
         # Raise exception if any requested matrix is None.
-        if any([m not in self.matrices for m in matrixnames]):
-            raise Exception('Requested None matrix', fields, self.matrices.keys)
+        if any([m not in self.matrices() for m in matrixnames]):
+            raise Exception('Requested None matrix',
+                            fields, self.matrices().keys)
 
-        return {k: v for k, v in self.matrices.items() if k in matrixnames}
+        return {k: v for k, v in self.matrices().items() if k in matrixnames}
 
     def reduced_to(self, fields):
         return Data(name=self.name(), transformations=self.transformations,
@@ -260,10 +257,10 @@ class Data:
     def dump(self):
         if self._dump is None:
             # This if is needed to avoid useless redumping of the same data.
-            if self.is_prediction_data:
+            if self.has_prediction_data():
                 self._set('_dump', self.dump_prediction_only())
             else:
-                self._set('_dump', pack_data(self.matrices))
+                self._set('_dump', pack_data(self.matrices()))
         return self._dump
 
     def dump_prediction_only(self):
@@ -303,19 +300,17 @@ class Data:
 
     def fields(self):
         if self._fields is None:
-            sorted = list(self.matrices.keys())
-            if 'columns' in sorted:
-                sorted.remove('columns')
+            sorted = list(self.matrices().keys())
             sorted.sort()
             self._set('_fields', ','.join(sorted))
         return self._fields
 
     def __str__(self):
         txt = []
-        [txt.append(f'{k}: {str(v)}') for k, v in self.matrices.items()]
+        [txt.append(f'{k}: {str(v)}') for k, v in self.matrices().items()]
         return '\n'.join(txt) + self.name()
 
-    def split(self, train_size = 0.25, random_state=1):
+    def split(self, train_size=0.25, random_state=1):
         X, y = self.Xy
         X_train, X_test, y_train, y_test = \
             sklearn.model_selection.train_test_split(X, y, random_state=1)
@@ -323,7 +318,7 @@ class Data:
         name = f'{self.name()}_seed{random_state}_split{train_size}_fold'
         trainset = Data(name=name, X=X_train).updated(y=y_train)
         testset = Data(name=name, X=X_test).updated(y=y_test)
-        #TODO: usar component CV()
+        # TODO: usar component CV()
 
         return trainset, testset
 
@@ -332,7 +327,42 @@ class Data:
         Return the shape of all matrices.
         :return:
         """
-        return [v.shape() for v in self.matrices.values()]
+        return [v.shape() for v in self.matrices().values()]
+
+    # Redefinig all class member as functions just for uniformity and 
+    # autocompleteness. And to show protection against changes. 
+    def n_classes(self):
+        return self._n_classes
+
+    def n_instances(self):
+        return self._n_instances
+
+    def n_attributes(self):
+        return self._n_attributes
+
+    def Xy(self):
+        return self._Xy
+
+    def Uv(self):
+        return self._Uv
+
+    def prediction(self):
+        return self._prediction
+
+    def transformations(self):
+        return self._transformations
+
+    def matrices(self):
+        return self._matrices
+
+    def columns(self):
+        return self._columns
+
+    def has_prediction_data(self):
+        return self._has_prediction_data
+
+    def vectors(self):
+        return self._vectors
 
 
 class MutabilityException(Exception):
