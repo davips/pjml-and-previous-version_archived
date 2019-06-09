@@ -30,14 +30,17 @@ def main():
         print('seed=', random_state)
         trainset, testset = data.split()
 
-        automl_rs = RandomAutoML(storage_for_components=storage,
-                                 preprocessors=[DRPCA()],
-                                 modelers=[SVMC()],
-                                 max_iter=iterations,
-                                 static=False, fixed=False,
-                                 max_depth=15, repetitions=0, method="all",
-                                 show_warns=False,
-                                 random_state=random_state).build()
+        automl_rs = RandomAutoML(
+            storage_for_components=storage,
+            show_warns=False,
+        ).build(
+            preprocessors=[DRPCA()],
+            modelers=[SVMC()],
+            max_iter=iterations,
+            static=False, fixed=False,
+            max_depth=15, repetitions=0, method="all",
+            random_state=random_state
+        )
         automl_rs.apply(trainset)
         testout = automl_rs.use(testset)
         print("Accuracy score", Metrics.accuracy(testout))
