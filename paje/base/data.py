@@ -12,7 +12,7 @@ class Data:
 
     def __init__(self, name, X=None, Y=None, Z=None, P=None,
                  U=None, V=None, W=None, Q=None,
-                 columns=None, transformations=None, task=None):
+                 columns=None, history=None, task=None):
         # ALERT: all single-letter args will be considered matrices!
         """
             Immutable lazy data for all machine learning scenarios
@@ -32,13 +32,13 @@ class Data:
         :param Q: Predicted probabilities for unlabeled set
         :param columns:
         :param component: component that generated current Data
-        :param transformations: History of transformations suffered by the data
+        :param history: History of transformations suffered by the data
         """
 
         # Init instance matrices to factory new Data instances in the future.
         args = {k: v for k, v in locals().items()
                 if v is not None and len(k) == 1}
-        if transformations is None:
+        if history is None:
             print('Warning: no component provided to Data, we will assume it '
                   'did\'t come from a transformation/prediction etc.')
 
@@ -60,7 +60,7 @@ class Data:
             'Xy': (X, dematrixify(Y)),
             'Uv': (U, dematrixify(V)),
             '_prediction': prediction,
-            '_transformations': transformations or [],
+            '_history': history or [],
             '_matrices': matrices,
             '_columns': columns,
             '_has_prediction_data': bool(prediction),
@@ -135,7 +135,7 @@ class Data:
     @staticmethod
     def read_data_frame(df, file, target, storage=None):
         """
-        ps. Assume there was no transformations on this Data.
+        ps. Assume there was no transformations (history) on this Data.
         :param df:
         :param file:
         :param target:
@@ -150,7 +150,7 @@ class Data:
         X = df.values.astype('float')
         Y = as_column_vector(df.pop(target).values.astype('float'))
         return Data(name=arq, X=X, Y=Y, columns=df.columns,
-                    transformations=[])
+                    history=[])
 
     @staticmethod
     def random(n_attributes, n_classes, n_instances):
@@ -159,7 +159,7 @@ class Data:
                                       n_classes=n_classes,
                                       n_informative=int(
                                           np.sqrt(2 * n_classes)) + 1)
-        return Data(X=X, Y=as_column_vector(y), transformations=[])
+        return Data(X=X, Y=as_column_vector(y), history=[])
 
     @staticmethod
     def read_from_storage(name, storage, fields=None):
@@ -194,11 +194,11 @@ class Data:
         if 'name' not in new_kwargs:
             new_kwargs['name'] = self.name()
 
-        if 'transformations' not in new_kwargs:
-            new_kwargs['transformations'] = \
-                self.transformations + [component.serialized()]
+        if 'history' not in new_kwargs:
+            new_kwargs['history'] = \
+                self.history() + [component.serialized()]
         else:
-            print('Warning, giving transformations from outside update().')
+            print('Warning, giving \'history\' from outside update().')
         return Data(**new_kwargs)
 
     def merged(self, data):
@@ -211,18 +211,17 @@ class Data:
         :param data:
         :return:
         """
-        dica = uuid_enumerated_dic(data.transformations)
-        dicb = uuid_enumerated_dic(self.transformations)
+        dica = uuid_enumerated_dic(data.history())
+        dicb = uuid_enumerated_dic(self.history())
         uuids = set(dica.keys()).symmetric_difference(set(dicb.keys()))
         if len(uuids) > 1:
             raise Exception(f'Merging {self.name()}: excess of '
                             f'transformations in one of the Data instances',
-                            data.transformations, self.transformations)
-        transformations = data.transformations if len(dica) > len(dicb) \
-            else self.transformations
+                            data.history(), self.history())
+        history = data.history() if len(dica) > len(dicb) else self.history()
         if self.name() != data.name():
             raise Exception(f'Merging {self.name()} with {data.name()}')
-        return self.updated(transformations=transformations, **data.matrices())
+        return self.updated(history=history, **data.matrices())
 
     def select(self, fields):
         """
@@ -243,7 +242,7 @@ class Data:
         return {k: v for k, v in self.matrices().items() if k in matrixnames}
 
     def reduced_to(self, fields):
-        return Data(name=self.name(), transformations=self.transformations,
+        return Data(name=self.name(), history=self.history(),
                     **self.select(fields))
 
     def __setattr__(self, attr, value):
@@ -349,8 +348,8 @@ class Data:
     def prediction(self):
         return self._prediction
 
-    def transformations(self):
-        return self._transformations
+    def history(self):
+        return self._history
 
     def matrices(self):
         return self._matrices
