@@ -14,34 +14,48 @@ class AutoML(Component, ABC):
     """ TODO the docstring documentation
     """
     def __init__(self,
-                 evaluator,
                  n_jobs=1,
                  verbose=True,
-                 max_iter=10,
-                 random_state=0,
-                 storage=None,
-                 show_warns=True,
                  **kwargs):
-        super().__init__(storage, show_warns, **kwargs)
+        super().__init__(**kwargs)
         """ TODO the docstring documentation
         """
-        self.evaluator = evaluator
-        self.n_jobs = n_jobs
-        self.max_iter = max_iter
-        self.verbose = verbose
-        self.random_state = random_state
 
-        # internal class atributes
+        # Attributes set in the build_impl.
+        # These attributes identify uniquely AutoML.
+        # This structure is necessary because the AutoML is a Component and it
+        # could be used into other Components, like the Pipeline one.
+        self.random_state = 0
+        self.max_iter = None
+        self.evaluator = None
+
+        # Other class attributes.
+        # These attributes can be set here or in the build_impl method. They
+        # should not influence the AutoML final result.
+        self.n_jobs = n_jobs  # I am not sure if this variable should be here.
+        self.verbose = verbose
+
+        # Class internal attributes
+        # Attributes that were not parameterizable
         self.model = None
-        self.all_eval_results = []
+        self.all_eval_results = None
         self.fails, self.locks, self.successes, self.total = 0, 0, 0, 0
         self.current_iteration = 0
 
     def build_impl(self):
         """ TODO the docstring documentation
         """
-        # It is not clear if this class is instantiable yet.
-        return self
+        # The 'self' is a copy, because of the Component.build().
+        # Be careful, the copy made in the parent (Component) is
+        # shallow (copy.copy(self)).
+        # See more details in the Component.build() method.
+
+        self.__dict__.update(self.dic)
+
+        if self.evaluator is None:
+            raise ValueError(
+                'AutoML has no Evaluator setted!'
+            )
 
     def eval_pipelines_par(self, pipelines, data, eval_results):
         """ TODO the docstring documentation
@@ -66,6 +80,7 @@ class AutoML(Component, ABC):
     def apply_impl(self, data):
         """ TODO the docstring documentation
         """
+        self.all_eval_results = []
         for iteration in range(1, self.max_iter+1):
             self.current_iteration = iteration
             if self.verbose:
@@ -94,7 +109,7 @@ class AutoML(Component, ABC):
                 print("Best ..................: ", self.get_best_eval())
                 print("Locks/fails/successes .: {0}/{1}/{2}".format(
                     self.locks, self.fails, self.successes))
-                print("####------##-----##-----##-----##-----##-----####\n")
+                print("-------------------------------------------------\n")
 
         self.process_all_steps(self.all_eval_results)
 
