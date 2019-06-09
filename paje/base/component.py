@@ -11,7 +11,7 @@ import numpy as np
 from paje.base.exceptions import ApplyWithoutBuild, UseWithoutApply, \
     handle_exception
 from paje.evaluator.time import time_limit
-from paje.result.storage import uuid, pack_comp
+from paje.util.encoders import pack_comp
 from paje.util.log import *
 
 
@@ -33,7 +33,7 @@ class Component(ABC):
 
         self.storage = storage
         self._uuid = None  # UUID will be known only after build()
-        self._uuid_train__mutable = None
+        self._uuid_train__mutable = None  # Each apply() generates a uuid_train.
         self.locked_by_others = False
         self.failed = False
         self.time_spent = None
@@ -42,7 +42,7 @@ class Component(ABC):
         self._dump = None
 
         # Whether to dump the model or not, if a storage is given.
-        self.dump_it = dump_it
+        self.dump_it = dump_it or None  # 'or'->possib.vals=Tru,Non See sql.py
 
         self.log = logging.getLogger('component')
         # if True show warnings
@@ -92,7 +92,10 @@ class Component(ABC):
             raise Exception(f"Applying {self.name} on None !")
 
         self._uuid_train__mutable = data.uuid()
-        output_data = self.look_for_result(data)
+
+        # TODO: use model_dump if self.dump_it=True
+        output_data, model_dump = self.look_for_result(data)
+
         if self.failed:
             self.msg(f"Won't apply on data {self.uuid_train()}\n"
                      f"Current {self.name} already failed before.")
@@ -154,7 +157,8 @@ class Component(ABC):
             self.msg(f"Using {self.name} on None returns None.")
             return None
 
-        output_data = self.look_for_result(data)
+        # TODO: use model_dump if self.dump_it=True
+        output_data, model_dump = self.look_for_result(data)
 
         if self.locked_by_others:
             self.msg(f"Won't use {self.name} on data {self.uuid_train()}\n"
@@ -370,7 +374,6 @@ class Component(ABC):
                             'a UUID of the training Data.', self.name)
         return self._uuid_train__mutable
 
-
     def handle_warnings(self):
         # Mahalanobis in KNN needs to supress warnings due to NaN in linear
         # algebra calculations. MLP is also verbose due to nonconvergence
@@ -404,4 +407,3 @@ class Component(ABC):
     def resurrect_from_dump(model_dump, kwargs):
         """Recreate a component from ashes."""
         pass
-
