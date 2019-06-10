@@ -44,7 +44,8 @@ class Data:
 
         self.__dict__.update(args)
         matrices = args.copy()  # TODO: is copy really needed here?
-        prediction = {k: v for k, v in matrices if k in ['Z', 'W', 'P', 'Q']}
+        prediction = {k: v for k, v in matrices.items()
+                      if k in ['Z', 'W', 'P', 'Q']}
 
         # Metadata
         n_classes = len(set(dematrixify(get_first_non_none([Y, V, Z, W]), [0])))
@@ -69,6 +70,7 @@ class Data:
         })
 
         # Add vectorized shortcuts for matrices.
+        se a pessoa acessar uma matriz que nao existe tem que voltar none.
         vectors = ['y', 'z', 'v', 'w']
         self._set('_vectors', vectors)
         for vec in vectors:

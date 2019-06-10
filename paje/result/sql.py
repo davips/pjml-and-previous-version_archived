@@ -21,7 +21,7 @@ class SQL(Cache):
 
                 hid char(19) NOT NULL UNIQUE,
 
-                txt TEXT NOT NULL,
+                txt TEXT NOT NULL
             )''')
         self.query(f'CREATE INDEX nam0 ON hist (txt{self.keylimit()})')
 
@@ -48,7 +48,7 @@ class SQL(Cache):
                 typ varchar(20),
                 bytes LONGBLOB NOT NULL
             )''')
-        self.query(f'CREATE INDEX dump0 ON name (typ)')
+        self.query(f'CREATE INDEX dump0 ON dump (typ)')
 
         # Logs for Component ===================================================
         self.query(f'''
@@ -61,7 +61,7 @@ class SQL(Cache):
                 insl timestamp NOT NULL
             )''')
         self.query(f'CREATE INDEX log0 ON log (msg{self.keylimit()})')
-        self.query(f'CREATE INDEX log1 ON log (insl{self.keylimit()})')
+        self.query(f'CREATE INDEX log1 ON log (insl)')
 
         # Components ===========================================================
         self.query(f'''
