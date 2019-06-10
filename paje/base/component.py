@@ -134,22 +134,24 @@ class Component(ABC):
             if self.storage is not None:
                 output_train_data = None if self.failed else self.use_impl(data)
                 self.store_result(data, output_train_data)
-        # else:
-        # if self.storage is not None:
-        #     # Check if use() will need a model.
-        #     # Assume: two results per set indicates a use() already stored.
-        #     count = self.storage.count_results(self, data)
-        #     if count == 1:
-        #         print('Applying just for use() because results were only '
-        #               'partially stored in a previous execution:'
-        #               f'comp: {self.uuid()}  data: {data.uuid()}')
-        #         output_data = self.apply_impl(data)
+
         return output_data
 
     def use(self, data=None):
         """Todo the doc string
         """
         self.check_if_applied(data)
+
+        if self.storage is not None:
+            # If the component was applied (probably simulated by storage),
+            # but there is no model, we reapply it...
+            if self.model is None:
+                print('It is possible that a previous apply() was '
+                  'successfully stored, but its use() wasn\'t.')
+                print('Applying just for use() because results were only '
+                      'partially stored in a previous execution:'
+                      f'comp: {self.uuid()}  data: {data.uuid()} ...')
+                self.apply(self.train_data__mutable())
 
         # Checklist / get from storage -----------------------------------
         if data is None:
@@ -399,11 +401,6 @@ class Component(ABC):
 
     def check_if_applied(self, data):
         if self._train_data__mutable is None:
-            if self.storage is not None:
-                print('It is possible that a previous apply() was '
-                      'successfully stored, but its use() wasn\'t.',
-                      'Please remove stored results for data', data.uuid(),
-                      'and component', self.uuid())
             raise UseWithoutApply(f'{self.name} should be applied!')
 
     def check_if_built(self):
