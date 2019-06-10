@@ -225,13 +225,13 @@ class SQL(Cache):
         self.query(f'''
             select 
                 des, bytes, spent, fail, end, node
-                {'' and component.dump_it and ', duc.bytes as model'}
+                {' ' and component.dump_it and ', duc.bytes as model'}
             from 
                 result 
                     left join data on dout = did
                     left join dump on dumpd = duid
                     left join name on des = nid
-                    {'' and component.dump_it and
+                    {' ' and component.dump_it and
                      'left join dump duc on dumpc = duid'}
                     
             where                
@@ -468,9 +468,9 @@ class SQL(Cache):
                     left join dump on dumpd=duid
                     left join hist on hist=hid
             where 
-                des=? {'' and fields and f"and fields=?"} and
+                des=? {' ' and fields and f"and fields=?"} and
                 txt=?'''
-        args = [name, fields, history]
+        args = [name, fields.upper(), history] if fields else [name, history]
 
         self.query(sql, args)
         rows = self.cursor.fetchall()
