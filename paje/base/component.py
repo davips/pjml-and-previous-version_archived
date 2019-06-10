@@ -11,7 +11,7 @@ import numpy as np
 from paje.base.exceptions import ApplyWithoutBuild, UseWithoutApply, \
     handle_exception
 from paje.evaluator.time import time_limit
-from paje.util.encoders import pack_comp
+from paje.util.encoders import pack_comp, uuid
 from paje.util.log import *
 
 
@@ -29,17 +29,18 @@ class Component(ABC):
         self.model = None
         self.dic = {}
         self.name = self.__class__.__name__
-        self.tmp_uuid = uuid4().hex
+        self.tmp_uuid = uuid4().hex  # used when eliminating End* from tree
 
         self.storage = storage
         self._uuid = None  # UUID will be known only after build()
-        self._uuid_train__mutable = None  # Each apply() generates a uuid_train.
+        self._train_data__mutable = None  # Each apply() uses a different train
         self.locked_by_others = False
         self.failed = False
         self.time_spent = None
         self.node = None
         self.max_time = None
-        self._dump = None
+        self._model_dump = None
+        self._model_uuid = None
 
         # Whether to dump the model or not, if a storage is given.
         self.dump_it = dump_it or None  # 'or'->possib.vals=Tru,Non See sql.py
@@ -91,18 +92,19 @@ class Component(ABC):
         if data is None:
             raise Exception(f"Applying {self.name} on None !")
 
-        self._uuid_train__mutable = data.uuid()
+        self._train_data__mutable = data
 
         # TODO: use model_dump if self.dump_it=True
         output_data, model_dump = self.look_for_result(data)
 
         if self.failed:
-            self.msg(f"Won't apply on data {self.uuid_train()}\n"
-                     f"Current {self.name} already failed before.")
+            self.msg(f"Won't apply on data {self.train_data__mutable().name()}"
+                     f"\nCurrent {self.name} already failed before.")
             return output_data
 
         if self.locked_by_others:
-            print(f"Won't apply {self.name} on data {self.uuid_train()}\n"
+            print(f"Won't apply {self.name} on data "
+                  f"{self.train_data__mutable().name()}\n"
                   f"Current probably working at node [{self.node}].")
             return output_data
 
@@ -132,19 +134,16 @@ class Component(ABC):
             if self.storage is not None:
                 output_train_data = None if self.failed else self.use_impl(data)
                 self.store_result(data, output_train_data)
-        else:
-            if self.storage is not None:
-                # Check if use() will need a model. Assumes two results per set
-                count = self.storage.count_results(self, data)
-                if count == 1:
-                    print('apply just for use() because results were '
-                          'partially stored in a previous execution:'
-                          f'comp: {self.uuid()}  data: {data.uuid()}')
-                    output_data = self.apply_impl(data)
-                # print('It is possible that a previous apply() was '
-                #       'successfully stored, but its use() wasn\'t.',
-                #       'Please remove stored results for data', data.uuid(),
-                #       'and component', self.uuid())
+        # else:
+        # if self.storage is not None:
+        #     # Check if use() will need a model.
+        #     # Assume: two results per set indicates a use() already stored.
+        #     count = self.storage.count_results(self, data)
+        #     if count == 1:
+        #         print('Applying just for use() because results were only '
+        #               'partially stored in a previous execution:'
+        #               f'comp: {self.uuid()}  data: {data.uuid()}')
+        #         output_data = self.apply_impl(data)
         return output_data
 
     def use(self, data=None):
@@ -161,7 +160,8 @@ class Component(ABC):
         output_data, model_dump = self.look_for_result(data)
 
         if self.locked_by_others:
-            self.msg(f"Won't use {self.name} on data {self.uuid_train()}\n"
+            self.msg(f"Won't use {self.name} on data "
+                     f"{self.train_data__mutable().name()}\n"
                      f"Current probably working at {self.node}.")
             return output_data
 
@@ -279,6 +279,12 @@ class Component(ABC):
                                     'uuid() <-' + self.name)
         return self._uuid
 
+    def model_uuid(self):
+        self.check_if_applied()
+        if self._model_uuid is None:
+            self._model_uuid = uuid(self.model_dump())
+        return self._model_uuid
+
     def __str__(self, depth=''):
         return self.name + " " + str(self.dic)
 
@@ -368,11 +374,11 @@ class Component(ABC):
             self._model_dump = pack_comp(self.model)
         return self._model_dump
 
-    def uuid_train(self):
-        if self._uuid_train__mutable is None:
+    def train_data__mutable(self):
+        if self._train_data__mutable is None:
             raise Exception('This component should be applied to have '
-                            'a UUID of the training Data.', self.name)
-        return self._uuid_train__mutable
+                            'an internal training Data.', self.name)
+        return self._train_data__mutable
 
     def handle_warnings(self):
         # Mahalanobis in KNN needs to supress warnings due to NaN in linear
@@ -392,7 +398,7 @@ class Component(ABC):
         return self.storage and self.storage.get_result(self, data)
 
     def check_if_applied(self, data):
-        if self._uuid_train__mutable is None:
+        if self._train_data__mutable is None:
             if self.storage is not None:
                 print('It is possible that a previous apply() was '
                       'successfully stored, but its use() wasn\'t.',
