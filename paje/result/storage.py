@@ -29,20 +29,11 @@ class Cache(ABC):
         pass
 
     @abstractmethod
-    def get_data(self, data):
-        pass
-
-    @abstractmethod
     def get_data_by_uuid(self, data, just_check_exists=False):
         pass
 
     @abstractmethod
     def count_results(self, component, data):
-        pass
-
-    @abstractmethod
-    def get_data_uuid_by_name(self, name, fields='X,y',
-                              just_check_exists=False):
         pass
 
     @abstractmethod

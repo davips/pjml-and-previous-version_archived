@@ -178,8 +178,7 @@ class Data:
         storage.store_data(self)
 
     def updated(self, component, **kwargs):
-        """
-        Return a new Data updated by given values.
+        """ Return a new Data updated by given values.
         :param component: to put into transformations list for history purposes
         (it can be a list of transformations also for internal use in Data).
         :param kwargs:
@@ -241,7 +240,7 @@ class Data:
 
         return {k: v for k, v in self.matrices().items() if k in matrixnames}
 
-    def reduced_to(self, fields):
+    def shrink_to(self, fields):
         return Data(name=self.name(), history=self.history(),
                     **self.select(fields))
 

@@ -39,6 +39,7 @@ class Component(ABC):
         self.time_spent = None
         self.node = None
         self.max_time = None
+        self.mark = None
         self._model_dump = None
         self._model_uuid = None
 
@@ -312,6 +313,8 @@ class Component(ABC):
     def serialized(self):
         """
         Calculate a representation of this built component.
+        In the first call, remove reserved words from args_set
+         (like 'mark', 'name').
         :return: 19-byte string
         """
         if self._serialized is None:
@@ -319,10 +322,10 @@ class Component(ABC):
                                     'serialized() <-' + self.name)
 
         # The first time serialized() is called,
-        # it has to put needed and remove uneeded args from arg_set.
+        # it has to put needed (and remove unneeded) args from arg_set.
         if self._serialized == 'building':
             # When the build is not created by a dic coming from a HPTree,
-            #  it can be lacking a name.
+            #  it can be lacking a name, so here we put it.
             if 'name' not in self.dic:
                 self.dic['name'] = self.name
 
@@ -334,6 +337,8 @@ class Component(ABC):
             del self.dic['name']
             if 'max_time' in self.dic:
                 self.max_time = self.dic.pop('max_time')
+            if 'mark' in self.dic:
+                self.mark = self.dic.pop('mark')
 
         return self._serialized
 

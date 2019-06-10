@@ -2,8 +2,10 @@ from abc import abstractmethod
 from sqlite3 import IntegrityError as IntegrityErrorSQLite
 
 from paje.base.data import Data
-from paje.result.storage import Cache, unpack_data
+from paje.result.storage import Cache
 from pymysql import IntegrityError as IntegrityErrorMySQL
+
+from paje.util.encoders import unpack_data
 
 
 class SQL(Cache):
@@ -43,9 +45,10 @@ class SQL(Cache):
                 n integer NOT NULL primary key {self.auto_incr()},
 
                 duid char(19) NOT NULL UNIQUE,
-
+                typ varchar(20),
                 bytes LONGBLOB NOT NULL
             )''')
+        self.query(f'CREATE INDEX dump0 ON name (typ)')
 
         # Logs for Component ===================================================
         self.query(f'''
@@ -95,14 +98,15 @@ class SQL(Cache):
                 FOREIGN KEY (dumpd) REFERENCES dump(duid),
                 FOREIGN KEY (hist) REFERENCES hist(hid)
                )''')
-        # apontar pro data anterior? <- nao precisa pq estah na 'res'
-        # mostrar comp <-nao adianta pq o msm comp pode ser aplicado varias vezes
-        # provav. history não vai conter comps inuteis como pipes e switches
+        # guardar last comp nao adianta pq o msm comp pode ser aplicado
+        # varias vezes
+        # history não vai conter comps inuteis como pipes e switches, apenas
+        # quem transforma Data, ou seja, faz updated().
         self.query(f'CREATE INDEX data0 ON data (shape{self.keylimit()})')
         self.query(f'CREATE INDEX data1 ON data (insd)')
         self.query(f'CREATE INDEX data2 ON data (dumpd)')
-        self.query(f'CREATE INDEX data3 ON data (fields)')  # needed?
-        self.query(f'CREATE INDEX data4 ON data (name)')  # needed?
+        self.query(f'CREATE INDEX data3 ON data (name)')  # needed?
+        self.query(f'CREATE INDEX data4 ON data (fields)')  # needed?
         self.query(f'CREATE INDEX data5 ON data (hist)')  # needed?
 
         # Results ==============================================================
@@ -115,6 +119,7 @@ class SQL(Cache):
                 com char(19) NOT NULL,
                 dtr char(19) NOT NULL,
                 din char(19) NOT NULL,
+
                 log char(19),
 
                 dout char(19),
@@ -164,7 +169,7 @@ class SQL(Cache):
 
         # Store testing set if (inexistent yet).
         self.store_data(
-            input_data.reduced_to(component.fields_to_keep_after_use()))
+            input_data.shrink_to(component.fields_to_keep_after_use()))
 
         # Store component (if inexistent yet) and attempt to acquire lock.
         # Mark as locked_by_others otherwise.
@@ -210,37 +215,42 @@ class SQL(Cache):
             raise Exception('Excess of rows, after ', row, ':', row2)
         return row
 
-    def get_result(self, component, test):
+    def get_result(self, component, output_data):
         """
         Look for a result in database.
-        :return:
+        :return: (Resulting Data, dump of the model if requested by component)
         """
         if component.failed or component.locked_by_others:
             return None
         self.query(f'''
             select 
                 des, bytes, spent, fail, end, node
+                {'' and component.dump_it and ', duc.bytes as model'}
             from 
                 result 
-                    left join dset on dout = did
+                    left join data on dout = did
                     left join dump on dumpd = duid
-                    left join name on name = nid
+                    left join name on des = nid
+                    {'' and component.dump_it and
+                     'left join dump duc on dumpc = duid'}
+                    
             where                
-                cid=? and dtr=? and dts=?''',
-                   [component.uuid(), component.uuid_train(), test.uuid()])
-
+                com=? and dtr=? and din=?''', [component.uuid(),
+                                               component.uuid_train(),
+                                               output_data.uuid()])
         result = self.get_one()
         if result['bytes'] is not None:
             slim = Data(name=result['des'], **unpack_data(result['bytes']))
             testout = slim.merged(
-                test.reduced_to(component.fields_to_keep_after_use()))
+                output_data.shrink_to(component.fields_to_keep_after_use()))
         else:
             testout = None
+        model_dump = ('model' in result or None) and result['model']
         component.time_spent = result['spent']
         component.failed = result['fail'] and result['fail'] == 1
         component.locked_by_others = result['end'] == '0000-00-00 00:00:00'
         component.node = result['node']
-        return testout
+        return testout, model_dump
 
     def store_data(self, data):
         # Check first with a low cost query if data already exists.
@@ -253,25 +263,26 @@ class SQL(Cache):
         # Catch exception in the event of another job winning the race.
         # Dumps can have duplicate, e.g. when two models give the same
         # predictions (usually in the same dataset), so 'insert or ignore'.
-        # In the case of descriptions (e.g. only X,y) the same Data can be
+        # In the case of training data (e.g. only X,y) the same Data can be
         # inserted twice by different components, but this is checked above
-        # by data_exists. If in the meantime, while the interpreter is
-        # reading this comment, someone else insert just the same Data,
+        # by data_exists(). If in the meantime, while the interpreter is
+        # reading this comment, someone else inserts just the same Data,
         # we will have to handle it as an exception.
-        # ps. : in the presence of predictions, UUID will change accordingly,
-        #  otherwise, it will depend only on 'Data.name' and 'Data.fields'.
+        # ps. : in the presence of predictions (z),
+        # UUID will change according to the new set of fields,
+        # otherwise, it will depend only on 'Data.name' and 'Data.fields'.
         sql = f'''
             begin;
             insert or ignore into dump values (
                 null,
-                ?,
+                ?, 'data',
                 ?
             );
             insert or ignore into name values (
                 NULL,
                 ?,
                 ?,
-                NULL
+                ?
             );
             insert or ignore into hist values (
                 NULL,
@@ -281,7 +292,7 @@ class SQL(Cache):
             insert into data values (
                 NULL,
                 ?,
-                ?, ?,
+                ?, ?, ?
                 ?, ?,
                 {self.now_function()}
             );
@@ -289,11 +300,12 @@ class SQL(Cache):
         dump_args = [data.dump_uuid(),
                      data.dump()]
         name_args = [data.name_uuid(),
-                     data.name()]
+                     data.name(),
+                     data.columns()]
         hist_args = [data.hist_uuid(),
                      data.history()]
         data_args = [data.uuid(),
-                     data.name(), data.fields(),
+                     data.name(), data.fields(), data.history(),
                      data.dump_uuid(), data.shapes()]
         try:
             self.query(sql, dump_args + name_args + hist_args + data_args)
@@ -304,36 +316,47 @@ class SQL(Cache):
         else:
             print(f'Data inserted', data.uuid())
 
-    def store(self, component, input_data, testout):
+    def store(self, component, input_data, output_data):
         """
-
+        Store a result and remove lock.
         :param component:
         :param input_data:
-        :param testout:
-        :param train:
+        :param output_data:
         :return:
         """
+
         # Store resulting Data
-        slim = testout and testout.reduced_to(
+        slim = output_data and output_data.shrink_to(
             component.fields_to_store_after_use())
         slim and self.store_data(slim)
 
         # Remove lock and point result to data inserted above.
-        # TODO: try to store component dumps again?
         # TODO: is there any important exception to handle here?
-        # We should set all timestamp fields even if with the same old value.
         now = self.now_function()
+        model_dump = component.dump_it and component.model_dump()
+        # We should set all timestamp fields even if with the same old value.
+        # Data train inserted and dtr was created when locking().
+        # 'or ignore' because different models can have the same predictions.
         sql = f'''
+            begin;
+            insert or ignore into dump values (
+                null,
+                ?, 'model', ?
+            );
             update result set 
-                dout=?, spent=?, dumpc=?,
+                dout=?, spent=?,
+                dumpc=?,
                 fail=?,
                 start=start, end={now}, alive={now}
             where
-                com=? and dtr=? and din=?'''
-        set_args = [slim and slim.uuid(), component.time_spent, None,
+                com=? and dtr=? and din=?
+            end;'''
+        dump_args = [component.model_uuid(), component.model_dump()]
+        resargs1 = [slim and slim.uuid(), component.time_spent,
+                    component.model_uuid(),
                     1 if component.failed else 0]
-        whe_args = [component.uuid(), component.uuid_train(), input_data.uuid()]
-        self.query(sql, set_args + whe_args)
+        resargs2 = [component.uuid(), component.uuid_train(), input_data.uuid()]
+        self.query(sql, resargs1 + resargs2)
         print('Stored!')
 
     def data_exists(self, data):
@@ -385,7 +408,7 @@ class SQL(Cache):
             self.cursor.execute(sql, args)
             self.connection.commit()
         except Exception as ex:
-            # From StackOverflow
+            # From a StackOverflow answer...
             msg = self.info + msg
             # Gather the information from the original exception:
             exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -397,14 +420,15 @@ class SQL(Cache):
                 "%s\norig. trac.:\n%s\n" % (msg, traceback_string))
 
     def get_data_by_uuid(self, datauuid, just_check_exists=False):
-        field = '1' if just_check_exists else 'des, bytes'
+        sql_fields = '1' if just_check_exists else 'des, cols, bytes, txt'
         self.query(f'''
             select 
-                {field} 
+                {sql_fields} 
             from 
                 data 
                     left join name on name=nid 
                     left join dump on dumpd=duid
+                    left join hist on hist=hid
             where 
                 did=?''', [datauuid])
         result = self.get_one()
@@ -412,87 +436,100 @@ class SQL(Cache):
             return None
         if just_check_exists:
             return True
-        falta
-        pegar
-        history
-        return Data(name=result['des'], **unpack_data(result['bytes']))
+        return Data(name=result['des'],
+                    columns=result['cols'],
+                    history=result['history'],
+                    **unpack_data(result['bytes']))
 
-    def get_data_by_name(self, name, fields=None, transformations=None,
+    def get_data_by_name(self, name, fields=None, history=None,
                          just_check_exists=False):
         """
-        To just recover an original classic dataset you can pass fields='X,y'
-        (case insensitive).
-        'None' means to recover as many fields as stored at the moment.
-        When getting prediction data (i.e., results), it is better to specify
-        which component made the predictions, otherwise a list of all found
-        results is returned.
+        To just recover the original dataset you can pass history=None.
+        Specify fields as needed, otherwise all fields will be merged into
+        a single Data - in this case, metadata of the first Data will prevail.
+
+        When getting prediction data (i.e., results),
+         the history which led to the predictions should be provided.
         :param name:
-        :param fields: if None, get complet Data including predictions if any
-        :param component:
+        :param fields: None=get full Data; case insensitive; e.g. 'X,y,Z'
+        :param history: list of JSON strings describing components
         :param just_check_exists:
         :return:
         """
-        one = '1' if just_check_exists else 'data,iddset'
-        if fields is None:
-            self.query(f'select {one} from dset '
-                       f'where name=? order by id', [name])
-        else:
-            self.query(f'select {one} from dset where '
-                       f'name=? and fields=? order by id', [name, fields])
+        history = '' if history is None else ', '.join(history)
+        sql_fields = '1' if just_check_exists else 'cols, bytes, txt'
+
+        sql = f'''
+            select 
+                {sql_fields} 
+            from 
+                data 
+                    left join name on name=nid 
+                    left join dump on dumpd=duid
+                    left join hist on hist=hid
+            where 
+                des=? {'' and fields and f"and fields=?"} and
+                txt=?'''
+        args = [name, fields, history]
+
+        self.query(sql, args)
         rows = self.cursor.fetchall()
         if rows is None or len(rows) == 0:
             return None
         if just_check_exists:
             return True
+
+        # Merge all recovered datas into one.
         dic = {}
         for row in rows:
-            dic.update(unpack_data(row['data']))
-        if len(rows) > 1:
-            data = Data(name=name, **dic)
-        else:
-            data = Data.with_uuid(uuid=rows[0]['iddset'], name=name, **dic)
-        return just_check_exists or data
+            dic.update(unpack_data(row['bytes']))
 
-    def get_data_uuid_by_name(self, name, fields='X,y',
-                              just_check_exists=False):
-        """
-        UUID for a combination of name and fields.
-        :param name:
-        :param fields: which view of Data we are being asked for.
-        :param just_check_exists:
-        :return:
-        """
-        one = '1' if just_check_exists else 'iddset'
-        self.query(f"select {one} from dset where "
-                   f"name=? and fields=? order by id", [name, fields.upper()])
-        rows = self.cursor.fetchall()
-        if rows is None or len(rows) == 0:
-            return None
-        if just_check_exists:
-            return True
-        if len(rows) > 1:
-            raise Exception(f'Excess of rows for {name} {fields}!',
-                            f'{len(rows)} > 1', rows)
-        return just_check_exists or rows[0]['iddset']
-
-    def get_finished(self):  # TODO: specify search criteria (by component?)
-        self.query('select name '
-                   'from result join dset on idtrain=iddset '
-                   "where end!='0000-00-00 00:00:00' and failed=0")
-        rows = self.cursor.fetchall()
-        if rows is None or len(rows) == 0:
-            return None
-        else:
-            return [row['name'] for row in rows]
+        return just_check_exists or Data(name=name, history=history,
+                                         columns=rows[0]['cols'],
+                                         **unpack_data(rows[0]['bytes']))
 
     def count_results(self, component, data):
-        self.query('select id from result where idcomp=? and idtrain=?',
+        """
+        Useless method.
+        :param component:
+        :param data:
+        :return:
+        """
+        self.query(f'select n from res where com=? and dtr=?',
                    [component.uuid(), data.uuid()])
         rows = self.cursor.fetchall()
         if rows is None or len(rows) == 0:
             return 0
         else:
             return len(rows)
+
+    def get_finished_names_by_mark(self, mark):
+        """
+        Finished means nonfailed and unlocked results.
+        The original datasets will not be returned.
+        original dataset = stored as with no history of transformations.
+        All results are returned, so the names come along with history,
+        :param mark:
+        :return:
+        """
+        self.query(f"""
+            select
+                des, txt as history
+            from
+                res join data on dtr=did 
+                    join name on name=nid 
+                    join hist on hist=hid 
+            where
+                end!='0000-00-00 00:00:00' and 
+                failed=0 and mark=?
+        """, [mark])
+        rows = self.cursor.fetchall()
+        if rows is None or len(rows) == 0:
+            return None
+        else:
+            for row in rows:
+                row['name'] = row.pop('des')
+            return rows
 
     @abstractmethod
     def keylimit(self):

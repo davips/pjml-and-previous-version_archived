@@ -41,7 +41,7 @@ class MySQL(SQL):
 
         # Create db if it doesn't exist yet.
         self.query(f"SHOW DATABASES LIKE '{self.db}'")
-        setup = self._process_result() is None
+        setup = self.get_one() is None
         if setup:
             if self.debug:
                 print('creating database', self.db, 'on', self.database, '...')
