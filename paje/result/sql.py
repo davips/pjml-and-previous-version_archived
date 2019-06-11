@@ -374,12 +374,14 @@ class SQL(Cache):
                 where
                     com=? and dtr=? and din=?
                 '''
-        resargs1 = [slim and slim.uuid(), component.time_spent,
-                    component.model_uuid(),
-                    1 if component.failed else 0,
-                    component.mark]
+        resargs1 = [
+            slim and slim.uuid(), component.time_spent,  # dout, spent
+            component.model_uuid(),  # dumpc
+            1 if component.failed else 0,  # fail
+            None if component.train_data__mutable().uuid() == input_data.uuid()
+            else component.mark]  # mark
         resargs2 = [component.uuid(), component.train_data__mutable().uuid(),
-                    input_data.uuid()]
+                    input_data.uuid()]  # com, dtr, din
         self.query(sql, resargs1 + resargs2)
 
         print('Stored!')
