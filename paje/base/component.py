@@ -29,6 +29,7 @@ class Component(ABC):
         self.model = None
         self.dic = {}
         self.name = self.__class__.__name__
+        self.module = self.__class__.__module__
         self.tmp_uuid = uuid4().hex
 
         self.storage = storage
@@ -47,6 +48,17 @@ class Component(ABC):
         self.show_warns = show_warns
 
         self._serialized = None
+
+        self._describe = None
+
+    def describe(self):
+        if self._describe is None:
+            self._describe = {
+                'module': self.module,
+                'name': self.name,
+                'sub_components': []
+            }
+        return self._describe
 
     @abstractmethod
     def fields_to_store_after_use(self):
@@ -151,7 +163,9 @@ class Component(ABC):
         obj_copied = copy.copy(self)
         # if self.storage is not None:
         #     self.storage.open()
-        obj_copied.dic = dic
+        obj_copied.dic.update(dic)
+        obj_copied.dic['describe'] = self.describe()
+
         if obj_copied.isdeterministic() and "random_state" in obj_copied.dic:
             del obj_copied.dic["random_state"]
 
@@ -168,6 +182,9 @@ class Component(ABC):
         del obj_copied.dic['name']
         if 'max_time' in obj_copied.dic:
             obj_copied.max_time = obj_copied.dic.pop('max_time')
+
+        # 'describe' is a reserved word, not for building.
+        del obj_copied.dic['describe']
 
         obj_copied.build_impl()
         return obj_copied
