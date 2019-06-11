@@ -1,3 +1,4 @@
+import warnings
 from abc import abstractmethod
 from sqlite3 import IntegrityError as IntegrityErrorSQLite
 
@@ -181,7 +182,9 @@ class SQL(Cache):
                 ?,
                 {nf}
             )'''
-        self.query(sql, [component.uuid(), component.serialized()])
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            self.query(sql, [component.uuid(), component.serialized()])
 
         sql = f'''insert into res values (
                 null,
@@ -255,12 +258,14 @@ class SQL(Cache):
         component.node = result['node']
         return testout, model_dump
 
-    def store_data(self, data):
+    def store_data(self, data:Data):
         # Check first with a low cost query if data already exists.
         if self.data_exists(data):
             if self.debug:
                 print('Data already exists:' + data.uuid(), data.name())
             return
+        else:
+            print('Storing...', data.name(), data.uuid())
 
         # Insert dump of data and data info.
         # Catch exception in the event of another job winning the race.
@@ -281,7 +286,9 @@ class SQL(Cache):
                 ?, 'data',
                 ?
             )'''
-        self.query(sql, [data.dump_uuid(), data.dump()])
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            self.query(sql, [data.dump_uuid(), data.dump()])
 
         sql = f'''
             insert or ignore into name values (
@@ -290,7 +297,9 @@ class SQL(Cache):
                 ?,
                 ?
             );'''
-        self.query(sql, [data.name_uuid(), data.name(), data.columns()])
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            self.query(sql, [data.name_uuid(), data.name(), data.columns()])
 
         sql = f'''
             insert or ignore into hist values (
@@ -298,7 +307,9 @@ class SQL(Cache):
                 ?,
                 ?
             )'''
-        self.query(sql, [data.history_uuid(), str(data.history())])
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            self.query(sql, [data.history_uuid(), str(data.history())])
 
         data_args = [data.uuid(),
                      data.name_uuid(), data.fields(), data.history_uuid(),
@@ -346,9 +357,11 @@ class SQL(Cache):
                     ?, 'model', ?
                 )'''
         dump_args = [component.model_uuid(), component.model_dump()]
-        self.query(sql, dump_args)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            self.query(sql, dump_args)
 
-        sql = f'''update result set 
+        sql = f'''update res set 
                     dout=?, spent=?,
                     dumpc=?,
                     fail=?,
