@@ -1,11 +1,18 @@
-from sklearn.dummy import DummyClassifier
 from sklearn.svm import SVC
+from json import JSONEncoder
 
 from paje.base.hps import HPTree
 from paje.module.modelling.classifier.classifier import Classifier
 
 
-class SVMC(Classifier):
+class SVMC(Classifier, JSONEncoder):
+    # def default(self, o):
+    #     if isinstance(o, SVMC):
+    #         print(o)
+    #         return o.__name__
+    #     else:
+    #         return JSONEncoder.default(self, o)
+
     def build_impl(self):
         self.model = SVC(**self.dic)
 
