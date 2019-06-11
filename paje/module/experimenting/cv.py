@@ -3,6 +3,12 @@ from paje.base.hps import HPTree
 
 
 class CV(Component):
+    def fields_to_keep_after_use(self):
+        return 'all'
+
+    def fields_to_store_after_use(self):
+        return 'all'
+
     def build_impl(self):
         self.model = 42
 
@@ -12,5 +18,5 @@ class CV(Component):
     def use_impl(self, data):
         return data
 
-    def tree_impl(cls, data):
+    def tree_impl(self, data):
         HPTree({}, [])

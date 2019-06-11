@@ -105,8 +105,7 @@ class Component(ABC):
 
         self._train_data__mutable = data
 
-        # TODO: use model_dump if self.dump_it=True
-        output_data, model_dump = self.look_for_result(data)
+        output_data = self.look_for_result(data)
 
         if self.failed:
             self.msg(f"Won't apply on data {self.train_data__mutable().name()}"
@@ -169,8 +168,7 @@ class Component(ABC):
             self.msg(f"Using {self.name} on None returns None.")
             return None
 
-        # TODO: use model_dump if self.dump_it=True
-        output_data, model_dump = self.look_for_result(data)
+        output_data = self.look_for_result(data)
 
         if self.locked_by_others:
             self.msg(f"Won't use {self.name} on data "
@@ -294,7 +292,7 @@ class Component(ABC):
 
     def model_uuid(self):
         self.check_if_applied()
-        if self._model_uuid is None:
+        if self._model_uuid is None and self.dump_it:
             self._model_uuid = uuid(self.model_dump())
         return self._model_uuid
 
@@ -385,7 +383,7 @@ class Component(ABC):
         :return:
         """
         self.check_if_applied()
-        if self._model_dump is None:
+        if self._model_dump is None and self.dump_it:
             self._model_dump = pack_comp(self.model)
         return self._model_dump
 
@@ -422,4 +420,4 @@ class Component(ABC):
     @staticmethod
     def resurrect_from_dump(model_dump, kwargs):
         """Recreate a component from ashes."""
-        pass
+        raise Exception('Not implemented')

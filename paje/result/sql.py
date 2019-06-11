@@ -224,7 +224,8 @@ class SQL(Cache):
     def get_result(self, component, output_data):
         """
         Look for a result in database.
-        :return: (Resulting Data, dump of the model if requested by component)
+        ps.: put a model inside component if it is 'dump_it'-enabled
+        :return: Resulting Data
         """
         if component.failed or component.locked_by_others:
             return None
@@ -253,12 +254,12 @@ class SQL(Cache):
                 output_data.shrink_to(component.fields_to_keep_after_use()))
         else:
             testout = None
-        model_dump = result['model'] if 'model' in result else None
+        component._model_dump = result['model'] if 'model' in result else None
         component.time_spent = result['spent']
         component.failed = result['fail'] and result['fail'] == 1
         component.locked_by_others = result['end'] == '0000-00-00 00:00:00'
         component.node = result['node']
-        return testout, model_dump
+        return testout
 
     def store_data(self, data: Data):
         # Check first with a low cost query if data already exists.
@@ -313,10 +314,6 @@ class SQL(Cache):
             warnings.simplefilter("ignore")
             self.query(sql, [data.history_uuid(), '|'.join(data.history())])
 
-        data_args = [data.uuid(),
-                     data.name_uuid(), data.fields(), data.history_uuid(),
-                     data.dump_uuid(),
-                     '|'.join([str(sh) for sh in data.shapes()])]
         sql = f'''
             insert into data values (
                 NULL,
@@ -325,6 +322,10 @@ class SQL(Cache):
                 ?, ?,
                 {self.now_function()}
             );'''
+        data_args = [data.uuid(),
+                     data.name_uuid(), data.fields(), data.history_uuid(),
+                     data.dump_uuid(),
+                     '|'.join([str(sh) for sh in data.shapes()])]
         try:
             self.query(sql, data_args)
         except IntegrityErrorSQLite as e:

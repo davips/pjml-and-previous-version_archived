@@ -239,10 +239,12 @@ class Data:
         """
         Return a subset of the dictionary of kwargs.
         ps.: Automatically convert vectorized shortcuts to matrices.
-        :param fields:
+        ps 2: ignore inexistent fields
+        ps 3: raise exception in none fields
+        :param fields: 'all' means 'don't touch anything'
         :return:
         """
-        fields_lst = fields.split(',')
+        fields_lst = self.fields() if fields == 'all' else fields.split(',')
         matrixnames = [(x.upper() if x in self.vectors() else x)
                        for x in fields_lst]
 
