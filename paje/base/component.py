@@ -81,7 +81,7 @@ class Component(ABC):
 
         # Create an encoded (uuid) unambiguous (sorted) version of args_set.
         obj_copied._serialized = 'building'
-        obj_copied._uuid = uuid(obj_copied.serialized())
+        obj_copied._uuid = uuid(obj_copied.serialized().encode())
 
         obj_copied.build_impl()
         return obj_copied
@@ -339,9 +339,8 @@ class Component(ABC):
             if 'name' not in self.dic:
                 self.dic['name'] = self.name
 
-            # Create an encoded (uuid) unambiguous (sorted) version of args_set.
-            self._serialized = json.dumps(self.dic, sort_keys=True).encode()
-            self._uuid = uuid(self.serialized())
+            # Create an unambiguous (sorted) version of args_set.
+            self._serialized = json.dumps(self.dic, sort_keys=True)
 
             # 'describe','name','max_time' are reserved words, not for building.
             del self.dic['name']
@@ -415,7 +414,7 @@ class Component(ABC):
     def look_for_result(self, data):
         return self.storage and self.storage.get_result(self, data)
 
-    def check_if_applied(self, data):
+    def check_if_applied(self):
         if self._train_data__mutable is None:
             raise UseWithoutApply(f'{self.name} should be applied!')
 

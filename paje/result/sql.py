@@ -174,28 +174,29 @@ class SQL(Cache):
         # Store component (if inexistent yet) and attempt to acquire lock.
         # Mark as locked_by_others otherwise.
         nf = self.now_function()
-        args_comp = [component.uuid(), component.serialized()]
-        args_res = [self.hostname,
-                    component.uuid(), component.uuid_train(), input_data.uuid()]
         sql = f'''
-            begin;
             insert or ignore into com values (
                 NULL,
                 ?,
                 ?,
                 {nf}
-            );
-            insert into res values (
+            )'''
+        self.query(sql, [component.uuid(), component.serialized()])
+
+        sql = f'''insert into res values (
                 null,
-                ?
-                ?, ?, ?, null
+                ?,
+                ?, ?, ?, null,
                 null, null, null,
                 null,
                 {nf}, '0000-00-00 00:00:00', '0000-00-00 00:00:00',
                 0, 0
-            end;'''
+            )'''
+        args_res = [self.hostname,
+                    component.uuid(), component.train_data__mutable().uuid(),
+                    input_data.uuid()]
         try:
-            self.query(sql, args_comp + args_res)
+            self.query(sql, args_res)
         except IntegrityErrorSQLite as e:
             print(f'Unexpected lock! Giving up my turn on {txtres}', e)
             component.locked_by_others = True
@@ -241,7 +242,7 @@ class SQL(Cache):
         result = self.get_one()
         if result is None:
             return None, None
-        if 'bytes' in result:
+        if 'bytes' in result and result['bytes']:
             slim = Data(name=result['des'], **unpack_data(result['bytes']))
             testout = slim.merged(
                 output_data.shrink_to(component.fields_to_keep_after_use()))
@@ -273,44 +274,45 @@ class SQL(Cache):
         # ps. : in the presence of predictions (z),
         # UUID will change according to the new set of fields,
         # otherwise, it will depend only on 'Data.name' and 'Data.fields'.
+
         sql = f'''
-            begin;
             insert or ignore into dump values (
                 null,
                 ?, 'data',
                 ?
-            );
+            )'''
+        self.query(sql, [data.dump_uuid(), data.dump()])
+
+        sql = f'''
             insert or ignore into name values (
                 NULL,
                 ?,
                 ?,
                 ?
-            );
+            );'''
+        self.query(sql, [data.name_uuid(), data.name(), data.columns()])
+
+        sql = f'''
             insert or ignore into hist values (
                 NULL,
                 ?,
                 ?
-            );
+            )'''
+        self.query(sql, [data.history_uuid(), str(data.history())])
+
+        data_args = [data.uuid(),
+                     data.name_uuid(), data.fields(), data.history_uuid(),
+                     data.dump_uuid(), str(data.shapes())]
+        sql = f'''
             insert into data values (
                 NULL,
                 ?,
                 ?, ?, ?,
                 ?, ?,
                 {self.now_function()}
-            );
-            end;'''
-        dump_args = [data.dump_uuid(),
-                     data.dump()]
-        name_args = [data.name_uuid(),
-                     data.name(),
-                     data.columns()]
-        hist_args = [data.history_uuid(),
-                     data.history()]
-        data_args = [data.uuid(),
-                     data.name_uuid(), data.fields(), data.history_uuid(),
-                     data.dump_uuid(), data.shapes()]
+            );'''
         try:
-            self.query(sql, dump_args + name_args + hist_args + data_args)
+            self.query(sql, data_args)
         except IntegrityErrorSQLite as e:
             print(f'Data already store before!', data.uuid())
         except IntegrityErrorMySQL as e:
@@ -339,26 +341,28 @@ class SQL(Cache):
         # We should set all timestamp fields even if with the same old value.
         # Data train inserted and dtr was created when locking().
         # 'or ignore' because different models can have the same predictions.
-        sql = f'''
-            begin;
-            insert or ignore into dump values (
-                null,
-                ?, 'model', ?
-            );
-            update result set 
-                dout=?, spent=?,
-                dumpc=?,
-                fail=?,
-                start=start, end={now}, alive={now}
-            where
-                com=? and dtr=? and din=?
-            end;'''
+        sql = f'''insert or ignore into dump values (
+                    null,
+                    ?, 'model', ?
+                )'''
         dump_args = [component.model_uuid(), component.model_dump()]
+        self.query(sql, dump_args)
+
+        sql = f'''update result set 
+                    dout=?, spent=?,
+                    dumpc=?,
+                    fail=?,
+                    start=start, end={now}, alive={now}
+                where
+                    com=? and dtr=? and din=?
+                '''
         resargs1 = [slim and slim.uuid(), component.time_spent,
                     component.model_uuid(),
                     1 if component.failed else 0]
-        resargs2 = [component.uuid(), component.uuid_train(), input_data.uuid()]
-        self.query(sql, dump_args + resargs1 + resargs2)
+        resargs2 = [component.uuid(), component.train_data__mutable().uuid(),
+                    input_data.uuid()]
+        self.query(sql, resargs1 + resargs2)
+
         print('Stored!')
 
     def data_exists(self, data):
@@ -386,7 +390,7 @@ class SQL(Cache):
         return ''.join(list(sum(zipped, ())))
 
     # @profile
-    def query(self, sql, args=None):
+    def query(self, sql, args=None, commit=True):
         if self.read_only and not sql.startswith('select '):
             print('========================================\n',
                   'Attempt to write onto read-only storage!', sql)
@@ -403,15 +407,15 @@ class SQL(Cache):
             sql = sql.replace('insert or ignore', 'insert ignore')
             # self.connection.ping(reconnect=True)
 
-        import sys
-        import traceback
-
         try:
             self.cursor.execute(sql, args)
-            self.connection.commit()
+            if commit:
+                self.connection.commit()
         except Exception as ex:
             # From a StackOverflow answer...
-            msg = self.info + msg
+            import sys
+            import traceback
+            msg = self.info + '\n' + msg
             # Gather the information from the original exception:
             exc_type, exc_value, exc_traceback = sys.exc_info()
             # Format the original exception for a nice printout:
@@ -424,15 +428,15 @@ class SQL(Cache):
     def get_data_by_uuid(self, datauuid, just_check_exists=False):
         sql_fields = '1' if just_check_exists else 'des, cols, bytes, txt'
         self.query(f'''
-            select 
-                {sql_fields} 
-            from 
-                data 
-                    left join name on name=nid 
-                    left join dump on dumpd=duid
-                    left join hist on hist=hid
-            where 
-                did=?''', [datauuid])
+                select 
+                    {sql_fields} 
+                from 
+                    data 
+                        left join name on name=nid 
+                        left join dump on dumpd=duid
+                        left join hist on hist=hid
+                where 
+                    did=?''', [datauuid])
         result = self.get_one()
         if result is None:
             return None
@@ -462,16 +466,16 @@ class SQL(Cache):
         sql_fields = '1' if just_check_exists else 'cols, bytes, txt'
 
         sql = f'''
-            select 
-                {sql_fields} 
-            from 
-                data 
-                    left join name on name=nid 
-                    left join dump on dumpd=duid
-                    left join hist on hist=hid
-            where 
-                des=? {f'and fields=?' if fields else ''} and
-                txt=?'''
+                select 
+                    {sql_fields} 
+                from 
+                    data 
+                        left join name on name=nid 
+                        left join dump on dumpd=duid
+                        left join hist on hist=hid
+                where 
+                    des=? {f'and fields=?' if fields else ''} and
+                    txt=?'''
         args = [name, fields.upper(), history] if fields else [name, history]
 
         self.query(sql, args)
@@ -515,16 +519,16 @@ class SQL(Cache):
         :return:
         """
         self.query(f"""
-            select
-                des, txt as history
-            from
-                res join data on dtr=did 
-                    join name on name=nid 
-                    join hist on hist=hid 
-            where
-                end!='0000-00-00 00:00:00' and 
-                failed=0 and mark=?
-        """, [mark])
+                select
+                    des, txt as history
+                from
+                    res join data on dtr=did 
+                        join name on name=nid 
+                        join hist on hist=hid 
+                where
+                    end!='0000-00-00 00:00:00' and 
+                    failed=0 and mark=?
+            """, [mark])
         rows = self.cursor.fetchall()
         if rows is None or len(rows) == 0:
             return None
