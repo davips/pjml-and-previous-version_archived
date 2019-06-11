@@ -183,7 +183,7 @@ class Data:
     def updated(self, component, **kwargs):
         """ Return a new Data updated by given values.
         :param component: to put into transformations list for history purposes
-        (it can be a list of transformations also for internal use in Data).
+        (it can be a string also for internal use in Data).
         :param kwargs:
         :return:
         """
@@ -197,33 +197,43 @@ class Data:
             new_kwargs['name'] = self.name()
 
         if 'history' not in new_kwargs:
-            new_kwargs['history'] = \
-                self.history() + [component.serialized()]
+            new_kwargs['history'] = self.history() + [component] \
+                if isinstance(component, str) else self.history() + \
+                                                   [component.serialized()]
         else:
             print('Warning, giving \'history\' from outside update().')
         return Data(**new_kwargs)
 
-    def merged(self, data):
+    def merged(self, new_data):
         """
         Get more matrices (or new values) from another Data.
         The longest history will be kept.
         They should have the same name and be different by at most one
         transformation.
         Otherwise, an exception will be raised.
-        :param data:
+        new_data has precedence over self.
+        :param new_data:
         :return:
         """
-        dica = uuid_enumerated_dic(data.history())
+        if self.name() != new_data.name():
+            raise Exception(f'Merging {self.name()} with {new_data.name()}')
+
+        dica = uuid_enumerated_dic(new_data.history())
         dicb = uuid_enumerated_dic(self.history())
         uuids = set(dica.keys()).symmetric_difference(set(dicb.keys()))
         if len(uuids) > 1:
             raise Exception(f'Merging {self.name()}: excess of '
                             f'transformations in one of the Data instances',
-                            data.history(), self.history())
-        history = data.history() if len(dica) > len(dicb) else self.history()
-        if self.name() != data.name():
-            raise Exception(f'Merging {self.name()} with {data.name()}')
-        return self.updated(history=history, **data.matrices())
+                            new_data.history(), self.history())
+
+        if len(uuids) == 0:
+            compstr = 'Merge'
+        else:
+            lastuuid = list(uuids)[0]
+            compstr = dica[lastuuid] \
+                if len(dica) > len(dicb) else dicb[lastuuid]
+
+        return self.updated(compstr, **new_data.matrices())
 
     def select(self, fields):
         """
@@ -296,7 +306,7 @@ class Data:
 
     def history_uuid(self):
         if self._history_uuid is None:
-            self._set('_history_uuid', uuid(self.name().encode()))
+            self._set('_history_uuid', uuid(','.join(self.history()).encode()))
         return self._history_uuid
 
     def dump_uuid(self):

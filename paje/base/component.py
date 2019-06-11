@@ -360,7 +360,8 @@ class Component(ABC):
         """
         self.storage.store(self, input_data, output_data)
 
-    def clock(self):
+    @staticmethod
+    def clock():
         t = os.times()
         return t[4]
         # return usage[0] + usage[1]  # TOTAL CPU whole-system time

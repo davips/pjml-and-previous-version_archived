@@ -236,8 +236,8 @@ class SQL(Cache):
                 res 
                     left join data on dout = did
                     left join dump on dumpd = duid
-                    left join name on des = nid
-                    {'left join dump duc on dumpc = duid'
+                    left join name on name = nid
+                    {'left join dump on dumpc = duid'
         if component.dump_it else ''}                    
             where                
                 com=? and dtr=? and din=?''',
@@ -311,11 +311,12 @@ class SQL(Cache):
             )'''
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            self.query(sql, [data.history_uuid(), str(data.history())])
+            self.query(sql, [data.history_uuid(), '|'.join(data.history())])
 
         data_args = [data.uuid(),
                      data.name_uuid(), data.fields(), data.history_uuid(),
-                     data.dump_uuid(), str(data.shapes())]
+                     data.dump_uuid(),
+                     '|'.join([str(sh) for sh in data.shapes()])]
         sql = f'''
             insert into data values (
                 NULL,
@@ -358,7 +359,7 @@ class SQL(Cache):
                     null,
                     ?, 'model', ?
                 )'''
-        dump_args = [component.model_uuid(), component.model_dump()]
+        dump_args = [component.model_uuid(), model_dump]
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             self.query(sql, dump_args)
@@ -367,15 +368,17 @@ class SQL(Cache):
                     dout=?, spent=?,
                     dumpc=?,
                     fail=?,
-                    start=start, end={now}, alive={now}
+                    start=start, end={now}, alive={now},
+                    mark=?
                 where
-                    com=? and dtr=? and din=? and mark=?
+                    com=? and dtr=? and din=?
                 '''
         resargs1 = [slim and slim.uuid(), component.time_spent,
                     component.model_uuid(),
-                    1 if component.failed else 0]
+                    1 if component.failed else 0,
+                    component.mark]
         resargs2 = [component.uuid(), component.train_data__mutable().uuid(),
-                    input_data.uuid(), component.mark]
+                    input_data.uuid()]
         self.query(sql, resargs1 + resargs2)
 
         print('Stored!')
@@ -459,7 +462,7 @@ class SQL(Cache):
             return True
         return Data(name=result['des'],
                     columns=result['cols'],
-                    history=result['history'],
+                    history=result['history'].split('|'),
                     **unpack_data(result['bytes']))
 
     def get_data_by_name(self, name, fields=None, history=None,
@@ -477,7 +480,7 @@ class SQL(Cache):
         :param just_check_exists:
         :return:
         """
-        history = '' if history is None else ', '.join(history)
+        history = '' if history is None else '|'.join(history)
         sql_fields = '1' if just_check_exists else 'cols, bytes, txt'
 
         sql = f'''
