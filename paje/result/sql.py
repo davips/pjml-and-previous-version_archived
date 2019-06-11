@@ -247,7 +247,7 @@ class SQL(Cache):
                     output_data.uuid()])
         result = self.get_one()
         if result is None:
-            return None, None
+            return None
         if 'bytes' in result and result['bytes']:
             slim = Data(name=result['des'], **unpack_data(result['bytes']))
             testout = slim.merged(
@@ -325,7 +325,8 @@ class SQL(Cache):
         data_args = [data.uuid(),
                      data.name_uuid(), data.fields(), data.history_uuid(),
                      data.dump_uuid(),
-                     '|'.join([str(k + ':' + v) for k, v in data.shapes()])]
+                     '|'.join([k + ':' + str(v)
+                               for k, v in data.shapes().items()])]
         try:
             self.query(sql, data_args)
         except IntegrityErrorSQLite as e:
