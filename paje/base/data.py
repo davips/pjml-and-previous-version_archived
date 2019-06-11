@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import sklearn
 import sklearn.datasets as ds
+from paje.module.experimenting.cv import CV
 from paje.util.encoders import pack_data, uuid, uuid_enumerated_dic
 from sklearn.utils import check_X_y
 
@@ -333,25 +334,17 @@ class Data:
         [txt.append(f'{k}: {str(v)}') for k, v in self.matrices().items()]
         return '\n'.join(txt) + self.name()
 
-    def split(self, train_size=0.25, random_state=1):
-        X, y = self.Xy
-        X_train, X_test, y_train, y_test = \
-            sklearn.model_selection.train_test_split(X, y, random_state=1)
-        train_size = 0.25  # TODO: set it as parameter
-        name = f'{self.name()}_seed{random_state}_split{train_size}_fold'
-        raise Exception('implementar CV()')
-        trainset = Data(name=name, X=X_train).updated(y=y_train)
-        testset = Data(name=name, X=X_test).updated(y=y_test)
-        # TODO: usar component CV()
-
-        return trainset, testset
+    def split(self, test_size=0.25, random_state=1):
+        cv = CV().build(random_state=random_state, split='holdout',
+                        test_size=test_size, steps=1, testing_fold=0)
+        return cv.apply(self), cv.use(self)
 
     def shapes(self):
         """
         Return the shape of all matrices.
         :return:
         """
-        return [v.shape for v in self.matrices().values()]
+        return {k: v.shape for k, v in self.matrices().items()}
 
     # Redefinig all class member as functions just for uniformity and 
     # autocompleteness. And to show protection against changes. 
@@ -363,12 +356,6 @@ class Data:
 
     def n_attributes(self):
         return self._n_attributes
-
-    def Xy(self):
-        return self._Xy
-
-    def Uv(self):
-        return self._Uv
 
     def prediction(self):
         return self._prediction

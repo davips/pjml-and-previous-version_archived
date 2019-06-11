@@ -150,7 +150,7 @@ class Component(ABC):
     def use(self, data=None):
         """Todo the doc string
         """
-        self.check_if_applied(data)
+        self.check_if_applied()
 
         if self.storage is not None:
             # If the component was applied (probably simulated by storage),

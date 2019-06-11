@@ -325,7 +325,7 @@ class SQL(Cache):
         data_args = [data.uuid(),
                      data.name_uuid(), data.fields(), data.history_uuid(),
                      data.dump_uuid(),
-                     '|'.join([str(sh) for sh in data.shapes()])]
+                     '|'.join([str(k + ':' + v) for k, v in data.shapes()])]
         try:
             self.query(sql, data_args)
         except IntegrityErrorSQLite as e:
