@@ -36,14 +36,15 @@ class Data:
         """
 
         # Init instance matrices to factory new Data instances in the future.
-        args = {k: v for k, v in locals().items()
-                if v is not None and len(k) == 1}
+        matrices = {k: v for k, v in locals().items()  # Only used ones.
+                    if v is not None and len(k) == 1}
+        all_mats = {k: v for k, v in locals().items() if len(k) == 1}
+
         if history is None:
             print('Warning: no component provided to Data, we will assume it '
                   'did\'t come from a transformation/prediction etc.')
 
-        self.__dict__.update(args)
-        matrices = args.copy()  # TODO: is copy really needed here?
+        self.__dict__.update(all_mats)
         prediction = {k: v for k, v in matrices.items()
                       if k in ['Z', 'W', 'P', 'Q']}
 
@@ -70,7 +71,6 @@ class Data:
         })
 
         # Add vectorized shortcuts for matrices.
-        se a pessoa acessar uma matriz que nao existe tem que voltar none.
         vectors = ['y', 'z', 'v', 'w']
         self._set('_vectors', vectors)
         for vec in vectors:
@@ -80,6 +80,7 @@ class Data:
         self._set('_dump', None)
         self._set('_dump_prediction', None)
         self._set('_uuid', None)
+        self._set('_history_uuid', None)
         self._set('_dump_uuid', None)
         self._set('_name_uuid', None)
         self._set('_name', name)
@@ -232,7 +233,7 @@ class Data:
         :return:
         """
         fields_lst = fields.split(',')
-        matrixnames = [(x.upper() if x in self.vectors else x)
+        matrixnames = [(x.upper() if x in self.vectors() else x)
                        for x in fields_lst]
 
         # Raise exception if any requested matrix is None.
@@ -279,14 +280,21 @@ class Data:
             # UUID, we have faster UUID calculations than calculating UUID
             # on the matrices dump; and also enforce human readable integrity
             # (name and fields and history are more readable than Data.UUID).
-            uuid_ = uuid(self.name_uuid() + self.fields() + self.history_uuid())
+            uuid_ = uuid((self.name_uuid() +
+                          self.fields() +
+                          self.history_uuid()).encode())
             self._set('_uuid', uuid_)
         return self._uuid
 
     def name_uuid(self):
         if self._name_uuid is None:
-            self._set('_name_uuid', uuid(self.name()))
+            self._set('_name_uuid', uuid(self.name().encode()))
         return self._name_uuid
+
+    def history_uuid(self):
+        if self._history_uuid is None:
+            self._set('_history_uuid', uuid(self.name().encode()))
+        return self._history_uuid
 
     def dump_uuid(self):
         if self._dump_uuid is None:
@@ -327,7 +335,7 @@ class Data:
         Return the shape of all matrices.
         :return:
         """
-        return [v.shape() for v in self.matrices().values()]
+        return [v.shape for v in self.matrices().values()]
 
     # Redefinig all class member as functions just for uniformity and 
     # autocompleteness. And to show protection against changes. 

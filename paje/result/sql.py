@@ -225,27 +225,29 @@ class SQL(Cache):
         self.query(f'''
             select 
                 des, bytes, spent, fail, end, node
-                {' ' and component.dump_it and ', duc.bytes as model'}
+                {', duc.bytes as model' if component.dump_it else ''}
             from 
-                result 
+                res 
                     left join data on dout = did
                     left join dump on dumpd = duid
                     left join name on des = nid
-                    {' ' and component.dump_it and
-                     'left join dump duc on dumpc = duid'}
-                    
+                    {'left join dump duc on dumpc = duid'
+        if component.dump_it else ''}                    
             where                
-                com=? and dtr=? and din=?''', [component.uuid(),
-                                               component.uuid_train(),
-                                               output_data.uuid()])
+                com=? and dtr=? and din=?''',
+                   [component.uuid(),
+                    component.train_data__mutable().uuid(),
+                    output_data.uuid()])
         result = self.get_one()
-        if result['bytes'] is not None:
+        if result is None:
+            return None, None
+        if 'bytes' in result:
             slim = Data(name=result['des'], **unpack_data(result['bytes']))
             testout = slim.merged(
                 output_data.shrink_to(component.fields_to_keep_after_use()))
         else:
             testout = None
-        model_dump = ('model' in result or None) and result['model']
+        model_dump = result['model'] if 'model' in result else None
         component.time_spent = result['spent']
         component.failed = result['fail'] and result['fail'] == 1
         component.locked_by_others = result['end'] == '0000-00-00 00:00:00'
@@ -287,12 +289,12 @@ class SQL(Cache):
             insert or ignore into hist values (
                 NULL,
                 ?,
-                ?,
+                ?
             );
             insert into data values (
                 NULL,
                 ?,
-                ?, ?, ?
+                ?, ?, ?,
                 ?, ?,
                 {self.now_function()}
             );
@@ -302,10 +304,10 @@ class SQL(Cache):
         name_args = [data.name_uuid(),
                      data.name(),
                      data.columns()]
-        hist_args = [data.hist_uuid(),
+        hist_args = [data.history_uuid(),
                      data.history()]
         data_args = [data.uuid(),
-                     data.name(), data.fields(), data.history(),
+                     data.name_uuid(), data.fields(), data.history_uuid(),
                      data.dump_uuid(), data.shapes()]
         try:
             self.query(sql, dump_args + name_args + hist_args + data_args)
@@ -356,7 +358,7 @@ class SQL(Cache):
                     component.model_uuid(),
                     1 if component.failed else 0]
         resargs2 = [component.uuid(), component.uuid_train(), input_data.uuid()]
-        self.query(sql, resargs1 + resargs2)
+        self.query(sql, dump_args + resargs1 + resargs2)
         print('Stored!')
 
     def data_exists(self, data):
@@ -468,7 +470,7 @@ class SQL(Cache):
                     left join dump on dumpd=duid
                     left join hist on hist=hid
             where 
-                des=? {' ' and fields and f"and fields=?"} and
+                des=? {f'and fields=?' if fields else ''} and
                 txt=?'''
         args = [name, fields.upper(), history] if fields else [name, history]
 
