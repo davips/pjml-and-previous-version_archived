@@ -43,6 +43,7 @@ class Component(ABC):
         self.mark = None
         self._model_dump = None
         self._model_uuid = None
+        self._describe = None
 
         # Whether to dump the model or not, if a storage is given.
         self.dump_it = dump_it or None  # 'or'->possib.vals=Tru,Non See sql.py
@@ -73,57 +74,17 @@ class Component(ABC):
         if self._uuid is not None:
             self.error('Build cannot be called on a built component!')
         obj_copied = copy.copy(self)
-        # if self.storage is not None:
-        #     self.storage.open()
-        obj_copied.dic = dic
+        obj_copied.dic.update(dic)
         if obj_copied.isdeterministic() and "random_state" in obj_copied.dic:
             del obj_copied.dic["random_state"]
-        obj_copied.dic.update(dic)
         obj_copied.dic['describe'] = self.describe()
 
-        if obj_copied.isdeterministic() and "random_state" in obj_copied.dic:
-            del obj_copied.dic["random_state"]
-
-        # When the build is not created by a dic coming from a HPTree,
-        #  it can be lacking a name.
-        if 'name' not in obj_copied.dic:
-            obj_copied.dic['name'] = obj_copied.name
-
-        obj_copied._serialized = json.dumps(
-            obj_copied.dic, sort_keys=True).encode()
+        # Create an encoded (uuid) unambiguous (sorted) version of args_set.
+        obj_copied._serialized = 'building'
         obj_copied._uuid = uuid(obj_copied.serialized())
-
-        # 'name' and 'max_time' are reserved words, not for building.
-        del obj_copied.dic['name']
-        if 'max_time' in obj_copied.dic:
-            obj_copied.max_time = obj_copied.dic.pop('max_time')
-
-        # 'describe' is a reserved word, not for building.
-        del obj_copied.dic['describe']
 
         obj_copied.build_impl()
         return obj_copied
-
-    def handle_warnings(self):
-        # Mahalanobis in KNN needs to supress warnings due to NaN in linear
-        # algebra calculations. MLP is also verbose due to nonconvergence
-        # issues among other problems.
-        if not self.show_warns:
-            np.warnings.filterwarnings('ignore')
-
-    def dishandle_warnings(self):
-        if not self.show_warns:
-            np.warnings.filterwarnings('always')
-
-    def lock(self, data, txt=''):
-        self.storage.lock(self, data, txt)
-
-        # Create an encoded (uuid) unambiguous (sorted) version of args_set.
-        new_obj._serialized = 'building'
-        new_obj._uuid = uuid(new_obj.serialized())
-
-        new_obj.build_impl()
-        return new_obj
 
     def describe(self):
         if self._describe is None:
@@ -133,6 +94,7 @@ class Component(ABC):
                 'sub_components': []
             }
         return self._describe
+
     def apply(self, data=None):
         """Todo the doc string
         """
@@ -196,7 +158,7 @@ class Component(ABC):
             # but there is no model, we reapply it...
             if self.model is None:
                 print('It is possible that a previous apply() was '
-                  'successfully stored, but its use() wasn\'t.')
+                      'successfully stored, but its use() wasn\'t.')
                 print('Applying just for use() because results were only '
                       'partially stored in a previous execution:'
                       f'comp: {self.uuid()}  data: {data.uuid()} ...')
@@ -381,12 +343,13 @@ class Component(ABC):
             self._serialized = json.dumps(self.dic, sort_keys=True).encode()
             self._uuid = uuid(self.serialized())
 
-            # 'name' and 'max_time' are reserved words, not for building.
+            # 'describe','name','max_time' are reserved words, not for building.
             del self.dic['name']
             if 'max_time' in self.dic:
                 self.max_time = self.dic.pop('max_time')
             if 'mark' in self.dic:
                 self.mark = self.dic.pop('mark')
+            del self.dic['describe']
 
         return self._serialized
 
