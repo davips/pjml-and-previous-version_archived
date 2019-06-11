@@ -14,6 +14,7 @@ class AutoML(Component, ABC):
     """ TODO the docstring documentation
     """
     def __init__(self,
+                 components=None,
                  n_jobs=1,
                  verbose=True,
                  **kwargs):
@@ -29,6 +30,8 @@ class AutoML(Component, ABC):
         self.max_iter = None
         self.evaluator = None
 
+        self.components = components
+
         # Other class attributes.
         # These attributes can be set here or in the build_impl method. They
         # should not influence the AutoML final result.
@@ -42,8 +45,16 @@ class AutoML(Component, ABC):
         self.fails, self.locks, self.successes, self.total = 0, 0, 0, 0
         self.current_iteration = 0
 
+    def describe(self):
+        return {
+            'module': self.module,
+            'name': self.name,
+            'sub_components': [comp.qualify() for comp in self.components]}
+
     def build_impl(self):
         """ TODO the docstring documentation
+            self.random_state
+            self.max_iter
         """
         # The 'self' is a copy, because of the Component.build().
         # Be careful, the copy made in the parent (Component) is
@@ -80,6 +91,7 @@ class AutoML(Component, ABC):
     def apply_impl(self, data):
         """ TODO the docstring documentation
         """
+        self.evaluator = self.get_evaluator()
         self.all_eval_results = []
         for iteration in range(1, self.max_iter+1):
             self.current_iteration = iteration

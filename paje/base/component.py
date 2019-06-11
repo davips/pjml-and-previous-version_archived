@@ -29,6 +29,7 @@ class Component(ABC):
         self.model = None
         self.dic = {}
         self.name = self.__class__.__name__
+        self.module = self.__class__.__module__
         self.tmp_uuid = uuid4().hex  # used when eliminating End* from tree
 
         self.storage = storage
@@ -71,12 +72,51 @@ class Component(ABC):
         # calls build() on an already built instance of component.
         if self._uuid is not None:
             self.error('Build cannot be called on a built component!')
-        new_obj = copy.copy(self)
+        obj_copied = copy.copy(self)
         # if self.storage is not None:
         #     self.storage.open()
-        new_obj.dic = dic
-        if new_obj.isdeterministic() and "random_state" in new_obj.dic:
-            del new_obj.dic["random_state"]
+        obj_copied.dic = dic
+        if obj_copied.isdeterministic() and "random_state" in obj_copied.dic:
+            del obj_copied.dic["random_state"]
+        obj_copied.dic.update(dic)
+        obj_copied.dic['describe'] = self.describe()
+
+        if obj_copied.isdeterministic() and "random_state" in obj_copied.dic:
+            del obj_copied.dic["random_state"]
+
+        # When the build is not created by a dic coming from a HPTree,
+        #  it can be lacking a name.
+        if 'name' not in obj_copied.dic:
+            obj_copied.dic['name'] = obj_copied.name
+
+        obj_copied._serialized = json.dumps(
+            obj_copied.dic, sort_keys=True).encode()
+        obj_copied._uuid = uuid(obj_copied.serialized())
+
+        # 'name' and 'max_time' are reserved words, not for building.
+        del obj_copied.dic['name']
+        if 'max_time' in obj_copied.dic:
+            obj_copied.max_time = obj_copied.dic.pop('max_time')
+
+        # 'describe' is a reserved word, not for building.
+        del obj_copied.dic['describe']
+
+        obj_copied.build_impl()
+        return obj_copied
+
+    def handle_warnings(self):
+        # Mahalanobis in KNN needs to supress warnings due to NaN in linear
+        # algebra calculations. MLP is also verbose due to nonconvergence
+        # issues among other problems.
+        if not self.show_warns:
+            np.warnings.filterwarnings('ignore')
+
+    def dishandle_warnings(self):
+        if not self.show_warns:
+            np.warnings.filterwarnings('always')
+
+    def lock(self, data, txt=''):
+        self.storage.lock(self, data, txt)
 
         # Create an encoded (uuid) unambiguous (sorted) version of args_set.
         new_obj._serialized = 'building'
@@ -85,6 +125,14 @@ class Component(ABC):
         new_obj.build_impl()
         return new_obj
 
+    def describe(self):
+        if self._describe is None:
+            self._describe = {
+                'module': self.module,
+                'name': self.name,
+                'sub_components': []
+            }
+        return self._describe
     def apply(self, data=None):
         """Todo the doc string
         """

@@ -12,6 +12,15 @@ class Composer(Component):
         self.mytree = None
         self.model = 42
 
+    def describe(self):
+        if self._describe is None:
+            self._describe = {
+                'module': self.module,
+                'name': self.name,
+                'sub_components': [comp.qualify() for comp in self.components]
+            }
+        return self._describe
+
     def apply_impl(self, data):
         for component in self.components:
             data = component.apply(data)
