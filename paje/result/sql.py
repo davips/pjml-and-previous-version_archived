@@ -135,6 +135,7 @@ class SQL(Cache):
 
                 tries int NOT NULL,
                 locks int NOT NULL,
+                mark varchar(256),
 
                 UNIQUE(com, dtr, din),
                 FOREIGN KEY (com) REFERENCES com(cid),
@@ -155,6 +156,7 @@ class SQL(Cache):
         self.query('CREATE INDEX res8 ON res (tries)')
         self.query('CREATE INDEX res9 ON res (locks)')
         self.query('CREATE INDEX res10 ON res (log)')
+        self.query('CREATE INDEX res11 ON res (mark)')
 
     def lock(self, component, input_data, txtres=''):
         """
@@ -193,7 +195,7 @@ class SQL(Cache):
                 null, null, null,
                 null,
                 {nf}, '0000-00-00 00:00:00', '0000-00-00 00:00:00',
-                0, 0
+                0, 0, null
             )'''
         args_res = [self.hostname,
                     component.uuid(), component.train_data__mutable().uuid(),
@@ -258,7 +260,7 @@ class SQL(Cache):
         component.node = result['node']
         return testout, model_dump
 
-    def store_data(self, data:Data):
+    def store_data(self, data: Data):
         # Check first with a low cost query if data already exists.
         if self.data_exists(data):
             if self.debug:
@@ -367,13 +369,13 @@ class SQL(Cache):
                     fail=?,
                     start=start, end={now}, alive={now}
                 where
-                    com=? and dtr=? and din=?
+                    com=? and dtr=? and din=? and mark=?
                 '''
         resargs1 = [slim and slim.uuid(), component.time_spent,
                     component.model_uuid(),
                     1 if component.failed else 0]
         resargs2 = [component.uuid(), component.train_data__mutable().uuid(),
-                    input_data.uuid()]
+                    input_data.uuid(), component.mark]
         self.query(sql, resargs1 + resargs2)
 
         print('Stored!')
@@ -526,10 +528,11 @@ class SQL(Cache):
         """
         Finished means nonfailed and unlocked results.
         The original datasets will not be returned.
-        original dataset = stored as with no history of transformations.
-        All results are returned, so the names come along with history,
+        original dataset = stored with no history of transformations.
+        All results are returned (apply & use, as many as there are),
+         so the names come along with their history,
         :param mark:
-        :return:
+        :return: [dicts]
         """
         self.query(f"""
                 select
@@ -540,7 +543,7 @@ class SQL(Cache):
                         join hist on hist=hid 
                 where
                     end!='0000-00-00 00:00:00' and 
-                    failed=0 and mark=?
+                    fail=0 and mark=?
             """, [mark])
         rows = self.cursor.fetchall()
         if rows is None or len(rows) == 0:

@@ -352,9 +352,6 @@ class Component(ABC):
 
         return self._serialized
 
-    def store_data(self, data):
-        self.storage.store_data(data)
-
     def store_result(self, input_data, output_data):
         """
         :param input_data:

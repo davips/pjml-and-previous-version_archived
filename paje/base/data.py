@@ -88,7 +88,7 @@ class Data:
 
         # Check list
         if not isinstance(name, str):
-            raise Exception('Wrong parameter passed as name', name)
+            raise Exception('Wrong parameter passed as name=', name)
         if X is not None and Y is not None:
             try:
                 check_X_y(X, self.__dict__['y'])
@@ -257,16 +257,19 @@ class Data:
 
     def dump(self):
         if self._dump is None:
+            # I am not sure if this commented code is really needed...
+            #  it seems dangerous, and sql.py manages shrinking of Data.
             # This if is needed to avoid useless redumping of the same data.
-            if self.has_prediction_data():
-                self._set('_dump', self.dump_prediction_only())
-            else:
-                self._set('_dump', pack_data(self.matrices()))
+            # if self.has_prediction_data():
+            #     self._set('_dump', self.dump_prediction_only())
+            # else:
+
+            self._set('_dump', pack_data(self.matrices()))
         return self._dump
 
     def dump_prediction_only(self):
         if self._dump_prediction is None:
-            self._set('_dump_prediction', pack_data(self.prediction))
+            self._set('_dump_prediction', pack_data(self.prediction()))
         return self._dump_prediction
 
     def uuid(self):
@@ -324,6 +327,7 @@ class Data:
             sklearn.model_selection.train_test_split(X, y, random_state=1)
         train_size = 0.25  # TODO: set it as parameter
         name = f'{self.name()}_seed{random_state}_split{train_size}_fold'
+        raise Exception('implementar CV()')
         trainset = Data(name=name, X=X_train).updated(y=y_train)
         testset = Data(name=name, X=X_test).updated(y=y_test)
         # TODO: usar component CV()
