@@ -118,7 +118,7 @@ class Component(ABC):
         if self.locked_by_others:
             print(f"Won't apply {self.name} on data "
                   f"{self.train_data__mutable().name()}\n"
-                  f"Current probably working at node [{self.node}].")
+                  f"Currently probably working at node [{self.node}].")
             return output_data
 
         # Apply if still needed  ----------------------------------
@@ -176,7 +176,7 @@ class Component(ABC):
         if self.locked_by_others:
             self.msg(f"Won't use {self.name} on data "
                      f"{self.train_data__mutable().name()}\n"
-                     f"Current probably working at {self.node}.")
+                     f"Currently probably working at {self.node}.")
             return output_data
 
         if self.failed:

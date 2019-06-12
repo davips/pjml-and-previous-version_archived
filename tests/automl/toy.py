@@ -1,3 +1,4 @@
+import sys
 from sys import argv
 
 from paje.automl.random import RandomAutoML
@@ -13,21 +14,26 @@ from paje.module.modelling.classifier.svmc import SVMC
 
 
 def main():
-    if len(argv) < 2 or len(argv) > 5:
-        print('Usage: \npython toy.py dataset.arff '
-              '[memoize? True/False] [iterations] [seed]')
+    if any(['=' not in k for k in sys.argv[1:]]):
+        print('Usage: \npython toy.py data=dataset.arff '
+              'iter=# [seed=#] [storage=mysql/sqlite] [db=teste] ')
     else:
-        # storage = SQLite(debug=not True) if len(argv) >= 3 and argv[2] == \
-        #                                     'True' else None
-        storage = MySQL(db='blabla', debug=not True) \
-            if len(argv) >= 3 and argv[2] == 'True' else None
+        arg = {tupl.split('=')[0]: tupl.split('=')[1] for tupl in sys.argv[1:]}
+        for k, v in arg.items():
+            print(f'{k}={v}')
 
-        iterations = 30 if len(argv) < 4 else int(argv[3])
-        random_state = 0 if len(argv) < 5 else int(argv[4])
-        data = Data.read_arff(argv[1], "class")
-        for a in argv:
-            print(a)
-        print('seed=', random_state)
+        if 'storage' in arg:
+            if arg['storage'] == 'sqlite':
+                storage = SQLite(debug=not True)
+            if arg['storage'] == 'mysql':
+                storage = MySQL(db=arg['db'], debug=not True)
+        else:
+            storage = None
+
+        iterations = int(arg['iter']) if 'iter' in arg else 3
+        random_state = int(arg['seed']) if 'seed' in arg else 0
+        data = Data.read_arff(arg['data'], "class")
+
         trainset, testset = data.split()
 
         automl_rs = RandomAutoML(

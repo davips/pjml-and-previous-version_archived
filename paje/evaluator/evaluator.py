@@ -102,11 +102,14 @@ class EvaluatorClassif(Evaluator):
 
             output_train = component.apply(train)
             output_test = component.use(test)
-            print('train :::::::::', output_train.shapes())
-            print('test ::::::::::', output_test.shapes())
+            if output_train is not None:
+                print('train :::::::::', output_train.shapes())
+                print('test ::::::::::', output_test.shapes())
+            else:
+                print(':::::::', 'faliu')
 
             if not(output_test and output_train):
-                return (None, None)
+                return None, None
 
             measure_train = output_train and self._metric(output_train)
             measure_test = output_test and self._metric(output_test)

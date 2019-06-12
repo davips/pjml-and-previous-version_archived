@@ -256,7 +256,7 @@ class SQL(Cache):
             data = Data(name=result['des'],
                         history=result['history'].split('|'),
                         **unpack_data(result['bytes']),
-                        columns=result['cols'].split('|'))
+                        columns=result['cols'] and result['cols'].split('|'))
             # print(input_data.shapes(), len(input_data.history()), \
             #       input_data.history())
             # print(data.shapes(), len(data.history()), data.history())
@@ -480,7 +480,7 @@ class SQL(Cache):
         if just_check_exists:
             return True
         return Data(name=result['des'],
-                    columns=result['cols'].split('|'),
+                    columns=result['cols'] and result['cols'].split('|'),
                     history=result['history'].split('|'),
                     **unpack_data(result['bytes']))
 
@@ -527,9 +527,10 @@ class SQL(Cache):
         for row in rows:
             dic.update(unpack_data(row['bytes']))
 
-        return just_check_exists or Data(name=name, history=history,
-                                         columns=rows[0]['cols'].split('|'),
-                                         **unpack_data(rows[0]['bytes']))
+        return just_check_exists or Data(
+            name=name, history=history,
+            columns=rows[0]['cols'] and rows[0]['cols'].split('|'),
+            **unpack_data(rows[0]['bytes']))
 
     def count_results(self, component, data):
         """
