@@ -164,7 +164,7 @@ class Component(ABC):
                 print('Applying just for use() because results were only '
                       'partially stored in a previous execution:'
                       f'comp: {self.uuid()}  data: {data.uuid()} ...')
-                self.apply(self.train_data__mutable())
+                self.apply_impl(self.train_data__mutable())
 
         # Checklist / get from storage -----------------------------------
         if data is None:

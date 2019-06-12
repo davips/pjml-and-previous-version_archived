@@ -14,9 +14,9 @@ from paje.module.modelling.classifier.svmc import SVMC
 
 
 def main():
-    if any(['=' not in k for k in sys.argv[1:]]):
-        print('Usage: \npython toy.py data=dataset.arff '
-              'iter=# [seed=#] [storage=mysql/sqlite] [db=teste] ')
+    if len(sys.argv[1:]) < 1 or any(['=' not in k for k in sys.argv[1:]]):
+        print('Usage: \npython toy.py data=/tmp/dataset.arff '
+              '[iter=#] [seed=#] [storage=mysql/sqlite] [db=teste] ')
     else:
         arg = {tupl.split('=')[0]: tupl.split('=')[1] for tupl in sys.argv[1:]}
         for k, v in arg.items():

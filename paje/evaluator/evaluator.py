@@ -103,10 +103,13 @@ class EvaluatorClassif(Evaluator):
             output_train = component.apply(train)
             output_test = component.use(test)
             if output_train is not None:
-                print('train :::::::::', output_train.shapes())
-                print('test ::::::::::', output_test.shapes())
+                print('output_train ::::', output_train.shapes(),
+                      output_train.uuid())
+                print('output_test :::::', output_test.shapes(),
+                      output_test.uuid())
+
             else:
-                print(':::::::', 'faliu')
+                print('::::', 'faliu')
 
             if not(output_test and output_train):
                 return None, None

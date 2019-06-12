@@ -17,7 +17,7 @@ class CV(Component):
     def next(self):
         if self.dic['testing_fold'] == self.max:
             return None
-        self.dic['testing_fold']+=1
+        self.dic['testing_fold'] += 1
         return self.build(**self.dic)
 
     def build(self, testing_fold=0, **kwargs):
@@ -46,13 +46,15 @@ class CV(Component):
         else:
             partitions = self._memoized[data.uuid()] = \
                 list(self.model.split(*data.Xy))
-        self.max = len(partitions)-1
+        self.max = len(partitions) - 1
         indices, _ = partitions[self.testing_fold]
-        print(len(indices), 'tr size')
 
         # sanity check
         self._applied_data_uuid = data.uuid()
-        return data.updated(self, X=data.X[indices], Y=data.Y[indices])
+
+        cvtrain = CVtr().build()
+        return data.updated(self).updated(cvtrain, X=data.X[indices],
+                                          Y=data.Y[indices])
 
     def use_impl(self, data):
         # sanity check
@@ -60,8 +62,10 @@ class CV(Component):
             raise Exception('apply() and use() must partition the same data!')
 
         _, indices = list(self._memoized[data.uuid()])[self.testing_fold]
-        print(len(indices), 'ts size')
-        return data.updated(self, X=data.X[indices], Y=data.Y[indices])
+
+        cvtest = CVts().build()
+        return data.updated(self).updated(cvtest, X=data.X[indices],
+                                          Y=data.Y[indices])
 
     def tree_impl(self, data):
         holdout = {
@@ -77,3 +81,43 @@ class CV(Component):
             'split': ['c', ['loo']],
         }
         HPTree({'testing_fold': ['c', [0]]}, [holdout, cv, loo])
+
+
+class CVtr(Component):
+    def fields_to_store_after_use(self):
+        pass
+
+    def fields_to_keep_after_use(self):
+        pass
+
+    def build_impl(self):
+        pass
+
+    def apply_impl(self, data):
+        pass
+
+    def use_impl(self, data):
+        pass
+
+    def tree_impl(cls, data):
+        pass
+
+
+class CVts(Component):
+    def fields_to_store_after_use(self):
+        pass
+
+    def fields_to_keep_after_use(self):
+        pass
+
+    def build_impl(self):
+        pass
+
+    def apply_impl(self, data):
+        pass
+
+    def use_impl(self, data):
+        pass
+
+    def tree_impl(cls, data):
+        pass
