@@ -107,8 +107,8 @@ class RandomAutoML(AutoML):
         self.curr_pipe = self.curr_pipe.build(**args)
         return [self.curr_pipe]
 
-    def next_args(self, forest):
-        return forest.tree_to_dict()
+    def next_args(self, tree):
+        return tree.tree_to_dict()
 
     def choose_modules(self):
         # DONE:

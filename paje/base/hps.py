@@ -1,4 +1,5 @@
 import random
+import traceback
 from typing import Dict, List
 
 from paje.util.distributions import sample
@@ -33,7 +34,14 @@ class HPTree(object):
             args['name'] = tree.name
 
         for k, kind_interval in tree.dic.items():
-            args[k] = sample(*kind_interval)
+            try:
+                args[k] = sample(*kind_interval)
+            except Exception as e:
+                traceback.print_exc()
+                print(e)
+                print('Problems sampling: ', k, kind_interval)
+                exit(0)
+
         if tree.children:
             child = random.choice(tree.children)
 

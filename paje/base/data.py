@@ -42,9 +42,8 @@ class Data:
         all_mats = {k: v for k, v in locals().items() if len(k) == 1}
 
         if history is None:
-            raise Exception(',,,,,,,,,,,,,,,,')
-            print('Warning: no history provided to Data, we will assume it '
-                  'did\'t come from a transformation/prediction etc.')
+            raise Exception('No history provided to Data')
+            #we will assume it didnt come from a transformation/predictionetc.
 
         self.__dict__.update(all_mats)
         prediction = {k: v for k, v in matrices.items()
@@ -52,7 +51,8 @@ class Data:
 
         # Metadata
         n_classes = len(set(dematrixify(get_first_non_none([Y, V, Z, W]), [0])))
-        n_instances = len([] and matrices[0])
+        n_instances = len([] or get_first_non_none(matrices.values()))
+        print(n_instances)
         n_attributes = len(get_first_non_none([X, U], [[]])[0])
 
         self.__dict__.update({
