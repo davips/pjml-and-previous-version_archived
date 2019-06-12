@@ -71,8 +71,11 @@ class Component(ABC):
     def build(self, **dic):
         # Check if build has already been called. This is the case when one
         # calls build() on an already built instance of component.
-        if self._uuid is not None:
-            self.error('Build cannot be called on a built component!')
+
+        # TODO: Is this check necessary?
+        # if self._uuid is not None:
+        #     self.error('Build cannot be called on a built component!')
+
         obj_copied = copy.copy(self)
         obj_copied.dic.update(dic)
         if obj_copied.isdeterministic() and "random_state" in obj_copied.dic:
