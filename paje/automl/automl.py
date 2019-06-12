@@ -14,7 +14,8 @@ class AutoML(Component, ABC):
     """ TODO the docstring documentation
     """
     def __init__(self,
-                 components=None,
+                 components,
+                 evaluator,
                  n_jobs=1,
                  verbose=True,
                  **kwargs):
@@ -28,9 +29,9 @@ class AutoML(Component, ABC):
         # could be used into other Components, like the Pipeline one.
         self.random_state = 0
         self.max_iter = None
-        self.evaluator = None
 
         self.components = components
+        self.evaluator = evaluator
 
         # Other class attributes.
         # These attributes can be set here or in the build_impl method. They
@@ -49,24 +50,21 @@ class AutoML(Component, ABC):
         return {
             'module': self.module,
             'name': self.name,
-            'sub_components': [comp.qualify() for comp in self.components]}
+            'sub_components': [comp.describe() for comp in self.components],
+            'evaluator': self.evaluator.describe()
+        }
 
-    def build_impl(self):
-        """ TODO the docstring documentation
-            self.random_state
-            self.max_iter
-        """
-        # The 'self' is a copy, because of the Component.build().
-        # Be careful, the copy made in the parent (Component) is
-        # shallow (copy.copy(self)).
-        # See more details in the Component.build() method.
-
-        self.__dict__.update(self.dic)
-
-        if self.evaluator is None:
-            raise ValueError(
-                'AutoML has no Evaluator setted!'
-            )
+    # def build_impl(self):
+    #     """ TODO the docstring documentation
+    #         self.random_state
+    #         self.max_iter
+    #     """
+    #     # The 'self' is a copy, because of the Component.build().
+    #     # Be careful, the copy made in the parent (Component) is
+    #     # shallow (copy.copy(self)).
+    #     # See more details in the Component.build() method.
+    #
+    #     self.__dict__.update(self.dic)
 
     def eval_pipelines_par(self, pipelines, data, eval_results):
         """ TODO the docstring documentation
@@ -91,7 +89,6 @@ class AutoML(Component, ABC):
     def apply_impl(self, data):
         """ TODO the docstring documentation
         """
-        self.evaluator = self.get_evaluator()
         self.all_eval_results = []
         for iteration in range(1, self.max_iter+1):
             self.current_iteration = iteration
