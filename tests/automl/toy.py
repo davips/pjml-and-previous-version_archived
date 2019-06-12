@@ -19,7 +19,7 @@ def main():
     else:
         # storage = SQLite(debug=not True) if len(argv) >= 3 and argv[2] == \
         #                                     'True' else None
-        storage = MySQL(db='toy', debug=not True) \
+        storage = MySQL(db='blabla', debug=not True) \
             if len(argv) >= 3 and argv[2] == 'True' else None
 
         iterations = 30 if len(argv) < 4 else int(argv[3])
@@ -31,11 +31,11 @@ def main():
         trainset, testset = data.split()
 
         automl_rs = RandomAutoML(
+            preprocessors=[DRPCA()],
+            modelers=[SVMC()],
             storage_for_components=storage,
             show_warns=False,
         ).build(
-            preprocessors=[DRPCA()],
-            modelers=[SVMC()],
             max_iter=iterations,
             static=False, fixed=False,
             max_depth=15, repetitions=0, method="all",
