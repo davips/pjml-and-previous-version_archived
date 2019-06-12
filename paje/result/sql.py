@@ -210,7 +210,7 @@ class SQL(Cache):
             component.locked_by_others = True
         else:
             component.locked_by_others = False
-            print(f'Locked [{txtres}]!')
+            print(f'Now locked for {txtres} {component.name}')
 
     def get_one(self):
         row = self.cursor.fetchone()
@@ -282,7 +282,7 @@ class SQL(Cache):
                 print('Data already exists:' + data.uuid(), data.name())
             return
         else:
-            print('Storing...', data.name(), data.uuid())
+            print('Storing...', data.uuid(), ' ', data.name())
 
         # Insert dump of data and data info.
         # Catch exception in the event of another job winning the race.
@@ -349,7 +349,7 @@ class SQL(Cache):
         except IntegrityErrorMySQL as e:
             print(f'Data already store before!', data.uuid())
         else:
-            print(f'Data inserted', data.uuid())
+            print(f'Data inserted', data.name())
 
     def store(self, component, input_data, output_data):
         """
@@ -394,13 +394,12 @@ class SQL(Cache):
             slim and slim.uuid(), component.time_spent,  # dout, spent
             component.model_uuid(),  # dumpc
             1 if component.failed else 0,  # fail
-            None if component.train_data__mutable().uuid() == input_data.uuid()
-            else component.mark]  # mark
+            component.mark]  # mark
         resargs2 = [component.uuid(), component.train_data__mutable().uuid(),
                     input_data.uuid()]  # com, dtr, din
         self.query(sql, resargs1 + resargs2)
 
-        print('Stored!')
+        print('Stored!\n')
 
     def data_exists(self, data):
         return self.get_data_by_uuid(data.uuid(), True) is not None

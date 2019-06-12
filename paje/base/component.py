@@ -124,10 +124,11 @@ class Component(ABC):
         # Apply if still needed  ----------------------------------
         if output_data is None:
             if self.storage is not None:
-                self.lock(data, 'apply')
+                self.lock(data, 'applying')
 
             self.handle_warnings()
-            self.msg('Applying component' + self.name + '...')
+            if self.name != 'CV':
+                self.msg('Applying component' + self.name + '...')
             start = self.clock()
             try:
                 if self.max_time is None:
@@ -141,7 +142,7 @@ class Component(ABC):
                 self.locked_by_others = False
                 handle_exception(self, e)
             self.time_spent = self.clock() - start
-            self.msg('Component ' + self.name + ' applied.')
+            # self.msg('Component ' + self.name + ' applied.')
             self.dishandle_warnings()
 
             if self.storage is not None:
@@ -190,14 +191,15 @@ class Component(ABC):
                 self.lock(data, 'using')
 
             self.handle_warnings()
-            print('Using component', self.name, '...')
+            if self.name != 'CV':
+                print('Using component', self.name, '...')
 
             # TODO: put time limit and/or exception handling like in apply()?
             start = self.clock()
             output_data = self.use_impl(data)  # TODO:handle excps mark failed
             self.time_spent = self.clock() - start
 
-            self.msg('Component ' + self.name + 'used.')
+            # self.msg('Component ' + self.name + 'used.')
             self.dishandle_warnings()
 
             if self.storage is not None:
@@ -340,6 +342,13 @@ class Component(ABC):
             if 'name' not in self.dic:
                 self.dic['name'] = self.name
 
+            # 'mark' should not identify components, only mark results
+            # when a components is loaded from storage, nobody nows whether
+            # it was part of an experiment or not, except by consulting
+            # the field 'mrak' of the registered result.
+            if 'mark' in self.dic:
+                self.mark = self.dic.pop('mark')
+
             # Create an unambiguous (sorted) version of args_set.
             self._serialized = json.dumps(self.dic, sort_keys=True)
 
@@ -347,8 +356,6 @@ class Component(ABC):
             del self.dic['name']
             if 'max_time' in self.dic:
                 self.max_time = self.dic.pop('max_time')
-            if 'mark' in self.dic:
-                self.mark = self.dic.pop('mark')
             del self.dic['describe']
 
         return self._serialized

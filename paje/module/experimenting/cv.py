@@ -5,8 +5,10 @@ from sklearn.model_selection import StratifiedKFold, LeaveOneOut, \
 
 
 class CV(Component):
-    _memoized = {}
-    _max = 0
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._memoized = {}
+        self._max = 0
 
     def fields_to_keep_after_use(self):
         return ''
@@ -15,10 +17,15 @@ class CV(Component):
         return 'all'
 
     def next(self):
-        if self.dic['testing_fold'] == self.max:
+        if self.dic['testing_fold'] == self._max:
             return None
         self.dic['testing_fold'] += 1
-        return self.build(**self.dic)
+
+        # Creates new, updated instance.
+        inst = self.build(**self.dic)
+        inst._max = self._max
+        inst._memoized = self._memoized
+        return inst
 
     def build(self, testing_fold=0, **kwargs):
         kwargs['testing_fold'] = testing_fold
@@ -46,7 +53,7 @@ class CV(Component):
         else:
             partitions = self._memoized[data.uuid()] = \
                 list(self.model.split(*data.Xy))
-        self.max = len(partitions) - 1
+        self._max = len(partitions) - 1
         indices, _ = partitions[self.testing_fold]
 
         # sanity check
