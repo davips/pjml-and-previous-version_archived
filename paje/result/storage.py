@@ -3,14 +3,17 @@ from abc import ABC, abstractmethod
 
 class Cache(ABC):
     """
-    This class stores and recovers results from some place.
     The children classes are expected to provide storage in:
      SQLite, remote/local MongoDB or MySQL server.
     """
 
-    @abstractmethod
-    def setup(self):
-        pass
+    def __init__(self, nested_storage=None):
+        """
+        This class stores and recovers results from some place.
+        :param nested_storage: data will be get first from nested_storage,
+        then from current storage. inserts are replicated in both.
+        """
+        self.nested_storage = nested_storage
 
     @abstractmethod
     def lock(self, component, test, txt=''):
@@ -25,15 +28,15 @@ class Cache(ABC):
         pass
 
     @abstractmethod
-    def store(self, component, test, testout):
+    def store_result(self, component, test, testout):
+        pass
+
+    @abstractmethod
+    def get_component_by_uuid(self, component_uuid, just_check_exists=False):
         pass
 
     @abstractmethod
     def get_data_by_uuid(self, data, just_check_exists=False):
-        pass
-
-    @abstractmethod
-    def count_results(self, component, data):
         pass
 
     @abstractmethod
@@ -43,5 +46,6 @@ class Cache(ABC):
     def get_component_dump(self, component):
         raise NotImplementedError('get model')
 
-    def get_finished(self):
+    @abstractmethod
+    def get_finished_names_by_mark(self, mark):
         pass

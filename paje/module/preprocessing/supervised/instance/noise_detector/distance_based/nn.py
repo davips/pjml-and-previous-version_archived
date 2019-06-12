@@ -23,7 +23,7 @@ class NRNN(Component, ABC):
         self.vote = self.dic['vote']
         self.algorithm = self.dic['algorithm']
         self.k = self.dic['k']
-        self.model = 42
+        self.model = 42 # TODO: better model here?
 
     def apply_impl(self, data):
         if self.k > data.n_instances():

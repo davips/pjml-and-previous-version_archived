@@ -5,7 +5,9 @@ from paje.result.sql import SQL
 
 
 class SQLite(SQL):
-    def __init__(self, database='/tmp/paje.db', debug=False, read_only=False):
+    def __init__(self, database='/tmp/paje.db', debug=False, read_only=False,
+                 nested_storage=None):
+        super().__init__(nested_storage)
         self.info = database
         self.read_only = read_only
         self.hostname = socket.gethostname()
@@ -26,13 +28,13 @@ class SQLite(SQL):
         except:
             if self.debug:
                 print('creating database', self.database, '...')
-            self.setup()
+            self._setup()
 
-    def now_function(self):
+    def _now_function(self):
         return 'datetime()'
 
-    def auto_incr(self):
+    def _auto_incr(self):
         return 'AUTOINCREMENT'
 
-    def keylimit(self):
+    def _keylimit(self):
         return ''

@@ -366,7 +366,7 @@ class Component(ABC):
         :param output_data:
         :return:
         """
-        self.storage.store(self, input_data, output_data)
+        self.storage.store_result(self, input_data, output_data)
 
     @staticmethod
     def clock():

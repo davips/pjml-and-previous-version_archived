@@ -8,7 +8,9 @@ from paje.result.sql import SQL
 
 class MySQL(SQL):
     def __init__(self, database='paje@143.107.183.114', password='pajelanca19',
-                 db='curumim', debug=False, read_only=False):
+                 db='curumim', debug=False, read_only=False,
+                 nested_storage=None):
+        super().__init__(nested_storage)
         self.info = database + ', ' + db
         self.read_only = read_only
         self.database = database
@@ -53,14 +55,14 @@ class MySQL(SQL):
         self.cursor.execute("use " + self.db)
 
         if setup:
-            self.setup()
+            self._setup()
         return self
 
-    def now_function(self):
+    def _now_function(self):
         return 'now()'
 
-    def auto_incr(self):
+    def _auto_incr(self):
         return 'AUTO_INCREMENT'
 
-    def keylimit(self):
+    def _keylimit(self):
         return '(190)'

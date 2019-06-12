@@ -10,7 +10,7 @@ class Composer(Component):
         self.components = components
         self.random_state = 0
         self.mytree = None
-        self.model = 42
+        self.model = 42 # TODO: better model here?
 
     def describe(self):
         if self._describe is None:

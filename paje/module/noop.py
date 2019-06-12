@@ -4,7 +4,7 @@ from paje.base.hps import HPTree
 
 class Noop(Component):
     def build_impl(self):
-        self.model = 42
+        self.model = 42 # TODO: better model here?
 
     def apply_impl(self, data):
         return data

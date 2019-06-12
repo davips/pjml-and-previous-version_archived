@@ -15,7 +15,7 @@ class Filter(Component, ABC):
     def build_impl(self):
         self.ratio = self.dic['ratio']
         self._rank = self._score = self._nro_features = None
-        self.model = 42
+        self.model = 42 # TODO: better model here?
 
     def use_impl(self, data):
         return data.updated(self, X=data.X[:, self.selected()])

@@ -7,7 +7,7 @@ import pandas as pd
 class FilterCFS(Filter):
     def build_impl(self):
         self.__rank = self.__score = self._selected = None
-        self.model = 42
+        self.model = 42 # TODO: better model here?
 
 
     def apply_impl(self, data):

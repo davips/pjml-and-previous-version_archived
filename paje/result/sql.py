@@ -10,153 +10,17 @@ from paje.util.encoders import unpack_data
 
 
 class SQL(Cache):
-    def setup(self):
-        if self.debug:
-            print('creating tables...')
+    @abstractmethod
+    def _keylimit(self):
+        pass
 
-        # History of Data
-        # ========================================================
-        self.query(f'''
-            create table if not exists hist (
-                n integer NOT NULL primary key {self.auto_incr()},
+    @abstractmethod
+    def _now_function(self):
+        pass
 
-                hid char(19) NOT NULL UNIQUE,
-
-                txt TEXT NOT NULL
-            )''')
-        self.query(f'CREATE INDEX nam0 ON hist (txt{self.keylimit()})')
-
-        # Names of Data ========================================================
-        self.query(f'''
-            create table if not exists name (
-                n integer NOT NULL primary key {self.auto_incr()},
-
-                nid char(19) NOT NULL UNIQUE,
-
-                des TEXT NOT NULL,
-
-                cols TEXT
-            )''')
-        self.query(f'CREATE INDEX nam0 ON name (des{self.keylimit()})')
-        self.query(f'CREATE INDEX nam1 ON name (cols{self.keylimit()})')
-
-        # Dumps of Data and Component ==========================================
-        self.query(f'''
-            create table if not exists dump (
-                n integer NOT NULL primary key {self.auto_incr()},
-
-                duid char(19) NOT NULL UNIQUE,
-                typ varchar(20),
-                bytes LONGBLOB NOT NULL
-            )''')
-        self.query(f'CREATE INDEX dump0 ON dump (typ)')
-
-        # Logs for Component ===================================================
-        self.query(f'''
-            create table if not exists log (
-                n integer NOT NULL primary key {self.auto_incr()},
-
-                lid char(19) NOT NULL UNIQUE,
-
-                msg TEXT NOT NULL,
-                insl timestamp NOT NULL
-            )''')
-        self.query(f'CREATE INDEX log0 ON log (msg{self.keylimit()})')
-        self.query(f'CREATE INDEX log1 ON log (insl)')
-
-        # Components ===========================================================
-        self.query(f'''
-            create table if not exists com (
-                n integer NOT NULL primary key {self.auto_incr()},
-                
-                cid char(19) NOT NULL UNIQUE,
-
-                arg TEXT NOT NULL,
-                
-                insc timestamp NOT NULL
-            )''')
-        self.query(f'CREATE INDEX com0 ON com (arg{self.keylimit()})')
-        self.query(f'CREATE INDEX com1 ON com (insc)')
-
-        # Datasets =============================================================
-        self.query(f'''
-            create table if not exists data (
-                n integer NOT NULL primary key {self.auto_incr()},
-
-                did char(19) NOT NULL UNIQUE,
-
-                name char(19) NOT NULL,
-                fields varchar(32) NOT NULL,
-                hist char(19),
-
-                dumpd char(19) NOT NULL,
-                shape varchar(256) NOT NULL,
-
-                insd timestamp NOT NULL,
-
-                unique(name, fields, hist),
-                FOREIGN KEY (name) REFERENCES name(nid),
-                FOREIGN KEY (dumpd) REFERENCES dump(duid),
-                FOREIGN KEY (hist) REFERENCES hist(hid)
-               )''')
-        # guardar last comp nao adianta pq o msm comp pode ser aplicado
-        # varias vezes
-        # history não vai conter comps inuteis como pipes e switches, apenas
-        # quem transforma Data, ou seja, faz updated().
-        self.query(f'CREATE INDEX data0 ON data (shape{self.keylimit()})')
-        self.query(f'CREATE INDEX data1 ON data (insd)')
-        self.query(f'CREATE INDEX data2 ON data (dumpd)')
-        self.query(f'CREATE INDEX data3 ON data (name)')  # needed?
-        self.query(f'CREATE INDEX data4 ON data (fields)')  # needed?
-        self.query(f'CREATE INDEX data5 ON data (hist)')  # needed?
-
-        # Results ==============================================================
-        self.query(f'''
-            create table if not exists res (
-                n integer NOT NULL primary key {self.auto_incr()},
-
-                node varchar(19) NOT NULL,
-
-                com char(19) NOT NULL,
-                dtr char(19) NOT NULL,
-                din char(19) NOT NULL,
-
-                log char(19),
-
-                dout char(19),
-                spent FLOAT,
-                dumpc char(19),
-
-                fail TINYINT,
-
-                start TIMESTAMP NOT NULL,
-                end TIMESTAMP NOT NULL,
-                alive TIMESTAMP NOT NULL,
-
-                tries int NOT NULL,
-                locks int NOT NULL,
-                mark varchar(256),
-
-                UNIQUE(com, dtr, din),
-                FOREIGN KEY (com) REFERENCES com(cid),
-                FOREIGN KEY (dtr) REFERENCES data(did),
-                FOREIGN KEY (din) REFERENCES data(did),
-                FOREIGN KEY (dout) REFERENCES data(did),
-                FOREIGN KEY (dumpc) REFERENCES dump(duid),
-                FOREIGN KEY (log) REFERENCES log(lid)
-            )''')
-        self.query('CREATE INDEX res0 ON res (dout)')
-        self.query('CREATE INDEX res1 ON res (spent)')
-        self.query('CREATE INDEX res2 ON res (dumpc)')
-        self.query('CREATE INDEX res3 ON res (fail)')
-        self.query('CREATE INDEX res4 ON res (start)')
-        self.query('CREATE INDEX res5 ON res (end)')
-        self.query('CREATE INDEX res6 ON res (alive)')
-        self.query('CREATE INDEX res7 ON res (node)')
-        self.query('CREATE INDEX res8 ON res (tries)')
-        self.query('CREATE INDEX res9 ON res (locks)')
-        self.query('CREATE INDEX res10 ON res (log)')
-        self.query('CREATE INDEX res11 ON res (mark)')
+    @abstractmethod
+    def _auto_incr(self):
+        pass
 
     def lock(self, component, input_data, txtres=''):
         """
@@ -176,7 +40,7 @@ class SQL(Cache):
 
         # Store component (if inexistent yet) and attempt to acquire lock.
         # Mark as locked_by_others otherwise.
-        nf = self.now_function()
+        nf = self._now_function()
         sql = f'''
             insert or ignore into com values (
                 NULL,
@@ -211,15 +75,6 @@ class SQL(Cache):
         else:
             component.locked_by_others = False
             print(f'Now locked for {txtres} {component.name}')
-
-    def get_one(self):
-        row = self.cursor.fetchone()
-        if row is None:
-            return None
-        row2 = self.cursor.fetchone()
-        if row2 is not None:
-            raise Exception('Excess of rows, after ', row, ':', row2)
-        return row
 
     def get_result(self, component, input_data):
         """
@@ -277,7 +132,7 @@ class SQL(Cache):
 
     def store_data(self, data: Data):
         # Check first with a low cost query if data already exists.
-        if self.data_exists(data):
+        if self._data_exists(data):
             if self.debug:
                 print('Data already exists:' + data.sid(), data.name())
             return
@@ -335,7 +190,7 @@ class SQL(Cache):
                 ?,
                 ?, ?, ?,
                 ?, ?,
-                {self.now_function()}
+                {self._now_function()}
             );'''
         data_args = [data.uuid(),
                      data.name_uuid(), data.fields(), data.history_uuid(),
@@ -351,7 +206,7 @@ class SQL(Cache):
         else:
             print(f'Data inserted', data.name())
 
-    def store(self, component, input_data, output_data):
+    def store_result(self, component, input_data, output_data):
         """
         Store a result and remove lock.
         :param component:
@@ -367,7 +222,7 @@ class SQL(Cache):
 
         # Remove lock and point result to data inserted above.
         # TODO: is there any important exception to handle here?
-        now = self.now_function()
+        now = self._now_function()
         model_dump = component.dump_it and component.model_dump()
         # We should set all timestamp fields even if with the same old value.
         # Data train inserted and dtr was created when locking().
@@ -401,13 +256,7 @@ class SQL(Cache):
 
         print('Stored!\n')
 
-    def data_exists(self, data):
-        return self.get_data_by_uuid(data.uuid(), True) is not None
-
-    def component_exists(self, component):
-        return self.get_component(component, True) is not None
-
-    def get_component(self, component, just_check_exists=False):
+    def get_component_by_uuid(self, component_uuid, just_check_exists=False):
         field = 'arg'
         if just_check_exists:
             field = '1'
@@ -418,48 +267,6 @@ class SQL(Cache):
         if just_check_exists:
             return True
         return result[field]
-
-    @staticmethod
-    def interpolate(sql, lst0):
-        lst = [str(w)[:100] for w in lst0]
-        zipped = zip(sql.replace('?', '"?"').split('?'), map(str, lst + ['']))
-        return ''.join(list(sum(zipped, ())))
-
-    # @profile
-    def query(self, sql, args=None, commit=True):
-        if self.read_only and not sql.startswith('select '):
-            print('========================================\n',
-                  'Attempt to write onto read-only storage!', sql)
-            self.cursor.execute('select 1')
-            return
-        if args is None:
-            args = []
-        from paje.result.mysql import MySQL
-        msg = self.interpolate(sql, args)
-        if self.debug:
-            print(msg)
-        if isinstance(self, MySQL):
-            sql = sql.replace('?', '%s')
-            sql = sql.replace('insert or ignore', 'insert ignore')
-            # self.connection.ping(reconnect=True)
-
-        try:
-            self.cursor.execute(sql, args)
-            if commit:
-                self.connection.commit()
-        except Exception as ex:
-            # From a StackOverflow answer...
-            import sys
-            import traceback
-            msg = self.info + '\n' + msg
-            # Gather the information from the original exception:
-            exc_type, exc_value, exc_traceback = sys.exc_info()
-            # Format the original exception for a nice printout:
-            traceback_string = ''.join(traceback.format_exception(
-                exc_type, exc_value, exc_traceback))
-            # Re-raise a new exception of the same class as the original one
-            raise type(ex)(
-                "%s\norig. trac.:\n%s\n" % (msg, traceback_string))
 
     def get_data_by_uuid(self, datauuid, just_check_exists=False):
         sql_fields = '1' if just_check_exists else 'des, cols, bytes, txt'
@@ -531,21 +338,6 @@ class SQL(Cache):
             columns=rows[0]['cols'] and rows[0]['cols'].split('|'),
             **unpack_data(rows[0]['bytes']))
 
-    def count_results(self, component, data):
-        """
-        Useless method.
-        :param component:
-        :param data:
-        :return:
-        """
-        self.query(f'select n from res where com=? and dtr=?',
-                   [component.uuid(), data.uuid()])
-        rows = self.cursor.fetchall()
-        if rows is None or len(rows) == 0:
-            return 0
-        else:
-            return len(rows)
-
     def get_finished_names_by_mark(self, mark):
         """
         Finished means nonfailed and unlocked results.
@@ -575,17 +367,204 @@ class SQL(Cache):
                 row['name'] = row.pop('des')
             return rows
 
-    @abstractmethod
-    def keylimit(self):
-        pass
+    # @profile
+    def query(self, sql, args=None, commit=True):
+        if self.read_only and not sql.startswith('select '):
+            print('========================================\n',
+                  'Attempt to write onto read-only storage!', sql)
+            self.cursor.execute('select 1')
+            return
+        if args is None:
+            args = []
+        from paje.result.mysql import MySQL
+        msg = self._interpolate(sql, args)
+        if self.debug:
+            print(msg)
+        if isinstance(self, MySQL):
+            sql = sql.replace('?', '%s')
+            sql = sql.replace('insert or ignore', 'insert ignore')
+            # self.connection.ping(reconnect=True)
 
-    @abstractmethod
-    def now_function(self):
-        pass
+        try:
+            self.cursor.execute(sql, args)
+            if commit:
+                self.connection.commit()
+        except Exception as ex:
+            # From a StackOverflow answer...
+            import sys
+            import traceback
+            msg = self.info + '\n' + msg
+            # Gather the information from the original exception:
+            exc_type, exc_value, exc_traceback = sys.exc_info()
+            # Format the original exception for a nice printout:
+            traceback_string = ''.join(traceback.format_exception(
+                exc_type, exc_value, exc_traceback))
+            # Re-raise a new exception of the same class as the original one
+            raise type(ex)(
+                "%s\norig. trac.:\n%s\n" % (msg, traceback_string))
 
-    @abstractmethod
-    def auto_incr(self):
-        pass
+    def get_one(self):
+        row = self.cursor.fetchone()
+        if row is None:
+            return None
+        row2 = self.cursor.fetchone()
+        if row2 is not None:
+            raise Exception('Excess of rows, after ', row, ':', row2)
+        return row
+
+    def _setup(self):
+        if self.debug:
+            print('creating tables...')
+
+        # History of Data
+        # ========================================================
+        self.query(f'''
+            create table if not exists hist (
+                n integer NOT NULL primary key {self._auto_incr()},
+
+                hid char(19) NOT NULL UNIQUE,
+
+                txt TEXT NOT NULL
+            )''')
+        self.query(f'CREATE INDEX nam0 ON hist (txt{self._keylimit()})')
+
+        # Names of Data ========================================================
+        self.query(f'''
+            create table if not exists name (
+                n integer NOT NULL primary key {self._auto_incr()},
+
+                nid char(19) NOT NULL UNIQUE,
+
+                des TEXT NOT NULL,
+
+                cols TEXT
+            )''')
+        self.query(f'CREATE INDEX nam0 ON name (des{self._keylimit()})')
+        self.query(f'CREATE INDEX nam1 ON name (cols{self._keylimit()})')
+
+        # Dumps of Data and Component ==========================================
+        self.query(f'''
+            create table if not exists dump (
+                n integer NOT NULL primary key {self._auto_incr()},
+
+                duid char(19) NOT NULL UNIQUE,
+                typ varchar(20),
+                bytes LONGBLOB NOT NULL
+            )''')
+        self.query(f'CREATE INDEX dump0 ON dump (typ)')
+
+        # Logs for Component ===================================================
+        self.query(f'''
+            create table if not exists log (
+                n integer NOT NULL primary key {self._auto_incr()},
+
+                lid char(19) NOT NULL UNIQUE,
+
+                msg TEXT NOT NULL,
+                insl timestamp NOT NULL
+            )''')
+        self.query(f'CREATE INDEX log0 ON log (msg{self._keylimit()})')
+        self.query(f'CREATE INDEX log1 ON log (insl)')
+
+        # Components ===========================================================
+        self.query(f'''
+            create table if not exists com (
+                n integer NOT NULL primary key {self._auto_incr()},
+
+                cid char(19) NOT NULL UNIQUE,
+
+                arg TEXT NOT NULL,
+
+                insc timestamp NOT NULL
+            )''')
+        self.query(f'CREATE INDEX com0 ON com (arg{self._keylimit()})')
+        self.query(f'CREATE INDEX com1 ON com (insc)')
+
+        # Datasets =============================================================
+        self.query(f'''
+            create table if not exists data (
+                n integer NOT NULL primary key {self._auto_incr()},
+
+                did char(19) NOT NULL UNIQUE,
+
+                name char(19) NOT NULL,
+                fields varchar(32) NOT NULL,
+                hist char(19),
+
+                dumpd char(19) NOT NULL,
+                shape varchar(256) NOT NULL,
+
+                insd timestamp NOT NULL,
+
+                unique(name, fields, hist),
+                FOREIGN KEY (name) REFERENCES name(nid),
+                FOREIGN KEY (dumpd) REFERENCES dump(duid),
+                FOREIGN KEY (hist) REFERENCES hist(hid)
+               )''')
+        # guardar last comp nao adianta pq o msm comp pode ser aplicado
+        # varias vezes
+        # history não vai conter comps inuteis como pipes e switches, apenas
+        # quem transforma Data, ou seja, faz updated().
+        self.query(f'CREATE INDEX data0 ON data (shape{self._keylimit()})')
+        self.query(f'CREATE INDEX data1 ON data (insd)')
+        self.query(f'CREATE INDEX data2 ON data (dumpd)')
+        self.query(f'CREATE INDEX data3 ON data (name)')  # needed?
+        self.query(f'CREATE INDEX data4 ON data (fields)')  # needed?
+        self.query(f'CREATE INDEX data5 ON data (hist)')  # needed?
+
+        # Results ==============================================================
+        self.query(f'''
+            create table if not exists res (
+                n integer NOT NULL primary key {self._auto_incr()},
+
+                node varchar(19) NOT NULL,
+
+                com char(19) NOT NULL,
+                dtr char(19) NOT NULL,
+                din char(19) NOT NULL,
+
+                log char(19),
+
+                dout char(19),
+                spent FLOAT,
+                dumpc char(19),
+
+                fail TINYINT,
+
+                start TIMESTAMP NOT NULL,
+                end TIMESTAMP NOT NULL,
+                alive TIMESTAMP NOT NULL,
+
+                tries int NOT NULL,
+                locks int NOT NULL,
+                mark varchar(256),
+
+                UNIQUE(com, dtr, din),
+                FOREIGN KEY (com) REFERENCES com(cid),
+                FOREIGN KEY (dtr) REFERENCES data(did),
+                FOREIGN KEY (din) REFERENCES data(did),
+                FOREIGN KEY (dout) REFERENCES data(did),
+                FOREIGN KEY (dumpc) REFERENCES dump(duid),
+                FOREIGN KEY (log) REFERENCES log(lid)
+            )''')
+        self.query('CREATE INDEX res0 ON res (dout)')
+        self.query('CREATE INDEX res1 ON res (spent)')
+        self.query('CREATE INDEX res2 ON res (dumpc)')
+        self.query('CREATE INDEX res3 ON res (fail)')
+        self.query('CREATE INDEX res4 ON res (start)')
+        self.query('CREATE INDEX res5 ON res (end)')
+        self.query('CREATE INDEX res6 ON res (alive)')
+        self.query('CREATE INDEX res7 ON res (node)')
+        self.query('CREATE INDEX res8 ON res (tries)')
+        self.query('CREATE INDEX res9 ON res (locks)')
+        self.query('CREATE INDEX res10 ON res (log)')
+        self.query('CREATE INDEX res11 ON res (mark)')
+
+    def _data_exists(self, data):
+        return self.get_data_by_uuid(data.uuid(), True) is not None
+
+    def _component_exists(self, component):
+        return self.get_component(component, True) is not None
 
     def __del__(self):
         try:
@@ -593,3 +572,9 @@ class SQL(Cache):
         except Exception as e:
             # print('Couldn\'t close database, but that\'s ok...', e)
             pass
+
+    @staticmethod
+    def _interpolate(sql, lst0):
+        lst = [str(w)[:100] for w in lst0]
+        zipped = zip(sql.replace('?', '"?"').split('?'), map(str, lst + ['']))
+        return ''.join(list(sum(zipped, ())))
