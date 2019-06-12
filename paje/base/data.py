@@ -52,7 +52,6 @@ class Data:
         # Metadata
         n_classes = len(set(dematrixify(get_first_non_none([Y, V, Z, W]), [0])))
         n_instances = len([] or get_first_non_none(matrices.values()))
-        print(n_instances)
         n_attributes = len(get_first_non_none([X, U], [[]])[0])
 
         self.__dict__.update({
