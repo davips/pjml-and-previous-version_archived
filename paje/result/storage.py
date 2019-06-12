@@ -16,19 +16,7 @@ class Cache(ABC):
         self.nested_storage = nested_storage
 
     @abstractmethod
-    def lock(self, component, test, txt=''):
-        pass
-
-    @abstractmethod
     def get_result(self, component, data):
-        pass
-
-    @abstractmethod
-    def store_data(self, data):
-        pass
-
-    @abstractmethod
-    def store_result(self, component, test, testout):
         pass
 
     @abstractmethod
@@ -43,9 +31,22 @@ class Cache(ABC):
     def get_data_by_name(self, name, fields=None, just_check_exists=False):
         pass
 
-    def get_component_dump(self, component):
-        raise NotImplementedError('get model')
+    @abstractmethod
+    def get_model_dump(self, component):
+        pass
 
     @abstractmethod
     def get_finished_names_by_mark(self, mark):
+        pass
+
+    @abstractmethod
+    def lock(self, component, test, txt=''):
+        pass
+
+    @abstractmethod
+    def store_data(self, data):
+        pass
+
+    @abstractmethod
+    def store_result(self, component, test, testout):
         pass

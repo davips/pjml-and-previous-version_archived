@@ -260,7 +260,7 @@ class SQL(Cache):
         field = 'arg'
         if just_check_exists:
             field = '1'
-        self.query(f'select {field} from com where cid=?', [component.uuid()])
+        self.query(f'select {field} from com where cid=?', [component_uuid])
         result = self.get_one()
         if result is None:
             return None
@@ -578,3 +578,6 @@ class SQL(Cache):
         lst = [str(w)[:100] for w in lst0]
         zipped = zip(sql.replace('?', '"?"').split('?'), map(str, lst + ['']))
         return ''.join(list(sum(zipped, ())))
+
+    def get_model_dump(self, component):
+        pass
