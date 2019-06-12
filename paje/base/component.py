@@ -11,7 +11,7 @@ import numpy as np
 from paje.base.exceptions import ApplyWithoutBuild, UseWithoutApply, \
     handle_exception
 from paje.evaluator.time import time_limit
-from paje.util.encoders import pack_comp, uuid
+from paje.util.encoders import pack_comp, uuid, json_pack
 from paje.util.log import *
 
 
@@ -350,7 +350,7 @@ class Component(ABC):
                 self.mark = self.dic.pop('mark')
 
             # Create an unambiguous (sorted) version of args_set.
-            self._serialized = json.dumps(self.dic, sort_keys=True)
+            self._serialized = json_pack(self.dic)
 
             # 'describe','name','max_time' are reserved words, not for building.
             del self.dic['name']

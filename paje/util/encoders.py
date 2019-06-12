@@ -1,4 +1,5 @@
 import hashlib
+import json
 
 import _pickle as pickle
 import blosc
@@ -158,3 +159,14 @@ def unzip_array(zipped):
 
 def uuid_enumerated_dic(l):
     return {uuid(x.encode()): x for x in l}
+
+
+def json_pack(str):
+    return json.dumps(str)
+
+
+def json_unpack(obj):
+    history = json.loads(obj, sort_keys=True)
+    if history == 'null':
+        return None
+    return history

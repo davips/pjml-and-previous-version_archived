@@ -42,8 +42,8 @@ class Data:
         all_mats = {k: v for k, v in locals().items() if len(k) == 1}
 
         if history is None:
-            raise Exception('No history provided to Data')
-            #we will assume it didnt come from a transformation/predictionetc.
+            print('No history provided to Data')
+            # we will assume it didnt come from a transformation/predictionetc.
 
         self.__dict__.update(all_mats)
         prediction = {k: v for k, v in matrices.items()
@@ -153,8 +153,7 @@ class Data:
             return data
         X = df.values.astype('float')
         Y = as_column_vector(df.pop(target).values.astype('float'))
-        return Data(name=arq, X=X, Y=Y, columns=df.columns,
-                    history=[])
+        return Data(name=arq, X=X, Y=Y, columns=list(df.columns), history=[])
 
     @staticmethod
     def random(n_attributes, n_classes, n_instances):

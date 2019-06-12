@@ -2,11 +2,11 @@ import warnings
 from abc import abstractmethod
 from sqlite3 import IntegrityError as IntegrityErrorSQLite
 
+from paje.base.component import Component
 from paje.base.data import Data
 from paje.result.storage import Cache
+from paje.util.encoders import unpack_data, json_unpack, json_pack
 from pymysql import IntegrityError as IntegrityErrorMySQL
-
-from paje.util.encoders import unpack_data
 
 
 class SQL(Cache):
@@ -109,18 +109,12 @@ class SQL(Cache):
                 raise Exception('Result name differs from input data',
                                 f"{result['des']}!={input_data.name()}")
             data = Data(name=result['des'],
-                        history=result['history'].split('|'),
+                        history=json_unpack(result['history']),
                         **unpack_data(result['bytes']),
-                        columns=result['cols'] and result['cols'].split('|'))
-            # print(input_data.shapes(), len(input_data.history()), \
-            #       input_data.history())
-            # print(data.shapes(), len(data.history()), data.history())
+                        columns=json_unpack(result['cols']))
             output_data = input_data.shrink_to(
                 component.fields_to_keep_after_use()
             ).merged(data)
-            # print(output_data.shapes(), len(output_data.history()), \
-            #       output_data.history())
-
         else:
             output_data = None
         component._model_dump = result['model'] if 'model' in result else None
@@ -172,7 +166,7 @@ class SQL(Cache):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             self.query(sql, [data.name_uuid(), data.name(),
-                             '|'.join(data.columns())])
+                             json_pack(data.columns())])
 
         sql = f'''
             insert or ignore into hist values (
@@ -182,7 +176,8 @@ class SQL(Cache):
             )'''
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            self.query(sql, [data.history_uuid(), '|'.join(data.history())])
+            self.query(sql, [data.history_uuid(),
+                             json_pack(data.history())])
 
         sql = f'''
             insert into data values (
@@ -195,8 +190,7 @@ class SQL(Cache):
         data_args = [data.uuid(),
                      data.name_uuid(), data.fields(), data.history_uuid(),
                      data.dump_uuid(),
-                     '|'.join([k + ':' + str(v)
-                               for k, v in data.shapes().items()])]
+                     json_pack(data.shapes())]
         try:
             self.query(sql, data_args)
         except IntegrityErrorSQLite as e:
@@ -268,6 +262,27 @@ class SQL(Cache):
             return True
         return result[field]
 
+    def get_component(self, component, train_data, input_data,
+                      just_check_exists=False):
+        field = 'bytes,arg'
+        if just_check_exists:
+            field = '1'
+        self.query(f'select {field} '
+                   f'from res'
+                   f'   left join dump on dumpc=duic '
+                   f'   left join com on com=cid '
+                   f'where cid=? and dtr=? and din=?',
+                   [component.uuid(),
+                    component.train_data.uuid(),
+                    input_data.uuid()])
+        result = self.get_one()
+        if result is None:
+            return None
+        if just_check_exists:
+            return True
+        return Component.resurrect_from_dump(result['bytes'],
+                                             **json_unpack(result['arg']))
+
     def get_data_by_uuid(self, datauuid, just_check_exists=False):
         sql_fields = '1' if just_check_exists else 'des, cols, bytes, txt'
         self.query(f'''
@@ -286,8 +301,8 @@ class SQL(Cache):
         if just_check_exists:
             return True
         return Data(name=result['des'],
-                    columns=result['cols'] and result['cols'].split('|'),
-                    history=result['history'].split('|'),
+                    columns=json_unpack(result['cols']),
+                    history=json_unpack(result['history']),
                     **unpack_data(result['bytes']))
 
     def get_data_by_name(self, name, fields=None, history=None,
@@ -305,7 +320,7 @@ class SQL(Cache):
         :param just_check_exists:
         :return:
         """
-        history = '' if history is None else '|'.join(history)
+        history = json_pack(history)
         sql_fields = '1' if just_check_exists else 'cols, bytes, txt'
 
         sql = f'''
@@ -317,9 +332,9 @@ class SQL(Cache):
                         left join dump on dumpd=duid
                         left join hist on hist=hid
                 where 
-                    des=? {f'and fields=?' if fields else ''} and
-                    txt=?'''
-        args = [name, fields.upper(), history] if fields else [name, history]
+                    {f'fields=? and' if fields else ''}
+                    des=? and txt=?'''
+        args = [fields.upper(), name, history] if fields else [name, history]
 
         self.query(sql, args)
         rows = self.cursor.fetchall()
@@ -335,7 +350,7 @@ class SQL(Cache):
 
         return just_check_exists or Data(
             name=name, history=history,
-            columns=rows[0]['cols'] and rows[0]['cols'].split('|'),
+            columns=json_unpack(rows[0]['cols']),
             **unpack_data(rows[0]['bytes']))
 
     def get_finished_names_by_mark(self, mark):
@@ -564,7 +579,7 @@ class SQL(Cache):
         return self.get_data_by_uuid(data.uuid(), True) is not None
 
     def _component_exists(self, component):
-        return self.get_component(component, True) is not None
+        return self.get_component_by_uuid(component.uuid(), True) is not None
 
     def __del__(self):
         try:
@@ -578,6 +593,3 @@ class SQL(Cache):
         lst = [str(w)[:100] for w in lst0]
         zipped = zip(sql.replace('?', '"?"').split('?'), map(str, lst + ['']))
         return ''.join(list(sum(zipped, ())))
-
-    def get_model_dump(self, component):
-        pass
