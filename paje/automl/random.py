@@ -6,7 +6,7 @@ import numpy as np
 from paje.automl.automl import AutoML
 from paje.composer.pipeline import Pipeline
 from paje.util.distributions import SamplingException
-from paje.evaluator.evaluator import Evaluator
+from paje.evaluator.evaluator import EvaluatorClassif
 from paje.evaluator.metrics import Metrics
 
 class RandomAutoML(AutoML):
@@ -15,6 +15,8 @@ class RandomAutoML(AutoML):
     DEFAULT_PREPROCESSORS = []
 
     def __init__(self,
+                 preprocessors,
+                 modelers,
                  storage_for_components=None,
                  **kwargs):
         """
@@ -36,7 +38,10 @@ class RandomAutoML(AutoML):
         :return:
         """
 
-        AutoML.__init__(self, **kwargs)
+        AutoML.__init__(self,
+                        components=preprocessors+modelers,
+                        evaluator=EvaluatorClassif(),
+                        **kwargs)
 
         # Attributes set in the build_impl.
         # These attributes identify uniquely AutoML.
@@ -46,8 +51,8 @@ class RandomAutoML(AutoML):
         self.static = False
         self.fixed = False
         self.repetitions = 0
-        self.modelers = self.DEFAULT_MODELERS
-        self.preprocessors = self.DEFAULT_PREPROCESSORS
+        self.modelers = modelers
+        self.preprocessors = preprocessors
 
         # Other class attributes.
         # These attributes can be set here or in the build_impl method. They
@@ -67,12 +72,6 @@ class RandomAutoML(AutoML):
         # Be careful, the copy made in the parent (Component) is
         # shallow (copy.copy(self)).
         # See more details in the Component.build() method.
-
-        self.evaluator = Evaluator(Metrics.accuracy, "cv", 10,
-                                   random_state=self.random_state)
-
-        # making the build_impl of father
-        super().build_impl(self)
 
         # maybe it is not necessary
         self.__dict__.update(self.dic)
@@ -130,7 +129,7 @@ class RandomAutoML(AutoML):
         # return tmp[:take] + [random.choice(self.modelers)]
 
     def process_step(self, eval_result):
-        self.current_eval = np.mean(eval_result)
+        self.current_eval = eval_result[0][1] or 0
         if self.current_eval is not None\
            and self.current_eval > self.best_eval:
             self.best_eval = self.current_eval
