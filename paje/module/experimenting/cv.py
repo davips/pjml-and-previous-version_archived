@@ -19,15 +19,18 @@ class CV(Component):
     def next(self):
         if self.dic['testing_fold'] == self._max:
             return None
-        self.dic['testing_fold'] += 1
 
         # Creates new, updated instance.
-        inst = self.build(**self.dic)
+        newdic = self.dic.copy()
+        newdic['testing_fold'] += 1
+        inst = self.build(**newdic)
         inst._max = self._max
         inst._memoized = self._memoized
         return inst
 
     def build(self, testing_fold=0, **kwargs):
+        if testing_fold == 0:
+            self._memoized = {}
         kwargs['testing_fold'] = testing_fold
         return super().build(**kwargs)
 

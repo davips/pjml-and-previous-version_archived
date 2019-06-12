@@ -8,10 +8,12 @@ from sklearn.model_selection import StratifiedShuffleSplit
 from paje.module.experimenting.cv import CV
 from paje.evaluator.metrics import Metrics
 
+
 class Evaluator(ABC):
     @abstractmethod
     def eval(self, component, data):
         pass
+
 
 class EvaluatorClassif(Evaluator):
     _metrics = {
@@ -29,7 +31,7 @@ class EvaluatorClassif(Evaluator):
                  metric='accuracy',
                  split='cv',
                  steps=10,
-                 test_size=1/3,
+                 test_size=1 / 3,
                  summary='mean',
                  random_state=0):
 
@@ -41,20 +43,20 @@ class EvaluatorClassif(Evaluator):
         self.random_state = random_state
 
         if self.split == 'cv':
-            self.cv = CV().build(
-                split=self.split,
-                steps=self.steps,
-                random_state=self.random_state
-            )
+            self.cvargs = {
+                'split': self.split,
+                'steps': self.steps,
+                'random_state': self.random_state
+            }
         elif self.split == 'loo':
-            self.cv = CV().build()
+            self.cvargs = {}
         elif self.split == 'holdout':
-            self.cv = CV().build(
-                split=self.split,
-                steps=self.steps,
-                test_size=self.test_size,
-                random_state=self.random_state
-            )
+            self.cvargs = {
+                'split': self.split,
+                'steps': self.steps,
+                'test_size': self.test_size,
+                'random_state': self.random_state
+            }
         else:
             raise ValueError(
                 "split must be 'cv' or 'loo' or 'holdout'"
@@ -89,8 +91,10 @@ class EvaluatorClassif(Evaluator):
         }
 
     def eval(self, component, data):
-
+        # Start CV from beginning.
+        self.cv = CV().build(**self.cvargs)
         validation = self.cv
+
         result = {
             'measure_train': [],
             'measure_test': []
@@ -103,7 +107,7 @@ class EvaluatorClassif(Evaluator):
             output_train = component.apply(train)
             output_test = component.use(test)
 
-            if not(output_test and output_train):
+            if not (output_test and output_train):
                 return None, None
 
             measure_train = output_train and self._metric(output_train)
