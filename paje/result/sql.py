@@ -22,6 +22,154 @@ class SQL(Cache):
     def _auto_incr(self):
         pass
 
+    def _setup(self):
+        if self.debug:
+            print('creating tables...')
+
+        # History of Data
+        # ========================================================
+        self.query(f'''
+            create table if not exists hist (
+                n integer NOT NULL primary key {self._auto_incr()},
+
+                hid char(19) NOT NULL UNIQUE,
+
+                txt TEXT NOT NULL
+            )''')
+        self.query(f'CREATE INDEX nam0 ON hist (txt{self._keylimit()})')
+
+        # Names of Data ========================================================
+        self.query(f'''
+            create table if not exists name (
+                n integer NOT NULL primary key {self._auto_incr()},
+
+                nid char(19) NOT NULL UNIQUE,
+
+                des TEXT NOT NULL,
+
+                cols TEXT
+            )''')
+        self.query(f'CREATE INDEX nam0 ON name (des{self._keylimit()})')
+        self.query(f'CREATE INDEX nam1 ON name (cols{self._keylimit()})')
+
+        # Dumps of Data and Component ==========================================
+        self.query(f'''
+            create table if not exists dump (
+                n integer NOT NULL primary key {self._auto_incr()},
+
+                duid char(19) NOT NULL UNIQUE,
+                typ varchar(20),
+                bytes LONGBLOB NOT NULL
+            )''')
+        self.query(f'CREATE INDEX dump0 ON dump (typ)')
+
+        # Logs for Component ===================================================
+        self.query(f'''
+            create table if not exists log (
+                n integer NOT NULL primary key {self._auto_incr()},
+
+                lid char(19) NOT NULL UNIQUE,
+
+                msg TEXT NOT NULL,
+                insl timestamp NOT NULL
+            )''')
+        self.query(f'CREATE INDEX log0 ON log (msg{self._keylimit()})')
+        self.query(f'CREATE INDEX log1 ON log (insl)')
+
+        # Components ===========================================================
+        self.query(f'''
+            create table if not exists com (
+                n integer NOT NULL primary key {self._auto_incr()},
+
+                cid char(19) NOT NULL UNIQUE,
+
+                arg TEXT NOT NULL,
+
+                insc timestamp NOT NULL
+            )''')
+        self.query(f'CREATE INDEX com0 ON com (arg{self._keylimit()})')
+        self.query(f'CREATE INDEX com1 ON com (insc)')
+
+        # Datasets =============================================================
+        self.query(f'''
+            create table if not exists data (
+                n integer NOT NULL primary key {self._auto_incr()},
+
+                did char(19) NOT NULL UNIQUE,
+
+                name char(19) NOT NULL,
+                fields varchar(32) NOT NULL,
+                hist char(19),
+
+                dumpd char(19) NOT NULL,
+                shape varchar(256) NOT NULL,
+
+                insd timestamp NOT NULL,
+
+                unique(name, fields, hist),
+                FOREIGN KEY (name) REFERENCES name(nid),
+                FOREIGN KEY (dumpd) REFERENCES dump(duid),
+                FOREIGN KEY (hist) REFERENCES hist(hid)
+               )''')
+        # guardar last comp nao adianta pq o msm comp pode ser aplicado
+        # varias vezes
+        # history não vai conter comps inuteis como pipes e switches, apenas
+        # quem transforma Data, ou seja, faz updated().
+        self.query(f'CREATE INDEX data0 ON data (shape{self._keylimit()})')
+        self.query(f'CREATE INDEX data1 ON data (insd)')
+        self.query(f'CREATE INDEX data2 ON data (dumpd)')
+        self.query(f'CREATE INDEX data3 ON data (name)')  # needed?
+        self.query(f'CREATE INDEX data4 ON data (fields)')  # needed?
+        self.query(f'CREATE INDEX data5 ON data (hist)')  # needed?
+
+        # Results ==============================================================
+        self.query(f'''
+            create table if not exists res (
+                n integer NOT NULL primary key {self._auto_incr()},
+
+                node varchar(19) NOT NULL,
+
+                com char(19) NOT NULL,
+                dtr char(19) NOT NULL,
+                din char(19) NOT NULL,
+
+                log char(19),
+
+                dout char(19),
+                spent FLOAT,
+                dumpc char(19),
+
+                fail TINYINT,
+
+                start TIMESTAMP NOT NULL,
+                end TIMESTAMP NOT NULL,
+                alive TIMESTAMP NOT NULL,
+
+                tries int NOT NULL,
+                locks int NOT NULL,
+                mark varchar(256),
+
+                UNIQUE(com, dtr, din),
+                FOREIGN KEY (com) REFERENCES com(cid),
+                FOREIGN KEY (dtr) REFERENCES data(did),
+                FOREIGN KEY (din) REFERENCES data(did),
+                FOREIGN KEY (dout) REFERENCES data(did),
+                FOREIGN KEY (dumpc) REFERENCES dump(duid),
+                FOREIGN KEY (log) REFERENCES log(lid)
+            )''')
+        self.query('CREATE INDEX res0 ON res (dout)')
+        self.query('CREATE INDEX res1 ON res (spent)')
+        self.query('CREATE INDEX res2 ON res (dumpc)')
+        self.query('CREATE INDEX res3 ON res (fail)')
+        self.query('CREATE INDEX res4 ON res (start)')
+        self.query('CREATE INDEX res5 ON res (end)')
+        self.query('CREATE INDEX res6 ON res (alive)')
+        self.query('CREATE INDEX res7 ON res (node)')
+        self.query('CREATE INDEX res8 ON res (tries)')
+        self.query('CREATE INDEX res9 ON res (locks)')
+        self.query('CREATE INDEX res10 ON res (log)')
+        self.query(f'CREATE INDEX res11 ON res (mark{self._keylimit()})')
+
     def lock(self, component, input_data, txtres=''):
         """
         Store 'test' and 'component' if they are not yet stored.
@@ -320,7 +468,10 @@ class SQL(Cache):
         :param just_check_exists:
         :return:
         """
-        history = json_pack(history)
+        if history is None:
+            history = []
+        hist = json_pack(history)
+
         sql_fields = '1' if just_check_exists else 'cols, bytes, txt'
 
         sql = f'''
@@ -334,7 +485,7 @@ class SQL(Cache):
                 where 
                     {f'fields=? and' if fields else ''}
                     des=? and txt=?'''
-        args = [fields.upper(), name, history] if fields else [name, history]
+        args = [fields.upper(), name, hist] if fields else [name, hist]
 
         self.query(sql, args)
         rows = self.cursor.fetchall()
@@ -426,154 +577,6 @@ class SQL(Cache):
         if row2 is not None:
             raise Exception('Excess of rows, after ', row, ':', row2)
         return row
-
-    def _setup(self):
-        if self.debug:
-            print('creating tables...')
-
-        # History of Data
-        # ========================================================
-        self.query(f'''
-            create table if not exists hist (
-                n integer NOT NULL primary key {self._auto_incr()},
-
-                hid char(19) NOT NULL UNIQUE,
-
-                txt TEXT NOT NULL
-            )''')
-        self.query(f'CREATE INDEX nam0 ON hist (txt{self._keylimit()})')
-
-        # Names of Data ========================================================
-        self.query(f'''
-            create table if not exists name (
-                n integer NOT NULL primary key {self._auto_incr()},
-
-                nid char(19) NOT NULL UNIQUE,
-
-                des TEXT NOT NULL,
-
-                cols TEXT
-            )''')
-        self.query(f'CREATE INDEX nam0 ON name (des{self._keylimit()})')
-        self.query(f'CREATE INDEX nam1 ON name (cols{self._keylimit()})')
-
-        # Dumps of Data and Component ==========================================
-        self.query(f'''
-            create table if not exists dump (
-                n integer NOT NULL primary key {self._auto_incr()},
-
-                duid char(19) NOT NULL UNIQUE,
-                typ varchar(20),
-                bytes LONGBLOB NOT NULL
-            )''')
-        self.query(f'CREATE INDEX dump0 ON dump (typ)')
-
-        # Logs for Component ===================================================
-        self.query(f'''
-            create table if not exists log (
-                n integer NOT NULL primary key {self._auto_incr()},
-
-                lid char(19) NOT NULL UNIQUE,
-
-                msg TEXT NOT NULL,
-                insl timestamp NOT NULL
-            )''')
-        self.query(f'CREATE INDEX log0 ON log (msg{self._keylimit()})')
-        self.query(f'CREATE INDEX log1 ON log (insl)')
-
-        # Components ===========================================================
-        self.query(f'''
-            create table if not exists com (
-                n integer NOT NULL primary key {self._auto_incr()},
-
-                cid char(19) NOT NULL UNIQUE,
-
-                arg TEXT NOT NULL,
-
-                insc timestamp NOT NULL
-            )''')
-        self.query(f'CREATE INDEX com0 ON com (arg{self._keylimit()})')
-        self.query(f'CREATE INDEX com1 ON com (insc)')
-
-        # Datasets =============================================================
-        self.query(f'''
-            create table if not exists data (
-                n integer NOT NULL primary key {self._auto_incr()},
-
-                did char(19) NOT NULL UNIQUE,
-
-                name char(19) NOT NULL,
-                fields varchar(32) NOT NULL,
-                hist char(19),
-
-                dumpd char(19) NOT NULL,
-                shape varchar(256) NOT NULL,
-
-                insd timestamp NOT NULL,
-
-                unique(name, fields, hist),
-                FOREIGN KEY (name) REFERENCES name(nid),
-                FOREIGN KEY (dumpd) REFERENCES dump(duid),
-                FOREIGN KEY (hist) REFERENCES hist(hid)
-               )''')
-        # guardar last comp nao adianta pq o msm comp pode ser aplicado
-        # varias vezes
-        # history não vai conter comps inuteis como pipes e switches, apenas
-        # quem transforma Data, ou seja, faz updated().
-        self.query(f'CREATE INDEX data0 ON data (shape{self._keylimit()})')
-        self.query(f'CREATE INDEX data1 ON data (insd)')
-        self.query(f'CREATE INDEX data2 ON data (dumpd)')
-        self.query(f'CREATE INDEX data3 ON data (name)')  # needed?
-        self.query(f'CREATE INDEX data4 ON data (fields)')  # needed?
-        self.query(f'CREATE INDEX data5 ON data (hist)')  # needed?
-
-        # Results ==============================================================
-        self.query(f'''
-            create table if not exists res (
-                n integer NOT NULL primary key {self._auto_incr()},
-
-                node varchar(19) NOT NULL,
-
-                com char(19) NOT NULL,
-                dtr char(19) NOT NULL,
-                din char(19) NOT NULL,
-
-                log char(19),
-
-                dout char(19),
-                spent FLOAT,
-                dumpc char(19),
-
-                fail TINYINT,
-
-                start TIMESTAMP NOT NULL,
-                end TIMESTAMP NOT NULL,
-                alive TIMESTAMP NOT NULL,
-
-                tries int NOT NULL,
-                locks int NOT NULL,
-                mark varchar(256),
-
-                UNIQUE(com, dtr, din),
-                FOREIGN KEY (com) REFERENCES com(cid),
-                FOREIGN KEY (dtr) REFERENCES data(did),
-                FOREIGN KEY (din) REFERENCES data(did),
-                FOREIGN KEY (dout) REFERENCES data(did),
-                FOREIGN KEY (dumpc) REFERENCES dump(duid),
-                FOREIGN KEY (log) REFERENCES log(lid)
-            )''')
-        self.query('CREATE INDEX res0 ON res (dout)')
-        self.query('CREATE INDEX res1 ON res (spent)')
-        self.query('CREATE INDEX res2 ON res (dumpc)')
-        self.query('CREATE INDEX res3 ON res (fail)')
-        self.query('CREATE INDEX res4 ON res (start)')
-        self.query('CREATE INDEX res5 ON res (end)')
-        self.query('CREATE INDEX res6 ON res (alive)')
-        self.query('CREATE INDEX res7 ON res (node)')
-        self.query('CREATE INDEX res8 ON res (tries)')
-        self.query('CREATE INDEX res9 ON res (locks)')
-        self.query('CREATE INDEX res10 ON res (log)')
-        self.query('CREATE INDEX res11 ON res (mark)')
 
     def _data_exists(self, data):
         return self.get_data_by_uuid(data.uuid(), True) is not None

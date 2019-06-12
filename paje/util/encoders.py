@@ -161,12 +161,13 @@ def uuid_enumerated_dic(l):
     return {uuid(x.encode()): x for x in l}
 
 
-def json_pack(str):
-    return json.dumps(str)
+def json_pack(obj):
+    dump = json.dumps(obj, sort_keys=True)
+    return dump
 
 
-def json_unpack(obj):
-    history = json.loads(obj, sort_keys=True)
-    if history == 'null':
+def json_unpack(dump):
+    obj = json.loads(dump)
+    if obj == 'null':
         return None
-    return history
+    return obj

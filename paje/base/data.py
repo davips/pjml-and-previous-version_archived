@@ -35,15 +35,15 @@ class Data:
         :param component: component that generated current Data
         :param history: History of transformations suffered by the data
         """
+        if history is None:
+            print('No history provided to Data')
+            history = []
 
         # Init instance matrices to factory new Data instances in the future.
+
         matrices = {k: v for k, v in locals().items()  # Only used ones.
                     if v is not None and len(k) == 1}
         all_mats = {k: v for k, v in locals().items() if len(k) == 1}
-
-        if history is None:
-            print('No history provided to Data')
-            # we will assume it didnt come from a transformation/predictionetc.
 
         self.__dict__.update(all_mats)
         prediction = {k: v for k, v in matrices.items()
