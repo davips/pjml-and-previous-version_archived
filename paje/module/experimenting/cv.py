@@ -5,11 +5,24 @@ from sklearn.model_selection import StratifiedKFold, LeaveOneOut, \
 
 
 class CV(Component):
+    _memoize = {}
+    _max = 0
+
     def fields_to_keep_after_use(self):
         return 'all'
 
     def fields_to_store_after_use(self):
         return 'all'
+
+    def next(self):
+        if self.dic['testing_fold'] == self.max:
+            return None
+        self.dic['testing_fold']+=1
+        return self.build(**self.dic)
+
+    def build(self, testing_fold=0, **kwargs):
+        kwargs['testing_fold'] = testing_fold
+        return super().build(**kwargs)
 
     def build_impl(self):
         # split, steps, test_size, random_state
@@ -28,13 +41,22 @@ class CV(Component):
         self.testing_fold = self.dic['testing_fold']
 
     def apply_impl(self, data):
-        indices, _ = list(self.model.split(*data.Xy))[self.testing_fold]
+        if data.uuid() in self._memoize:
+            aux = self._memoize[data.uuid()]
+        else:
+            aux = self._memoize[data.uuid()] = list(self.model.split(*data.Xy))
+        self.max = len(aux)-1
+        indices, _ = aux[self.testing_fold]
+
+        # sanity check
         self._applied_data_uuid = data.uuid()
         return data.updated(self, X=data.X[indices], Y=data.Y[indices])
 
     def use_impl(self, data):
+        # sanity check
         if self._applied_data_uuid != data.uuid():
             raise Exception('apply() and use() must partition the same data!')
+
         _, indices = list(self.model.split(*data.Xy))[self.testing_fold]
         return data.updated(self, X=data.X[indices], Y=data.Y[indices])
 
@@ -51,4 +73,4 @@ class CV(Component):
         loo = {
             'split': ['c', ['loo']],
         }
-        HPTree({'testing_fold': ['z', [0, 100000]]}, [holdout, cv, loo])
+        HPTree({'testing_fold': ['c', [0]]}, [holdout, cv, loo])
