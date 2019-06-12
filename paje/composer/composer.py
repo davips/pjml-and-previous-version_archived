@@ -17,7 +17,7 @@ class Composer(Component):
             self._describe = {
                 'module': self.module,
                 'name': self.name,
-                'sub_components': [comp.qualify() for comp in self.components]
+                'sub_components': [comp.describe() for comp in self.components]
             }
         return self._describe
 
