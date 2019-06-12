@@ -13,7 +13,7 @@ class Reductor(Component, ABC):
 
     def apply_impl(self, data):
         self.att_labels = data.columns
-        max_components = min(data.n_instances, data.n_attributes)
+        max_components = min(data.n_instances(), data.n_attributes())
         if hasattr(self.model, 'n_clusters'):  # DRFTAG changes terminology
             self.model.n_components = self.model.n_clusters
 
@@ -31,7 +31,7 @@ class Reductor(Component, ABC):
     def tree_impl(cls, data):
         cls.check_data(data)
         # TODO: set random_state
-        dic = {'n_components': ['z', [1, data.n_attributes]]}
+        dic = {'n_components': ['z', [1, data.n_attributes()]]}
         dic.update(cls.specific_dictionary(data))
         return HPTree(dic, children=[])
 

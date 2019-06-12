@@ -157,4 +157,4 @@ def unzip_array(zipped):
 
 
 def uuid_enumerated_dic(l):
-    return {uuid(x): x for x in l}
+    return {uuid(x.encode()): x for x in l}
