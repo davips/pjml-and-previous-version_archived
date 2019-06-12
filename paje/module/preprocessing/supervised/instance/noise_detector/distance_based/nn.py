@@ -26,8 +26,8 @@ class NRNN(Component, ABC):
         self.model = 42
 
     def apply_impl(self, data):
-        if self.k > data.n_instances:
-            self.k = data.n_instances
+        if self.k > data.n_instances():
+            self.k = data.n_instances()
         X, y = getattr(self, self.algorithm)(*data.Xy)
         return data.updated(self, X=X, y=y)
 
@@ -153,7 +153,7 @@ class NRNN(Component, ABC):
         # Assumes worst case of k-fold CV, i.e. k=2. Undersampling is another
         # problem, handled by @n_instances.
         cls.check_data(data)
-        kmax = floor(min(400, data.n_instances / 2 - 1))
+        kmax = floor(min(400, data.n_instances() / 2 - 1))
 
         # TODO: put knn hyperparameters here?
         dic = {

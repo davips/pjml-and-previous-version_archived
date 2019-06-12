@@ -5,7 +5,7 @@ from paje.base.hps import HPTree
 from paje.module.modelling.classifier.classifier import Classifier
 
 
-class SVMC(Classifier, JSONEncoder):
+class SVMC(Classifier): #, JSONEncoder):
     # def default(self, o):
     #     if isinstance(o, SVMC):
     #         print(o)

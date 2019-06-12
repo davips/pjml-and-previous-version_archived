@@ -14,11 +14,11 @@ class RF(Classifier):
     def tree_impl(cls, data):
         cls.check_data(data)
         n_estimators = min(
-            [500, floor(sqrt(data.n_instances * data.n_attributes))])
+            [500, floor(sqrt(data.n_instances() * data.n_attributes()))])
 
         data_for_speed = {
             'n_estimators': ['z', [2, 1000]],
-            'max_depth': ['z', [2, data.n_instances]]}  # Entre outros
+            'max_depth': ['z', [2, data.n_instances()]]}  # Entre outros
         dic = {'bootstrap': ['c', [True, False]],
                'min_impurity_decrease': ['r', [0, 1]],
                'max_leaf_nodes': ['o', [2, 3, 5, 8, 12, 17, 23, 30, 38, 47, 57,
@@ -28,13 +28,13 @@ class RF(Classifier):
                # RF (maybe it is relative to a subset).
                'min_weight_fraction_leaf': ['r', [0, 0.5]],
                # According to ValueError exception.
-               'min_samples_leaf': ['z', [1, floor(data.n_instances / 2)]],
+               'min_samples_leaf': ['z', [1, floor(data.n_instances() / 2)]],
                # Int (# of instances) is better than float
                # (proportion of instances) because different floats can collide
                # to a same int, making intervals of useless real values.
-               'min_samples_split': ['z', [2, floor(data.n_instances / 2)]],
+               'min_samples_split': ['z', [2, floor(data.n_instances() / 2)]],
                # Same reason as min_samples_leaf
-               'max_depth': ['z', [2, data.n_instances]],
+               'max_depth': ['z', [2, data.n_instances()]],
                'criterion': ['c', ['gini', 'entropy']],
                # Docs say that this parameter is tree-specific,
                # but we cannot choose the tree.

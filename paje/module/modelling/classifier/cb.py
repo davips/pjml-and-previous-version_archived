@@ -34,7 +34,7 @@ class CB(Classifier):
         cls.check_data(data)
         data_for_speed = {'iterations': ['z', [2, 1000]]}  # Entre outros
         n_estimators = min(
-            [500, floor(sqrt(data.n_instances * data.n_attributes))])
+            [500, floor(sqrt(data.n_instances() * data.n_attributes()))])
 
         dic = {
             'iterations': ['c', [n_estimators]],

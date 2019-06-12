@@ -26,7 +26,7 @@ class KNN(Classifier):
         #     self.model.n_neighbors = floor(pct * data.n_instances) + 1
 
         # TODO: decide how to handle this
-        if self.model.n_neighbors > data.n_instances:
+        if self.model.n_neighbors > data.n_instances():
             raise ExceptionInApplyOrUse('excess of neighbors!')
 
         # # Handle complicated distance measures.
@@ -38,7 +38,7 @@ class KNN(Classifier):
             # if self.model.metric == 'mahalanobis' and self.model.n_neighbors>500 \
             #         or data.n_instances>10000:
 
-            if data.n_instances*data.n_attributes > 500000:
+            if data.n_instances()*data.n_attributes() > 500000:
                 raise ExceptionInApplyOrUse('Mahalanobis for too big data, '
                                             'matrix size:', X.shape)
             cov = np.cov(X)
@@ -62,7 +62,7 @@ class KNN(Classifier):
     def tree_impl(cls, data=None):
         # Assumes worst case of k-fold CV, i.e. k=2. Undersampling is another problem, handled by @n_instances.
         cls.check_data(data)
-        kmax = min(1000, floor(data.n_instances / 2 - 1))
+        kmax = min(1000, floor(data.n_instances() / 2 - 1))
 
         dic = {
             'n_neighbors': ['c', exponential_integers(kmax)],
@@ -71,6 +71,6 @@ class KNN(Classifier):
             'weights': ['c', ['distance', 'uniform']],
 
             # Auxiliary - will used to calculate pct, only when the training set size happens to be smaller than kmax (probably due to under sampling).
-            '@n_instances': ['c', [data.n_instances]]
+            '@n_instances': ['c', [data.n_instances()]]
         }
         return HPTree(dic, children=[])

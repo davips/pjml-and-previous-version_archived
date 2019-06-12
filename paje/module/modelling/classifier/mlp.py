@@ -52,7 +52,7 @@ class MLP(Classifier):
 
         # Todo: set random seed
         max_neurons = int(
-            (data.n_instances / (data.n_attributes + data.n_classes))
+            (data.n_instances() / (data.n_attributes() + data.n_classes()))
         )
 
         dic = {
@@ -154,7 +154,7 @@ class MLP(Classifier):
             'n_iter_no_change': ['c', [10]],
             # Only effective when solver=’sgd’ or ‘adam’.
             'batch_size': ['c', ['auto']],
-            #                      min([1000, floor(data.n_instances / 2)])]],
+            #                      min([1000, floor(data.n_instances() / 2)])]],
             # useless for solver lbfgs
             # useless for solver lbfgs
             'learning_rate_init': ['r', [0.000001, 0.5]],
