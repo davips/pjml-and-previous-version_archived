@@ -102,6 +102,8 @@ class EvaluatorClassif(Evaluator):
 
             output_train = component.apply(train)
             output_test = component.use(test)
+            print('train :::::::::', output_train.shapes())
+            print('test ::::::::::', output_test.shapes())
 
             if not(output_test and output_train):
                 return (None, None)

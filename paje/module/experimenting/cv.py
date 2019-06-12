@@ -5,11 +5,11 @@ from sklearn.model_selection import StratifiedKFold, LeaveOneOut, \
 
 
 class CV(Component):
-    _memoize = {}
+    _memoized = {}
     _max = 0
 
     def fields_to_keep_after_use(self):
-        return 'all'
+        return ''
 
     def fields_to_store_after_use(self):
         return 'all'
@@ -41,12 +41,14 @@ class CV(Component):
         self.testing_fold = self.dic['testing_fold']
 
     def apply_impl(self, data):
-        if data.uuid() in self._memoize:
-            aux = self._memoize[data.uuid()]
+        if data.uuid() in self._memoized:
+            partitions = self._memoized[data.uuid()]
         else:
-            aux = self._memoize[data.uuid()] = list(self.model.split(*data.Xy))
-        self.max = len(aux)-1
-        indices, _ = aux[self.testing_fold]
+            partitions = self._memoized[data.uuid()] = \
+                list(self.model.split(*data.Xy))
+        self.max = len(partitions)-1
+        indices, _ = partitions[self.testing_fold]
+        print(len(indices), 'tr size')
 
         # sanity check
         self._applied_data_uuid = data.uuid()
@@ -57,7 +59,8 @@ class CV(Component):
         if self._applied_data_uuid != data.uuid():
             raise Exception('apply() and use() must partition the same data!')
 
-        _, indices = list(self.model.split(*data.Xy))[self.testing_fold]
+        _, indices = list(self._memoized[data.uuid()])[self.testing_fold]
+        print(len(indices), 'ts size')
         return data.updated(self, X=data.X[indices], Y=data.Y[indices])
 
     def tree_impl(self, data):

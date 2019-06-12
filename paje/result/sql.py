@@ -221,7 +221,7 @@ class SQL(Cache):
             raise Exception('Excess of rows, after ', row, ':', row2)
         return row
 
-    def get_result(self, component, output_data):
+    def get_result(self, component, input_data):
         """
         Look for a result in database.
         ps.: put a model inside component if it is 'dump_it'-enabled
@@ -231,35 +231,49 @@ class SQL(Cache):
             return None
         self.query(f'''
             select 
-                des, bytes, spent, fail, end, node
+                des, bytes, spent, fail, end, node, txt as history, cols
                 {', duc.bytes as model' if component.dump_it else ''}
             from 
                 res 
                     left join data on dout = did
                     left join dump on dumpd = duid
                     left join name on name = nid
+                    left join hist on hist = hid
                     {'left join dump on dumpc = duid'
         if component.dump_it else ''}                    
             where                
                 com=? and dtr=? and din=?''',
                    [component.uuid(),
                     component.train_data__mutable().uuid(),
-                    output_data.uuid()])
+                    input_data.uuid()])
         result = self.get_one()
         if result is None:
             return None
         if 'bytes' in result and result['bytes']:
-            slim = Data(name=result['des'], **unpack_data(result['bytes']))
-            testout = slim.merged(
-                output_data.shrink_to(component.fields_to_keep_after_use()))
+            if result['des'] != input_data.name():
+                raise Exception('Result name differs from input data',
+                                f"{result['des']}!={input_data.name()}")
+            data = Data(name=result['des'],
+                        history=result['history'].split('|'),
+                        **unpack_data(result['bytes']),
+                        columns=result['cols'].split('|'))
+            # print(input_data.shapes(), len(input_data.history()), \
+            #       input_data.history())
+            # print(data.shapes(), len(data.history()), data.history())
+            output_data = input_data.shrink_to(
+                component.fields_to_keep_after_use()
+            ).merged(data)
+            # print(output_data.shapes(), len(output_data.history()), \
+            #       output_data.history())
+
         else:
-            testout = None
+            output_data = None
         component._model_dump = result['model'] if 'model' in result else None
         component.time_spent = result['spent']
         component.failed = result['fail'] and result['fail'] == 1
         component.locked_by_others = result['end'] == '0000-00-00 00:00:00'
         component.node = result['node']
-        return testout
+        return output_data
 
     def store_data(self, data: Data):
         # Check first with a low cost query if data already exists.
@@ -302,7 +316,8 @@ class SQL(Cache):
             );'''
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            self.query(sql, [data.name_uuid(), data.name(), data.columns()])
+            self.query(sql, [data.name_uuid(), data.name(),
+                             '|'.join(data.columns())])
 
         sql = f'''
             insert or ignore into hist values (
@@ -465,7 +480,7 @@ class SQL(Cache):
         if just_check_exists:
             return True
         return Data(name=result['des'],
-                    columns=result['cols'],
+                    columns=result['cols'].split('|'),
                     history=result['history'].split('|'),
                     **unpack_data(result['bytes']))
 
@@ -513,7 +528,7 @@ class SQL(Cache):
             dic.update(unpack_data(row['bytes']))
 
         return just_check_exists or Data(name=name, history=history,
-                                         columns=rows[0]['cols'],
+                                         columns=rows[0]['cols'].split('|'),
                                          **unpack_data(rows[0]['bytes']))
 
     def count_results(self, component, data):
