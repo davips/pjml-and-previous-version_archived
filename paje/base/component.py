@@ -128,7 +128,7 @@ class Component(ABC):
 
             self.handle_warnings()
             if self.name != 'CV':
-                self.msg('Applying component' + self.name + '...')
+                self.msg('Applying ' + self.name + '...')
             start = self.clock()
             try:
                 if self.max_time is None:
@@ -192,7 +192,7 @@ class Component(ABC):
 
             self.handle_warnings()
             if self.name != 'CV':
-                print('Using component', self.name, '...')
+                print('Using ', self.name, '...')
 
             # TODO: put time limit and/or exception handling like in apply()?
             start = self.clock()
