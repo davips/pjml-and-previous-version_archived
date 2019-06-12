@@ -164,7 +164,7 @@ class Component(ABC):
                       'successfully stored, but its use() wasn\'t.')
                 print('Applying just for use() because results were only '
                       'partially stored in a previous execution:'
-                      f'comp: {self.uuid()}  data: {data.uuid()} ...')
+                      f'comp: {self.sid()}  data: {data.sid()} ...')
                 self.apply_impl(self.train_data__mutable())
 
         # Checklist / get from storage -----------------------------------
@@ -181,7 +181,7 @@ class Component(ABC):
             return output_data
 
         if self.failed:
-            self.msg(f"Won't use on data {data.uuid()}\n"
+            self.msg(f"Won't use on data {data.sid()}\n"
                      f"Current {self.name} already failed before.")
             return output_data
 
@@ -431,3 +431,11 @@ class Component(ABC):
     def resurrect_from_dump(model_dump, kwargs):
         """Recreate a component from ashes."""
         raise Exception('Not implemented')
+
+    def sid(self):
+        """
+        Short uuID
+        First 5 chars of uuid for printing purposes.
+        :return:
+        """
+        return self.uuid()[:5]

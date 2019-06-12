@@ -279,10 +279,10 @@ class SQL(Cache):
         # Check first with a low cost query if data already exists.
         if self.data_exists(data):
             if self.debug:
-                print('Data already exists:' + data.uuid(), data.name())
+                print('Data already exists:' + data.sid(), data.name())
             return
         else:
-            print('Storing...', data.uuid(), ' ', data.name())
+            print('Storing...', data.sid(), ' ', data.name())
 
         # Insert dump of data and data info.
         # Catch exception in the event of another job winning the race.

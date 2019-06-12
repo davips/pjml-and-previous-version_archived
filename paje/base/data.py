@@ -284,6 +284,14 @@ class Data:
             self._set('_dump_prediction', pack_data(self.prediction()))
         return self._dump_prediction
 
+    def sid(self):
+        """
+        Short uuID
+        First 5 chars of uuid for printing purposes.
+        :return:
+        """
+        return self.uuid()[:5]
+
     def uuid(self):
         if self._uuid is None:
             # The scenario when a dataset with the same name and fields
