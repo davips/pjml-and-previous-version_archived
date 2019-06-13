@@ -77,7 +77,14 @@ class Component(ABC):
         #     self.error('Build cannot be called on a built component!')
 
         obj_copied = copy.copy(self)
-        obj_copied.dic.update(dic)
+        # descobrir no git log porque colocamos esse update aqui!!!!!
+        # voltei para o que era antes para parar de fazer bruxaria
+        # de alterar o bestpipeline quando fazia o build do proximo pipe.
+        # Se for mesmo necessario dar update, podemos dar update usando uma
+        # copia de dic? ou seria inutil?
+        # obj_copied.dic.update(dic)
+        obj_copied.dic = dic
+
         if obj_copied.isdeterministic() and "random_state" in obj_copied.dic:
             del obj_copied.dic["random_state"]
         obj_copied.dic['describe'] = self.describe()
