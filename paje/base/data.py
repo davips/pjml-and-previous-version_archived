@@ -286,10 +286,11 @@ class Data:
     def sid(self):
         """
         Short uuID
-        First 5 chars of uuid for printing purposes.
+        First 10 chars of uuid for printing purposes.
+        Max of 1 collision each 1048576 combinations.
         :return:
         """
-        return self.uuid()[:5]
+        return self.uuid()[:10]
 
     def uuid(self):
         if self._uuid is None:
