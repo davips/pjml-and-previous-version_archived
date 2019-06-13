@@ -102,8 +102,6 @@ class RandomAutoML(AutoML):
             print(' ========== Pipe:\n', self.curr_pipe)
             raise Exception(e)
         args.update(random_state=self.random_state)
-        # print('tree...\n', tree)
-        # print(' args...\n', args)
         self.curr_pipe = self.curr_pipe.build(**args)
         return [self.curr_pipe]
 
@@ -111,22 +109,11 @@ class RandomAutoML(AutoML):
         return tree.tree_to_dict()
 
     def choose_modules(self):
-        # DONE:
-        #  static ok
-        #  fixed ok
-        #  no repetitions ok
-        #  repetitions ok
         take = self.max_depth \
             if self.fixed else random.randint(0, self.max_depth)
         preprocessors = self.preprocessors * (self.repetitions + 1)
         random.shuffle(preprocessors)
         return preprocessors[:take] + [random.choice(self.modelers)]
-        # tmp = []
-        # for preprocessor in self.preprocessors:
-        #     for _ in range(0, self.repetitions):
-        #         tmp.append(copy.deepcopy(preprocessor))
-        # random.shuffle(tmp)
-        # return tmp[:take] + [random.choice(self.modelers)]
 
     def process_step(self, eval_result):
         self.current_eval = eval_result[0][1] or 0
