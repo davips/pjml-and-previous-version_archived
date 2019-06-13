@@ -62,7 +62,6 @@ class RandomAutoML(AutoML):
         # Class internal attributes
         # Attributes that were not parameterizable
         self.best_eval = -999999
-        self.best_pipe = None
         self.current_eval = None
         self.static_pipeline = None
 
@@ -98,16 +97,14 @@ class RandomAutoML(AutoML):
                                   storage=self.storage_for_components)
         tree = self.curr_pipe.tree(data)
         try:
-            args = copy.copy(self.next_args(tree))
+            args = self.next_args(tree)
         except SamplingException as e:
             print(' ========== Pipe:\n', self.curr_pipe)
             raise Exception(e)
         args.update(random_state=self.random_state)
         # print('tree...\n', tree)
         # print(' args...\n', args)
-        print('111111111111', self.best_pipe)
-        self.curr_pipe = copy.copy(self.curr_pipe.build(**args))
-        print('2222222222222', self.best_pipe)
+        self.curr_pipe = self.curr_pipe.build(**args)
         return [self.curr_pipe]
 
     def next_args(self, tree):
@@ -115,7 +112,7 @@ class RandomAutoML(AutoML):
 
     def choose_modules(self):
         # DONE:
-        #  st'tic ok
+        #  static ok
         #  fixed ok
         #  no repetitions ok
         #  repetitions ok
@@ -132,21 +129,11 @@ class RandomAutoML(AutoML):
         # return tmp[:take] + [random.choice(self.modelers)]
 
     def process_step(self, eval_result):
-        # self.current_eval = eval_result[0][1] or 0
-        # print(self.curr_pipe)
-        if eval_result[0][1] is None:
-            self.current_eval = 0.0
-        else:
-            self.current_eval = eval_result[0][1]
-
-        # print(self.current_eval)
-        if (self.current_eval is not None) and\
-           (self.current_eval > self.best_eval):
-            # print("Entrou!!")
+        self.current_eval = eval_result[0][1] or 0
+        if self.current_eval is not None\
+           and self.current_eval > self.best_eval:
             self.best_eval = self.current_eval
             self.best_pipe = self.curr_pipe
-        # print(self.best_pipe)
-        # print(self.best_eval)
 
     def get_best_pipeline(self):
         return self.best_pipe
