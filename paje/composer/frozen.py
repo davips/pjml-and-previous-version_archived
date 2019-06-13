@@ -9,11 +9,11 @@ class Frozen(Composer):
     def fields_to_keep_after_use(self):
         return self.components[0].fields_to_keep_after_use()
 
-    def __init__(self, component, in_place=False, storage=None,
+    def __init__(self, component, storage=None,
                  show_warns=True, **kwargs):
-        super().__init__(in_place, storage, show_warns)
+        super().__init__(components=[component],
+                         storage=storage, show_warns=show_warns)
 
-        self.components = [component]
         self.params = kwargs
 
     def build_impl(self):
