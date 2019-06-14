@@ -43,8 +43,7 @@ def main():
             show_warns=False,
         ).build(
             max_iter=iterations,
-            static=False, fixed=False,
-            max_depth=15, repetitions=0, method="all",
+            pipe_length=15, repetitions=0,
             random_state=random_state
         )
         automl_rs.apply(trainset)
