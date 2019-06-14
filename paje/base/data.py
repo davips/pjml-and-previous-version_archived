@@ -4,7 +4,7 @@ import pandas as pd
 import sklearn
 import sklearn.datasets as ds
 from paje.module.experimenting.cv import CV
-from paje.util.encoders import pack_data, uuid, uuid_enumerated_dic
+from paje.util.encoders import pack_data, uuid, uuid_enumerated_dic, json_unpack
 from sklearn.utils import check_X_y
 
 
@@ -184,29 +184,32 @@ class Data:
     def store(self, storage):
         storage.store_data(self)
 
-    def updated(self, component, **kwargs):
+    def updated(self, component_or_list, **kwargs):
         """ Return a new Data updated by given values.
-        :param component: to put into transformations list for history purposes
+        :param component_or_list: to put into transformations list for history purposes
         (it can be a list also for internal use in Data).
         :param kwargs:
         :return:
         """
-        new_kwargs = self.matrices().copy()
-        new_kwargs.update(kwargs)
+        new_args = self.matrices().copy()
+        new_args.update(kwargs)
         for l in self.vectors():
-            if l in new_kwargs:
+            if l in new_args:
                 L = l.upper()
-                new_kwargs[L] = as_column_vector(new_kwargs.pop(l))
-        if 'name' not in new_kwargs:
-            new_kwargs['name'] = self.name()
+                new_args[L] = as_column_vector(new_args.pop(l))
+        if 'name' not in new_args:
+            new_args['name'] = self.name()
 
-        if 'history' not in new_kwargs:
-            new_kwargs['history'] = self.history() + component \
-                if isinstance(component, list) else self.history() + \
-                                                    [component.serialized()]
+        if 'history' not in new_args:
+            if isinstance(component_or_list, list):
+                new_args['history'] = self.history() + component_or_list
+            else:
+                new_args['history'] = self.history() + [
+                    json_unpack(component_or_list.serialized())
+                ]
         else:
-            print('Warning, giving \'history\' from outside update().')
-        return Data(columns=self.columns(), **new_kwargs)
+            print('Warning: giving \'history\' from outside update().')
+        return Data(columns=self.columns(), **new_args)
 
     def merged(self, new_data):
         """
