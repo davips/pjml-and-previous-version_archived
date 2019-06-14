@@ -87,7 +87,6 @@ class Component(ABC):
 
         if obj_copied.isdeterministic() and "random_state" in obj_copied.dic:
             del obj_copied.dic["random_state"]
-        obj_copied.dic['describe'] = self.describe()
 
         # Create an encoded (uuid) unambiguous (sorted) version of args_set.
         obj_copied._serialized = 'building'
@@ -213,33 +212,6 @@ class Component(ABC):
                 self.store_result(data, output_data)
         return output_data
 
-    # @abstractmethod
-    # def touched_fields(self):
-    #     """
-    #     Matrices transformed or created by this component.
-    #     Useful to be able to store only new info.
-    #     :return:
-    #     """
-    #     pass
-    #
-    # @abstractmethod
-    # def still_compatible_fields(self):
-    #     """
-    #     Some components create incompatible input and output shapes.
-    #     Useful to merge results with complementar info.
-    #     :return:
-    #     """
-    #     pass
-    #
-    # @abstractmethod
-    # def needed_fields(self):
-    #     """
-    #     Matrices needed by this component, but will not be necessarily touched.
-    #     Useful to be able to store only meaningful previous info.
-    #     :return:
-    #     """
-    #     pass
-
     @abstractmethod
     def build_impl(self):
         pass
@@ -363,21 +335,27 @@ class Component(ABC):
             if 'name' not in self.dic:
                 self.dic['name'] = self.name
 
-            # 'mark' should not identify components, only mark results
-            # when a components is loaded from storage, nobody nows whether
+            # 'mark' should not identify components, it only marks results.
+            # when a component is loaded from storage, nobody knows whether
             # it was part of an experiment or not, except by consulting
-            # the field 'mrak' of the registered result.
+            # the field 'mark' of the registered result.
             if 'mark' in self.dic:
                 self.mark = self.dic.pop('mark')
 
-            # Create an unambiguous (sorted) version of args_set.
+            # 'description' is needed because some components are not entirely
+            # described by build() args.
+            self.dic['description'] = self.describe()
+
+            # Create an unambiguous (sorted) version of
+            # args_set (build args+name+max_time) + init_vars (description).
             self._serialized = json_pack(self.dic)
 
-            # 'describe','name','max_time' are reserved words, not for building.
+            # 'description','name','max_time' are reserved words, not for
+            # building.
             del self.dic['name']
             if 'max_time' in self.dic:
                 self.max_time = self.dic.pop('max_time')
-            del self.dic['describe']
+            del self.dic['description']
 
         return self._serialized
 
@@ -460,3 +438,32 @@ class Component(ABC):
         :return:
         """
         return self.uuid()[:5]
+
+    # This may be useful in the future: ================================
+    # @abstractmethod
+    # def touched_fields(self):
+    #     """
+    #     Matrices transformed or created by this component.
+    #     Useful to be able to store only new info.
+    #     :return:
+    #     """
+    #     pass
+    #
+    # @abstractmethod
+    # def still_compatible_fields(self):
+    #     """
+    #     Some components create incompatible input and output shapes.
+    #     Useful to merge results with complementar info.
+    #     :return:
+    #     """
+    #     pass
+    #
+    # @abstractmethod
+    # def needed_fields(self):
+    #     """
+    #     Matrices needed by this component, but will not be necessarily touched.
+    #     Useful to be able to store only meaningful previous info.
+    #     :return:
+    #     """
+    #     pass
+    # ================================================================
