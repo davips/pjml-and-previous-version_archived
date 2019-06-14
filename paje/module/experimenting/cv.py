@@ -10,11 +10,11 @@ class CV(Component):
         self._memoized = {}
         self._max = 0
 
-    def fields_to_keep_after_use(self):
-        return ''
-
-    def fields_to_store_after_use(self):
-        return 'all'
+    # def still_compatible_fields(self):
+    #     return ''
+    #
+    # def touched_fields(self):
+    #     return 'all'
 
     def next(self):
         if self.dic['testing_fold'] == self._max:
@@ -94,11 +94,11 @@ class CV(Component):
 
 
 class CVtr(Component):
-    def fields_to_store_after_use(self):
-        pass
-
-    def fields_to_keep_after_use(self):
-        pass
+    # def touched_fields(self):
+    #     pass
+    #
+    # def still_compatible_fields(self):
+    #     pass
 
     def build_impl(self):
         pass
@@ -114,11 +114,11 @@ class CVtr(Component):
 
 
 class CVts(Component):
-    def fields_to_store_after_use(self):
-        pass
-
-    def fields_to_keep_after_use(self):
-        pass
+    # def touched_fields(self):
+    #     pass
+    #
+    # def still_compatible_fields(self):
+    #     pass
 
     def build_impl(self):
         pass

@@ -2,13 +2,17 @@ from paje.base.component import Component
 
 
 class Resampler(Component):
-    def fields_to_store_after_use(self):
-        return 'Xy'
-
-    def fields_to_keep_after_use(self):
-        return ''
+    # def touched_fields(self):
+    #     return 'all'
+    #
+    # def still_compatible_fields(self):
+    #     return ''
+    #
+    # def needed_fields(self):
+    #     return 'X,y'
 
     def apply_impl(self, data):
+        # generalize this to resample all fields (xyzuvwpq...)
         X, y = self.model.fit_resample(*data.Xy)
         return data.updated(self, X=X, y=y)
 

@@ -13,11 +13,14 @@ from paje.util.distributions import exponential_integers
 
 
 class NRNN(Component, ABC):
-    def fields_to_store_after_use(self):
-        return 'X,y'
-
-    def fields_to_keep_after_use(self):
-        return ''
+    # def touched_fields(self):
+    #     return 'all'
+    #
+    # def still_compatible_fields(self):
+    #     return ''
+    #
+    # def needed_fields(self):
+    #     return 'X,y'
 
     def build_impl(self):
         self.vote = self.dic['vote']

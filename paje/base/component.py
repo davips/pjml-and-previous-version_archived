@@ -213,18 +213,32 @@ class Component(ABC):
                 self.store_result(data, output_data)
         return output_data
 
-    @abstractmethod
-    def fields_to_store_after_use(self):
-        pass
-
-    @abstractmethod
-    def fields_to_keep_after_use(self):
-        """
-        This method is only needed, because some components create incompatible
-        input and output shapes.
-        :return:
-        """
-        pass
+    # @abstractmethod
+    # def touched_fields(self):
+    #     """
+    #     Matrices transformed or created by this component.
+    #     Useful to be able to store only new info.
+    #     :return:
+    #     """
+    #     pass
+    #
+    # @abstractmethod
+    # def still_compatible_fields(self):
+    #     """
+    #     Some components create incompatible input and output shapes.
+    #     Useful to merge results with complementar info.
+    #     :return:
+    #     """
+    #     pass
+    #
+    # @abstractmethod
+    # def needed_fields(self):
+    #     """
+    #     Matrices needed by this component, but will not be necessarily touched.
+    #     Useful to be able to store only meaningful previous info.
+    #     :return:
+    #     """
+    #     pass
 
     @abstractmethod
     def build_impl(self):

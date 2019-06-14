@@ -175,16 +175,24 @@ class AutoML(Component, ABC):
             "AutoML has no tree() implemented!"
         )
 
-    def fields_to_store_after_use(self):
-        """ TODO the docstring documentation
-        """
-        raise NotImplementedError(
-            "AutoML has no fields_to_store_after_use() implemented!"
-        )
+    # def touched_fields(self):
+    #     """ TODO the docstring documentation
+    #     """
+    #     raise NotImplementedError(
+    #         "AutoML has no touched_fields() implemented!"
+    #     )
+    #
+    # def still_compatible_fields(self):
+    #     """ TODO the docstring documentation
+    #     """
+    #     raise NotImplementedError(
+    #         "AutoML has no still_compatible_fields() implemented!"
+    #     )
+    #
+    # def needed_fields(self):
+    #     """ TODO the docstring documentation
+    #     """
+    #     raise NotImplementedError(
+    #         "AutoML has no needed_fields() implemented!"
+    #     )
 
-    def fields_to_keep_after_use(self):
-        """ TODO the docstring documentation
-        """
-        raise NotImplementedError(
-            "AutoML has no fields_to_keep_after_use() implemented!"
-        )

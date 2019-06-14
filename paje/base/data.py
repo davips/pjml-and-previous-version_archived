@@ -8,6 +8,10 @@ from paje.util.encoders import pack_data, uuid, uuid_enumerated_dic
 from sklearn.utils import check_X_y
 
 
+def sub(a, b):
+    return [item for item in a if item not in b]
+
+
 # TODO: convert in dataclass
 class Data:
 
@@ -241,9 +245,17 @@ class Data:
         ps 2: ignore inexistent fields
         ps 3: raise exception in none fields
         :param fields: 'all' means 'don't touch anything'
+        'except:z,w' means keep all except z,w
         :return:
         """
-        fields_lst = self.fields() if fields == 'all' else fields.split(',')
+        fields.replace(':', ',')
+        if fields == 'all':
+            fields_lst = self.fields()
+        else:
+            fields_lst = fields.split(',')
+            if fields_lst and fields_lst[0] == 'except':
+                fields_lst = sub(self.fields(), fields_lst[1:])
+
         matrixnames = [(x.upper() if x in self.vectors() else x)
                        for x in fields_lst]
 

@@ -4,13 +4,13 @@ import copy
 
 
 class Pipeline(Composer):
-    def fields_to_store_after_use(self):
-        return self.components[len(self.components) - 1] \
-            .fields_to_store_after_use()
-
-    def fields_to_keep_after_use(self):
-        return self.components[len(self.components) - 1] \
-            .fields_to_keep_after_use()
+    # def touched_fields(self):
+    #     return self.components[len(self.components) - 1] \
+    #         .touched_fields()
+    #
+    # def still_compatible_fields(self):
+    #     return self.components[len(self.components) - 1] \
+    #         .still_compatible_fields()
 
     def build_impl(self):
         """
