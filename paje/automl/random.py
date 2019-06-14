@@ -10,10 +10,6 @@ from paje.evaluator.evaluator import EvaluatorClassif
 from paje.evaluator.metrics import Metrics
 
 class RandomAutoML(AutoML):
-
-    DEFAULT_MODELERS = []
-    DEFAULT_PREPROCESSORS = []
-
     def __init__(self,
                  preprocessors,
                  modelers,
@@ -43,16 +39,24 @@ class RandomAutoML(AutoML):
                         evaluator=EvaluatorClassif(),
                         **kwargs)
 
-        # Attributes set in the build_impl.
         # These attributes identify uniquely AutoML.
         # This structure is necessary because the AutoML is a Component and it
         # could be used into other Components, like the Pipeline one.
-        self.max_depth = 2
-        self.static = False
-        self.fixed = False
-        self.repetitions = 0
+        # build_impl()
+        self.repetitions = 0  # by default, no repetitions was be performed
+        self.pipe_length = 2  # by default, the pipeline has two components
+        # __init__()
         self.modelers = modelers
         self.preprocessors = preprocessors
+
+        if not isinstance(modelers, list) or\
+           not isinstance(preprocessors, list):
+            print(modelers)
+            print(preprocessors)
+            raise TypeError("The modelers/preprocessors must be list.")
+
+        if not modelers:
+            raise ValueError("The list length must be greater than one.")
 
         # Other class attributes.
         # These attributes can be set here or in the build_impl method. They
@@ -61,72 +65,74 @@ class RandomAutoML(AutoML):
 
         # Class internal attributes
         # Attributes that were not parameterizable
-        self.best_eval = -999999
-        self.current_eval = None
-        self.static_pipeline = None
+        self.best_eval = float('-Inf')
+        self.best_pipe = None
+        self.curr_eval = None
+        self.curr_pipe = None
 
     def build_impl(self):
         """ TODO the docstring documentation
         """
-        # The 'self' is a copy, because of the Component.build().
+        # The 'self' is a copy.
         # Be careful, the copy made in the parent (Component) is
         # shallow (copy.copy(self)).
         # See more details in the Component.build() method.
 
-        # maybe it is not necessary
         self.__dict__.update(self.dic)
+        np.random.seed(self.random_state)
 
-        # TODO: check if it is necessary
-        if self.static and not self.fixed:
-            self.error('static and not fixed!')
-        if self.static and self.repetitions > 0:
-            self.error('static and repetitions > 0!')
-
-        # TODO: check if it is necessary
-        if self.static:
-            if len(self.modelers) > 1:
-                self.warning('Multiple modelers given in static mode.')
-            self.static_pipeline = self.preprocessors + self.modelers
-            if self.max_depth < len(self.static_pipeline):
-                self.warning('max_depth lesser than given fixed pipeline!')
-        random.seed(self.random_state)
+        if self.pipe_length < 1:
+            raise ValueError("The 'pipe_length' must be greater than 0.")
+        if self.repetitions:
+            raise ValueError("The 'repetitions' must be a positive int.")
 
     def next_pipelines(self, data):
-        modules = self.static_pipeline if self.static else self.choose_modules()
-        self.curr_pipe = Pipeline(modules, show_warns=self.show_warns,
+        """ TODO the docstring documentation
+        """
+        components = self.choose_modules()
+        self.curr_pipe = Pipeline(components, show_warns=self.show_warns,
                                   storage=self.storage_for_components)
         tree = self.curr_pipe.tree(data)
+
         try:
-            args = self.next_args(tree)
-        except SamplingException as e:
+            args = tree.tree_to_dict()
+        except SamplingException as exc:
             print(' ========== Pipe:\n', self.curr_pipe)
-            raise Exception(e)
+            raise Exception(exc)
+
         args.update(random_state=self.random_state)
         self.curr_pipe = self.curr_pipe.build(**args)
         return [self.curr_pipe]
 
-    def next_args(self, tree):
-        return tree.tree_to_dict()
-
     def choose_modules(self):
-        take = self.max_depth \
-            if self.fixed else random.randint(0, self.max_depth)
+        """ TODO the docstring documentation
+        """
+        take = np.random.randint(0, self.pipe_length)
+
         preprocessors = self.preprocessors * (self.repetitions + 1)
-        random.shuffle(preprocessors)
-        return preprocessors[:take] + [random.choice(self.modelers)]
+        np.random.shuffle(preprocessors)
+        return preprocessors[:take] + [np.random.choice(self.modelers)]
 
     def process_step(self, eval_result):
-        self.current_eval = eval_result[0][1] or 0
-        if self.current_eval is not None\
-           and self.current_eval > self.best_eval:
-            self.best_eval = self.current_eval
+        """ TODO the docstring documentation
+        """
+        self.curr_eval = eval_result[0][1] or 0
+        if self.curr_eval is not None\
+           and self.curr_eval > self.best_eval:
+            self.best_eval = self.curr_eval
             self.best_pipe = self.curr_pipe
 
     def get_best_pipeline(self):
+        """ TODO the docstring documentation
+        """
         return self.best_pipe
 
     def get_current_eval(self):
-        return self.current_eval
+        """ TODO the docstring documentation
+        """
+        return self.curr_eval
 
     def get_best_eval(self):
+        """ TODO the docstring documentation
+        """
         return self.best_eval
