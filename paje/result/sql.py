@@ -34,9 +34,8 @@ class SQL(Cache):
 
                 hid char(19) NOT NULL UNIQUE,
 
-                txt TEXT NOT NULL
+                txt LONGBLOB NOT NULL
             )''')
-        self.query(f'CREATE INDEX nam0 ON hist (txt{self._keylimit()})')
 
         # Names of Data ========================================================
         self.query(f'''
@@ -52,16 +51,14 @@ class SQL(Cache):
         self.query(f'CREATE INDEX nam0 ON name (des{self._keylimit()})')
         self.query(f'CREATE INDEX nam1 ON name (cols{self._keylimit()})')
 
-        # Dumps of Data and Component ==========================================
+        # Dump of Component instances  =========================================
         self.query(f'''
-            create table if not exists dump (
+            create table if not exists inst (
                 n integer NOT NULL primary key {self._auto_incr()},
 
-                duid char(19) NOT NULL UNIQUE,
-                typ varchar(20),
+                iid char(19) NOT NULL UNIQUE,
                 bytes LONGBLOB NOT NULL
             )''')
-        self.query(f'CREATE INDEX dump0 ON dump (typ)')
 
         # Logs for Component ===================================================
         self.query(f'''
@@ -90,6 +87,20 @@ class SQL(Cache):
         self.query(f'CREATE INDEX com0 ON com (arg{self._keylimit()})')
         self.query(f'CREATE INDEX com1 ON com (insc)')
 
+        # Matrices =============================================================
+        self.query(f'''
+            create table if not exists mat (
+                n integer NOT NULL primary key {self._auto_incr()},
+
+                mid char(19) NOT NULL UNIQUE,
+
+                w integer,
+                h integer,
+                val LONGBLOB NOT NULL                 
+            )''')
+        self.query(f'CREATE INDEX mat0 ON mat (w)')
+        self.query(f'CREATE INDEX mat1 ON mat (h)')
+
         # Datasets =============================================================
         self.query(f'''
             create table if not exists data (
@@ -98,18 +109,40 @@ class SQL(Cache):
                 did char(19) NOT NULL UNIQUE,
 
                 name char(19) NOT NULL,
-                fields varchar(32) NOT NULL,
                 hist char(19),
 
-                dumpd char(19) NOT NULL,
-                shape varchar(256) NOT NULL,
+                x char(19),
+                y char(19),
+                z char(19),
+                p char(19),
+
+                u char(19),
+                v char(19),
+                w char(19),
+                q char(19),
+
+                r char(19),
+                s char(19),
+
+                t char(19),
 
                 insd timestamp NOT NULL,
 
-                unique(name, fields, hist),
+                unique(name, hist),
                 FOREIGN KEY (name) REFERENCES name(nid),
-                FOREIGN KEY (dumpd) REFERENCES dump(duid),
-                FOREIGN KEY (hist) REFERENCES hist(hid)
+                FOREIGN KEY (hist) REFERENCES hist(hid),
+                
+                FOREIGN KEY (x) REFERENCES mat(mid),
+                FOREIGN KEY (y) REFERENCES mat(mid),
+                FOREIGN KEY (z) REFERENCES mat(mid),
+                FOREIGN KEY (p) REFERENCES mat(mid),
+                FOREIGN KEY (u) REFERENCES mat(mid),
+                FOREIGN KEY (v) REFERENCES mat(mid),
+                FOREIGN KEY (w) REFERENCES mat(mid),
+                FOREIGN KEY (q) REFERENCES mat(mid),
+                FOREIGN KEY (r) REFERENCES mat(mid),
+                FOREIGN KEY (s) REFERENCES mat(mid),
+                FOREIGN KEY (t) REFERENCES mat(mid),
                )''')
         # guardar last comp nao adianta pq o msm comp pode ser aplicado
         # varias vezes
@@ -117,10 +150,19 @@ class SQL(Cache):
         # quem transforma Data, ou seja, faz updated().
         self.query(f'CREATE INDEX data0 ON data (shape{self._keylimit()})')
         self.query(f'CREATE INDEX data1 ON data (insd)')
-        self.query(f'CREATE INDEX data2 ON data (dumpd)')
-        self.query(f'CREATE INDEX data3 ON data (name)')  # needed?
-        self.query(f'CREATE INDEX data4 ON data (fields)')  # needed?
-        self.query(f'CREATE INDEX data5 ON data (hist)')  # needed?
+        self.query(f'CREATE INDEX data2 ON data (name)')  # needed on FKs?
+        self.query(f'CREATE INDEX data3 ON data (hist)')
+        self.query(f'CREATE INDEX datax ON data (x)')
+        self.query(f'CREATE INDEX datay ON data (y)')
+        self.query(f'CREATE INDEX dataz ON data (z)')
+        self.query(f'CREATE INDEX datap ON data (p)')
+        self.query(f'CREATE INDEX datau ON data (u)')
+        self.query(f'CREATE INDEX datav ON data (v)')
+        self.query(f'CREATE INDEX dataw ON data (w)')
+        self.query(f'CREATE INDEX dataq ON data (q)')
+        self.query(f'CREATE INDEX datar ON data (r)')
+        self.query(f'CREATE INDEX datas ON data (s)')
+        self.query(f'CREATE INDEX datat ON data (t)')
 
         # Results ==============================================================
         self.query(f'''
@@ -137,7 +179,7 @@ class SQL(Cache):
 
                 dout char(19),
                 spent FLOAT,
-                dumpc char(19),
+                dump char(19),
 
                 fail TINYINT,
 
@@ -154,12 +196,12 @@ class SQL(Cache):
                 FOREIGN KEY (dtr) REFERENCES data(did),
                 FOREIGN KEY (din) REFERENCES data(did),
                 FOREIGN KEY (dout) REFERENCES data(did),
-                FOREIGN KEY (dumpc) REFERENCES dump(duid),
+                FOREIGN KEY (dump) REFERENCES inst(iid),
                 FOREIGN KEY (log) REFERENCES log(lid)
             )''')
         self.query('CREATE INDEX res0 ON res (dout)')
         self.query('CREATE INDEX res1 ON res (spent)')
-        self.query('CREATE INDEX res2 ON res (dumpc)')
+        self.query('CREATE INDEX res2 ON res (dump)')
         self.query('CREATE INDEX res3 ON res (fail)')
         self.query('CREATE INDEX res4 ON res (start)')
         self.query('CREATE INDEX res5 ON res (end)')
@@ -172,8 +214,8 @@ class SQL(Cache):
 
     def lock(self, component, input_data, txtres=''):
         """
-        Store 'test' and 'component' if they are not yet stored.
-        Insert a locking row corresponding to comp,training_data,input_data.
+        Store 'input_data' and 'component' if they are not yet stored.
+        Insert a locking row that corresponds to comp,training_data,input_data.
         :param component:
         :param input_data:
         :param txtres: for logging purposes
@@ -182,9 +224,8 @@ class SQL(Cache):
         if self.debug:
             print('Locking...')
 
-        # Store testing set if (inexistent yet).
-        self.store_data(
-            input_data.shrink_to(component.fields_to_keep_after_use()))
+        # Store input set if not existent yet.
+        self.store_data(input_data)
 
         # Store component (if inexistent yet) and attempt to acquire lock.
         # Mark as locked_by_others otherwise.
