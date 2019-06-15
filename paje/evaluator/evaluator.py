@@ -104,7 +104,15 @@ class EvaluatorClassif(Evaluator):
             train = validation.apply(data)
             test = validation.use(data)
 
-            output_train = component.apply(train)
+            # TODO already did:
+            #  ALERT!  apply() returns accuracy on the transformed set,
+            #  not on the training set. E.g. noise reduction produces a smaller
+            #  set to be evaluated by the model.
+            #  We should use() the component on training data, if we want
+            #  the training accuracy. So I discarded the result of apply()
+            #  and added a new use().
+            component.apply(train)
+            output_train = component.use(train)
             output_test = component.use(test)
 
             if not (output_test and output_train):
