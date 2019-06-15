@@ -152,8 +152,7 @@ class Component(ABC):
             self.dishandle_warnings()
 
             if self.storage is not None:
-                output_train_data = None if self.failed else self.use_impl(data)
-                self.store_result(data, output_train_data)
+                self.store_result(data, output_data)
 
         return output_data
 
