@@ -98,11 +98,11 @@ class Data:
             self.__dict__[k] = devectorize(v)
 
         # Add lazy cache for dump and uuid
-        self._set('_dump', None)
-        self._set('_dump_prediction', None)
+        for var in all_mats_vecs:
+            self._set('_dump' + var, None)
+            self._set('_uuid' + var, None)
         self._set('_uuid', None)
         self._set('_history_uuid', None)
-        self._set('_dump_uuid', None)
         self._set('_name_uuid', None)
         self._set('_name', name)
         self._set('_fields', None)
@@ -135,6 +135,28 @@ class Data:
         self._set('is_unsupervised', None)
         self._set('is_multilabel', None)
         self._set('is_ranking_prediction', None)
+
+    def field_dump(self, field):
+        if self.matvecs()[field] is None:
+            raise Exception(f'Field {field} not available in this Data!')
+        key = '_dump' + field
+        if self.__dict__[key] is None:
+            self.__dict__[key] = pack_data(self.matvecs()[field])
+        return self.__dict__[key]
+
+    def field_uuid(self, field):
+        if self.matvecs()[field] is None:
+            raise Exception(f'Field {field} not available in this Data!')
+        key = '_uuid' + field
+        if self.__dict__[key] is None:
+            self.__dict__[key] = uuid(self.field_dump(field))
+        return self.__dict__[key]
+
+    def uuids_dumps(self):
+        """
+        :return: pair uuid-dump of each matrix/vector.
+        """
+        return {self.field_uuid(k): self.field_dump(k) for k in self.matvecs()}
 
     @staticmethod
     def read_arff(file, target, storage=None):
