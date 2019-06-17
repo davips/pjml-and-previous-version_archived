@@ -21,6 +21,7 @@ class Classifier(Component, ABC):
         :return:
         """
         # self.model will be set in the child class
+        # print('classif.......', data)
         self.model.fit(*data.Xy)
         return self.use_impl(data)
 
