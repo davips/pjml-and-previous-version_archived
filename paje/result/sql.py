@@ -279,9 +279,7 @@ class SQL(Cache):
         '''
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            self.query(sql, [uuid,
-                             w, h,
-                             dump])
+            self.query(sql, [uuid, w, h, dump])
 
     def store_data(self, data: Data):
         """
@@ -295,7 +293,7 @@ class SQL(Cache):
         # Check if Data already exists and which fields are already stored.
         self.query(f'''
                     select * from data
-                    where did=?''', data.uuid())
+                    where did=?''', [data.uuid()])
         rone = self.get_one()
 
         if rone is None:
@@ -522,7 +520,7 @@ class SQL(Cache):
             dic = {}
             for field in compo.touched_fields():
                 mid = result[field]
-                self.query(f'select val from mat where mid=?', mid)
+                self.query(f'select val from mat where mid=?', [mid])
                 rone = self.get_one()
                 dic[Data.to_case_sensitive[field.lower()]] = \
                     unpack_data(rone['val'])
@@ -647,7 +645,7 @@ class SQL(Cache):
             flst = fields.split(',')
         for field in Data.list_to_case_sensitive(flst):
             mid = row[field.lower()]
-            self.query(f'select val from mat where mid=?', mid)
+            self.query(f'select val from mat where mid=?', [mid])
             rone = self.get_one()
             dic[field] = unpack_data(rone['val'])
         return Data(columns=unpack_data(row['cols']), **dic)
@@ -707,7 +705,7 @@ class SQL(Cache):
         fields = [k for k, v in row.items() if len(k) == 1 and v is not None]
         for field in Data.list_to_case_sensitive(fields):
             mid = row[field.lower()]
-            self.query(f'select val from mat where mid=?', mid)
+            self.query(f'select val from mat where mid=?', [mid])
             rone = self.get_one()
             dic[field] = unpack_data(rone['val'])
         return Data(columns=unpack_data(row['cols']), **dic)
