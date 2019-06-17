@@ -8,13 +8,14 @@ from math import floor
 from sklearn.neighbors import KNeighborsClassifier
 
 from paje.base.component import Component
+from paje.base.data import Data
 from paje.base.hps import HPTree
 from paje.util.distributions import exponential_integers
 
 
 class NRNN(Component, ABC):
     def touched_fields(self):
-        return 'all'
+        return Data.sql_all_fields
 
     def build_impl(self):
         self.vote = self.dic['vote']

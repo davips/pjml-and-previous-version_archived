@@ -27,6 +27,7 @@ class Data:
         'p': 'P',
         'q': 'Q'
     })
+    sql_all_fields = ','.join(to_case_sensitive.keys())
 
     def __init__(self, name, X=None, Y=None, Z=None, P=None, e=None,
                  U=None, V=None, W=None, Q=None, f=None,

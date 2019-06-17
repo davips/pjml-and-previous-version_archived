@@ -12,12 +12,6 @@ class CV(Component):
         self._memoized = {}
         self._max = 0
 
-    # def still_compatible_fields(self):
-    #     return ''
-    #
-    # def touched_fields(self):
-    #     return 'all'
-
     def next(self):
         if self.dic['testing_fold'] == self._max:
             return None
@@ -91,7 +85,8 @@ class CV(Component):
         HPTree({'testing_fold': ['c', [0]]}, [holdout, cv, loo])
 
     def touched_fields(self):
-        return 'all'
+        from paje.base.data import Data
+        return Data.sql_all_fields
 
 # Needed classes to mark history of transformations when apply() give different
 # results than use().

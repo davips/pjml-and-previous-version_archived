@@ -8,6 +8,7 @@ from abc import ABC, abstractmethod
 
 # from paje
 from paje.base.component import Component
+from paje.base.data import Data
 
 
 class AutoML(Component, ABC):
@@ -177,4 +178,5 @@ class AutoML(Component, ABC):
         )
 
     def touched_fields(self):
-        return 'all'
+        return Data.sql_all_fields
+

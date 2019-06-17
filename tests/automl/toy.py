@@ -4,7 +4,7 @@ from sys import argv
 from paje.automl.random import RandomAutoML
 from paje.base.data import Data
 from paje.evaluator.metrics import Metrics
-from paje.module.modules import default_modelers
+from paje.module.modules import default_modelers, default_preprocessors
 # @profile
 from paje.module.preprocessing.unsupervised.feature.transformer.drpca import \
     DRPCA
@@ -37,13 +37,13 @@ def main():
         trainset, testset = data.split()
 
         automl_rs = RandomAutoML(
-            preprocessors=[DRPCA()],
-            modelers=[SVMC()],
+            preprocessors=default_preprocessors,
+            modelers=default_modelers,
             storage_for_components=storage,
             show_warns=False,
         ).build(
             max_iter=iterations,
-            pipe_length=15, repetitions=0,
+            pipe_length=15, repetitions=2,
             random_state=random_state
         )
         automl_rs.apply(trainset)

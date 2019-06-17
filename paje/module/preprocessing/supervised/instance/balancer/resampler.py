@@ -1,9 +1,10 @@
 from paje.base.component import Component
+from paje.base.data import Data
 
 
 class Resampler(Component):
     def touched_fields(self):
-        return 'all'
+        return Data.sql_all_fields
 
     def apply_impl(self, data):
         # TODO: generalize this to resample all fields (xyzuvwpq...)
