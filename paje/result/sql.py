@@ -566,8 +566,8 @@ class SQL(Cache):
 
         # Store dump if requested.
         dump_uuid = component.dump_it and uuid(
-            component.uuid() + op +
-            component.train_data_uuid__mutable() + input_data.uuid()
+            (component.uuid() + op +
+             component.train_data_uuid__mutable() + input_data.uuid()).encode()
         )
         if component.dump_it:
             sql = f'insert or ignore into inst values (null, ?, ?)'
@@ -578,7 +578,7 @@ class SQL(Cache):
                 self.query(sql, [dump_uuid, pack_comp(component)])
 
         # Store a log if apply() failed.
-        log_uuid = component.failure and uuid(component.failure)
+        log_uuid = component.failure and uuid(component.failure.encode())
         if component.failure is not None:
             sql = f'insert or ignore into log values (null, ?, ?, {now})'
             with warnings.catch_warnings():
@@ -598,10 +598,8 @@ class SQL(Cache):
                     com=? and op=? and 
                     dtr=? and din=?
                 '''
-        set_args = [log_uuid,
-                    output_data.uuid(), component.time_spent, dump_uuid,
-                    fail,
-                    component.mark]
+        set_args = [log_uuid, output_data and output_data.uuid(),
+                    component.time_spent, dump_uuid, fail, component.mark]
         where_args = [component.uuid(), op,
                       component.train_data_uuid__mutable(), input_data.uuid()]
         # TODO: is there any important exception to handle here?
