@@ -34,7 +34,10 @@ class Component(ABC):
 
         self.storage = storage
         self._uuid = None  # UUID will be known only after build()
-        self._train_data__mutable = None  # Each apply() uses a different train
+
+        # Each apply() uses a different training data, so this uuid is mutable
+        self._train_data_uuid__mutable = None
+
         self.locked_by_others = False
         self.failed = False
         self.time_spent = None
@@ -112,25 +115,27 @@ class Component(ABC):
         if data is None:
             raise Exception(f"Applying {self.name} on None !")
 
-        self._train_data__mutable = data
+        self._train_data_uuid__mutable = data.uuid()
 
-        output_data = self.look_for_result(data)
+        output_data = None
+        if self.storage is not None:
+            output_data = self.storage.get_result(self, 'a', data)
 
         if self.failed:
-            self.msg(f"Won't apply on data {self.train_data__mutable().name()}"
+            self.msg(f"Won't apply on data {data.name()}"
                      f"\nCurrent {self.name} already failed before.")
             return output_data
 
         if self.locked_by_others:
             print(f"Won't apply {self.name} on data "
-                  f"{self.train_data__mutable().name()}\n"
+                  f"{data.name()}\n"
                   f"Currently probably working at node [{self.node}].")
             return output_data
 
         # Apply if still needed  ----------------------------------
         if output_data is None:
             if self.storage is not None:
-                self.lock(data, 'applying')
+                self.storage.lock(self, 'a', data)
 
             self.handle_warnings()
             if self.name != 'CV':
@@ -152,7 +157,7 @@ class Component(ABC):
             self.dishandle_warnings()
 
             if self.storage is not None:
-                self.store_result(data, output_data)
+                self.storage.store_result(self, 'a', data, output_data)
 
         return output_data
 
@@ -166,22 +171,25 @@ class Component(ABC):
             # but there is no model, we reapply it...
             if self.model is None:
                 print('It is possible that a previous apply() was '
-                      'successfully stored, but its use() wasn\'t.')
-                print('Applying just for use() because results were only '
-                      'partially stored in a previous execution:'
+                      'successfully stored, but its use() wasn\'t.'
+                      'Or you are trying to use in new data.')
+                print('Trying to recover training data from storage to apply '
+                      'just to induce a model usable by use()...\n'
                       f'comp: {self.sid()}  data: {data.sid()} ...')
-                self.apply_impl(self.train_data__mutable())
+                self.apply_impl(stored_train_data)
 
         # Checklist / get from storage -----------------------------------
         if data is None:
             self.msg(f"Using {self.name} on None returns None.")
             return None
 
-        output_data = self.look_for_result(data)
+        output_data = None
+        if self.storage is not None:
+            output_data = self.storage.get_result(self, 'u', data)
 
         if self.locked_by_others:
             self.msg(f"Won't use {self.name} on data "
-                     f"{self.train_data__mutable().name()}\n"
+                     f"{data.name()}\n"
                      f"Currently probably working at {self.node}.")
             return output_data
 
@@ -193,7 +201,7 @@ class Component(ABC):
         # Use if still needed  ----------------------------------
         if output_data is None:
             if self.storage is not None:
-                self.lock(data, 'using')
+                self.storage.lock(self, 'u', data)
 
             self.handle_warnings()
             if self.name != 'CV':
@@ -208,7 +216,7 @@ class Component(ABC):
             self.dishandle_warnings()
 
             if self.storage is not None:
-                self.store_result(data, output_data)
+                self.storage.store_result(self, 'u', data, output_data)
         return output_data
 
     @abstractmethod
@@ -358,14 +366,6 @@ class Component(ABC):
 
         return self._serialized
 
-    def store_result(self, input_data, output_data):
-        """
-        :param input_data:
-        :param output_data:
-        :return:
-        """
-        self.storage.store_result(self, input_data, output_data)
-
     @staticmethod
     def clock():
         t = os.times()
@@ -395,11 +395,11 @@ class Component(ABC):
             self._model_dump = pack_comp(self.model)
         return self._model_dump
 
-    def train_data__mutable(self):
-        if self._train_data__mutable is None:
+    def train_data_uuid__mutable(self):
+        if self._train_data_uuid__mutable is None:
             raise Exception('This component should be applied to have '
-                            'an internal training Data.', self.name)
-        return self._train_data__mutable
+                            'an internal training data uuid.', self.name)
+        return self._train_data_uuid__mutable
 
     def handle_warnings(self):
         # Mahalanobis in KNN needs to supress warnings due to NaN in linear
@@ -412,14 +412,8 @@ class Component(ABC):
         if not self.show_warns:
             np.warnings.filterwarnings('always')
 
-    def lock(self, data, txt=''):
-        self.storage.lock(self, data, txt)
-
-    def look_for_result(self, data):
-        return self.storage and self.storage.get_result(self, data)
-
     def check_if_applied(self):
-        if self._train_data__mutable is None:
+        if self._train_data_uuid__mutable is None:
             raise UseWithoutApply(f'{self.name} should be applied!')
 
     def check_if_built(self):
