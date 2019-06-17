@@ -44,11 +44,9 @@ class Component(ABC):
         self.node = None
         self.max_time = None
         self.mark = None
-        self._model_dump = None
-        self._model_uuid = None
         self._describe = None
 
-        # Whether to dump the model or not, if a storage is given.
+        # Whether to dump this comp. or not, if a storage is given.
         self.dump_it = dump_it or None  # 'or'->possib.vals=Tru,Non See sql.py
 
         self.log = logging.getLogger('component')
@@ -295,12 +293,6 @@ class Component(ABC):
                                     'uuid() <-' + self.name)
         return self._uuid
 
-    def model_uuid(self):
-        self.check_if_applied()
-        if self._model_uuid is None and self.dump_it:
-            self._model_uuid = uuid(self.model_dump())
-        return self._model_uuid
-
     def __str__(self, depth=''):
         return self.name + " " + str(self.dic)
 
@@ -372,29 +364,6 @@ class Component(ABC):
         return t[4]
         # return usage[0] + usage[1]  # TOTAL CPU whole-system time
 
-    # TODO: is config dump (or even entire component dump) really needed?
-    #  we can reconstruct the component using the kwargs and model_dump
-    # def conf_dump(self):
-    #     """Compact everything except self.model"""
-    #     not implemented!
-    #     self.check_if_applied()  # It makes no sense to store an unapplied comp.
-    #     if self._dump is None:
-    #         # TODO: dumping entire component (?),
-    #         #  the user would need pajé to extract the model from it,
-    #         #  or to have a model dump.
-    #         self._dump = pack_comp(self)
-    #     return self._dump
-
-    def model_dump(self):
-        """
-        Compact the internal model (e.g., sklearn instance) of this component.
-        :return:
-        """
-        self.check_if_applied()
-        if self._model_dump is None and self.dump_it:
-            self._model_dump = pack_comp(self.model)
-        return self._model_dump
-
     def train_data_uuid__mutable(self):
         if self._train_data_uuid__mutable is None:
             raise Exception('This component should be applied to have '
@@ -418,11 +387,6 @@ class Component(ABC):
 
     def check_if_built(self):
         self.serialized()  # Call just to raise exception, if needed.
-
-    @staticmethod
-    def resurrect_from_dump(model_dump, kwargs):
-        """Recreate a component from ashes."""
-        raise Exception('Not implemented')
 
     def sid(self):
         """
