@@ -39,6 +39,16 @@ class SQL(Cache):
                 txt text NOT NULL
             )''')
 
+        # Columns of Data ======================================================
+        self.query(f'''
+            create table if not exists atr (
+                n integer NOT NULL primary key {self._auto_incr()},
+
+                aid char(19) NOT NULL UNIQUE,
+
+                cols BLOB NOT NULL
+            )''')
+
         # Names of Data ========================================================
         self.query(f'''
             create table if not exists name (
@@ -48,10 +58,12 @@ class SQL(Cache):
 
                 des TEXT NOT NULL,
 
-                cols BLOB
+                atr char(19),
+
+                FOREIGN KEY (atr) REFERENCES atr(aid)
             )''')
         self.query(f'CREATE INDEX nam0 ON name (des{self._keylimit()})')
-        self.query(f'CREATE INDEX nam1 ON name (cols{self._keylimit()})')
+        self.query(f'CREATE INDEX nam1 ON name (atr)')
 
         # Dump of Component instances  =========================================
         self.query(f'''
@@ -234,7 +246,7 @@ class SQL(Cache):
         if row2 is not None:
             print('first row', row)
             while row2:
-                print('extra row',row2)
+                print('extra row', row2)
                 row2 = self.cursor.fetchone()
             raise Exception('Excess of rows')
         return row
@@ -374,7 +386,22 @@ class SQL(Cache):
         :param data:
         :return:
         """
+        # atr ---------------------------------------------------------
+        # TODO: avoid sending long cols blob when unneeded
+        cols = pack_data(data.columns())
+        uuid_cols = uuid(cols)
+        sql = f'''
+            insert or ignore into atr values (
+                NULL,
+                ?,
+                ?
+            );'''
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            self.query(sql, [uuid_cols, cols])
+
         # name ---------------------------------------------------------
+        # TODO: avoid sending long names when unneeded
         sql = f'''
             insert or ignore into name values (
                 NULL,
@@ -384,10 +411,10 @@ class SQL(Cache):
             );'''
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            self.query(sql, [data.name_uuid(), data.name(),
-                             pack_data(data.columns())])
+            self.query(sql, [data.name_uuid(), data.name(), uuid_cols])
 
         # history ------------------------------------------------------
+        # TODO: avoid sending long hist blob when unneeded
         sql = f'''
             insert or ignore into hist values (
                 NULL,
@@ -474,6 +501,7 @@ class SQL(Cache):
                     left join data on dout = did
                     left join name on name = nid
                     left join hist on hist = hid
+                    left join atr on atr = aid
                     {'left join inst on inst = iid' if compo.dump_it else ''}                    
             where                
                 com=? and op=? and dtr=? and din=?''',
@@ -496,7 +524,7 @@ class SQL(Cache):
                 mid = result[field]
                 self.query(f'select val from mat where mid=?', mid)
                 rone = self.get_one()
-                dic[field] = unpack_data(rone['val'])
+                dic[Data.to_case_sensitive[field]] = unpack_data(rone['val'])
 
             # Create Data.
             data = Data(name=result['des'],
@@ -604,6 +632,7 @@ class SQL(Cache):
                     data 
                         left join name on name=nid 
                         left join hist on hist=hid
+                        left join atr on atr=aid
                 where 
                     des=? and txt=?'''
         self.query(sql, [name, hist])
@@ -613,7 +642,11 @@ class SQL(Cache):
 
         # Recover requested matrices/vectors.
         dic = {'name': name, 'history': history}
-        for field in Data.to_case_sensitive(fields.split(',')):
+        if fields is None:
+            flst = [k for k, v in row.items() if len(k) == 1 and v is not None]
+        else:
+            flst = fields.split(',')
+        for field in Data.list_to_case_sensitive(flst):
             mid = row[field.lower()]
             self.query(f'select val from mat where mid=?', mid)
             rone = self.get_one()

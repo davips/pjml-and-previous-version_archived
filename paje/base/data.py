@@ -16,6 +16,17 @@ def sub(a, b):
 # TODO: convert in dataclass
 class Data:
     _val2vec = {'r': 'e', 's': 'f', 't': 'k'}
+    to_case_sensitive = _val2vec.copy()
+    to_case_sensitive.update({ # mostly for sql
+        'x': 'X',
+        'y': 'Y',
+        'z': 'Z',
+        'u': 'U',
+        'v': 'V',
+        'w': 'W',
+        'p': 'P',
+        'q': 'Q'
+    })
 
     def __init__(self, name, X=None, Y=None, Z=None, P=None, e=None,
                  U=None, V=None, W=None, Q=None, f=None,
@@ -458,10 +469,11 @@ class Data:
         return self._vectors
 
     @classmethod
-    def to_case_sensitive(cls, fields):
+    def list_to_case_sensitive(cls, fields):
         sensitive = []
         for field in fields:
-            f = cls._val2vec[field] if field in cls._val2vec else field.upper()
+            f = cls.to_case_sensitive[field] \
+                if field in cls.to_case_sensitive else field
             sensitive.append(f)
         return sensitive
 

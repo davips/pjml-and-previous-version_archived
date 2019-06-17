@@ -90,6 +90,8 @@ class CV(Component):
         }
         HPTree({'testing_fold': ['c', [0]]}, [holdout, cv, loo])
 
+    def touched_fields(self):
+        return 'all'
 
 # Needed classes to mark history of transformations when apply() give different
 # results than use().

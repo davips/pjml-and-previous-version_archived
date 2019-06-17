@@ -9,6 +9,7 @@ from paje.util.distributions import SamplingException
 from paje.evaluator.evaluator import EvaluatorClassif
 from paje.evaluator.metrics import Metrics
 
+
 class RandomAutoML(AutoML):
     def __init__(self,
                  preprocessors,
@@ -35,7 +36,7 @@ class RandomAutoML(AutoML):
         """
 
         AutoML.__init__(self,
-                        components=preprocessors+modelers,
+                        components=preprocessors + modelers,
                         evaluator=EvaluatorClassif(),
                         **kwargs)
 
@@ -49,8 +50,8 @@ class RandomAutoML(AutoML):
         self.modelers = modelers
         self.preprocessors = preprocessors
 
-        if not isinstance(modelers, list) or\
-           not isinstance(preprocessors, list):
+        if not isinstance(modelers, list) or \
+                not isinstance(preprocessors, list):
             print(modelers)
             print(preprocessors)
             raise TypeError("The modelers/preprocessors must be list.")
@@ -83,8 +84,11 @@ class RandomAutoML(AutoML):
 
         if self.pipe_length < 1:
             raise ValueError("The 'pipe_length' must be greater than 0.")
-        if self.repetitions:
-            raise ValueError("The 'repetitions' must be a positive int.")
+
+        #TODO: was this IF correct?  ass. Davi
+        if self.repetitions < 0:
+            print('self.repetitions', self.repetitions)
+            raise ValueError("The 'repetitions' must be a non-negative int.")
 
     def next_pipelines(self, data):
         """ TODO the docstring documentation
@@ -117,8 +121,8 @@ class RandomAutoML(AutoML):
         """ TODO the docstring documentation
         """
         self.curr_eval = eval_result[0][1] or 0
-        if self.curr_eval is not None\
-           and self.curr_eval > self.best_eval:
+        if self.curr_eval is not None \
+                and self.curr_eval > self.best_eval:
             self.best_eval = self.curr_eval
             self.best_pipe = self.curr_pipe
 

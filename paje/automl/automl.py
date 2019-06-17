@@ -13,6 +13,7 @@ from paje.base.component import Component
 class AutoML(Component, ABC):
     """ TODO the docstring documentation
     """
+
     def __init__(self,
                  components,
                  evaluator,
@@ -90,7 +91,7 @@ class AutoML(Component, ABC):
         """ TODO the docstring documentation
         """
         self.all_eval_results = []
-        for iteration in range(1, self.max_iter+1):
+        for iteration in range(1, self.max_iter + 1):
             self.current_iteration = iteration
             if self.verbose:
                 print("####------##-----##-----##-----##-----##-----####")
@@ -175,24 +176,5 @@ class AutoML(Component, ABC):
             "AutoML has no tree() implemented!"
         )
 
-    # def touched_fields(self):
-    #     """ TODO the docstring documentation
-    #     """
-    #     raise NotImplementedError(
-    #         "AutoML has no touched_fields() implemented!"
-    #     )
-    #
-    # def still_compatible_fields(self):
-    #     """ TODO the docstring documentation
-    #     """
-    #     raise NotImplementedError(
-    #         "AutoML has no still_compatible_fields() implemented!"
-    #     )
-    #
-    # def needed_fields(self):
-    #     """ TODO the docstring documentation
-    #     """
-    #     raise NotImplementedError(
-    #         "AutoML has no needed_fields() implemented!"
-    #     )
-
+    def touched_fields(self):
+        return 'all'
