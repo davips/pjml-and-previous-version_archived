@@ -3,6 +3,8 @@ from paje.base.hps import HPTree
 from sklearn.model_selection import StratifiedKFold, LeaveOneOut, \
     StratifiedShuffleSplit
 
+from paje.util.encoders import json_unpack, json_pack
+
 
 class CV(Component):
     def __init__(self, *args, **kwargs):
@@ -62,7 +64,7 @@ class CV(Component):
         # for sanity check in use()
         self._applied_data_uuid = data.uuid()
 
-        return data.updated(self, X=data.X[indices], Y=data.Y[indices])
+        return data.updated(Apply(self), X=data.X[indices], Y=data.Y[indices])
 
     def use_impl(self, data):
         # sanity check
@@ -71,7 +73,7 @@ class CV(Component):
 
         _, indices = list(self._memoized[data.uuid()])[self.testing_fold]
 
-        return data.updated(self, X=data.X[indices], Y=data.Y[indices])
+        return data.updated(Use(self), X=data.X[indices], Y=data.Y[indices])
 
     def tree_impl(self, data):
         holdout = {
@@ -87,3 +89,25 @@ class CV(Component):
             'split': ['c', ['loo']],
         }
         HPTree({'testing_fold': ['c', [0]]}, [holdout, cv, loo])
+
+
+# Needed classes to mark history of transformations when apply() give different
+# results than use().
+class Apply:
+    def __init__(self, component):
+        self.component = component
+
+    def serialized(self):
+        return json_pack(
+            {'op': 'a', 'comp': json_unpack(self.component.serialized())}
+        )
+
+
+class Use:
+    def __init__(self, component):
+        self.component = component
+
+    def serialized(self):
+        return json_pack(
+            {'op': 'u', 'comp': json_unpack(self.component.serialized())}
+        )

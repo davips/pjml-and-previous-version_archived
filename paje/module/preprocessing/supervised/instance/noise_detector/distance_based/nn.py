@@ -36,7 +36,7 @@ class NRNN(Component, ABC):
 
     def use_impl(self, data):
         # TODO: check with LPaulo
-        return data
+        return data # TODO: is updated() needed here for history purposes?
 
     def isdeterministic(self):
         # TODO: check with LPaulo

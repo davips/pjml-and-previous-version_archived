@@ -107,6 +107,9 @@ class Data:
         self._set('_name', name)
         self._set('_fields', None)
 
+        # # WARNING: Filled on-demand, following calls to field_uuid().
+        # self._set('uuid_fields', {})
+
         # Check list
         if not isinstance(name, str):
             raise Exception('Wrong parameter passed as name=', name)
@@ -137,6 +140,15 @@ class Data:
         self._set('is_ranking_prediction', None)
 
     def field_dump(self, field):
+        '''
+        Dump of the matrix/vector associated to the given field.
+        :param field: Case insensitive.
+        :return: binary compressed dump
+        '''
+        # TODO: get rid of this gambiarra
+        field = field if field in self.matvecs() else field.lower()
+        field = field if field in self.matvecs() else field.upper()
+
         if self.matvecs()[field] is None:
             raise Exception(f'Field {field} not available in this Data!')
         key = '_dump' + field
@@ -144,12 +156,36 @@ class Data:
             self.__dict__[key] = pack_data(self.matvecs()[field])
         return self.__dict__[key]
 
+    def is_vector(self, v):
+        return len(v.shape) == 1
+
+    def w(self, field):
+        m = self.matvecs()[field]
+        if m is None:
+            return None
+        return len(m) if self.is_vector(m) else m.shape[1]
+
+    def h(self, field):
+        m = self.matvecs()[field]
+        return m.shape[0]
+
     def field_uuid(self, field):
+        '''
+        UUID of the matrix/vector associated to the given field.
+        :param field: Case insensitive.
+        :return: UUID
+        '''
+        # TODO: get rid of this gambiarra
+        field = field if field in self.matvecs() else field.lower()
+        field = field if field in self.matvecs() else field.upper()
+
         if self.matvecs()[field] is None:
             raise Exception(f'Field {field} not available in this Data!')
         key = '_uuid' + field
         if self.__dict__[key] is None:
-            self.__dict__[key] = uuid(self.field_dump(field))
+            uuid_=uuid(self.field_dump(field))
+            self.__dict__[key] = uuid_
+            # self.__dict__['uuid_fields'].update({uuid_:field})
         return self.__dict__[key]
 
     def uuids_dumps(self):
@@ -157,6 +193,12 @@ class Data:
         :return: pair uuid-dump of each matrix/vector.
         """
         return {self.field_uuid(k): self.field_dump(k) for k in self.matvecs()}
+
+    def uuids_fields(self):
+        """
+        :return: pair uuid-field of each matrix/vector.
+        """
+        return {self.field_uuid(k): k for k in self.matvecs()}
 
     @staticmethod
     def read_arff(file, target, storage=None):
@@ -235,7 +277,7 @@ class Data:
             if l in new_args:
                 L = l.upper()
                 new_args[L] = as_column_vector(new_args.pop(l))
-        for k, v in self.val2vec():
+        for k, v in self._val2vec:
             if k in new_args:
                 new_args[v] = as_vector(new_args.pop(k))
         if 'name' not in new_args:
@@ -361,7 +403,7 @@ class Data:
             self._set('_name', f'unnamed[{self.uuid()}]')
         return self._name
 
-    def fields(self):
+    def fields(self) -> str:
         if self._fields is None:
             sorted = list(self.matvecs().keys())
             sorted.sort()

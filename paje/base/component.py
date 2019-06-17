@@ -432,15 +432,18 @@ class Component(ABC):
         """
         return self.uuid()[:5]
 
+    @abstractmethod
+    def touched_fields(self):
+        """
+        Matrices transformed or created by this component.
+        Useful to be able to store and recover only new info, minimizing
+        traffic.
+        :return:
+        """
+        pass
+
     # This may be useful in the future: ================================
-    # @abstractmethod
-    # def touched_fields(self):
-    #     """
-    #     Matrices transformed or created by this component.
-    #     Useful to be able to store only new info.
-    #     :return:
-    #     """
-    #     pass
+
     #
     # @abstractmethod
     # def still_compatible_fields(self):

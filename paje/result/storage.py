@@ -16,7 +16,7 @@ class Cache(ABC):
         self.nested_storage = nested_storage
 
     @abstractmethod
-    def get_result(self, component, data):
+    def get_result(self, component, op, data):
         pass
 
     @abstractmethod
@@ -41,7 +41,7 @@ class Cache(ABC):
         pass
 
     @abstractmethod
-    def lock(self, component, test, txt=''):
+    def lock(self, component, op, test):
         pass
 
     @abstractmethod
@@ -49,5 +49,5 @@ class Cache(ABC):
         pass
 
     @abstractmethod
-    def store_result(self, component, test, testout):
+    def store_result(self, component, op, test, testout):
         pass
