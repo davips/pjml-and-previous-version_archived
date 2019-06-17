@@ -8,7 +8,7 @@ from paje.base.component import Component
 from paje.base.data import Data
 from paje.result.storage import Cache
 from paje.util.encoders import unpack_data, json_unpack, json_pack, pack_comp, \
-    uuid
+    uuid, pack_data
 
 
 class SQL(Cache):
@@ -48,7 +48,7 @@ class SQL(Cache):
 
                 des TEXT NOT NULL,
 
-                cols TEXT
+                cols BLOB
             )''')
         self.query(f'CREATE INDEX nam0 ON name (des{self._keylimit()})')
         self.query(f'CREATE INDEX nam1 ON name (cols{self._keylimit()})')
@@ -149,17 +149,16 @@ class SQL(Cache):
                 FOREIGN KEY (q) REFERENCES mat(mid),
                 FOREIGN KEY (r) REFERENCES mat(mid),
                 FOREIGN KEY (s) REFERENCES mat(mid),
-                FOREIGN KEY (t) REFERENCES mat(mid),
+                FOREIGN KEY (t) REFERENCES mat(mid)
                )''')
         # guardar last comp nao adianta pq o msm comp pode ser aplicado
         # varias vezes
         # history não vai conter comps inuteis como pipes e switches, apenas
         # quem transforma Data, ou seja, faz updated().
-        self.query(f'CREATE INDEX data0 ON data (shape{self._keylimit()})')
-        self.query(f'CREATE INDEX data1 ON data (insd)')
-        self.query(f'CREATE INDEX data2 ON data (name)')  # needed on FKs?
-        self.query(f'CREATE INDEX data3 ON data (hist)')
-        self.query(f'CREATE INDEX data4 ON data (upd)')
+        self.query(f'CREATE INDEX data0 ON data (insd)')
+        self.query(f'CREATE INDEX data1 ON data (name)')  # needed on FKs?
+        self.query(f'CREATE INDEX data2 ON data (hist)')
+        self.query(f'CREATE INDEX data3 ON data (upd)')
         self.query(f'CREATE INDEX datax ON data (x)')
         self.query(f'CREATE INDEX datay ON data (y)')
         self.query(f'CREATE INDEX dataz ON data (z)')
@@ -211,7 +210,7 @@ class SQL(Cache):
             )''')
         self.query('CREATE INDEX res0 ON res (dout)')
         self.query('CREATE INDEX res1 ON res (spent)')
-        self.query('CREATE INDEX res2 ON res (dump)')
+        self.query('CREATE INDEX res2 ON res (inst)')
         self.query('CREATE INDEX res3 ON res (fail)')
         self.query('CREATE INDEX res4 ON res (start)')
         self.query('CREATE INDEX res5 ON res (end)')
@@ -233,7 +232,11 @@ class SQL(Cache):
             return None
         row2 = self.cursor.fetchone()
         if row2 is not None:
-            raise Exception('Excess of rows, after ', row, ':', row2)
+            print('first row', row)
+            while row2:
+                print('extra row',row2)
+                row2 = self.cursor.fetchone()
+            raise Exception('Excess of rows')
         return row
 
     def get_all(self) -> list:
@@ -259,8 +262,8 @@ class SQL(Cache):
             insert or ignore into mat values (
             null,
             ?,
-            ?, ?
-            ?
+            ?, ?,
+            ?)
         '''
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -289,24 +292,24 @@ class SQL(Cache):
             qmarks = ','.join(['?'] * len(uuid_dump))
             self.query(f'''
                         select mid from mat
-                        where mid in ({qmarks})''', uuid_dump.keys())
+                        where mid in ({qmarks})''', list(uuid_dump.keys()))
             rall = self.get_all()
             mids = [row['mid'] for row in rall]
-            print('res getall (check None here?)', rall)
+            # print('res getall (check None here?)', type(rall), rall, mids)
 
             # Insert only dumps that are missing in storage
             dumps2store = {k: v for k, v in uuid_dump.items()
                            if k not in mids}
             uuid_field = data.uuids_fields()
-            for uuid, dump in dumps2store:
-                self.store_matvec(uuid, dump, data.w(uuid_field[uuid]),
-                                  data.h(uuid_field[uuid]))
+            for uuid_, dump in dumps2store.items():
+                self.store_matvec(uuid_, dump, data.width(uuid_field[uuid_]),
+                                  data.height(uuid_field[uuid_]))
 
             # Create metadata for upcoming row at table 'data'.
             self.store_metadata(data)
         else:
             # Check if data comes with new matrices/vectors (improbable).
-            stored_dumps = {k: v for k, v in rone.keys() if v is not None}
+            stored_dumps = {k: v for k, v in rone.items() if v is not None}
             fields_low = [k.lower() for k in data.matvecs().keys()]
             fields2store = [f for f in fields_low if f
                             is not None and f not in stored_dumps]
@@ -314,9 +317,9 @@ class SQL(Cache):
             # Insert only dumps that are missing in storage
             dumps2store = {data.field_uuid(f): (data.field_dump(f), f)
                            for f in fields2store}
-            for uuid, (dump, field) in dumps2store:
-                self.store_matvec(uuid, dump, data.w(field),
-                                  data.h(field))
+            for uuid_, (dump, field) in dumps2store:
+                self.store_matvec(uuid_, dump, data.width(field),
+                                  data.height(field))
 
         # Create or update row at table 'data'. ---------------------
         sql = f'''
@@ -334,17 +337,17 @@ class SQL(Cache):
                 null
             )
             ON DUPLICATE KEY UPDATE
-            x = coalesce(values(x), x)),
-            y = coalesce(values(y), y)),
-            z = coalesce(values(z), z)),
-            p = coalesce(values(p), p)),
-            u = coalesce(values(u), u)),
-            v = coalesce(values(v), v)),
-            w = coalesce(values(w), w)),
-            q = coalesce(values(q), q)),
-            r = coalesce(values(r), r)),
-            s = coalesce(values(s), s)),
-            t = coalesce(values(t), t)),
+            x = coalesce(values(x), x),
+            y = coalesce(values(y), y),
+            z = coalesce(values(z), z),
+            p = coalesce(values(p), p),
+            u = coalesce(values(u), u),
+            v = coalesce(values(v), v),
+            w = coalesce(values(w), w),
+            q = coalesce(values(q), q),
+            r = coalesce(values(r), r),
+            s = coalesce(values(s), s),
+            t = coalesce(values(t), t),
             insd = insd,
             upd = {self._now_function()}
             '''
@@ -382,7 +385,7 @@ class SQL(Cache):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             self.query(sql, [data.name_uuid(), data.name(),
-                             json_pack(data.columns())])
+                             pack_data(data.columns())])
 
         # history ------------------------------------------------------
         sql = f'''
@@ -463,7 +466,7 @@ class SQL(Cache):
             return None
         self.query(f'''
             select 
-                dout, des, val, spent, fail, end, node, txt as history, cols,
+                dout, des, spent, fail, end, node, txt as history, cols,
                 {compo.touched_fields()}
                 {', dump' if compo.dump_it else ''}
             from 
@@ -498,7 +501,7 @@ class SQL(Cache):
             # Create Data.
             data = Data(name=result['des'],
                         history=json_unpack(result['history']),
-                        columns=json_unpack(result['cols']),
+                        columns=unpack_data(result['cols']),
                         **dic)
 
             # Join untouched matrices/vectors.
@@ -610,12 +613,12 @@ class SQL(Cache):
 
         # Recover requested matrices/vectors.
         dic = {'name': name, 'history': history}
-        for field in fields:
-            mid = row[field]
+        for field in Data.to_case_sensitive(fields.split(',')):
+            mid = row[field.lower()]
             self.query(f'select val from mat where mid=?', mid)
             rone = self.get_one()
             dic[field] = unpack_data(rone['val'])
-        return Data(columns=json_unpack(row['cols']), **dic)
+        return Data(columns=unpack_data(row['cols']), **dic)
 
     # def get_component_by_uuid(self, component_uuid, just_check_exists=False):
     #     field = 'arg'

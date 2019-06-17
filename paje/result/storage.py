@@ -19,22 +19,21 @@ class Cache(ABC):
     def get_result(self, component, op, data):
         pass
 
-    @abstractmethod
-    def get_component_by_uuid(self, component_uuid, just_check_exists=False):
-        pass
+    # @abstractmethod
+    # def get_component_by_uuid(self, component_uuid):
+    #     pass
+
+    # @abstractmethod
+    # def get_data_by_uuid(self, data, just_check_exists=False):
+    #     pass
 
     @abstractmethod
-    def get_data_by_uuid(self, data, just_check_exists=False):
+    def get_data_by_name(self, name, fields=None):
         pass
 
-    @abstractmethod
-    def get_data_by_name(self, name, fields=None, just_check_exists=False):
-        pass
-
-    @abstractmethod
-    def get_component(self, component, train_data, input_data,
-                       just_check_exists=False):
-        pass
+    # @abstractmethod
+    # def get_component(self, component, train_data, input_data):
+    #     pass
 
     @abstractmethod
     def get_finished_names_by_mark(self, mark):

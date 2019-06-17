@@ -4,13 +4,8 @@ import copy
 
 
 class Pipeline(Composer):
-    # def touched_fields(self):
-    #     return self.components[len(self.components) - 1] \
-    #         .touched_fields()
-    #
-    # def still_compatible_fields(self):
-    #     return self.components[len(self.components) - 1] \
-    #         .still_compatible_fields()
+    def touched_fields(self):
+        return ','.join([c.touched_fields() for c in self.components])
 
     def build_impl(self):
         """

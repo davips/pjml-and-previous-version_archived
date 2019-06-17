@@ -6,11 +6,8 @@ from paje.base.hps import HPTree
 
 class Filter(Component, ABC):
     """ Filter base class"""
-    # def touched_fields(self):
-    #     return 'X'
-    #
-    # def still_compatible_fields(self):
-    #     return 'all'
+    def touched_fields(self):
+        return 'X'
 
     def build_impl(self):
         self.ratio = self.dic['ratio']

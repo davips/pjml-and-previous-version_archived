@@ -5,11 +5,8 @@ from paje.base.hps import HPTree
 
 
 class Reductor(Component, ABC):
-    # def touched_fields(self):
-    #     return 'X'
-    #
-    # def still_compatible_fields(self):
-    #     return 'except:X'
+    def touched_fields(self):
+        return 'X'
 
     def apply_impl(self, data):
         self.att_labels = data.columns

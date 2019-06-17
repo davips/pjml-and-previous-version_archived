@@ -13,14 +13,8 @@ from paje.util.distributions import exponential_integers
 
 
 class NRNN(Component, ABC):
-    # def touched_fields(self):
-    #     return 'all'
-    #
-    # def still_compatible_fields(self):
-    #     return ''
-    #
-    # def needed_fields(self):
-    #     return 'X,y'
+    def touched_fields(self):
+        return 'all'
 
     def build_impl(self):
         self.vote = self.dic['vote']
@@ -29,6 +23,7 @@ class NRNN(Component, ABC):
         self.model = 42 # TODO: better model here?
 
     def apply_impl(self, data):
+        # TODO: generalize this to filter all fields (xyzuvwpq...)
         if self.k > data.n_instances():
             self.k = data.n_instances()
         X, y = getattr(self, self.algorithm)(*data.Xy)

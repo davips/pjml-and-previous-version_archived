@@ -4,14 +4,8 @@ from paje.base.component import Component
 
 
 class Classifier(Component, ABC):
-    # def touched_fields(self):
-    #     return 'z'
-    #
-    # def still_compatible_fields(self):
-    #     return 'all'
-    #
-    # def needed_fields(self):
-    #     return 'X,y'
+    def touched_fields(self):
+        return 'z'
 
     def apply_impl(self, data):
         """

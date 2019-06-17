@@ -4,7 +4,8 @@ import pandas as pd
 import sklearn
 import sklearn.datasets as ds
 from paje.module.experimenting.cv import CV
-from paje.util.encoders import pack_data, uuid, uuid_enumerated_dic, json_unpack
+from paje.util.encoders import pack_data, uuid, uuid_enumerated_dic, \
+    json_unpack, json_pack
 from sklearn.utils import check_X_y
 
 
@@ -14,6 +15,7 @@ def sub(a, b):
 
 # TODO: convert in dataclass
 class Data:
+    _val2vec = {'r': 'e', 's': 'f', 't': 'k'}
 
     def __init__(self, name, X=None, Y=None, Z=None, P=None, e=None,
                  U=None, V=None, W=None, Q=None, f=None,
@@ -92,7 +94,6 @@ class Data:
             self.__dict__[vec] = dematrixify(self.__dict__[vec.upper()])
 
         # Add single-valued shortcuts for vectors.
-        self._set('_val2vec', {'r': 'e', 's': 'f', 't': 'k'})
         self._set('_single_values', self._val2vec.keys())  # TODO: needed?
         for k, v in self._val2vec.items():
             self.__dict__[k] = devectorize(v)
@@ -159,13 +160,13 @@ class Data:
     def is_vector(self, v):
         return len(v.shape) == 1
 
-    def w(self, field):
+    def width(self, field):
         m = self.matvecs()[field]
         if m is None:
             return None
         return len(m) if self.is_vector(m) else m.shape[1]
 
-    def h(self, field):
+    def height(self, field):
         m = self.matvecs()[field]
         return m.shape[0]
 
@@ -179,11 +180,11 @@ class Data:
         field = field if field in self.matvecs() else field.lower()
         field = field if field in self.matvecs() else field.upper()
 
-        if self.matvecs()[field] is None:
-            raise Exception(f'Field {field} not available in this Data!')
+        if field not in self.matvecs():
+            return None
         key = '_uuid' + field
         if self.__dict__[key] is None:
-            uuid_=uuid(self.field_dump(field))
+            uuid_ = uuid(self.field_dump(field))
             self.__dict__[key] = uuid_
             # self.__dict__['uuid_fields'].update({uuid_:field})
         return self.__dict__[key]
@@ -277,7 +278,7 @@ class Data:
             if l in new_args:
                 L = l.upper()
                 new_args[L] = as_column_vector(new_args.pop(l))
-        for k, v in self._val2vec:
+        for k, v in self._val2vec.items():
             if k in new_args:
                 new_args[v] = as_vector(new_args.pop(k))
         if 'name' not in new_args:
@@ -395,7 +396,7 @@ class Data:
 
     def history_uuid(self):
         if self._history_uuid is None:
-            self._set('_history_uuid', uuid(','.join(self.history()).encode()))
+            self._set('_history_uuid', uuid(json_pack(self.history()).encode()))
         return self._history_uuid
 
     def name(self):
@@ -455,6 +456,14 @@ class Data:
 
     def vectors(self):
         return self._vectors
+
+    @classmethod
+    def to_case_sensitive(cls, fields):
+        sensitive = []
+        for field in fields:
+            f = cls._val2vec[field] if field in cls._val2vec else field.upper()
+            sensitive.append(f)
+        return sensitive
 
 
 class MutabilityException(Exception):
