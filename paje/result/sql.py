@@ -524,7 +524,8 @@ class SQL(Cache):
                 mid = result[field]
                 self.query(f'select val from mat where mid=?', mid)
                 rone = self.get_one()
-                dic[Data.to_case_sensitive[field]] = unpack_data(rone['val'])
+                dic[Data.to_case_sensitive[field.lower()]] = \
+                    unpack_data(rone['val'])
 
             # Create Data.
             data = Data(name=result['des'],
