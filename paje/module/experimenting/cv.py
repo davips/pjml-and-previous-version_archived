@@ -59,12 +59,10 @@ class CV(Component):
         self._max = len(partitions) - 1
         indices, _ = partitions[self.testing_fold]
 
-        # sanity check
+        # for sanity check in use()
         self._applied_data_uuid = data.uuid()
 
-        cvtrain = CVtr().build()
-        return data.updated(self).updated(cvtrain, X=data.X[indices],
-                                          Y=data.Y[indices])
+        return data.updated(self, X=data.X[indices], Y=data.Y[indices])
 
     def use_impl(self, data):
         # sanity check
@@ -73,9 +71,7 @@ class CV(Component):
 
         _, indices = list(self._memoized[data.uuid()])[self.testing_fold]
 
-        cvtest = CVts().build()
-        return data.updated(self).updated(cvtest, X=data.X[indices],
-                                          Y=data.Y[indices])
+        return data.updated(self, X=data.X[indices], Y=data.Y[indices])
 
     def tree_impl(self, data):
         holdout = {
@@ -91,43 +87,3 @@ class CV(Component):
             'split': ['c', ['loo']],
         }
         HPTree({'testing_fold': ['c', [0]]}, [holdout, cv, loo])
-
-
-class CVtr(Component):
-    # def touched_fields(self):
-    #     pass
-    #
-    # def still_compatible_fields(self):
-    #     pass
-
-    def build_impl(self):
-        pass
-
-    def apply_impl(self, data):
-        pass
-
-    def use_impl(self, data):
-        pass
-
-    def tree_impl(cls, data):
-        pass
-
-
-class CVts(Component):
-    # def touched_fields(self):
-    #     pass
-    #
-    # def still_compatible_fields(self):
-    #     pass
-
-    def build_impl(self):
-        pass
-
-    def apply_impl(self, data):
-        pass
-
-    def use_impl(self, data):
-        pass
-
-    def tree_impl(cls, data):
-        pass
