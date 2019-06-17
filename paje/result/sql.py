@@ -7,7 +7,8 @@ from pymysql import IntegrityError as IntegrityErrorMySQL
 from paje.base.component import Component
 from paje.base.data import Data
 from paje.result.storage import Cache
-from paje.util.encoders import unpack_data, json_unpack, json_pack
+from paje.util.encoders import unpack_data, json_unpack, json_pack, pack_comp, \
+    uuid
 
 
 class SQL(Cache):
@@ -511,135 +512,81 @@ class SQL(Cache):
         compo.node = result['node']
         return output_data
 
-
-
-
-
-
-
-
-
-
-
-
-
     def store_result(self, component, op, input_data, output_data):
         """
         Store a result and remove lock.
         :param component:
+        :param op:
         :param input_data:
         :param output_data:
         :return:
         """
 
         # Store resulting Data
-        slim = output_data and output_data.shrink_to(
-            component.fields_to_store_after_use())
-        slim and self.store_data(slim)
+        if output_data is not None:
+            self.store_data(output_data)
 
         # Remove lock and point result to data inserted above.
-        # TODO: is there any important exception to handle here?
+        # We should set all timestamp fields even if with the same old value,
+        # due to automatic updates by DBMSs.
+        # Data train was inserted and dtr was created when locking().
         now = self._now_function()
-        model_dump = component.dump_it and component.model_dump()
-        # We should set all timestamp fields even if with the same old value.
-        # Data train inserted and dtr was created when locking().
-        # 'or ignore' because different models can have the same predictions.
-        sql = f'''insert or ignore into dump values (
-                    null,
-                    ?, 'model', ?
-                )'''
-        dump_args = [component.model_uuid(), model_dump]
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            self.query(sql, dump_args)
 
-        sql = f'''update res set 
-                    dout=?, spent=?,
-                    dumpc=?,
+        # Store dump if requested.
+        dump_uuid = component.dump_it and uuid(
+            component.uuid() + op +
+            component.train_data_uuid__mutable() + input_data.uuid()
+        )
+        if component.dump_it:
+            sql = f'insert or ignore into inst values (null, ?, ?)'
+            # pack_comp is nondeterministic and its result is big,
+            # so we need to identify it by other, deterministic, means
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                self.query(sql, [dump_uuid, pack_comp(component)])
+
+        # Store a log if apply() failed.
+        log_uuid = component.failure and uuid(component.failure)
+        if component.failure is not None:
+            sql = f'insert or ignore into log values (null, ?, ?, {now})'
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                self.query(sql, [log_uuid, component.failure])
+
+        # Unlock and save result.
+        fail = 1 if component.failed else 0
+        sql = f'''
+                update res set 
+                    log=?,
+                    dout=?, spent=?, inst=?,
                     fail=?,
                     start=start, end={now}, alive={now},
                     mark=?
                 where
-                    com=? and dtr=? and din=?
+                    com=? and op=? and 
+                    dtr=? and din=?
                 '''
-        resargs1 = [
-            slim and slim.uuid(), component.time_spent,  # dout, spent
-            component.model_uuid(),  # dumpc
-            1 if component.failed else 0,  # fail
-            component.mark]  # mark
-        resargs2 = [component.uuid(), component.train_data__mutable().uuid(),
-                    input_data.uuid()]  # com, dtr, din
-        self.query(sql, resargs1 + resargs2)
-
+        set_args = [log_uuid,
+                    output_data.uuid(), component.time_spent, dump_uuid,
+                    fail,
+                    component.mark]
+        where_args = [component.uuid(), op,
+                      component.train_data_uuid__mutable(), input_data.uuid()]
+        # TODO: is there any important exception to handle here?
+        self.query(sql, set_args + where_args)
         print('Stored!\n')
 
-    def get_component_by_uuid(self, component_uuid, just_check_exists=False):
-        field = 'arg'
-        if just_check_exists:
-            field = '1'
-        self.query(f'select {field} from com where cid=?', [component_uuid])
-        result = self.get_one()
-        if result is None:
-            return None
-        if just_check_exists:
-            return True
-        return result[field]
-
-    def get_component(self, component, train_data, input_data,
-                      just_check_exists=False):
-        field = 'bytes,arg'
-        if just_check_exists:
-            field = '1'
-        self.query(f'select {field} '
-                   f'from res'
-                   f'   left join dump on dumpc=duic '
-                   f'   left join com on com=cid '
-                   f'where cid=? and dtr=? and din=?',
-                   [component.uuid(),
-                    component.train_data.uuid(),
-                    input_data.uuid()])
-        result = self.get_one()
-        if result is None:
-            return None
-        if just_check_exists:
-            return True
-        return Component.resurrect_from_dump(result['bytes'],
-                                             **json_unpack(result['arg']))
-
-    def get_data_by_uuid(self, datauuid, just_check_exists=False):
-        sql_fields = '1' if just_check_exists else 'des, cols, bytes, txt'
-        self.query(f'''
-                select 
-                    {sql_fields} 
-                from 
-                    data 
-                        left join name on name=nid 
-                        left join dump on dumpd=duid
-                        left join hist on hist=hid
-                where 
-                    did=?''', [datauuid])
-        result = self.get_one()
-        if result is None:
-            return None
-        if just_check_exists:
-            return True
-        return Data(name=result['des'],
-                    columns=json_unpack(result['cols']),
-                    history=json_unpack(result['history']),
-                    **unpack_data(result['bytes']))
-
-    def get_data_by_name(self, name, fields=None, history=None,
-                         just_check_exists=False):
+    def get_data_by_name(self, name, fields=None, history=None):
         """
         To just recover the original dataset you can pass history=None.
-        Specify fields as needed, otherwise all fields will be merged into
-        a single Data - in this case, metadata of the first Data will prevail.
+        Specify fields if you want to reduce traffic, otherwise all available
+        fields will be fetched.
 
-        When getting prediction data (i.e., results),
+        ps. 1: Obviously, when getting prediction data (i.e., results),
          the history which led to the predictions should be provided.
         :param name:
         :param fields: None=get full Data; case insensitive; e.g. 'X,y,Z'
-        :param history: list of JSON strings describing components
+        :param history: list of JSON(TODO:json??) strings describing components
         :param just_check_exists:
         :return:
         """
@@ -647,37 +594,83 @@ class SQL(Cache):
             history = []
         hist = json_pack(history)
 
-        sql_fields = '1' if just_check_exists else 'cols, bytes, txt'
-
         sql = f'''
                 select 
-                    {sql_fields} 
+                    x,y,z,p,u,v,w,q,r,s,t,cols,txt,des
                 from 
                     data 
                         left join name on name=nid 
-                        left join dump on dumpd=duid
                         left join hist on hist=hid
                 where 
-                    {f'fields=? and' if fields else ''}
                     des=? and txt=?'''
-        args = [fields.upper(), name, hist] if fields else [name, hist]
-
-        self.query(sql, args)
-        rows = self.cursor.fetchall()
-        if rows is None or len(rows) == 0:
+        self.query(sql, [name, hist])
+        row = self.get_one()
+        if row is None:
             return None
-        if just_check_exists:
-            return True
 
-        # Merge all recovered datas into one.
-        dic = {}
-        for row in rows:
-            dic.update(unpack_data(row['bytes']))
+        # Recover requested matrices/vectors.
+        dic = {'name': name, 'history': history}
+        for field in fields:
+            mid = row[field]
+            self.query(f'select val from mat where mid=?', mid)
+            rone = self.get_one()
+            dic[field] = unpack_data(rone['val'])
+        return Data(columns=json_unpack(row['cols']), **dic)
 
-        return just_check_exists or Data(
-            name=name, history=history,
-            columns=json_unpack(rows[0]['cols']),
-            **unpack_data(rows[0]['bytes']))
+    # def get_component_by_uuid(self, component_uuid, just_check_exists=False):
+    #     field = 'arg'
+    #     if just_check_exists:
+    #         field = '1'
+    #     self.query(f'select {field} from com where cid=?', [component_uuid])
+    #     result = self.get_one()
+    #     if result is None:
+    #         return None
+    #     if just_check_exists:
+    #         return True
+    #     return result[field]
+
+    # def get_component(self, component, train_data, input_data,
+    #                   just_check_exists=False):
+    #     field = 'bytes,arg'
+    #     if just_check_exists:
+    #         field = '1'
+    #     self.query(f'select {field} '
+    #                f'from res'
+    #                f'   left join dump on dumpc=duic '
+    #                f'   left join com on com=cid '
+    #                f'where cid=? and dtr=? and din=?',
+    #                [component.uuid(),
+    #                 component.train_data.uuid(),
+    #                 input_data.uuid()])
+    #     result = self.get_one()
+    #     if result is None:
+    #         return None
+    #     if just_check_exists:
+    #         return True
+    #     return Component.resurrect_from_dump(result['bytes'],
+    #                                          **json_unpack(result['arg']))
+
+    # def get_data_by_uuid(self, datauuid, just_check_exists=False):
+    #     sql_fields = '1' if just_check_exists else 'des, cols, bytes, txt'
+    #     self.query(f'''
+    #             select
+    #                 {sql_fields}
+    #             from
+    #                 data
+    #                     left join name on name=nid
+    #                     left join dump on dumpd=duid
+    #                     left join hist on hist=hid
+    #             where
+    #                 did=?''', [datauuid])
+    #     result = self.get_one()
+    #     if result is None:
+    #         return None
+    #     if just_check_exists:
+    #         return True
+    #     return Data(name=result['des'],
+    #                 columns=json_unpack(result['cols']),
+    #                 history=json_unpack(result['history']),
+    #                 **unpack_data(result['bytes']))
 
     def get_finished_names_by_mark(self, mark):
         """
@@ -700,8 +693,8 @@ class SQL(Cache):
                     end!='0000-00-00 00:00:00' and 
                     fail=0 and mark=?
             """, [mark])
-        rows = self.cursor.fetchall()
-        if rows is None or len(rows) == 0:
+        rows = self.get_all()
+        if rows is None:
             return None
         else:
             for row in rows:
@@ -744,11 +737,11 @@ class SQL(Cache):
             raise type(ex)(
                 "%s\norig. trac.:\n%s\n" % (msg, traceback_string))
 
-    def _data_exists(self, data):
-        return self.get_data_by_uuid(data.uuid(), True) is not None
+    # def _data_exists(self, data):
+    #     return self.get_data_by_uuid(data.uuid(), True) is not None
 
-    def _component_exists(self, component):
-        return self.get_component_by_uuid(component.uuid(), True) is not None
+    # def _component_exists(self, component):
+    #     return self.get_component_by_uuid(component.uuid(), True) is not None
 
     def __del__(self):
         try:

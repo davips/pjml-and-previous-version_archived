@@ -1,7 +1,6 @@
 """ Component module.
 """
 import copy
-import json
 import os
 from abc import ABC, abstractmethod
 from uuid import uuid4
@@ -11,7 +10,7 @@ import numpy as np
 from paje.base.exceptions import ApplyWithoutBuild, UseWithoutApply, \
     handle_exception
 from paje.evaluator.time import time_limit
-from paje.util.encoders import pack_comp, uuid, json_pack
+from paje.util.encoders import uuid, json_pack
 from paje.util.log import *
 
 
@@ -45,6 +44,7 @@ class Component(ABC):
         self.max_time = None
         self.mark = None
         self._describe = None
+        self.failure = None
 
         # Whether to dump this comp. or not, if a storage is given.
         self.dump_it = dump_it or None  # 'or'->possib.vals=Tru,Non See sql.py
@@ -93,6 +93,9 @@ class Component(ABC):
         obj_copied._serialized = 'building'
         obj_copied._uuid = uuid(obj_copied.serialized().encode())
 
+        # TODO: which init vars should be restarted here?
+        obj_copied.failure = None
+
         obj_copied.build_impl()
         return obj_copied
 
@@ -139,6 +142,7 @@ class Component(ABC):
             if self.name != 'CV':
                 self.msg('Applying ' + self.name + '...')
             start = self.clock()
+            self.failure = None
             try:
                 if self.max_time is None:
                     output_data = self.apply_impl(data)
@@ -148,6 +152,7 @@ class Component(ABC):
             except Exception as e:
                 print(e)
                 self.failed = True
+                self.failure = str(e)
                 self.locked_by_others = False
                 handle_exception(self, e)
             self.time_spent = self.clock() - start
@@ -207,7 +212,7 @@ class Component(ABC):
 
             # TODO: put time limit and/or exception handling like in apply()?
             start = self.clock()
-            output_data = self.use_impl(data)  # TODO:handle excps mark failed
+            output_data = self.use_impl(data)  # TODO:handl excps like in apply?
             self.time_spent = self.clock() - start
 
             # self.msg('Component ' + self.name + 'used.')
