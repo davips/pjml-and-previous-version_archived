@@ -23,9 +23,9 @@ class Cache(ABC):
     # def get_component_by_uuid(self, component_uuid):
     #     pass
 
-    # @abstractmethod
-    # def get_data_by_uuid(self, data, just_check_exists=False):
-    #     pass
+    @abstractmethod
+    def get_data_by_uuid(self, data):
+        pass
 
     @abstractmethod
     def get_data_by_name(self, name, fields=None):

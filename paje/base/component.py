@@ -169,18 +169,6 @@ class Component(ABC):
         """
         self.check_if_applied()
 
-        if self.storage is not None:
-            # If the component was applied (probably simulated by storage),
-            # but there is no model, we reapply it...
-            if self.model is None:
-                print('It is possible that a previous apply() was '
-                      'successfully stored, but its use() wasn\'t.'
-                      'Or you are trying to use in new data.')
-                print('Trying to recover training data from storage to apply '
-                      'just to induce a model usable by use()...\n'
-                      f'comp: {self.sid()}  data: {data.sid()} ...')
-                self.apply_impl(stored_train_data)
-
         # Checklist / get from storage -----------------------------------
         if data is None:
             self.msg(f"Using {self.name} on None returns None.")
@@ -189,6 +177,18 @@ class Component(ABC):
         output_data = None
         if self.storage is not None:
             output_data = self.storage.get_result(self, 'u', data)
+            # If the component was applied (probably simulated by storage),
+            # but there is no model, we reapply it...
+            if output_data is None and self.model is None:
+                print('It is possible that a previous apply() was '
+                      'successfully stored, but its use() wasn\'t.'
+                      'Or you are trying to use in new data.')
+                print('Trying to recover training data from storage to apply '
+                      'just to induce a model usable by use()...\n'
+                      f'comp: {self.sid()}  data: {data.sid()} ...')
+                train_uuid = self.train_data_uuid__mutable()
+                stored_train_data = self.storage.get_data_by_uuid(train_uuid)
+                self.model = self.apply_impl(stored_train_data)
 
         if self.locked_by_others:
             self.msg(f"Won't use {self.name} on data "

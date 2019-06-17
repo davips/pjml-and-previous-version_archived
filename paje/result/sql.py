@@ -686,27 +686,32 @@ class SQL(Cache):
     #     return Component.resurrect_from_dump(result['bytes'],
     #                                          **json_unpack(result['arg']))
 
-    # def get_data_by_uuid(self, datauuid, just_check_exists=False):
-    #     sql_fields = '1' if just_check_exists else 'des, cols, bytes, txt'
-    #     self.query(f'''
-    #             select
-    #                 {sql_fields}
-    #             from
-    #                 data
-    #                     left join name on name=nid
-    #                     left join dump on dumpd=duid
-    #                     left join hist on hist=hid
-    #             where
-    #                 did=?''', [datauuid])
-    #     result = self.get_one()
-    #     if result is None:
-    #         return None
-    #     if just_check_exists:
-    #         return True
-    #     return Data(name=result['des'],
-    #                 columns=json_unpack(result['cols']),
-    #                 history=json_unpack(result['history']),
-    #                 **unpack_data(result['bytes']))
+    def get_data_by_uuid(self, datauuid):
+        sql = f'''
+                select 
+                    x,y,z,p,u,v,w,q,r,s,t,cols,txt,des
+                from 
+                    data 
+                        left join name on name=nid 
+                        left join hist on hist=hid
+                        left join atr on atr=aid
+                where 
+                    did=?'''
+        self.query(sql, [datauuid])
+        row = self.get_one()
+        if row is None:
+            return None
+
+        # Recover requested matrices/vectors.
+        # TODO: surely there is duplicated code to be refactored in this file!
+        dic = {'name': row['name'], 'history': json_unpack(row['txt'])}
+        fields = [k for k, v in row.items() if len(k) == 1 and v is not None]
+        for field in Data.list_to_case_sensitive(fields):
+            mid = row[field.lower()]
+            self.query(f'select val from mat where mid=?', mid)
+            rone = self.get_one()
+            dic[field] = unpack_data(rone['val'])
+        return Data(columns=unpack_data(row['cols']), **dic)
 
     def get_finished_names_by_mark(self, mark):
         """
