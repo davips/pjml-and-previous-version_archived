@@ -5,7 +5,7 @@ import copy
 
 class Pipeline(Composer):
     def touched_fields(self):
-        return ','.join([c.touched_fields() for c in self.components])
+        return list(set(sum([c.touched_fields() for c in self.components], [])))
 
     def build_impl(self):
         """

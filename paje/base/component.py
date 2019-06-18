@@ -410,6 +410,9 @@ class Component(ABC):
         Matrices transformed or created by this component.
         Useful to be able to store and recover only new info, minimizing
         traffic.
+        Must be lowercase.
+        Values are given as a list:
+        ['x','y','z','u','v','w','p','q','r','s','t']
         :return:
         """
         pass

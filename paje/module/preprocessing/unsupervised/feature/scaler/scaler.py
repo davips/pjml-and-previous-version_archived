@@ -8,7 +8,7 @@ from paje.base.data import Data
 
 class Scaler(Component, ABC):
     def touched_fields(self):
-        return 'X'
+        return ['x']
 
     def apply_impl(self, data):
         # self.model will be set in the child class

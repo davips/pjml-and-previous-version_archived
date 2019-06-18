@@ -5,7 +5,7 @@ from paje.base.component import Component
 
 class Classifier(Component, ABC):
     def touched_fields(self):
-        return 'z'
+        return ['z']
 
     def apply_impl(self, data):
         """

@@ -492,7 +492,7 @@ class SQL(Cache):
         self.query(f'''
             select 
                 dout, des, spent, fail, end, node, txt as history, cols,
-                {compo.touched_fields()}
+                {','.join(compo.touched_fields())}
                 {', dump' if compo.dump_it else ''}
             from 
                 res 
@@ -522,7 +522,7 @@ class SQL(Cache):
                 mid = result[field]
                 self.query(f'select val from mat where mid=?', [mid])
                 rone = self.get_one()
-                dic[Data.to_case_sensitive[field.lower()]] = \
+                dic[Data.to_case_sensitive[field]] = \
                     unpack_data(rone['val'])
 
             # Create Data.

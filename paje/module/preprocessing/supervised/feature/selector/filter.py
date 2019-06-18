@@ -7,7 +7,7 @@ from paje.base.hps import HPTree
 class Filter(Component, ABC):
     """ Filter base class"""
     def touched_fields(self):
-        return 'X'
+        return ['x']
 
     def build_impl(self):
         self.ratio = self.dic['ratio']

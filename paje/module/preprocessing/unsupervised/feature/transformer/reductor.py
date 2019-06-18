@@ -6,7 +6,7 @@ from paje.base.hps import HPTree
 
 class Reductor(Component, ABC):
     def touched_fields(self):
-        return 'X'
+        return ['x']
 
     def apply_impl(self, data):
         self.att_labels = data.columns
