@@ -182,7 +182,7 @@ class Component(ABC):
             output_data = self.storage.get_result(self, 'u', data)
             # If the component was applied (probably simulated by storage),
             # but there is no model, we reapply it...
-            if output_data is None and self.model is None:
+            if output_data is None and self.model is None and not self.failed:
                 print('It is possible that a previous apply() was '
                       'successfully stored, but its use() wasn\'t.'
                       'Or you are trying to use in new data.')
@@ -410,6 +410,8 @@ class Component(ABC):
         Matrices transformed or created by this component.
         Useful to be able to store and recover only new info, minimizing
         traffic.
+        'None' means 'every existent field'
+        '[]' means 'nothing will be touched' (in this case the comp. is useless)
         Must be lowercase.
         Values are given as a list:
         ['x','y','z','u','v','w','p','q','r','s','t']

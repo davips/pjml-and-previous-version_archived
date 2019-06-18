@@ -178,5 +178,5 @@ class AutoML(Component, ABC):
         )
 
     def touched_fields(self):
-        return Data.sql_all_fields
+        return None
 

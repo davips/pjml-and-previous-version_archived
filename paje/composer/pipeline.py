@@ -1,3 +1,4 @@
+from paje.base.data import Data
 from paje.composer.composer import Composer
 from paje.base.hps import HPTree
 import copy
@@ -5,7 +6,10 @@ import copy
 
 class Pipeline(Composer):
     def touched_fields(self):
-        return list(set(sum([c.touched_fields() for c in self.components], [])))
+        return list(set(
+            sum([c.touched_fields() or Data.sql_all_fields
+                 for c in self.components], [])
+        ))
 
     def build_impl(self):
         """

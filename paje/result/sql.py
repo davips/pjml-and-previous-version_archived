@@ -489,10 +489,13 @@ class SQL(Cache):
         """
         if compo.failed or compo.locked_by_others:
             return None
+        fields = Data.sql_all_fields if compo.touched_fields() is None \
+            else compo.touched_fields()
+
         self.query(f'''
             select 
                 dout, des, spent, fail, end, node, txt as history, cols,
-                {','.join(compo.touched_fields())}
+                {','.join(fields)}
                 {', dump' if compo.dump_it else ''}
             from 
                 res 
@@ -518,12 +521,14 @@ class SQL(Cache):
 
             # Recover relevant matrices/vectors.
             dic = {}
-            for field in compo.touched_fields():
+            for field in fields:
                 mid = result[field]
                 self.query(f'select val from mat where mid=?', [mid])
                 rone = self.get_one()
-                dic[Data.to_case_sensitive[field]] = \
-                    unpack_data(rone['val'])
+                if rone is not None:
+                    dic[Data.to_case_sensitive[field]] = unpack_data(
+                        rone['val']
+                    )
 
             # Create Data.
             data = Data(name=result['des'],
@@ -701,7 +706,7 @@ class SQL(Cache):
 
         # Recover requested matrices/vectors.
         # TODO: surely there is duplicated code to be refactored in this file!
-        dic = {'name': row['name'], 'history': json_unpack(row['txt'])}
+        dic = {'name': row['des'], 'history': json_unpack(row['txt'])}
         fields = [k for k, v in row.items() if len(k) == 1 and v is not None]
         for field in Data.list_to_case_sensitive(fields):
             mid = row[field.lower()]

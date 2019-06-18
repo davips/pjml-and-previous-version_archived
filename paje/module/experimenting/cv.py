@@ -85,8 +85,7 @@ class CV(Component):
         HPTree({'testing_fold': ['c', [0]]}, [holdout, cv, loo])
 
     def touched_fields(self):
-        from paje.base.data import Data
-        return Data.sql_all_fields
+        return None
 
 # Needed classes to mark history of transformations when apply() give different
 # results than use().
