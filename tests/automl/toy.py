@@ -43,7 +43,7 @@ def main():
             show_warns=False,
         ).build(
             max_iter=iterations,
-            pipe_length=15, repetitions=0,
+            pipe_length=15, repetitions=2,
             random_state=random_state
         )
         automl_rs.apply(trainset)
@@ -54,33 +54,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-    # automl_rs = RandomAutoML(max_iter=n, static=False, fixed=True,
-    #                          max_depth=4, repetitions=0, method="all")
-    # automl_rs.apply(data_train)
-    # resp = automl_rs.use(data_test).data_y
-    # print("Accuracy score", sklearn.metrics.accuracy_score(data_test.data_y, automl_rs.use(data_test).data_y))
-    # print()
-    #
-    # automl_rs = RandomAutoML(max_iter=n, static=False, fixed=True,
-    #                          max_depth=10, repetitions=2, method="all")
-    # automl_rs.apply(data_train)
-    # resp = automl_rs.use(data_test).data_y
-    # print("Accuracy score", sklearn.metrics.accuracy_score(data_test.data_y, automl_rs.use(data_test).data_y))
-    # print()
-    #
-    # automl_rs = RandomAutoML(max_iter=n, static=False, fixed=False,
-    #                          max_depth=8, repetitions=0, method="all")
-    # automl_rs.apply(data_train)
-    # resp = automl_rs.use(data_test).data_y
-    # print("Accuracy score", sklearn.metrics.accuracy_score(data_test.data_y, automl_rs.use(data_test).data_y))
-    # print()
-    #
-    # automl_rs = RandomAutoML(max_iter=2, static=False, fixed=False,
-    #                          max_depth=10, repetitions=2, method="all")
-    # automl_rs.apply(data_train)
-    # resp = automl_rs.use(data_test).data_y
-    # print("Accuracy score", sklearn.metrics.accuracy_score(data_test.data_y, automl_rs.use(data_test).data_y))
-    # print()
-
-    # print(1 - np.sum(resp == data_test.data_y)/resp.shape[0])
