@@ -56,14 +56,14 @@ class Component(ABC):
 
         self._serialized = None
 
-    def tree(self, data=None):  # previously known as hyperpar_spaces_forest
+    def tree(self):  # previously known as hyperpar_spaces_forest
         """
         :param data:
         :return: [tree]
         """
         # TODO: all child classes mark tree_impl as classmethod, turn it into
         #  instance method?
-        tree = self.tree_impl(data)
+        tree = self.tree_impl()
         self.check_tree(tree)
         if tree.name is None:
             tree.name = self.name
@@ -250,7 +250,7 @@ class Component(ABC):
     #                                distributions, rules?")
 
     @abstractmethod
-    def tree_impl(cls, data):  # previously known as hyper_spaces_tree_impl
+    def tree_impl(self):  # previously known as hyper_spaces_tree_impl
         """Todo the doc string
         """
         pass
