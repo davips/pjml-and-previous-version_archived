@@ -11,6 +11,7 @@ from paje.module.preprocessing.unsupervised.feature.transformer.drpca import \
 from paje.result.mysql import MySQL
 from paje.result.sqlite import SQLite
 from paje.module.modelling.classifier.svmc import SVMC
+from paje.module.modelling.classifier.cb import CB
 
 
 def main():
@@ -19,6 +20,8 @@ def main():
               '[iter=#] [seed=#] [storage=mysql/sqlite] [db=teste] ')
     else:
         arg = {tupl.split('=')[0]: tupl.split('=')[1] for tupl in sys.argv[1:]}
+        my_modelers = [CB()]
+
         for k, v in arg.items():
             print(f'{k}={v}')
 
@@ -37,8 +40,10 @@ def main():
         trainset, testset = data.split()
 
         automl_rs = RandomAutoML(
-            preprocessors=default_preprocessors,
-            modelers=default_modelers,
+            # preprocessors=default_preprocessors,
+            # modelers=default_modelers,
+            preprocessors=[],
+            modelers=my_modelers,
             storage_for_components=storage,
             show_warns=False,
         ).build(
