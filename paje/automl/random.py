@@ -81,6 +81,7 @@ class RandomAutoML(AutoML):
 
         self.__dict__.update(self.dic)
         np.random.seed(self.random_state)
+        random.seed(self.random_state)
 
         if self.pipe_length < 1:
             raise ValueError("The 'pipe_length' must be greater than 0.")
