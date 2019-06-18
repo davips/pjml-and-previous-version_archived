@@ -21,7 +21,7 @@ class CB(Classifier):
                                         verbose=self.verbose)
 
     @classmethod
-    def tree_impl(cls, data):
+    def tree_impl(self):
         dic = {
             'iterations': ['c', [100, 500, 1000, 3000, 5000]],
             'learning_rate': ['r', [0.000001, 1.0]],
