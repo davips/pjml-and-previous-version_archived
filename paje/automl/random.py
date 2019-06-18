@@ -104,7 +104,7 @@ class RandomAutoML(AutoML):
             print(' ========== Pipe:\n', self.curr_pipe)
             raise Exception(exc)
 
-        args.update(random_state=self.random_state)
+        args['random_state'] = self.random_state
         self.curr_pipe = self.curr_pipe.build(**args)
         return [self.curr_pipe]
 
