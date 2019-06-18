@@ -523,12 +523,13 @@ class SQL(Cache):
             dic = {}
             for field in fields:
                 mid = result[field]
-                self.query(f'select val from mat where mid=?', [mid])
-                rone = self.get_one()
-                if rone is not None:
-                    dic[Data.to_case_sensitive[field]] = unpack_data(
-                        rone['val']
-                    )
+                if mid is not None:
+                    self.query(f'select val from mat where mid=?', [mid])
+                    rone = self.get_one()
+                    if rone is not None:
+                        dic[Data.to_case_sensitive[field]] = unpack_data(
+                            rone['val']
+                        )
 
             # Create Data.
             data = Data(name=result['des'],
@@ -650,9 +651,10 @@ class SQL(Cache):
             flst = fields.split(',')
         for field in Data.list_to_case_sensitive(flst):
             mid = row[field.lower()]
-            self.query(f'select val from mat where mid=?', [mid])
-            rone = self.get_one()
-            dic[field] = unpack_data(rone['val'])
+            if mid is not None:
+                self.query(f'select val from mat where mid=?', [mid])
+                rone = self.get_one()
+                dic[field] = unpack_data(rone['val'])
         return Data(columns=unpack_data(row['cols']), **dic)
 
     # def get_component_by_uuid(self, component_uuid, just_check_exists=False):
@@ -710,9 +712,10 @@ class SQL(Cache):
         fields = [k for k, v in row.items() if len(k) == 1 and v is not None]
         for field in Data.list_to_case_sensitive(fields):
             mid = row[field.lower()]
-            self.query(f'select val from mat where mid=?', [mid])
-            rone = self.get_one()
-            dic[field] = unpack_data(rone['val'])
+            if mid is not None:
+                self.query(f'select val from mat where mid=?', [mid])
+                rone = self.get_one()
+                dic[field] = unpack_data(rone['val'])
         return Data(columns=unpack_data(row['cols']), **dic)
 
     def get_finished_names_by_mark(self, mark):
