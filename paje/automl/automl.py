@@ -8,11 +8,13 @@ from abc import ABC, abstractmethod
 
 # from paje
 from paje.base.component import Component
+from paje.base.data import Data
 
 
 class AutoML(Component, ABC):
     """ TODO the docstring documentation
     """
+
     def __init__(self,
                  components,
                  evaluator,
@@ -90,7 +92,7 @@ class AutoML(Component, ABC):
         """ TODO the docstring documentation
         """
         self.all_eval_results = []
-        for iteration in range(1, self.max_iter+1):
+        for iteration in range(1, self.max_iter + 1):
             self.current_iteration = iteration
             if self.verbose:
                 print("####------##-----##-----##-----##-----##-----####")
@@ -175,16 +177,6 @@ class AutoML(Component, ABC):
             "AutoML has no tree() implemented!"
         )
 
-    def fields_to_store_after_use(self):
-        """ TODO the docstring documentation
-        """
-        raise NotImplementedError(
-            "AutoML has no fields_to_store_after_use() implemented!"
-        )
+    def touched_fields(self):
+        return None
 
-    def fields_to_keep_after_use(self):
-        """ TODO the docstring documentation
-        """
-        raise NotImplementedError(
-            "AutoML has no fields_to_keep_after_use() implemented!"
-        )

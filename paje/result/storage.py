@@ -16,32 +16,31 @@ class Cache(ABC):
         self.nested_storage = nested_storage
 
     @abstractmethod
-    def get_result(self, component, data):
+    def get_result(self, component, op, data):
+        pass
+
+    # @abstractmethod
+    # def get_component_by_uuid(self, component_uuid):
+    #     pass
+
+    @abstractmethod
+    def get_data_by_uuid(self, data):
         pass
 
     @abstractmethod
-    def get_component_by_uuid(self, component_uuid, just_check_exists=False):
+    def get_data_by_name(self, name, fields=None):
         pass
 
-    @abstractmethod
-    def get_data_by_uuid(self, data, just_check_exists=False):
-        pass
-
-    @abstractmethod
-    def get_data_by_name(self, name, fields=None, just_check_exists=False):
-        pass
-
-    @abstractmethod
-    def get_component(self, component, train_data, input_data,
-                       just_check_exists=False):
-        pass
+    # @abstractmethod
+    # def get_component(self, component, train_data, input_data):
+    #     pass
 
     @abstractmethod
     def get_finished_names_by_mark(self, mark):
         pass
 
     @abstractmethod
-    def lock(self, component, test, txt=''):
+    def lock(self, component, op, test):
         pass
 
     @abstractmethod
@@ -49,5 +48,5 @@ class Cache(ABC):
         pass
 
     @abstractmethod
-    def store_result(self, component, test, testout):
+    def store_result(self, component, op, test, testout):
         pass

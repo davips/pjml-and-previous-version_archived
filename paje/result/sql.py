@@ -2,11 +2,13 @@ import warnings
 from abc import abstractmethod
 from sqlite3 import IntegrityError as IntegrityErrorSQLite
 
+from pymysql import IntegrityError as IntegrityErrorMySQL
+
 from paje.base.component import Component
 from paje.base.data import Data
 from paje.result.storage import Cache
-from paje.util.encoders import unpack_data, json_unpack, json_pack
-from pymysql import IntegrityError as IntegrityErrorMySQL
+from paje.util.encoders import unpack_data, json_unpack, json_pack, pack_comp, \
+    uuid, pack_data
 
 
 class SQL(Cache):
@@ -34,9 +36,18 @@ class SQL(Cache):
 
                 hid char(19) NOT NULL UNIQUE,
 
-                txt TEXT NOT NULL
+                txt text NOT NULL
             )''')
-        self.query(f'CREATE INDEX nam0 ON hist (txt{self._keylimit()})')
+
+        # Columns of Data ======================================================
+        self.query(f'''
+            create table if not exists atr (
+                n integer NOT NULL primary key {self._auto_incr()},
+
+                aid char(19) NOT NULL UNIQUE,
+
+                cols BLOB NOT NULL
+            )''')
 
         # Names of Data ========================================================
         self.query(f'''
@@ -47,21 +58,21 @@ class SQL(Cache):
 
                 des TEXT NOT NULL,
 
-                cols TEXT
+                atr char(19),
+
+                FOREIGN KEY (atr) REFERENCES atr(aid)
             )''')
         self.query(f'CREATE INDEX nam0 ON name (des{self._keylimit()})')
-        self.query(f'CREATE INDEX nam1 ON name (cols{self._keylimit()})')
+        self.query(f'CREATE INDEX nam1 ON name (atr)')
 
-        # Dumps of Data and Component ==========================================
+        # Dump of Component instances  =========================================
         self.query(f'''
-            create table if not exists dump (
+            create table if not exists inst (
                 n integer NOT NULL primary key {self._auto_incr()},
 
-                duid char(19) NOT NULL UNIQUE,
-                typ varchar(20),
-                bytes LONGBLOB NOT NULL
+                iid char(19) NOT NULL UNIQUE,
+                dump LONGBLOB NOT NULL
             )''')
-        self.query(f'CREATE INDEX dump0 ON dump (typ)')
 
         # Logs for Component ===================================================
         self.query(f'''
@@ -90,6 +101,22 @@ class SQL(Cache):
         self.query(f'CREATE INDEX com0 ON com (arg{self._keylimit()})')
         self.query(f'CREATE INDEX com1 ON com (insc)')
 
+        # Matrices/vectors
+        # =============================================================
+        self.query(f'''
+            create table if not exists mat (
+                n integer NOT NULL primary key {self._auto_incr()},
+
+                mid char(19) NOT NULL UNIQUE,
+
+                w integer,
+                h integer,
+
+                val LONGBLOB NOT NULL                 
+            )''')
+        self.query(f'CREATE INDEX mat0 ON mat (w)')
+        self.query(f'CREATE INDEX mat1 ON mat (h)')
+
         # Datasets =============================================================
         self.query(f'''
             create table if not exists data (
@@ -98,29 +125,63 @@ class SQL(Cache):
                 did char(19) NOT NULL UNIQUE,
 
                 name char(19) NOT NULL,
-                fields varchar(32) NOT NULL,
                 hist char(19),
 
-                dumpd char(19) NOT NULL,
-                shape varchar(256) NOT NULL,
+                x char(19),
+                y char(19),
+
+                z char(19),
+                p char(19),
+
+                u char(19),
+                v char(19),
+
+                w char(19),
+                q char(19),
+
+                r char(19),
+                s char(19),
+
+                t char(19),
 
                 insd timestamp NOT NULL,
+                upd timestamp,
 
-                unique(name, fields, hist),
+                unique(name, hist),
                 FOREIGN KEY (name) REFERENCES name(nid),
-                FOREIGN KEY (dumpd) REFERENCES dump(duid),
-                FOREIGN KEY (hist) REFERENCES hist(hid)
+                FOREIGN KEY (hist) REFERENCES hist(hid),
+                
+                FOREIGN KEY (x) REFERENCES mat(mid),
+                FOREIGN KEY (y) REFERENCES mat(mid),
+                FOREIGN KEY (z) REFERENCES mat(mid),
+                FOREIGN KEY (p) REFERENCES mat(mid),
+                FOREIGN KEY (u) REFERENCES mat(mid),
+                FOREIGN KEY (v) REFERENCES mat(mid),
+                FOREIGN KEY (w) REFERENCES mat(mid),
+                FOREIGN KEY (q) REFERENCES mat(mid),
+                FOREIGN KEY (r) REFERENCES mat(mid),
+                FOREIGN KEY (s) REFERENCES mat(mid),
+                FOREIGN KEY (t) REFERENCES mat(mid)
                )''')
         # guardar last comp nao adianta pq o msm comp pode ser aplicado
         # varias vezes
         # history não vai conter comps inuteis como pipes e switches, apenas
         # quem transforma Data, ou seja, faz updated().
-        self.query(f'CREATE INDEX data0 ON data (shape{self._keylimit()})')
-        self.query(f'CREATE INDEX data1 ON data (insd)')
-        self.query(f'CREATE INDEX data2 ON data (dumpd)')
-        self.query(f'CREATE INDEX data3 ON data (name)')  # needed?
-        self.query(f'CREATE INDEX data4 ON data (fields)')  # needed?
-        self.query(f'CREATE INDEX data5 ON data (hist)')  # needed?
+        self.query(f'CREATE INDEX data0 ON data (insd)')
+        self.query(f'CREATE INDEX data1 ON data (name)')  # needed on FKs?
+        self.query(f'CREATE INDEX data2 ON data (hist)')
+        self.query(f'CREATE INDEX data3 ON data (upd)')
+        self.query(f'CREATE INDEX datax ON data (x)')
+        self.query(f'CREATE INDEX datay ON data (y)')
+        self.query(f'CREATE INDEX dataz ON data (z)')
+        self.query(f'CREATE INDEX datap ON data (p)')
+        self.query(f'CREATE INDEX datau ON data (u)')
+        self.query(f'CREATE INDEX datav ON data (v)')
+        self.query(f'CREATE INDEX dataw ON data (w)')
+        self.query(f'CREATE INDEX dataq ON data (q)')
+        self.query(f'CREATE INDEX datar ON data (r)')
+        self.query(f'CREATE INDEX datas ON data (s)')
+        self.query(f'CREATE INDEX datat ON data (t)')
 
         # Results ==============================================================
         self.query(f'''
@@ -130,6 +191,8 @@ class SQL(Cache):
                 node varchar(19) NOT NULL,
 
                 com char(19) NOT NULL,
+                op char(1) NOT NULL,
+
                 dtr char(19) NOT NULL,
                 din char(19) NOT NULL,
 
@@ -137,7 +200,7 @@ class SQL(Cache):
 
                 dout char(19),
                 spent FLOAT,
-                dumpc char(19),
+                inst char(19),
 
                 fail TINYINT,
 
@@ -149,17 +212,17 @@ class SQL(Cache):
                 locks int NOT NULL,
                 mark varchar(256),
 
-                UNIQUE(com, dtr, din),
+                UNIQUE(com, op, dtr, din),
                 FOREIGN KEY (com) REFERENCES com(cid),
                 FOREIGN KEY (dtr) REFERENCES data(did),
                 FOREIGN KEY (din) REFERENCES data(did),
                 FOREIGN KEY (dout) REFERENCES data(did),
-                FOREIGN KEY (dumpc) REFERENCES dump(duid),
+                FOREIGN KEY (inst) REFERENCES inst(iid),
                 FOREIGN KEY (log) REFERENCES log(lid)
             )''')
         self.query('CREATE INDEX res0 ON res (dout)')
         self.query('CREATE INDEX res1 ON res (spent)')
-        self.query('CREATE INDEX res2 ON res (dumpc)')
+        self.query('CREATE INDEX res2 ON res (inst)')
         self.query('CREATE INDEX res3 ON res (fail)')
         self.query('CREATE INDEX res4 ON res (start)')
         self.query('CREATE INDEX res5 ON res (end)')
@@ -169,24 +232,216 @@ class SQL(Cache):
         self.query('CREATE INDEX res9 ON res (locks)')
         self.query('CREATE INDEX res10 ON res (log)')
         self.query(f'CREATE INDEX res11 ON res (mark{self._keylimit()})')
+        self.query(f'CREATE INDEX res12 ON res (op)')
 
-    def lock(self, component, input_data, txtres=''):
+    def get_one(self) -> dict:
         """
-        Store 'test' and 'component' if they are not yet stored.
-        Insert a locking row corresponding to comp,training_data,input_data.
+        Get a single result after a query, no more than that.
+        :return:
+        """
+        row = self.cursor.fetchone()
+        if row is None:
+            return None
+        row2 = self.cursor.fetchone()
+        if row2 is not None:
+            print('first row', row)
+            while row2:
+                print('extra row', row2)
+                row2 = self.cursor.fetchone()
+            raise Exception('Excess of rows')
+        return row
+
+    def get_all(self) -> list:
+        """
+        Get a list of results after a query.
+        :return:
+        """
+        rows = self.cursor.fetchall()
+        # if len(rows) == 0:
+        #     return None
+        return rows
+
+    def store_matvec(self, uuid, dump, w, h):
+        """
+        Store the given pair uuid-dump of a matrix/vector.
+        :type uuid:
+        :param dump:
+        :param w: width
+        :param h: height
+        :return:
+        """
+        sql = f'''
+            insert or ignore into mat values (
+            null,
+            ?,
+            ?, ?,
+            ?)
+        '''
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            self.query(sql, [uuid, w, h, dump])
+
+    def store_data(self, data: Data):
+        """
+        Check if the given data was already stored before,
+        and complete with the provided fields as needed.
+        The sequence of queries is planned to minimize traffic and CPU load,
+        otherwise it would suffice to just send 'insert or ignore' of dumps.
+        :param data: Data
+        :return:
+        """
+        # Check if Data already exists and which fields are already stored.
+        self.query(f'''
+                    select * from data
+                    where did=?''', [data.uuid()])
+        rone = self.get_one()
+
+        if rone is None:
+            # Check if dumps of matrices/vectors already exist (improbable).
+            uuid_dump = data.uuids_dumps()
+            qmarks = ','.join(['?'] * len(uuid_dump))
+            self.query(f'''
+                        select mid from mat
+                        where mid in ({qmarks})''', list(uuid_dump.keys()))
+            rall = self.get_all()
+            mids = [row['mid'] for row in rall]
+            # print('res getall (check None here?)', type(rall), rall, mids)
+
+            # Insert only dumps that are missing in storage
+            dumps2store = {k: v for k, v in uuid_dump.items()
+                           if k not in mids}
+            uuid_field = data.uuids_fields()
+            for uuid_, dump in dumps2store.items():
+                self.store_matvec(uuid_, dump, data.width(uuid_field[uuid_]),
+                                  data.height(uuid_field[uuid_]))
+
+            # Create metadata for upcoming row at table 'data'.
+            self.store_metadata(data)
+        else:
+            # Check if data comes with new matrices/vectors (improbable).
+            stored_dumps = {k: v for k, v in rone.items() if v is not None}
+            fields_low = [k.lower() for k in data.matvecs().keys()]
+            fields2store = [f for f in fields_low if f
+                            is not None and f not in stored_dumps]
+
+            # Insert only dumps that are missing in storage
+            dumps2store = {data.field_uuid(f): (data.field_dump(f), f)
+                           for f in fields2store}
+            for uuid_, (dump, field) in dumps2store:
+                self.store_matvec(uuid_, dump, data.width(field),
+                                  data.height(field))
+
+        # Create or update row at table 'data'. ---------------------
+        sql = f'''
+            insert into data values (
+                NULL,
+                ?,
+                ?, ?,
+                ?,?,
+                ?,?,
+                ?,?,
+                ?,?,
+                ?,?,
+                ?,
+                {self._now_function()},
+                null
+            )
+            ON DUPLICATE KEY UPDATE
+            x = coalesce(values(x), x),
+            y = coalesce(values(y), y),
+            z = coalesce(values(z), z),
+            p = coalesce(values(p), p),
+            u = coalesce(values(u), u),
+            v = coalesce(values(v), v),
+            w = coalesce(values(w), w),
+            q = coalesce(values(q), q),
+            r = coalesce(values(r), r),
+            s = coalesce(values(s), s),
+            t = coalesce(values(t), t),
+            insd = insd,
+            upd = {self._now_function()}
+            '''
+        data_args = [data.uuid(),
+                     data.name_uuid(), data.history_uuid(),
+                     data.field_uuid('x'), data.field_uuid('y'),
+                     data.field_uuid('z'), data.field_uuid('p'),
+                     data.field_uuid('u'), data.field_uuid('v'),
+                     data.field_uuid('w'), data.field_uuid('q'),
+                     data.field_uuid('r'), data.field_uuid('s'),
+                     data.field_uuid('t')]
+        # try:
+        self.query(sql, data_args)  # TODO: silence sql warnings?
+        # except IntegrityErrorSQLite as e:
+        #     print(f'Data already store before!', data.uuid())
+        # except IntegrityErrorMySQL as e:
+        #     print(f'Data already store before!', data.uuid())
+        # else:
+        print(f'Data inserted', data.name())
+
+    def store_metadata(self, data: Data):
+        """
+        Intended to be used before Data is stored.
+        :param data:
+        :return:
+        """
+        # atr ---------------------------------------------------------
+        # TODO: avoid sending long cols blob when unneeded
+        cols = pack_data(data.columns())
+        uuid_cols = uuid(cols)
+        sql = f'''
+            insert or ignore into atr values (
+                NULL,
+                ?,
+                ?
+            );'''
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            self.query(sql, [uuid_cols, cols])
+
+        # name ---------------------------------------------------------
+        # TODO: avoid sending long names when unneeded
+        sql = f'''
+            insert or ignore into name values (
+                NULL,
+                ?,
+                ?,
+                ?
+            );'''
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            self.query(sql, [data.name_uuid(), data.name(), uuid_cols])
+
+        # history ------------------------------------------------------
+        # TODO: avoid sending long hist blob when unneeded
+        sql = f'''
+            insert or ignore into hist values (
+                NULL,
+                ?,
+                ?
+            )'''
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            self.query(sql, [data.history_uuid(),
+                             json_pack(data.history())])
+            # TODO: codify history to be shorter
+
+    def lock(self, component, op, input_data):
+        """
+        Store 'input_data' and 'component' if they are not yet stored.
+        Insert a locking row that corresponds to comp,op,train_data,input_data.
+        'op'eration should be 'a'pply or 'u'se
         :param component:
+        :param op: operation to store and also for logging purposes
         :param input_data:
-        :param txtres: for logging purposes
         :return:
         """
         if self.debug:
             print('Locking...')
 
-        # Store testing set if (inexistent yet).
-        self.store_data(
-            input_data.shrink_to(component.fields_to_keep_after_use()))
+        # Store input set if not existent yet.
+        self.store_data(input_data)
 
-        # Store component (if inexistent yet) and attempt to acquire lock.
+        # Store component (if not existent yet) and attempt to acquire lock.
         # Mark as locked_by_others otherwise.
         nf = self._now_function()
         sql = f'''
@@ -203,268 +458,168 @@ class SQL(Cache):
         sql = f'''insert into res values (
                 null,
                 ?,
-                ?, ?, ?, null,
+                ?, ?,
+                ?, ?,
+                null,
                 null, null, null,
                 null,
                 {nf}, '0000-00-00 00:00:00', '0000-00-00 00:00:00',
                 0, 0, null
             )'''
         args_res = [self.hostname,
-                    component.uuid(), component.train_data__mutable().uuid(),
-                    input_data.uuid()]
+                    component.uuid(), op,
+                    component.train_data_uuid__mutable(), input_data.uuid()]
         try:
             self.query(sql, args_res)
         except IntegrityErrorSQLite as e:
-            print(f'Unexpected lock! Giving up my turn on {txtres}', e)
+            print(f'Unexpected lock! Giving up my turn on {op} ppy/se', e)
             component.locked_by_others = True
         except IntegrityErrorMySQL as e:
-            print(f'Unexpected lock! Giving up my turn on {txtres}', e)
+            print(f'Unexpected lock! Giving up my turn on {op} ppy/se', e)
             component.locked_by_others = True
         else:
             component.locked_by_others = False
-            print(f'Now locked for {txtres} {component.name}')
+            print(f'Now locked for {op}[ppying/sing] {component.name}')
 
-    def get_result(self, component, input_data):
+    def get_result(self, compo: Component, op, input_data):
         """
-        Look for a result in database.
+        Look for a result in database. Download only affected matrices/vectors.
         ps.: put a model inside component if it is 'dump_it'-enabled
         :return: Resulting Data
         """
-        if component.failed or component.locked_by_others:
+        if compo.failed or compo.locked_by_others:
             return None
+        fields = Data.sql_all_fields if compo.touched_fields() is None \
+            else compo.touched_fields()
+
         self.query(f'''
             select 
-                des, bytes, spent, fail, end, node, txt as history, cols
-                {', duc.bytes as model' if component.dump_it else ''}
+                dout, des, spent, fail, end, node, txt as history, cols,
+                {','.join(fields)}
+                {', dump' if compo.dump_it else ''}
             from 
                 res 
                     left join data on dout = did
-                    left join dump on dumpd = duid
                     left join name on name = nid
                     left join hist on hist = hid
-                    {'left join dump on dumpc = duid'
-        if component.dump_it else ''}                    
+                    left join atr on atr = aid
+                    {'left join inst on inst = iid' if compo.dump_it else ''}                    
             where                
-                com=? and dtr=? and din=?''',
-                   [component.uuid(),
-                    component.train_data__mutable().uuid(),
+                com=? and op=? and dtr=? and din=?''',
+                   [compo.uuid(),
+                    op,
+                    compo.train_data_uuid__mutable(),
                     input_data.uuid()])
         result = self.get_one()
         if result is None:
             return None
-        if 'bytes' in result and result['bytes']:
+        if result['dout'] is not None:
+            # sanity check
             if result['des'] != input_data.name():
                 raise Exception('Result name differs from input data',
                                 f"{result['des']}!={input_data.name()}")
+
+            # Recover relevant matrices/vectors.
+            dic = {}
+            for field in fields:
+                mid = result[field]
+                self.query(f'select val from mat where mid=?', [mid])
+                rone = self.get_one()
+                if rone is not None:
+                    dic[Data.to_case_sensitive[field]] = unpack_data(
+                        rone['val']
+                    )
+
+            # Create Data.
             data = Data(name=result['des'],
                         history=json_unpack(result['history']),
-                        **unpack_data(result['bytes']),
-                        columns=json_unpack(result['cols']))
-            output_data = input_data.shrink_to(
-                component.fields_to_keep_after_use()
-            ).merged(data)
+                        columns=unpack_data(result['cols']),
+                        **dic)
+
+            # Join untouched matrices/vectors.
+            output_data = input_data.merged(data)
         else:
             output_data = None
-        component._model_dump = result['model'] if 'model' in result else None
-        component.time_spent = result['spent']
-        component.failed = result['fail'] and result['fail'] == 1
-        component.locked_by_others = result['end'] == '0000-00-00 00:00:00'
-        component.node = result['node']
+        compo.model = result['dump'].model if 'dump' in result else None
+        compo.time_spent = result['spent']
+        compo.failed = result['fail'] and result['fail'] == 1
+        compo.locked_by_others = result['end'] == '0000-00-00 00:00:00'
+        compo.node = result['node']
         return output_data
 
-    def store_data(self, data: Data):
-        # Check first with a low cost query if data already exists.
-        if self._data_exists(data):
-            if self.debug:
-                print('Data already exists:' + data.sid(), data.name())
-            return
-        else:
-            print('Storing...', data.sid(), ' ', data.name())
-
-        # Insert dump of data and data info.
-        # Catch exception in the event of another job winning the race.
-        # Dumps can have duplicate, e.g. when two models give the same
-        # predictions (usually in the same dataset), so 'insert or ignore'.
-        # In the case of training data (e.g. only X,y) the same Data can be
-        # inserted twice by different components, but this is checked above
-        # by data_exists(). If in the meantime, while the interpreter is
-        # reading this comment, someone else inserts just the same Data,
-        # we will have to handle it as an exception.
-        # ps. : in the presence of predictions (z),
-        # UUID will change according to the new set of fields,
-        # otherwise, it will depend only on 'Data.name' and 'Data.fields'.
-
-        sql = f'''
-            insert or ignore into dump values (
-                null,
-                ?, 'data',
-                ?
-            )'''
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            self.query(sql, [data.dump_uuid(), data.dump()])
-
-        sql = f'''
-            insert or ignore into name values (
-                NULL,
-                ?,
-                ?,
-                ?
-            );'''
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            self.query(sql, [data.name_uuid(), data.name(),
-                             json_pack(data.columns())])
-
-        sql = f'''
-            insert or ignore into hist values (
-                NULL,
-                ?,
-                ?
-            )'''
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            self.query(sql, [data.history_uuid(),
-                             json_pack(data.history())])
-
-        sql = f'''
-            insert into data values (
-                NULL,
-                ?,
-                ?, ?, ?,
-                ?, ?,
-                {self._now_function()}
-            );'''
-        data_args = [data.uuid(),
-                     data.name_uuid(), data.fields(), data.history_uuid(),
-                     data.dump_uuid(),
-                     json_pack(data.shapes())]
-        try:
-            self.query(sql, data_args)
-        except IntegrityErrorSQLite as e:
-            print(f'Data already store before!', data.uuid())
-        except IntegrityErrorMySQL as e:
-            print(f'Data already store before!', data.uuid())
-        else:
-            print(f'Data inserted', data.name())
-
-    def store_result(self, component, input_data, output_data):
+    def store_result(self, component, op, input_data, output_data):
         """
         Store a result and remove lock.
         :param component:
+        :param op:
         :param input_data:
         :param output_data:
         :return:
         """
 
         # Store resulting Data
-        slim = output_data and output_data.shrink_to(
-            component.fields_to_store_after_use())
-        slim and self.store_data(slim)
+        if output_data is not None:
+            self.store_data(output_data)
 
         # Remove lock and point result to data inserted above.
-        # TODO: is there any important exception to handle here?
+        # We should set all timestamp fields even if with the same old value,
+        # due to automatic updates by DBMSs.
+        # Data train was inserted and dtr was created when locking().
         now = self._now_function()
-        model_dump = component.dump_it and component.model_dump()
-        # We should set all timestamp fields even if with the same old value.
-        # Data train inserted and dtr was created when locking().
-        # 'or ignore' because different models can have the same predictions.
-        sql = f'''insert or ignore into dump values (
-                    null,
-                    ?, 'model', ?
-                )'''
-        dump_args = [component.model_uuid(), model_dump]
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            self.query(sql, dump_args)
 
-        sql = f'''update res set 
-                    dout=?, spent=?,
-                    dumpc=?,
+        # Store dump if requested.
+        dump_uuid = component.dump_it and uuid(
+            (component.uuid() + op +
+             component.train_data_uuid__mutable() + input_data.uuid()).encode()
+        )
+        if component.dump_it:
+            sql = f'insert or ignore into inst values (null, ?, ?)'
+            # pack_comp is nondeterministic and its result is big,
+            # so we need to identify it by other, deterministic, means
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                self.query(sql, [dump_uuid, pack_comp(component)])
+
+        # Store a log if apply() failed.
+        log_uuid = component.failure and uuid(component.failure.encode())
+        if component.failure is not None:
+            sql = f'insert or ignore into log values (null, ?, ?, {now})'
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                self.query(sql, [log_uuid, component.failure])
+
+        # Unlock and save result.
+        fail = 1 if component.failed else 0
+        sql = f'''
+                update res set 
+                    log=?,
+                    dout=?, spent=?, inst=?,
                     fail=?,
                     start=start, end={now}, alive={now},
                     mark=?
                 where
-                    com=? and dtr=? and din=?
+                    com=? and op=? and 
+                    dtr=? and din=?
                 '''
-        resargs1 = [
-            slim and slim.uuid(), component.time_spent,  # dout, spent
-            component.model_uuid(),  # dumpc
-            1 if component.failed else 0,  # fail
-            component.mark]  # mark
-        resargs2 = [component.uuid(), component.train_data__mutable().uuid(),
-                    input_data.uuid()]  # com, dtr, din
-        self.query(sql, resargs1 + resargs2)
-
+        set_args = [log_uuid, output_data and output_data.uuid(),
+                    component.time_spent, dump_uuid, fail, component.mark]
+        where_args = [component.uuid(), op,
+                      component.train_data_uuid__mutable(), input_data.uuid()]
+        # TODO: is there any important exception to handle here?
+        self.query(sql, set_args + where_args)
         print('Stored!\n')
 
-    def get_component_by_uuid(self, component_uuid, just_check_exists=False):
-        field = 'arg'
-        if just_check_exists:
-            field = '1'
-        self.query(f'select {field} from com where cid=?', [component_uuid])
-        result = self.get_one()
-        if result is None:
-            return None
-        if just_check_exists:
-            return True
-        return result[field]
-
-    def get_component(self, component, train_data, input_data,
-                      just_check_exists=False):
-        field = 'bytes,arg'
-        if just_check_exists:
-            field = '1'
-        self.query(f'select {field} '
-                   f'from res'
-                   f'   left join dump on dumpc=duic '
-                   f'   left join com on com=cid '
-                   f'where cid=? and dtr=? and din=?',
-                   [component.uuid(),
-                    component.train_data.uuid(),
-                    input_data.uuid()])
-        result = self.get_one()
-        if result is None:
-            return None
-        if just_check_exists:
-            return True
-        return Component.resurrect_from_dump(result['bytes'],
-                                             **json_unpack(result['arg']))
-
-    def get_data_by_uuid(self, datauuid, just_check_exists=False):
-        sql_fields = '1' if just_check_exists else 'des, cols, bytes, txt'
-        self.query(f'''
-                select 
-                    {sql_fields} 
-                from 
-                    data 
-                        left join name on name=nid 
-                        left join dump on dumpd=duid
-                        left join hist on hist=hid
-                where 
-                    did=?''', [datauuid])
-        result = self.get_one()
-        if result is None:
-            return None
-        if just_check_exists:
-            return True
-        return Data(name=result['des'],
-                    columns=json_unpack(result['cols']),
-                    history=json_unpack(result['history']),
-                    **unpack_data(result['bytes']))
-
-    def get_data_by_name(self, name, fields=None, history=None,
-                         just_check_exists=False):
+    def get_data_by_name(self, name, fields=None, history=None):
         """
         To just recover the original dataset you can pass history=None.
-        Specify fields as needed, otherwise all fields will be merged into
-        a single Data - in this case, metadata of the first Data will prevail.
+        Specify fields if you want to reduce traffic, otherwise all available
+        fields will be fetched.
 
-        When getting prediction data (i.e., results),
+        ps. 1: Obviously, when getting prediction data (i.e., results),
          the history which led to the predictions should be provided.
         :param name:
         :param fields: None=get full Data; case insensitive; e.g. 'X,y,Z'
-        :param history: list of JSON strings describing components
+        :param history: list of JSON(TODO:json??) strings describing components
         :param just_check_exists:
         :return:
         """
@@ -472,37 +627,93 @@ class SQL(Cache):
             history = []
         hist = json_pack(history)
 
-        sql_fields = '1' if just_check_exists else 'cols, bytes, txt'
-
         sql = f'''
                 select 
-                    {sql_fields} 
+                    x,y,z,p,u,v,w,q,r,s,t,cols,txt,des
                 from 
                     data 
                         left join name on name=nid 
-                        left join dump on dumpd=duid
                         left join hist on hist=hid
+                        left join atr on atr=aid
                 where 
-                    {f'fields=? and' if fields else ''}
                     des=? and txt=?'''
-        args = [fields.upper(), name, hist] if fields else [name, hist]
-
-        self.query(sql, args)
-        rows = self.cursor.fetchall()
-        if rows is None or len(rows) == 0:
+        self.query(sql, [name, hist])
+        row = self.get_one()
+        if row is None:
             return None
-        if just_check_exists:
-            return True
 
-        # Merge all recovered datas into one.
-        dic = {}
-        for row in rows:
-            dic.update(unpack_data(row['bytes']))
+        # Recover requested matrices/vectors.
+        dic = {'name': name, 'history': history}
+        if fields is None:
+            flst = [k for k, v in row.items() if len(k) == 1 and v is not None]
+        else:
+            flst = fields.split(',')
+        for field in Data.list_to_case_sensitive(flst):
+            mid = row[field.lower()]
+            self.query(f'select val from mat where mid=?', [mid])
+            rone = self.get_one()
+            dic[field] = unpack_data(rone['val'])
+        return Data(columns=unpack_data(row['cols']), **dic)
 
-        return just_check_exists or Data(
-            name=name, history=history,
-            columns=json_unpack(rows[0]['cols']),
-            **unpack_data(rows[0]['bytes']))
+    # def get_component_by_uuid(self, component_uuid, just_check_exists=False):
+    #     field = 'arg'
+    #     if just_check_exists:
+    #         field = '1'
+    #     self.query(f'select {field} from com where cid=?', [component_uuid])
+    #     result = self.get_one()
+    #     if result is None:
+    #         return None
+    #     if just_check_exists:
+    #         return True
+    #     return result[field]
+
+    # def get_component(self, component, train_data, input_data,
+    #                   just_check_exists=False):
+    #     field = 'bytes,arg'
+    #     if just_check_exists:
+    #         field = '1'
+    #     self.query(f'select {field} '
+    #                f'from res'
+    #                f'   left join dump on dumpc=duic '
+    #                f'   left join com on com=cid '
+    #                f'where cid=? and dtr=? and din=?',
+    #                [component.uuid(),
+    #                 component.train_data.uuid(),
+    #                 input_data.uuid()])
+    #     result = self.get_one()
+    #     if result is None:
+    #         return None
+    #     if just_check_exists:
+    #         return True
+    #     return Component.resurrect_from_dump(result['bytes'],
+    #                                          **json_unpack(result['arg']))
+
+    def get_data_by_uuid(self, datauuid):
+        sql = f'''
+                select 
+                    x,y,z,p,u,v,w,q,r,s,t,cols,txt,des
+                from 
+                    data 
+                        left join name on name=nid 
+                        left join hist on hist=hid
+                        left join atr on atr=aid
+                where 
+                    did=?'''
+        self.query(sql, [datauuid])
+        row = self.get_one()
+        if row is None:
+            return None
+
+        # Recover requested matrices/vectors.
+        # TODO: surely there is duplicated code to be refactored in this file!
+        dic = {'name': row['des'], 'history': json_unpack(row['txt'])}
+        fields = [k for k, v in row.items() if len(k) == 1 and v is not None]
+        for field in Data.list_to_case_sensitive(fields):
+            mid = row[field.lower()]
+            self.query(f'select val from mat where mid=?', [mid])
+            rone = self.get_one()
+            dic[field] = unpack_data(rone['val'])
+        return Data(columns=unpack_data(row['cols']), **dic)
 
     def get_finished_names_by_mark(self, mark):
         """
@@ -525,8 +736,8 @@ class SQL(Cache):
                     end!='0000-00-00 00:00:00' and 
                     fail=0 and mark=?
             """, [mark])
-        rows = self.cursor.fetchall()
-        if rows is None or len(rows) == 0:
+        rows = self.get_all()
+        if rows is None:
             return None
         else:
             for row in rows:
@@ -569,20 +780,11 @@ class SQL(Cache):
             raise type(ex)(
                 "%s\norig. trac.:\n%s\n" % (msg, traceback_string))
 
-    def get_one(self):
-        row = self.cursor.fetchone()
-        if row is None:
-            return None
-        row2 = self.cursor.fetchone()
-        if row2 is not None:
-            raise Exception('Excess of rows, after ', row, ':', row2)
-        return row
+    # def _data_exists(self, data):
+    #     return self.get_data_by_uuid(data.uuid(), True) is not None
 
-    def _data_exists(self, data):
-        return self.get_data_by_uuid(data.uuid(), True) is not None
-
-    def _component_exists(self, component):
-        return self.get_component_by_uuid(component.uuid(), True) is not None
+    # def _component_exists(self, component):
+    #     return self.get_component_by_uuid(component.uuid(), True) is not None
 
     def __del__(self):
         try:

@@ -3,11 +3,8 @@ from paje.composer.composer import Composer
 
 
 class Frozen(Composer):
-    def fields_to_store_after_use(self):
-        return self.components[0].fields_to_store_after_use()
-
-    def fields_to_keep_after_use(self):
-        return self.components[0].fields_to_keep_after_use()
+    def touched_fields(self):
+        return self.components[0].touched_fields()
 
     def __init__(self, component, storage=None,
                  show_warns=True, **kwargs):

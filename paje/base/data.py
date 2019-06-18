@@ -4,33 +4,61 @@ import pandas as pd
 import sklearn
 import sklearn.datasets as ds
 from paje.module.experimenting.cv import CV
-from paje.util.encoders import pack_data, uuid, uuid_enumerated_dic
+from paje.util.encoders import pack_data, uuid, uuid_enumerated_dic, \
+    json_unpack, json_pack
 from sklearn.utils import check_X_y
+
+
+def sub(a, b):
+    return [item for item in a if item not in b]
 
 
 # TODO: convert in dataclass
 class Data:
+    _val2vec = {'r': 'e', 's': 'f', 't': 'k'}
+    to_case_sensitive = _val2vec.copy()
+    to_case_sensitive.update({ # mostly for sql
+        'x': 'X',
+        'y': 'Y',
+        'z': 'Z',
+        'u': 'U',
+        'v': 'V',
+        'w': 'W',
+        'p': 'P',
+        'q': 'Q'
+    })
+    sql_all_fields = list(to_case_sensitive.keys())
 
-    def __init__(self, name, X=None, Y=None, Z=None, P=None,
-                 U=None, V=None, W=None, Q=None,
+    def __init__(self, name, X=None, Y=None, Z=None, P=None, e=None,
+                 U=None, V=None, W=None, Q=None, f=None,
+                 k=None,
                  columns=None, history=None, task=None):
-        # ALERT: all single-letter args will be considered matrices!
+        # ALERT: all single-letter args will be considered matrices/vectors!
         """
             Immutable lazy data for all machine learning scenarios
              we could imagine.
-             Y, Z, V and W can be accessed as vectors y, z, v and w
+             Matrices Y, Z, V and W can be accessed as vectors y, z, v and w
              if there is only one output.
              Otherwise, they are multitarget matrices.
+
+             Vector e (or f) summarizes e.g. some operation over y,z (or v,w)
+             k is a vector indicating the time step of each row.
+             However, when the vectors e,f,k have only one value,
+             which is the most common scenario, they can be accessed as values
+             r,s,t.
 
         :param name:
         :param X:
         :param Y:
         :param Z: Predictions
         :param P: Predicted probabilities
+        :param e: Results, summarized in some way
         :param U: X of unlabeled set
         :param V: Y of unlabeled set
         :param W: Predictions for unlabeled set
         :param Q: Predicted probabilities for unlabeled set
+        :param f: Results for unlabeled, summarized in some way
+        :param k: Time steps for the current chunk (this Data)
         :param columns:
         :param component: component that generated current Data
         :param history: History of transformations suffered by the data
@@ -39,36 +67,36 @@ class Data:
             print('No history provided to Data')
             history = []
 
-        # Init instance matrices to factory new Data instances in the future.
+        # Init matrices/vectors to factory new Data instances in the future.
+        matvecs = {k: v for k, v in locals().items()  # Only used ones.
+                   if v is not None and len(k) == 1}
+        all_mats_vecs = {k: v for k, v in locals().items() if len(k) == 1}
 
-        matrices = {k: v for k, v in locals().items()  # Only used ones.
-                    if v is not None and len(k) == 1}
-        all_mats = {k: v for k, v in locals().items() if len(k) == 1}
-
-        self.__dict__.update(all_mats)
-        prediction = {k: v for k, v in matrices.items()
+        self.__dict__.update(all_mats_vecs)
+        prediction = {k: v for k, v in matvecs.items()
                       if k in ['Z', 'W', 'P', 'Q']}
 
         # Metadata
         n_classes = len(set(dematrixify(get_first_non_none([Y, V, Z, W]), [0])))
-        n_instances = len([] or get_first_non_none(matrices.values()))
+        n_instances = len([] or get_first_non_none(matvecs.values()))
         n_attributes = len(get_first_non_none([X, U], [[]])[0])
 
         self.__dict__.update({
             '_n_classes': n_classes,
             '_n_instances': n_instances,
             '_n_attributes': n_attributes,
-            # As a convenient notation for Data, matrices nad vectors are the
-            # only members available directly as variables, not functions.
+            # As a convenient notation for Data, matrices, vectors and
+            # single values are the only members available directly as
+            # variables, not functions.
             'Xy': (X, dematrixify(Y)),
             'Uv': (U, dematrixify(V)),
             '_prediction': prediction,
             '_history': history or [],
-            '_matrices': matrices,
+            '_matvecs': matvecs,
             '_columns': columns,
-            '_has_prediction_data': bool(prediction),
+            # '_has_prediction_data': bool(prediction),
             # '_is_prediction_data': bool(set(prediction.keys()) -
-            #                             set(matrices.keys()))
+            #                             set(matvecs.keys()))
         })
 
         # Add vectorized shortcuts for matrices.
@@ -77,15 +105,23 @@ class Data:
         for vec in vectors:
             self.__dict__[vec] = dematrixify(self.__dict__[vec.upper()])
 
+        # Add single-valued shortcuts for vectors.
+        self._set('_single_values', self._val2vec.keys())  # TODO: needed?
+        for k, v in self._val2vec.items():
+            self.__dict__[k] = devectorize(v)
+
         # Add lazy cache for dump and uuid
-        self._set('_dump', None)
-        self._set('_dump_prediction', None)
+        for var in all_mats_vecs:
+            self._set('_dump' + var, None)
+            self._set('_uuid' + var, None)
         self._set('_uuid', None)
         self._set('_history_uuid', None)
-        self._set('_dump_uuid', None)
         self._set('_name_uuid', None)
         self._set('_name', name)
         self._set('_fields', None)
+
+        # # WARNING: Filled on-demand, following calls to field_uuid().
+        # self._set('uuid_fields', {})
 
         # Check list
         if not isinstance(name, str):
@@ -115,6 +151,67 @@ class Data:
         self._set('is_unsupervised', None)
         self._set('is_multilabel', None)
         self._set('is_ranking_prediction', None)
+
+    def field_dump(self, field):
+        '''
+        Dump of the matrix/vector associated to the given field.
+        :param field: Case insensitive.
+        :return: binary compressed dump
+        '''
+        # TODO: get rid of this gambiarra
+        field = field if field in self.matvecs() else field.lower()
+        field = field if field in self.matvecs() else field.upper()
+
+        if self.matvecs()[field] is None:
+            raise Exception(f'Field {field} not available in this Data!')
+        key = '_dump' + field
+        if self.__dict__[key] is None:
+            self.__dict__[key] = pack_data(self.matvecs()[field])
+        return self.__dict__[key]
+
+    def is_vector(self, v):
+        return len(v.shape) == 1
+
+    def width(self, field):
+        m = self.matvecs()[field]
+        if m is None:
+            return None
+        return len(m) if self.is_vector(m) else m.shape[1]
+
+    def height(self, field):
+        m = self.matvecs()[field]
+        return m.shape[0]
+
+    def field_uuid(self, field):
+        '''
+        UUID of the matrix/vector associated to the given field.
+        :param field: Case insensitive.
+        :return: UUID
+        '''
+        # TODO: get rid of this gambiarra
+        field = field if field in self.matvecs() else field.lower()
+        field = field if field in self.matvecs() else field.upper()
+
+        if field not in self.matvecs():
+            return None
+        key = '_uuid' + field
+        if self.__dict__[key] is None:
+            uuid_ = uuid(self.field_dump(field))
+            self.__dict__[key] = uuid_
+            # self.__dict__['uuid_fields'].update({uuid_:field})
+        return self.__dict__[key]
+
+    def uuids_dumps(self):
+        """
+        :return: pair uuid-dump of each matrix/vector.
+        """
+        return {self.field_uuid(k): self.field_dump(k) for k in self.matvecs()}
+
+    def uuids_fields(self):
+        """
+        :return: pair uuid-field of each matrix/vector.
+        """
+        return {self.field_uuid(k): k for k in self.matvecs()}
 
     @staticmethod
     def read_arff(file, target, storage=None):
@@ -180,33 +277,39 @@ class Data:
     def store(self, storage):
         storage.store_data(self)
 
-    def updated(self, component, **kwargs):
+    def updated(self, component_or_list, **kwargs):
         """ Return a new Data updated by given values.
-        :param component: to put into transformations list for history purposes
+        :param component_or_list: to put into transformations list for history purposes
         (it can be a list also for internal use in Data).
         :param kwargs:
         :return:
         """
-        new_kwargs = self.matrices().copy()
-        new_kwargs.update(kwargs)
+        new_args = self.matvecs().copy()
+        new_args.update(kwargs)
         for l in self.vectors():
-            if l in new_kwargs:
+            if l in new_args:
                 L = l.upper()
-                new_kwargs[L] = as_column_vector(new_kwargs.pop(l))
-        if 'name' not in new_kwargs:
-            new_kwargs['name'] = self.name()
+                new_args[L] = as_column_vector(new_args.pop(l))
+        for k, v in self._val2vec.items():
+            if k in new_args:
+                new_args[v] = as_vector(new_args.pop(k))
+        if 'name' not in new_args:
+            new_args['name'] = self.name()
 
-        if 'history' not in new_kwargs:
-            new_kwargs['history'] = self.history() + component \
-                if isinstance(component, list) else self.history() + \
-                                                    [component.serialized()]
+        if 'history' not in new_args:
+            if isinstance(component_or_list, list):
+                new_args['history'] = self.history() + component_or_list
+            else:
+                new_args['history'] = self.history() + [
+                    json_unpack(component_or_list.serialized())
+                ]
         else:
-            print('Warning, giving \'history\' from outside update().')
-        return Data(columns=self.columns(), **new_kwargs)
+            print('Warning: giving \'history\' from outside update().')
+        return Data(columns=self.columns(), **new_args)
 
     def merged(self, new_data):
         """
-        Get more matrices (or new values) from another Data.
+        Get more matrices/vectors (or new values) from another Data.
         The longest history will be kept.
         They should have the same name and be different by at least one
         transformation.
@@ -228,8 +331,8 @@ class Data:
         if len(history) == len(self.history()):
             history += ['Merge']
 
-        dic = self.matrices().copy()
-        dic.update(new_data.matrices())
+        dic = self.matvecs().copy()
+        dic.update(new_data.matvecs())
 
         return Data(name=self.name(), history=history, columns=self.columns(),
                     **dic)
@@ -237,22 +340,34 @@ class Data:
     def select(self, fields):
         """
         Return a subset of the dictionary of kwargs.
-        ps.: Automatically convert vectorized shortcuts to matrices.
+        ps.: Automatically convert vectorized/single-valued shortcuts to
+        matrices/vectors.
         ps 2: ignore inexistent fields
         ps 3: raise exception in none fields
         :param fields: 'all' means 'don't touch anything'
+        'except:z,w' means keep all except z,w
         :return:
         """
-        fields_lst = self.fields() if fields == 'all' else fields.split(',')
-        matrixnames = [(x.upper() if x in self.vectors() else x)
-                       for x in fields_lst]
+        fields.replace(':', ',')
+        if fields == 'all':
+            fields_lst = self.fields()
+        else:
+            fields_lst = fields.split(',')
+            if fields_lst and fields_lst[0] == 'except':
+                fields_lst = sub(self.fields(), fields_lst[1:])
+
+        namesmats = [(x.upper() if x in self.vectors() else x)
+                     for x in fields_lst]
+        namesvecs = [vec for val, vec in self._val2vec.items()
+                     if val in fields_lst]
+        names = namesmats + namesvecs
 
         # Raise exception if any requested matrix is None.
-        if any([m not in self.matrices() for m in matrixnames]):
-            raise Exception('Requested None matrix',
-                            fields, self.matrices().keys)
+        if any([mv not in self.matvecs() for mv in names]):
+            raise Exception('Requested None or inexistent matrix/vector/value',
+                            fields, self.matvecs().keys)
 
-        return {k: v for k, v in self.matrices().items() if k in matrixnames}
+        return {k: v for k, v in self.matvecs().items() if k in names}
 
     def shrink_to(self, fields):
         return Data(name=self.name(), history=self.history(),
@@ -265,23 +380,6 @@ class Data:
 
     def _set(self, name, value):
         object.__setattr__(self, name, value)
-
-    def dump(self):
-        if self._dump is None:
-            # I am not sure if this commented code is really needed...
-            #  it seems dangerous, and sql.py manages shrinking of Data.
-            # This if is needed to avoid useless redumping of the same data.
-            # if self.has_prediction_data():
-            #     self._set('_dump', self.dump_prediction_only())
-            # else:
-
-            self._set('_dump', pack_data(self.matrices()))
-        return self._dump
-
-    def dump_prediction_only(self):
-        if self._dump_prediction is None:
-            self._set('_dump_prediction', pack_data(self.prediction()))
-        return self._dump_prediction
 
     def sid(self):
         """
@@ -299,13 +397,7 @@ class Data:
             # models provide different dataset predictions/transformations.
             # This is solved by adding the history_uuid of transformations
             # into the data.UUID.
-            # Opting by a dual key composed by both name-fields-history and
-            # UUID, we have faster UUID calculations than calculating UUID
-            # on the matrices dump; and also enforce human readable integrity
-            # (name and fields and history are more readable than Data.UUID).
-            uuid_ = uuid((self.name_uuid() +
-                          self.fields() +
-                          self.history_uuid()).encode())
+            uuid_ = uuid((self.name_uuid() + self.history_uuid()).encode())
             self._set('_uuid', uuid_)
         return self._uuid
 
@@ -316,29 +408,24 @@ class Data:
 
     def history_uuid(self):
         if self._history_uuid is None:
-            self._set('_history_uuid', uuid(','.join(self.history()).encode()))
+            self._set('_history_uuid', uuid(json_pack(self.history()).encode()))
         return self._history_uuid
-
-    def dump_uuid(self):
-        if self._dump_uuid is None:
-            self._set('_dump_uuid', uuid(self.dump()))
-        return self._dump_uuid
 
     def name(self):
         if self._name is None:
             self._set('_name', f'unnamed[{self.uuid()}]')
         return self._name
 
-    def fields(self):
+    def fields(self) -> str:
         if self._fields is None:
-            sorted = list(self.matrices().keys())
+            sorted = list(self.matvecs().keys())
             sorted.sort()
             self._set('_fields', ','.join(sorted))
         return self._fields
 
     def __str__(self):
         txt = []
-        [txt.append(f'{k}: {str(v)}') for k, v in self.matrices().items()]
+        [txt.append(f'{k}: {str(v)}') for k, v in self.matvecs().items()]
         return '\n'.join(txt) + self.name()
 
     def split(self, test_size=0.25, random_state=1):
@@ -348,10 +435,10 @@ class Data:
 
     def shapes(self):
         """
-        Return the shape of all matrices.
+        Return the shape of all matrices/vectors.
         :return:
         """
-        return {k: v.shape for k, v in self.matrices().items()}
+        return {k: v.shape for k, v in self.matvecs().items()}
 
     # Redefinig all class member as functions just for uniformity and 
     # autocompleteness. And to show protection against changes. 
@@ -370,8 +457,8 @@ class Data:
     def history(self):
         return self._history
 
-    def matrices(self):
-        return self._matrices
+    def matvecs(self):
+        return self._matvecs
 
     def columns(self):
         return self._columns
@@ -381,6 +468,15 @@ class Data:
 
     def vectors(self):
         return self._vectors
+
+    @classmethod
+    def list_to_case_sensitive(cls, fields):
+        sensitive = []
+        for field in fields:
+            f = cls.to_case_sensitive[field] \
+                if field in cls.to_case_sensitive else field
+            sensitive.append(f)
+        return sensitive
 
 
 class MutabilityException(Exception):
@@ -397,6 +493,10 @@ def as_column_vector(vec):
 
 def dematrixify(m, default=None):
     return default if m is None else as_vector(m)
+
+
+def devectorize(v, default=None):
+    return default if v is None else v[0]
 
 
 def get_first_non_none(l, default=None):

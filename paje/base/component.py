@@ -1,7 +1,6 @@
 """ Component module.
 """
 import copy
-import json
 import os
 from abc import ABC, abstractmethod
 from uuid import uuid4
@@ -11,7 +10,7 @@ import numpy as np
 from paje.base.exceptions import ApplyWithoutBuild, UseWithoutApply, \
     handle_exception
 from paje.evaluator.time import time_limit
-from paje.util.encoders import pack_comp, uuid, json_pack
+from paje.util.encoders import uuid, json_pack
 from paje.util.log import *
 
 
@@ -34,18 +33,20 @@ class Component(ABC):
 
         self.storage = storage
         self._uuid = None  # UUID will be known only after build()
-        self._train_data__mutable = None  # Each apply() uses a different train
+
+        # Each apply() uses a different training data, so this uuid is mutable
+        self._train_data_uuid__mutable = None
+
         self.locked_by_others = False
         self.failed = False
         self.time_spent = None
         self.node = None
         self.max_time = None
         self.mark = None
-        self._model_dump = None
-        self._model_uuid = None
         self._describe = None
+        self.failure = None
 
-        # Whether to dump the model or not, if a storage is given.
+        # Whether to dump this comp. or not, if a storage is given.
         self.dump_it = dump_it or None  # 'or'->possib.vals=Tru,Non See sql.py
 
         self.log = logging.getLogger('component')
@@ -87,11 +88,13 @@ class Component(ABC):
 
         if obj_copied.isdeterministic() and "random_state" in obj_copied.dic:
             del obj_copied.dic["random_state"]
-        obj_copied.dic['describe'] = self.describe()
 
         # Create an encoded (uuid) unambiguous (sorted) version of args_set.
         obj_copied._serialized = 'building'
         obj_copied._uuid = uuid(obj_copied.serialized().encode())
+
+        # TODO: which init vars should be restarted here?
+        obj_copied.failure = None
 
         obj_copied.build_impl()
         return obj_copied
@@ -113,30 +116,36 @@ class Component(ABC):
         if data is None:
             raise Exception(f"Applying {self.name} on None !")
 
-        self._train_data__mutable = data
+        self._train_data_uuid__mutable = data.uuid()
 
-        output_data = self.look_for_result(data)
+        # TODO: CV() is too cheap to be recovered from storage,
+        #  specially if it is applied to LOO.
+        #  Maybe some components could inform if they are cheap.
+        output_data = None
+        if self.storage is not None:
+            output_data = self.storage.get_result(self, 'a', data)
 
         if self.failed:
-            self.msg(f"Won't apply on data {self.train_data__mutable().name()}"
+            self.msg(f"Won't apply on data {data.name()}"
                      f"\nCurrent {self.name} already failed before.")
             return output_data
 
         if self.locked_by_others:
             print(f"Won't apply {self.name} on data "
-                  f"{self.train_data__mutable().name()}\n"
+                  f"{data.name()}\n"
                   f"Currently probably working at node [{self.node}].")
             return output_data
 
         # Apply if still needed  ----------------------------------
         if output_data is None:
             if self.storage is not None:
-                self.lock(data, 'applying')
+                self.storage.lock(self, 'a', data)
 
             self.handle_warnings()
             if self.name != 'CV':
                 self.msg('Applying ' + self.name + '...')
             start = self.clock()
+            self.failure = None
             try:
                 if self.max_time is None:
                     output_data = self.apply_impl(data)
@@ -146,6 +155,7 @@ class Component(ABC):
             except Exception as e:
                 print(e)
                 self.failed = True
+                self.failure = str(e)
                 self.locked_by_others = False
                 handle_exception(self, e)
             self.time_spent = self.clock() - start
@@ -153,8 +163,7 @@ class Component(ABC):
             self.dishandle_warnings()
 
             if self.storage is not None:
-                output_train_data = None if self.failed else self.use_impl(data)
-                self.store_result(data, output_train_data)
+                self.storage.store_result(self, 'a', data, output_data)
 
         return output_data
 
@@ -163,27 +172,30 @@ class Component(ABC):
         """
         self.check_if_applied()
 
-        if self.storage is not None:
-            # If the component was applied (probably simulated by storage),
-            # but there is no model, we reapply it...
-            if self.model is None:
-                print('It is possible that a previous apply() was '
-                      'successfully stored, but its use() wasn\'t.')
-                print('Applying just for use() because results were only '
-                      'partially stored in a previous execution:'
-                      f'comp: {self.sid()}  data: {data.sid()} ...')
-                self.apply_impl(self.train_data__mutable())
-
         # Checklist / get from storage -----------------------------------
         if data is None:
             self.msg(f"Using {self.name} on None returns None.")
             return None
 
-        output_data = self.look_for_result(data)
+        output_data = None
+        if self.storage is not None:
+            output_data = self.storage.get_result(self, 'u', data)
+            # If the component was applied (probably simulated by storage),
+            # but there is no model, we reapply it...
+            if output_data is None and self.model is None and not self.failed:
+                print('It is possible that a previous apply() was '
+                      'successfully stored, but its use() wasn\'t.'
+                      'Or you are trying to use in new data.')
+                print('Trying to recover training data from storage to apply '
+                      'just to induce a model usable by use()...\n'
+                      f'comp: {self.sid()}  data: {data.sid()} ...')
+                train_uuid = self.train_data_uuid__mutable()
+                stored_train_data = self.storage.get_data_by_uuid(train_uuid)
+                self.model = self.apply_impl(stored_train_data)
 
         if self.locked_by_others:
             self.msg(f"Won't use {self.name} on data "
-                     f"{self.train_data__mutable().name()}\n"
+                     f"{data.name()}\n"
                      f"Currently probably working at {self.node}.")
             return output_data
 
@@ -195,7 +207,7 @@ class Component(ABC):
         # Use if still needed  ----------------------------------
         if output_data is None:
             if self.storage is not None:
-                self.lock(data, 'using')
+                self.storage.lock(self, 'u', data)
 
             self.handle_warnings()
             if self.name != 'CV':
@@ -203,28 +215,15 @@ class Component(ABC):
 
             # TODO: put time limit and/or exception handling like in apply()?
             start = self.clock()
-            output_data = self.use_impl(data)  # TODO:handle excps mark failed
+            output_data = self.use_impl(data)  # TODO:handl excps like in apply?
             self.time_spent = self.clock() - start
 
             # self.msg('Component ' + self.name + 'used.')
             self.dishandle_warnings()
 
             if self.storage is not None:
-                self.store_result(data, output_data)
+                self.storage.store_result(self, 'u', data, output_data)
         return output_data
-
-    @abstractmethod
-    def fields_to_store_after_use(self):
-        pass
-
-    @abstractmethod
-    def fields_to_keep_after_use(self):
-        """
-        This method is only needed, because some components create incompatible
-        input and output shapes.
-        :return:
-        """
-        pass
 
     @abstractmethod
     def build_impl(self):
@@ -302,12 +301,6 @@ class Component(ABC):
                                     'uuid() <-' + self.name)
         return self._uuid
 
-    def model_uuid(self):
-        self.check_if_applied()
-        if self._model_uuid is None and self.dump_it:
-            self._model_uuid = uuid(self.model_dump())
-        return self._model_uuid
-
     def __str__(self, depth=''):
         return self.name + " " + str(self.dic)
 
@@ -349,31 +342,29 @@ class Component(ABC):
             if 'name' not in self.dic:
                 self.dic['name'] = self.name
 
-            # 'mark' should not identify components, only mark results
-            # when a components is loaded from storage, nobody nows whether
+            # 'mark' should not identify components, it only marks results.
+            # when a component is loaded from storage, nobody knows whether
             # it was part of an experiment or not, except by consulting
-            # the field 'mrak' of the registered result.
+            # the field 'mark' of the registered result.
             if 'mark' in self.dic:
                 self.mark = self.dic.pop('mark')
 
-            # Create an unambiguous (sorted) version of args_set.
+            # 'description' is needed because some components are not entirely
+            # described by build() args.
+            self.dic['description'] = self.describe()
+
+            # Create an unambiguous (sorted) version of
+            # args_set (build args+name+max_time) + init_vars (description).
             self._serialized = json_pack(self.dic)
 
-            # 'describe','name','max_time' are reserved words, not for building.
+            # 'description','name','max_time' are reserved words, not for
+            # building.
             del self.dic['name']
             if 'max_time' in self.dic:
                 self.max_time = self.dic.pop('max_time')
-            del self.dic['describe']
+            del self.dic['description']
 
         return self._serialized
-
-    def store_result(self, input_data, output_data):
-        """
-        :param input_data:
-        :param output_data:
-        :return:
-        """
-        self.storage.store_result(self, input_data, output_data)
 
     @staticmethod
     def clock():
@@ -381,34 +372,11 @@ class Component(ABC):
         return t[4]
         # return usage[0] + usage[1]  # TOTAL CPU whole-system time
 
-    # TODO: is config dump (or even entire component dump) really needed?
-    #  we can reconstruct the component using the kwargs and model_dump
-    # def conf_dump(self):
-    #     """Compact everything except self.model"""
-    #     not implemented!
-    #     self.check_if_applied()  # It makes no sense to store an unapplied comp.
-    #     if self._dump is None:
-    #         # TODO: dumping entire component (?),
-    #         #  the user would need pajé to extract the model from it,
-    #         #  or to have a model dump.
-    #         self._dump = pack_comp(self)
-    #     return self._dump
-
-    def model_dump(self):
-        """
-        Compact the internal model (e.g., sklearn instance) of this component.
-        :return:
-        """
-        self.check_if_applied()
-        if self._model_dump is None and self.dump_it:
-            self._model_dump = pack_comp(self.model)
-        return self._model_dump
-
-    def train_data__mutable(self):
-        if self._train_data__mutable is None:
+    def train_data_uuid__mutable(self):
+        if self._train_data_uuid__mutable is None:
             raise Exception('This component should be applied to have '
-                            'an internal training Data.', self.name)
-        return self._train_data__mutable
+                            'an internal training data uuid.', self.name)
+        return self._train_data_uuid__mutable
 
     def handle_warnings(self):
         # Mahalanobis in KNN needs to supress warnings due to NaN in linear
@@ -421,23 +389,12 @@ class Component(ABC):
         if not self.show_warns:
             np.warnings.filterwarnings('always')
 
-    def lock(self, data, txt=''):
-        self.storage.lock(self, data, txt)
-
-    def look_for_result(self, data):
-        return self.storage and self.storage.get_result(self, data)
-
     def check_if_applied(self):
-        if self._train_data__mutable is None:
+        if self._train_data_uuid__mutable is None:
             raise UseWithoutApply(f'{self.name} should be applied!')
 
     def check_if_built(self):
         self.serialized()  # Call just to raise exception, if needed.
-
-    @staticmethod
-    def resurrect_from_dump(model_dump, kwargs):
-        """Recreate a component from ashes."""
-        raise Exception('Not implemented')
 
     def sid(self):
         """
@@ -446,3 +403,40 @@ class Component(ABC):
         :return:
         """
         return self.uuid()[:5]
+
+    @abstractmethod
+    def touched_fields(self):
+        """
+        Matrices transformed or created by this component.
+        Useful to be able to store and recover only new info, minimizing
+        traffic.
+        'None' means 'every existent field'
+        '[]' means 'nothing will be touched' (in this case the comp. is useless)
+        Must be lowercase.
+        Values are given as a list:
+        ['x','y','z','u','v','w','p','q','r','s','t']
+        :return:
+        """
+        pass
+
+    # This may be useful in the future: ================================
+
+    #
+    # @abstractmethod
+    # def still_compatible_fields(self):
+    #     """
+    #     Some components create incompatible input and output shapes.
+    #     Useful to merge results with complementar info.
+    #     :return:
+    #     """
+    #     pass
+    #
+    # @abstractmethod
+    # def needed_fields(self):
+    #     """
+    #     Matrices needed by this component, but will not be necessarily touched.
+    #     Useful to be able to store only meaningful previous info.
+    #     :return:
+    #     """
+    #     pass
+    # ================================================================

@@ -8,11 +8,8 @@ import math
 
 class FilterChiSquare(Filter):
     """  """
-    def fields_to_store_after_use(self):
-        return 'X,y'
-
-    def fields_to_keep_after_use(self):
-        return 'y'
+    # def needed_fields(self):
+    #     return 'X,y'
 
     def apply_impl(self, data):
         X, y = data.Xy

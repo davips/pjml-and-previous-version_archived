@@ -4,7 +4,7 @@ from sys import argv
 from paje.automl.random import RandomAutoML
 from paje.base.data import Data
 from paje.evaluator.metrics import Metrics
-from paje.module.modules import default_modelers
+from paje.module.modules import default_modelers, default_preprocessors
 # @profile
 from paje.module.preprocessing.unsupervised.feature.transformer.drpca import \
     DRPCA
@@ -37,8 +37,8 @@ def main():
         trainset, testset = data.split()
 
         automl_rs = RandomAutoML(
-            preprocessors=[DRPCA()],
-            modelers=[SVMC()],
+            preprocessors=default_preprocessors,
+            modelers=default_modelers,
             storage_for_components=storage,
             show_warns=False,
         ).build(
@@ -48,6 +48,9 @@ def main():
         )
         automl_rs.apply(trainset)
         testout = automl_rs.use(testset)
+        if testout is None:
+            print('No working pipeline found!')
+            exit(0)
         print("Accuracy score", Metrics.accuracy(testout))
         print()
 

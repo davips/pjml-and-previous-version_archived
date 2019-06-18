@@ -110,6 +110,11 @@ def uuid(packed_content):
 
 # @profile
 def pack_comp(obj):
+    """
+    Nondeterministic (fast) parallel compression!
+    :param obj:
+    :return:
+    """
     pickled = pickle.dumps(obj)
     fast_reduced = lz.compress(pickled, compression_level=1)
     return blosc.compress(fast_reduced,

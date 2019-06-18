@@ -3,18 +3,14 @@ from paje.base.hps import HPTree
 from sklearn.model_selection import StratifiedKFold, LeaveOneOut, \
     StratifiedShuffleSplit
 
+from paje.util.encoders import json_unpack, json_pack
+
 
 class CV(Component):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._memoized = {}
         self._max = 0
-
-    def fields_to_keep_after_use(self):
-        return ''
-
-    def fields_to_store_after_use(self):
-        return 'all'
 
     def next(self):
         if self.dic['testing_fold'] == self._max:
@@ -59,12 +55,10 @@ class CV(Component):
         self._max = len(partitions) - 1
         indices, _ = partitions[self.testing_fold]
 
-        # sanity check
+        # for sanity check in use()
         self._applied_data_uuid = data.uuid()
 
-        cvtrain = CVtr().build()
-        return data.updated(self).updated(cvtrain, X=data.X[indices],
-                                          Y=data.Y[indices])
+        return data.updated(Apply(self), X=data.X[indices], Y=data.Y[indices])
 
     def use_impl(self, data):
         # sanity check
@@ -73,9 +67,7 @@ class CV(Component):
 
         _, indices = list(self._memoized[data.uuid()])[self.testing_fold]
 
-        cvtest = CVts().build()
-        return data.updated(self).updated(cvtest, X=data.X[indices],
-                                          Y=data.Y[indices])
+        return data.updated(Use(self), X=data.X[indices], Y=data.Y[indices])
 
     def tree_impl(self, data):
         holdout = {
@@ -92,42 +84,26 @@ class CV(Component):
         }
         HPTree({'testing_fold': ['c', [0]]}, [holdout, cv, loo])
 
+    def touched_fields(self):
+        return None
 
-class CVtr(Component):
-    def fields_to_store_after_use(self):
-        pass
+# Needed classes to mark history of transformations when apply() give different
+# results than use().
+class Apply:
+    def __init__(self, component):
+        self.component = component
 
-    def fields_to_keep_after_use(self):
-        pass
-
-    def build_impl(self):
-        pass
-
-    def apply_impl(self, data):
-        pass
-
-    def use_impl(self, data):
-        pass
-
-    def tree_impl(cls, data):
-        pass
+    def serialized(self):
+        return json_pack(
+            {'op': 'a', 'comp': json_unpack(self.component.serialized())}
+        )
 
 
-class CVts(Component):
-    def fields_to_store_after_use(self):
-        pass
+class Use:
+    def __init__(self, component):
+        self.component = component
 
-    def fields_to_keep_after_use(self):
-        pass
-
-    def build_impl(self):
-        pass
-
-    def apply_impl(self, data):
-        pass
-
-    def use_impl(self, data):
-        pass
-
-    def tree_impl(cls, data):
-        pass
+    def serialized(self):
+        return json_pack(
+            {'op': 'u', 'comp': json_unpack(self.component.serialized())}
+        )

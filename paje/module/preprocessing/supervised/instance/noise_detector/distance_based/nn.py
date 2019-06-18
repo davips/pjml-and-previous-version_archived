@@ -8,16 +8,14 @@ from math import floor
 from sklearn.neighbors import KNeighborsClassifier
 
 from paje.base.component import Component
+from paje.base.data import Data
 from paje.base.hps import HPTree
 from paje.util.distributions import exponential_integers
 
 
 class NRNN(Component, ABC):
-    def fields_to_store_after_use(self):
-        return 'X,y'
-
-    def fields_to_keep_after_use(self):
-        return ''
+    def touched_fields(self):
+        return None
 
     def build_impl(self):
         self.vote = self.dic['vote']
@@ -26,6 +24,7 @@ class NRNN(Component, ABC):
         self.model = 42 # TODO: better model here?
 
     def apply_impl(self, data):
+        # TODO: generalize this to filter all fields (xyzuvwpq...)
         if self.k > data.n_instances():
             self.k = data.n_instances()
         X, y = getattr(self, self.algorithm)(*data.Xy)
@@ -33,7 +32,7 @@ class NRNN(Component, ABC):
 
     def use_impl(self, data):
         # TODO: check with LPaulo
-        return data
+        return data # TODO: is updated() needed here for history purposes?
 
     def isdeterministic(self):
         # TODO: check with LPaulo
