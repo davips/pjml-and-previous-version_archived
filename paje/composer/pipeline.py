@@ -38,12 +38,12 @@ class Pipeline(Composer):
                     and tree.tmp_uuid == self.tmp_uuid):
                 tree.children.append(f())
 
-    def tree_impl(self, data=None):
+    def tree_impl(self):
         if self.mytree is None:
             trees = []
             for i in range(0, len(self.components)):
                 # TODO: Why were we using deepcopy here?
-                tree = copy.copy(self.components[i]).tree(data)
+                tree = copy.copy(self.components[i]).tree()
                 trees.append(tree)
 
             self.set_leaf(trees[len(trees) - 1], lambda:
