@@ -248,8 +248,8 @@ class Data:
                Data.read_from_storage(name=arq, storage=storage, fields='X,y')
         if data is not None:
             return data
-        X = df.values.astype('float')
         Y = as_column_vector(df.pop(target).values.astype('float'))
+        X = df.values.astype('float') # Do not call this before setting Y!
         return Data(name=arq, X=X, Y=Y, columns=list(df.columns), history=[])
 
     @staticmethod
