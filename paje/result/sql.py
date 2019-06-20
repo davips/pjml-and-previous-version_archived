@@ -369,14 +369,17 @@ class SQL(Cache):
                      data.field_uuid('w'), data.field_uuid('q'),
                      data.field_uuid('r'), data.field_uuid('s'),
                      data.field_uuid('t')]
-        # try:
-        self.query(sql, data_args)  # TODO: silence sql warnings?
-        # except IntegrityErrorSQLite as e:
-        #     print(f'Data already store before!', data.uuid())
-        # except IntegrityErrorMySQL as e:
-        #     print(f'Data already store before!', data.uuid())
-        # else:
-        print(f'Data inserted', data.name())
+        try:
+            self.query(sql, data_args)
+            # unfortunately, it seems that FKs generate the same exception as
+            # reinsertion. so, missing FKs will might not be detected here.
+            # not a worrying issue whatsoever.
+        except IntegrityErrorSQLite as e:
+            print(f'Data already stored before!', data.uuid())
+        except IntegrityErrorMySQL as e:
+            print(f'Data already stored before!', data.uuid())
+        else:
+            print(f'Data inserted', data.name())
 
     def store_metadata(self, data: Data):
         """
