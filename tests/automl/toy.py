@@ -11,7 +11,15 @@ from paje.module.preprocessing.unsupervised.feature.transformer.drpca import \
 from paje.result.mysql import MySQL
 from paje.result.sqlite import SQLite
 from paje.module.modelling.classifier.svmc import SVMC
+from paje.module.modelling.classifier.dt import DT
 from paje.module.modelling.classifier.cb import CB
+from paje.module.modelling.classifier.knn import KNN
+from paje.module.modelling.classifier.nb import NB
+from paje.module.modelling.classifier.nbp import NBP
+from paje.module.modelling.classifier.mlp import MLP
+from paje.module.modelling.classifier.rf import RF
+from paje.module.modelling.classifier.svm import SVM
+from paje.module.modelling.classifier.svmc import SVMC
 
 
 def main():
@@ -20,7 +28,7 @@ def main():
               '[iter=#] [seed=#] [storage=mysql/sqlite/cached] [db=teste] ')
     else:
         arg = {tupl.split('=')[0]: tupl.split('=')[1] for tupl in sys.argv[1:]}
-        my_modelers = [CB()]
+        my_modelers = [SVMC()]
 
         for k, v in arg.items():
             print(f'{k}={v}')
