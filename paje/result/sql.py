@@ -12,9 +12,6 @@ from paje.util.encoders import unpack_data, json_unpack, json_pack, pack_comp, \
 
 
 class SQL(Cache):
-    def __init__(self, nested_storage=None):
-        super().__init__(nested_storage=None)
-
     @abstractmethod
     def _on_conflict(self, fields=None):
         pass
@@ -288,7 +285,7 @@ class SQL(Cache):
             warnings.simplefilter("ignore")
             self.query(sql, [uuid, w, h, dump])
 
-    def store_data(self, data: Data):
+    def store_data_impl(self, data: Data):
         """
         Check if the given data was already stored before,
         and complete with the provided fields as needed.
@@ -443,7 +440,7 @@ class SQL(Cache):
                              json_pack(data.history())])
             # TODO: codify history to be shorter
 
-    def lock(self, component, op, input_data):
+    def lock_impl(self, component, op, input_data):
         """
         Store 'input_data' and 'component' if they are not yet stored.
         Insert a locking row that corresponds to comp,op,train_data,input_data.
@@ -499,7 +496,7 @@ class SQL(Cache):
             component.locked_by_others = False
             print(f'Now locked for {op}[ppying/sing] {component.name}')
 
-    def get_result(self, compo: Component, op, input_data):
+    def get_result_impl(self, compo: Component, op, input_data):
         """
         Look for a result in database. Download only affected matrices/vectors.
         ps.: put a model inside component if it is 'dump_it'-enabled
@@ -566,7 +563,7 @@ class SQL(Cache):
         compo.node = result['node']
         return output_data
 
-    def store_result(self, component, op, input_data, output_data):
+    def store_result_impl(self, component, op, input_data, output_data):
         """
         Store a result and remove lock.
         :param component:
@@ -628,7 +625,7 @@ class SQL(Cache):
         self.query(sql, set_args + where_args)
         print('Stored!\n')
 
-    def get_data_by_name(self, name, fields=None, history=None):
+    def get_data_by_name_impl(self, name, fields=None, history=None):
         """
         To just recover the original dataset you can pass history=None.
         Specify fields if you want to reduce traffic, otherwise all available
@@ -708,7 +705,7 @@ class SQL(Cache):
     #     return Component.resurrect_from_dump(result['bytes'],
     #                                          **json_unpack(result['arg']))
 
-    def get_data_by_uuid(self, datauuid):
+    def get_data_by_uuid_impl(self, datauuid):
         sql = f'''
                 select 
                     x,y,z,p,u,v,w,q,r,s,t,cols,txt,des
@@ -736,7 +733,7 @@ class SQL(Cache):
                 dic[field] = unpack_data(rone['val'])
         return Data(columns=unpack_data(row['cols']), **dic)
 
-    def get_finished_names_by_mark(self, mark):
+    def get_finished_names_by_mark_impl(self, mark):
         """
         Finished means nonfailed and unlocked results.
         The original datasets will not be returned.

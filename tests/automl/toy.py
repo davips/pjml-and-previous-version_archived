@@ -17,7 +17,7 @@ from paje.module.modelling.classifier.cb import CB
 def main():
     if len(sys.argv[1:]) < 1 or any(['=' not in k for k in sys.argv[1:]]):
         print('Usage: \npython toy.py data=/tmp/dataset.arff '
-              '[iter=#] [seed=#] [storage=mysql/sqlite] [db=teste] ')
+              '[iter=#] [seed=#] [storage=mysql/sqlite/cached] [db=teste] ')
     else:
         arg = {tupl.split('=')[0]: tupl.split('=')[1] for tupl in sys.argv[1:]}
         my_modelers = [CB()]
@@ -28,8 +28,12 @@ def main():
         if 'storage' in arg:
             if arg['storage'] == 'sqlite':
                 storage = SQLite(debug=not True)
-            if arg['storage'] == 'mysql':
+            elif arg['storage'] == 'mysql':
                 storage = MySQL(db=arg['db'], debug=not True)
+            elif arg['storage'] == 'cached':
+                storage = MySQL(db=arg['db'], nested_storage=SQLite())
+            else:
+                raise Exception('Wrong storage', arg['storage'])
         else:
             storage = None
 
