@@ -13,6 +13,13 @@ from paje.evaluator.time import time_limit
 from paje.util.encoders import uuid, json_pack
 from paje.util.log import *
 
+# Disabling profiling when not needed.
+try:
+    import builtins
+    profile = builtins.__dict__['profile']
+except KeyError:
+    # No line profiler, provide a pass-through version
+    def profile(func): return func
 
 class Component(ABC):
     """Todo the docs string
@@ -56,6 +63,7 @@ class Component(ABC):
 
         self._serialized = None
 
+    @profile
     def tree(self):  # previously known as hyperpar_spaces_forest
         """
         :param data:
@@ -69,6 +77,7 @@ class Component(ABC):
             tree.name = self.name
         return tree
 
+    @profile
     def build(self, **dic):
         # Check if build has already been called. This is the case when one
         # calls build() on an already built instance of component.
@@ -99,6 +108,7 @@ class Component(ABC):
         obj_copied.build_impl()
         return obj_copied
 
+    @profile
     def describe(self):
         if self._describe is None:
             self._describe = {
@@ -108,6 +118,7 @@ class Component(ABC):
             }
         return self._describe
 
+    @profile
     def apply(self, data=None):
         """Todo the doc string
         """
@@ -167,6 +178,7 @@ class Component(ABC):
 
         return output_data
 
+    @profile
     def use(self, data=None):
         """Todo the doc string
         """
