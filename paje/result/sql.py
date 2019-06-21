@@ -10,6 +10,16 @@ from paje.result.storage import Cache
 from paje.util.encoders import unpack_data, json_unpack, json_pack, pack_comp, \
     uuid, pack_data
 
+# Disabling profiling when not needed.
+try:
+    import builtins
+
+    profile = builtins.__dict__['profile']
+except KeyError:
+    # No line profiler, provide a pass-through version
+    def profile(func):
+        return func
+
 
 class SQL(Cache):
     @abstractmethod
@@ -28,6 +38,7 @@ class SQL(Cache):
     def _auto_incr(self):
         pass
 
+    @profile
     def _setup(self):
         if self.debug:
             print('creating tables...')
@@ -238,6 +249,7 @@ class SQL(Cache):
         self.query(f'CREATE INDEX res11 ON res (mark{self._keylimit()})')
         self.query(f'CREATE INDEX res12 ON res (op)')
 
+    @profile
     def get_one(self) -> dict:
         """
         Get a single result after a query, no more than that.
@@ -255,6 +267,7 @@ class SQL(Cache):
             raise Exception('Excess of rows')
         return dict(row)
 
+    @profile
     def get_all(self) -> list:
         """
         Get a list of results after a query.
@@ -265,6 +278,7 @@ class SQL(Cache):
         #     return None
         return [dict(row) for row in rows]
 
+    @profile
     def store_matvec(self, uuid, dump, w, h):
         """
         Store the given pair uuid-dump of a matrix/vector.
@@ -285,6 +299,7 @@ class SQL(Cache):
             warnings.simplefilter("ignore")
             self.query(sql, [uuid, w, h, dump])
 
+    @profile
     def store_data_impl(self, data: Data):
         """
         Check if the given data was already stored before,
@@ -393,6 +408,7 @@ class SQL(Cache):
             # else:
             print(f'Data inserted', data.name())
 
+    @profile
     def store_metadata(self, data: Data):
         """
         Intended to be used before Data is stored.
@@ -440,6 +456,7 @@ class SQL(Cache):
                              json_pack(data.history())])
             # TODO: codify history to be shorter
 
+    @profile
     def lock_impl(self, component, op, input_data):
         """
         Store 'input_data' and 'component' if they are not yet stored.
@@ -496,6 +513,7 @@ class SQL(Cache):
             component.locked_by_others = False
             print(f'Now locked for {op}[ppying/sing] {component.name}')
 
+    @profile
     def get_result_impl(self, compo: Component, op, input_data):
         """
         Look for a result in database. Download only affected matrices/vectors.
@@ -563,6 +581,7 @@ class SQL(Cache):
         compo.node = result['node']
         return output_data
 
+    @profile
     def store_result_impl(self, component, op, input_data, output_data):
         """
         Store a result and remove lock.
@@ -625,6 +644,7 @@ class SQL(Cache):
         self.query(sql, set_args + where_args)
         print('Stored!\n')
 
+    @profile
     def get_data_by_name_impl(self, name, fields=None, history=None):
         """
         To just recover the original dataset you can pass history=None.
@@ -705,6 +725,7 @@ class SQL(Cache):
     #     return Component.resurrect_from_dump(result['bytes'],
     #                                          **json_unpack(result['arg']))
 
+    @profile
     def get_data_by_uuid_impl(self, datauuid):
         sql = f'''
                 select 
@@ -733,6 +754,7 @@ class SQL(Cache):
                 dic[field] = unpack_data(rone['val'])
         return Data(columns=unpack_data(row['cols']), **dic)
 
+    @profile
     def get_finished_names_by_mark_impl(self, mark):
         """
         Finished means nonfailed and unlocked results.
@@ -762,7 +784,7 @@ class SQL(Cache):
                 row['name'] = row.pop('des')
             return rows
 
-    # @profile
+    @profile
     def query(self, sql, args=None, commit=True):
         if self.read_only and not sql.startswith('select '):
             print('========================================\n',
@@ -804,6 +826,7 @@ class SQL(Cache):
     # def _component_exists(self, component):
     #     return self.get_component_by_uuid(component.uuid(), True) is not None
 
+    @profile
     def __del__(self):
         try:
             self.connection.close()
@@ -811,6 +834,7 @@ class SQL(Cache):
             # print('Couldn\'t close database, but that\'s ok...', e)
             pass
 
+    @profile
     @staticmethod
     def _interpolate(sql, lst0):
         lst = [str(w)[:100] for w in lst0]
