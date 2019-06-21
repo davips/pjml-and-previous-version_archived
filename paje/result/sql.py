@@ -256,7 +256,7 @@ class SQL(Cache):
                 print('extra row', row2)
                 row2 = self.cursor.fetchone()
             raise Exception('Excess of rows')
-        return row
+        return dict(row)
 
     def get_all(self) -> list:
         """
@@ -266,7 +266,7 @@ class SQL(Cache):
         rows = self.cursor.fetchall()
         # if len(rows) == 0:
         #     return None
-        return rows
+        return [dict(row) for row in rows]
 
     def store_matvec(self, uuid, dump, w, h):
         """
@@ -380,13 +380,15 @@ class SQL(Cache):
 
             # Update row at table 'data'. ---------------------
             sql = f''' 
-                update data set {','.join([f'{k}=?' for k in to_update.keys()])}
+                update data set
+                    {','.join([f'{k}=?' for k in to_update.keys()])}
                     insd=insd,
                     upd={self._now_function()}
-                )
+                where
+                    did=?
                 '''
             # try:
-            self.query(sql, to_update.values())
+            self.query(sql, list(to_update.values()) + [data.uuid()])
             # except IntegrityErrorSQLite as e:
             #     print(f'Unexpected: Data already stored before!', data.uuid())
             # except IntegrityErrorMySQL as e:
