@@ -48,6 +48,7 @@ class Cache(ABC):
     def get_finished_names_by_mark(self, mark):
         return self._nested_first('get_finished_names_by_mark', mark)
 
+    # TODO: duplicate inserts/duplicates on remote
     def lock(self, component, op, input_data):
         return self.lock_impl(component, op, input_data)
 
@@ -57,6 +58,25 @@ class Cache(ABC):
     def store_result(self, component, op, input_data, output_data):
         return self.store_result_impl(component, op, input_data, output_data)
 
+    def syncronize_copying_from_nested(self):
+        """
+        Needed only when one wants to distribute results stored
+        locally by a previous non nesting (and probably offline) run.
+        :return:
+        """
+        raise NotImplementedError('this method will upload from local to '
+                                  'remote storage')
+
+    def syncronize_copying_to_nested(self):
+        """
+        Needed only when one wants to be able to continue running locally,
+        but offline (i.e. with a non nesting storage).
+        It takes advantage from results previously stored remotely by any
+        other node (or even itself).
+        :return:
+        """
+        raise NotImplementedError('this method will download from remote '
+                                  'storage to the local one')
     @abstractmethod
     def get_result_impl(self, component, op, data):
         pass
