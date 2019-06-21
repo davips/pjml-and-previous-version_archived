@@ -361,6 +361,7 @@ class SQL(Cache):
             insd = insd,
             upd = {self._now_function()}
             '''
+        # TODO: for sqlite in python 3.7: ON CONFLICT(did) DO UPDATE SET
         data_args = [data.uuid(),
                      data.name_uuid(), data.history_uuid(),
                      data.field_uuid('x'), data.field_uuid('y'),
