@@ -11,7 +11,22 @@ class RF(Classifier):
         self.model = RandomForestClassifier(**self.dic)
 
     @classmethod
-    def tree_impl(cls, data):
+    def tree_impl(self):
+        n_estimators = [100, 500, 1000, 3000, 5000]
+        dic = {'bootstrap': ['c', [True, False]],
+               'criterion': ['c', ['gini', 'entropy']],
+               'max_features': ['c', ['auto', 'sqrt', 'log2', None]],
+               'min_impurity_decrease': ['r', [0, 0.2]],
+               'min_samples_split': ['r', [1e-6, 0.3]],
+               'min_samples_leaf': ['r', [1e-6, 0.3]],
+               'min_weight_fraction_leaf': ['r', [0, 0.3]],
+               'max_depth': ['z', [2, 1000]],
+               'n_estimators': ['c', n_estimators],
+               }
+        return HPTree(dic, children=[])
+
+    @classmethod
+    def tree_impl_back(cls, data):
         cls.check_data(data)
         n_estimators = min(
             [500, floor(sqrt(data.n_instances() * data.n_attributes()))])

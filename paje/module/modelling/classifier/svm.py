@@ -10,8 +10,7 @@ class SVM(Classifier):
         self.model = NuSVC(**self.dic)
 
     @classmethod
-    def tree_impl(cls, data):
-        cls.check_data(data)
+    def tree_impl(self):
         # todo: set random seed; set 'cache_size'
         dic = {
             'nu': ['r', [0.0001, 0.8]],

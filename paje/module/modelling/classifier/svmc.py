@@ -17,8 +17,7 @@ class SVMC(Classifier): #, JSONEncoder):
         self.model = SVC(**self.dic)
 
     @classmethod
-    def tree_impl(cls, data):
-        cls.check_data(data)
+    def tree_impl(self):
         # todo: set random seed; set 'cache_size'
         dic = {
             'C': ['r', [0.0001, 100]],

@@ -18,6 +18,7 @@ class NBP(Classifier):
     def build_impl(self):
         # Extract n_instances from hps to be available to be used in apply()
         # if neeeded.
+
         newdic = self.dic.copy()
         self.nb_type = newdic.get('@nb_type')
         del newdic['@nb_type']
@@ -30,9 +31,6 @@ class NBP(Classifier):
             raise Exception('Wrong NB!')
 
     @classmethod
-    def tree_impl(cls, data=None):
+    def tree_impl(self):
         dic = {'@nb_type': ['c', ["MultinomialNB", "ComplementNB"]]}
         return HPTree(dic=dic, children=[])
-
-
-nb_positive = Pipeline([Frozen(Equalization(), feature_range=(0, 1)), NBP()])

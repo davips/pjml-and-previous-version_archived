@@ -14,6 +14,7 @@ class NB(Classifier):
     def build_impl(self):
         # Extract n_instances from hps to be available to be used in apply()
         # if neeeded.
+
         newdic = self.dic.copy()
         self.nb_type = newdic.get('@nb_type')
         del newdic['@nb_type']
@@ -26,6 +27,6 @@ class NB(Classifier):
             raise Exception('Wrong NB!')
 
     @classmethod
-    def tree_impl(cls, data=None):
+    def tree_impl(self):
         dic = {'@nb_type': ['c', ["GaussianNB", "BernoulliNB"]]}
         return HPTree(dic=dic, children=[])
