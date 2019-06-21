@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 # Disabling profiling when not needed.
+
 try:
     import builtins
 
@@ -49,7 +50,22 @@ class Cache(ABC):
     # TODO: reinsert misses locally
     @profile
     def get_result(self, component, op, data):
-        return self._nested_first('get_result', component, op, data)
+        # try locally
+        if self.nested_storage is not None:
+            local_result = self.nested_storage.get_result(component, op, data)
+            if local_result is not None:
+                return local_result
+
+        # try remotely
+        remote_result = self.get_result_impl(component, op, data)
+        if remote_result is None:
+            return None
+
+        # replicate locally if required
+        if self.nested_storage is not None:
+            self.nested_storage.store_result(component, op, data, remote_result)
+
+        return remote_result
 
     @profile
     def get_data_by_uuid(self, data_uuid):

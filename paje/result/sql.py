@@ -248,6 +248,7 @@ class SQL(Cache):
         self.query('CREATE INDEX res10 ON res (log)')
         self.query(f'CREATE INDEX res11 ON res (mark{self._keylimit()})')
         self.query(f'CREATE INDEX res12 ON res (op)')
+        # TODO: remove all FK constraints to speedup sqlite?
 
     @profile
     def get_one(self) -> dict:
@@ -530,7 +531,7 @@ class SQL(Cache):
                             'components?')
         self.query(f'''
             select 
-                dout, des, spent, fail, end, node, txt as history, cols,
+                des, spent, fail, end, node, txt as history, cols,
                 {','.join(fields)}
                 {', dump' if compo.dump_it else ''}
             from 
@@ -549,7 +550,7 @@ class SQL(Cache):
         result = self.get_one()
         if result is None:
             return None
-        if result['dout'] is not None:
+        if result['des'] is not None:
             # sanity check
             if result['des'] != input_data.name():
                 raise Exception('Result name differs from input data',
