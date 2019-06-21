@@ -12,6 +12,13 @@ from paje.util.encoders import unpack_data, json_unpack, json_pack, pack_comp, \
 
 
 class SQL(Cache):
+    def __init__(self, nested_storage=None):
+        super().__init__(nested_storage=None)
+
+    @abstractmethod
+    def _on_conflict(self, fields=None):
+        pass
+
     @abstractmethod
     def _keylimit(self):
         pass
@@ -317,6 +324,44 @@ class SQL(Cache):
 
             # Create metadata for upcoming row at table 'data'.
             self.store_metadata(data)
+
+            # Create row at table 'data'. ---------------------
+            sql = f''' 
+                insert into data values (
+                    NULL,
+                    ?,
+                    ?, ?,
+                    ?,?,
+                    ?,?,
+                    ?,?,
+                    ?,?,
+                    ?,?,
+                    ?,
+                    {self._now_function()},
+                    null
+                )
+                '''
+            data_args = [data.uuid(),
+                         data.name_uuid(), data.history_uuid(),
+                         data.field_uuid('x'), data.field_uuid('y'),
+                         data.field_uuid('z'), data.field_uuid('p'),
+                         data.field_uuid('u'), data.field_uuid('v'),
+                         data.field_uuid('w'), data.field_uuid('q'),
+                         data.field_uuid('r'), data.field_uuid('s'),
+                         data.field_uuid('t')]
+            try:
+                self.query(sql, data_args)
+                # unfortunately, it seems that FKs generate the same exception as
+                # reinsertion. so, missing FKs will might not be detected here.
+                # not a worrying issue whatsoever.
+            except IntegrityErrorSQLite as e:
+                print(f'Unexpected: Data already stored before!', data.uuid())
+            except IntegrityErrorMySQL as e:
+                print(f'Unexpected: Data already stored before!', data.uuid())
+            else:
+                print(f'Data inserted', data.name())
+
+
         else:
             # Check if data comes with new matrices/vectors (improbable).
             stored_dumps = {k: v for k, v in rone.items() if v is not None}
@@ -327,59 +372,26 @@ class SQL(Cache):
             # Insert only dumps that are missing in storage
             dumps2store = {data.field_uuid(f): (data.field_dump(f), f)
                            for f in fields2store}
+            to_update = {}
             for uuid_, (dump, field) in dumps2store:
                 self.store_matvec(uuid_, dump, data.width(field),
                                   data.height(field))
+                to_update[field] = uuid_
 
-        # Create or update row at table 'data'. ---------------------
-        sql = f'''
-            insert into data values (
-                NULL,
-                ?,
-                ?, ?,
-                ?,?,
-                ?,?,
-                ?,?,
-                ?,?,
-                ?,?,
-                ?,
-                {self._now_function()},
-                null
-            )
-            ON DUPLICATE KEY UPDATE
-            x = coalesce(values(x), x),
-            y = coalesce(values(y), y),
-            z = coalesce(values(z), z),
-            p = coalesce(values(p), p),
-            u = coalesce(values(u), u),
-            v = coalesce(values(v), v),
-            w = coalesce(values(w), w),
-            q = coalesce(values(q), q),
-            r = coalesce(values(r), r),
-            s = coalesce(values(s), s),
-            t = coalesce(values(t), t),
-            insd = insd,
-            upd = {self._now_function()}
-            '''
-        # TODO: for sqlite in python 3.7: ON CONFLICT(did) DO UPDATE SET
-        data_args = [data.uuid(),
-                     data.name_uuid(), data.history_uuid(),
-                     data.field_uuid('x'), data.field_uuid('y'),
-                     data.field_uuid('z'), data.field_uuid('p'),
-                     data.field_uuid('u'), data.field_uuid('v'),
-                     data.field_uuid('w'), data.field_uuid('q'),
-                     data.field_uuid('r'), data.field_uuid('s'),
-                     data.field_uuid('t')]
-        try:
-            self.query(sql, data_args)
-            # unfortunately, it seems that FKs generate the same exception as
-            # reinsertion. so, missing FKs will might not be detected here.
-            # not a worrying issue whatsoever.
-        except IntegrityErrorSQLite as e:
-            print(f'Data already stored before!', data.uuid())
-        except IntegrityErrorMySQL as e:
-            print(f'Data already stored before!', data.uuid())
-        else:
+            # Update row at table 'data'. ---------------------
+            sql = f''' 
+                update data set {','.join([f'{k}=?' for k in to_update.keys()])}
+                    insd=insd,
+                    upd={self._now_function()}
+                )
+                '''
+            # try:
+            self.query(sql, to_update.values())
+            # except IntegrityErrorSQLite as e:
+            #     print(f'Unexpected: Data already stored before!', data.uuid())
+            # except IntegrityErrorMySQL as e:
+            #     print(f'Unexpected: Data already stored before!', data.uuid())
+            # else:
             print(f'Data inserted', data.name())
 
     def store_metadata(self, data: Data):
@@ -805,3 +817,34 @@ class SQL(Cache):
         lst = [str(w)[:100] for w in lst0]
         zipped = zip(sql.replace('?', '"?"').split('?'), map(str, lst + ['']))
         return ''.join(list(sum(zipped, ())))
+
+        # # upsert, works for mysql and sqlite 3.24 (not yet in python 3.7)
+        # sql = f'''
+        #     insert into data values (
+        #         NULL,
+        #         ?,
+        #         ?, ?,
+        #         ?,?,
+        #         ?,?,
+        #         ?,?,
+        #         ?,?,
+        #         ?,?,
+        #         ?,
+        #         {self._now_function()},
+        #         null
+        #     )
+        #     {self._on_conflict()}
+        #     x = coalesce(values(x), x),
+        #     y = coalesce(values(y), y),
+        #     z = coalesce(values(z), z),
+        #     p = coalesce(values(p), p),
+        #     u = coalesce(values(u), u),
+        #     v = coalesce(values(v), v),
+        #     w = coalesce(values(w), w),
+        #     q = coalesce(values(q), q),
+        #     r = coalesce(values(r), r),
+        #     s = coalesce(values(s), s),
+        #     t = coalesce(values(t), t),
+        #     insd = insd,
+        #     upd = {self._now_function()}
+        #     '''

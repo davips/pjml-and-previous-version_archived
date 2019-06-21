@@ -66,3 +66,6 @@ class MySQL(SQL):
 
     def _keylimit(self):
         return '(190)'
+
+    def _on_conflict(self, fields=None):
+        return 'ON DUPLICATE KEY UPDATE'

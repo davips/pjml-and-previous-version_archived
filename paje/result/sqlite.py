@@ -24,7 +24,7 @@ class SQLite(SQL):
 
         # Create tables if they don't exist yet.
         try:
-            self.query(f"select 1 from result")
+            self.query(f"select 1 from res")
         except:
             if self.debug:
                 print('creating database', self.database, '...')
@@ -38,3 +38,6 @@ class SQLite(SQL):
 
     def _keylimit(self):
         return ''
+
+    def _on_conflict(self, fields=''):
+        return f'ON CONFLICT{fields} DO UPDATE SET'
