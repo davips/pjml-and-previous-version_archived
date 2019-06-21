@@ -248,7 +248,7 @@ class SQL(Cache):
         self.query('CREATE INDEX res10 ON res (log)')
         self.query(f'CREATE INDEX res11 ON res (mark{self._keylimit()})')
         self.query(f'CREATE INDEX res12 ON res (op)')
-        # TODO: remove all FK constraints to speedup sqlite?
+        # TODO: remove all FK constraints to speedup sqlite? 10% of improvement?
 
     @profile
     def get_one(self) -> dict:
