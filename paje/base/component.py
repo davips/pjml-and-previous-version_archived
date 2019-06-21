@@ -130,8 +130,8 @@ class Component(ABC):
         self._train_data_uuid__mutable = data.uuid()
 
         # TODO: CV() is too cheap to be recovered from storage,
-        #  specially if it is applied to LOO.
-        #  Maybe some components could inform if they are cheap.
+        #  specially if it is a LOO.
+        #  Maybe some components could inform whether they are cheap.
         output_data = None
         if self.storage is not None:
             output_data = self.storage.get_result(self, 'a', data)

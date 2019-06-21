@@ -525,6 +525,9 @@ class SQL(Cache):
         fields = Data.sql_all_fields if compo.touched_fields() is None \
             else compo.touched_fields()
 
+        if compo.dump_it:
+            raise Exception('Are we really starting to store dump of '
+                            'components?')
         self.query(f'''
             select 
                 dout, des, spent, fail, end, node, txt as history, cols,
