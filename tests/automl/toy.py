@@ -28,7 +28,7 @@ def main():
               '[iter=#] [seed=#] [storage=mysql/sqlite/cached] [db=teste] ')
     else:
         arg = {tupl.split('=')[0]: tupl.split('=')[1] for tupl in sys.argv[1:]}
-        my_modelers = [SVMC()]
+        my_modelers = [DT()]
 
         for k, v in arg.items():
             print(f'{k}={v}')
