@@ -392,22 +392,17 @@ class SQL(Cache):
                 to_update[field] = uuid_
 
             # Update row at table 'data'. ---------------------
-            sql = f''' 
-                update data set
-                    {','.join([f'{k}=?' for k in to_update.keys()])}
-                    insd=insd,
-                    upd={self._now_function()}
-                where
-                    did=?
-                '''
-            # try:
-            self.query(sql, list(to_update.values()) + [data.uuid()])
-            # except IntegrityErrorSQLite as e:
-            #     print(f'Unexpected: Data already stored before!', data.uuid())
-            # except IntegrityErrorMySQL as e:
-            #     print(f'Unexpected: Data already stored before!', data.uuid())
-            # else:
-            print(self.__class__.__name__, f': Data updated', data.name())
+            if len(to_update) > 0:
+                sql = f''' 
+                    update data set
+                        {','.join([f'{k}=?' for k in to_update.keys()])}
+                        insd=insd,
+                        upd={self._now_function()}
+                    where
+                        did=?
+                    '''
+                self.query(sql, list(to_update.values()) + [data.uuid()])
+                print(self.__class__.__name__, f': Data updated', data.name())
 
     @profile
     def store_metadata(self, data: Data):
