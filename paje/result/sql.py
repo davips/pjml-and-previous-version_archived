@@ -41,7 +41,7 @@ class SQL(Cache):
     @profile
     def _setup(self):
         if self.debug:
-            print('creating tables...')
+            print(self.name, 'creating tables...')
 
         # History of Data
         # ========================================================
@@ -261,11 +261,11 @@ class SQL(Cache):
             return None
         row2 = self.cursor.fetchone()
         if row2 is not None:
-            print('first row', row)
+            print(self.name, 'first row', row)
             while row2:
-                print('extra row', row2)
+                print(self.name, 'extra row', row2)
                 row2 = self.cursor.fetchone()
-            raise Exception('Excess of rows')
+            raise Exception(self.name + '  Excess of rows')
         return dict(row)
 
     @profile
@@ -370,11 +370,13 @@ class SQL(Cache):
                 # reinsertion. so, missing FKs will might not be detected here.
                 # not a worrying issue whatsoever.
             except IntegrityErrorSQLite as e:
-                print(f'Unexpected: Data already stored before!', data.uuid())
+                print(self.name,
+                      f'Unexpected: Data already stored before!', data.uuid())
             except IntegrityErrorMySQL as e:
-                print(f'Unexpected: Data already stored before!', data.uuid())
+                print(self.name,
+                      f'Unexpected: Data already stored before!', data.uuid())
             else:
-                print(self.__class__.__name__, f': Data inserted', data.name())
+                print(self.name, f': Data inserted', data.name())
 
         else:
             # Check if data comes with new matrices/vectors (improbable).
@@ -403,7 +405,7 @@ class SQL(Cache):
                         did=?
                     '''
                 self.query(sql, list(to_update.values()) + [data.uuid()])
-                print(self.__class__.__name__, f': Data updated', data.name())
+                print(self.name, f': Data updated', data.name())
 
     @profile
     def store_metadata(self, data: Data):
@@ -465,7 +467,7 @@ class SQL(Cache):
         :return:
         """
         if self.debug:
-            print('Locking...')
+            print(self.name, 'Locking...')
 
         # Store input set if not existent yet.
         # Calling impl to avoid nested storage doing the same twice.
@@ -502,14 +504,17 @@ class SQL(Cache):
         try:
             self.query(sql, args_res)
         except IntegrityErrorSQLite as e:
-            print(f'Unexpected lock! Giving up my turn on {op} ppy/se', e)
+            print(self.name,
+                f'Unexpected lock! Giving up my turn on {op} ppy/se', e)
             component.locked_by_others = True
         except IntegrityErrorMySQL as e:
-            print(f'Unexpected lock! Giving up my turn on {op} ppy/se', e)
+            print(self.name,
+                f'Unexpected lock! Giving up my turn on {op} ppy/se', e)
             component.locked_by_others = True
         else:
             component.locked_by_others = False
-            print(f'Now locked for {op}[ppying/sing] {component.name}')
+            print(self.name,
+                f'Now locked for {op}[ppying/sing] {component.name}')
 
     @profile
     def get_result_impl(self, compo: Component, op, input_data):
@@ -644,7 +649,7 @@ class SQL(Cache):
                       component.train_data_uuid__mutable(), input_data.uuid()]
         # TODO: is there any important exception to handle here?
         self.query(sql, set_args + where_args)
-        print('Stored!\n')
+        print(self.name, 'Stored!\n')
 
     @profile
     def get_data_by_name_impl(self, name, fields=None, history=None):
@@ -789,7 +794,7 @@ class SQL(Cache):
     @profile
     def query(self, sql, args=None):
         if self.read_only and not sql.startswith('select '):
-            print('========================================\n',
+            print(self.name, '========================================\n',
                   'Attempt to write onto read-only storage!', sql)
             self.cursor.execute('select 1')
             return
@@ -798,7 +803,7 @@ class SQL(Cache):
         from paje.result.mysql import MySQL
         msg = self._interpolate(sql, args)
         if self.debug:
-            print(msg)
+            print(self.name, msg)
         if isinstance(self, MySQL):
             sql = sql.replace('?', '%s')
             sql = sql.replace('insert or ignore', 'insert ignore')

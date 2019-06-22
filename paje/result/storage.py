@@ -31,6 +31,7 @@ class Cache(ABC):
         More than one nesting level can exist, good luck doing that.
         """
         self.nested_storage = nested_storage
+        self.name = self.__class__.__name__
 
     @profile
     def _nested_first(self, f, *args):
