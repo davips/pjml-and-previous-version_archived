@@ -505,16 +505,16 @@ class SQL(Cache):
             self.query(sql, args_res)
         except IntegrityErrorSQLite as e:
             print(self.name,
-                f'Unexpected lock! Giving up my turn on {op} ppy/se', e)
+                  f'Unexpected lock! Giving up my turn on {op} ppy/se', e)
             component.locked_by_others = True
         except IntegrityErrorMySQL as e:
             print(self.name,
-                f'Unexpected lock! Giving up my turn on {op} ppy/se', e)
+                  f'Unexpected lock! Giving up my turn on {op} ppy/se', e)
             component.locked_by_others = True
         else:
             component.locked_by_others = False
             print(self.name,
-                f'Now locked for {op}[ppying/sing] {component.name}')
+                  f'Now locked for {op}[ppying/sing] {component.name}')
 
     @profile
     def get_result_impl(self, compo: Component, op, input_data):
@@ -571,9 +571,9 @@ class SQL(Cache):
                         )
 
             # Create Data.
-            data = Data(name=result['des'],
-                        history=json_unpack(result['history']),
-                        columns=unpack_data(result['cols']),
+            history = json_unpack(result['history'])
+            columns = unpack_data(result['cols'])
+            data = Data(name=result['des'], history=history, columns=columns,
                         **dic)
 
             # Join untouched matrices/vectors.

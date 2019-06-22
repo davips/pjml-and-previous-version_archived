@@ -15,6 +15,7 @@ except KeyError:
     def profile(func): return func
 
 
+@profile
 def enc(big, alphabet='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
                       'abcdefghijklmnopqrstuvwxyzÀÂÃÄÅÆÇÈÊË'
                       'ÌÎÏÑÒÔÕÖØÙÛÜÝÞßàâãäåæçèêëìîïðñòóôõöøùûüýþ'):
@@ -76,6 +77,7 @@ def enc(big, alphabet='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
     return ''.join(res)[::-1]
 
 
+@profile
 def dec(digest, alphabet='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
                          'abcdefghijklmnopqrstuvwxyzÀÂÃÄÅÆÇÈÊË'
                          'ÌÎÏÑÒÔÕÖØÙÛÜÝÞßàâãäåæçèêëìîïðñòóôõöøùûüýþ'):
@@ -94,6 +96,7 @@ def dec(digest, alphabet='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
     return res
 
 
+@profile
 def tiny_md5(hexdigest):
     """
     Converts hex MD5 representation (32 digits in base-16) to a friendly
@@ -129,6 +132,7 @@ def pack_comp(obj):
                           shuffle=blosc.NOSHUFFLE, cname='zstd', clevel=3)
 
 
+@profile
 def pack_data(obj):
     pickled = pickle.dumps(obj)
     fast_reduced = lz.compress(pickled, compression_level=1)
@@ -142,6 +146,7 @@ def unpack_comp(dump):
     return pickle.loads(fast_decompressed)
 
 
+@profile
 def unpack_data(dump):
     decompressed = zs.decompress(dump)
     fast_decompressed = lz.decompress(decompressed)
@@ -170,15 +175,18 @@ def unzip_array(zipped):
     return blosc.decompress(zipped)
 
 
+@profile
 def uuid_enumerated_dic(l):
     return {uuid(x.encode()): x for x in l}
 
 
+@profile
 def json_pack(obj):
     dump = json.dumps(obj, sort_keys=True)
     return dump
 
 
+@profile
 def json_unpack(dump):
     obj = json.loads(dump)
     if obj == 'null':

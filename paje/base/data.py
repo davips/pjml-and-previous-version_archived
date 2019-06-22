@@ -8,6 +8,16 @@ from paje.util.encoders import pack_data, uuid, uuid_enumerated_dic, \
     json_unpack, json_pack
 from sklearn.utils import check_X_y
 
+# Disabling profiling when not needed.
+try:
+    import builtins
+
+    profile = builtins.__dict__['profile']
+except KeyError:
+    # No line profiler, provide a pass-through version
+    def profile(func):
+        return func
+
 
 def sub(a, b):
     return [item for item in a if item not in b]
@@ -17,7 +27,7 @@ def sub(a, b):
 class Data:
     _val2vec = {'r': 'e', 's': 'f', 't': 'k'}
     to_case_sensitive = _val2vec.copy()
-    to_case_sensitive.update({ # mostly for sql
+    to_case_sensitive.update({  # mostly for sql
         'x': 'X',
         'y': 'Y',
         'z': 'Z',
@@ -29,10 +39,11 @@ class Data:
     })
     sql_all_fields = list(to_case_sensitive.keys())
 
+    @profile
     def __init__(self, name, X=None, Y=None, Z=None, P=None, e=None,
                  U=None, V=None, W=None, Q=None, f=None,
                  k=None,
-                 columns=None, history=None, task=None):
+                 columns=None, history=None, task=None, n_classes=None):
         # ALERT: all single-letter args will be considered matrices/vectors!
         """
             Immutable lazy data for all machine learning scenarios
@@ -77,7 +88,11 @@ class Data:
                       if k in ['Z', 'W', 'P', 'Q']}
 
         # Metadata
-        n_classes = len(set(dematrixify(get_first_non_none([Y, V, Z, W]), [0])))
+        # TODO: store n_classes or avoid this lengthy set build every time
+        if n_classes is None:
+            n_classes = len(
+                set(dematrixify(get_first_non_none([Y, V, Z, W]), [0]))
+            )
         n_instances = len([] or get_first_non_none(matvecs.values()))
         n_attributes = len(get_first_non_none([X, U], [[]])[0])
 
@@ -152,6 +167,7 @@ class Data:
         self._set('is_multilabel', None)
         self._set('is_ranking_prediction', None)
 
+    @profile
     def field_dump(self, field):
         '''
         Dump of the matrix/vector associated to the given field.
@@ -182,6 +198,7 @@ class Data:
         m = self.matvecs()[field]
         return m.shape[0]
 
+    @profile
     def field_uuid(self, field):
         '''
         UUID of the matrix/vector associated to the given field.
@@ -201,12 +218,14 @@ class Data:
             # self.__dict__['uuid_fields'].update({uuid_:field})
         return self.__dict__[key]
 
+    @profile
     def uuids_dumps(self):
         """
         :return: pair uuid-dump of each matrix/vector.
         """
         return {self.field_uuid(k): self.field_dump(k) for k in self.matvecs()}
 
+    @profile
     def uuids_fields(self):
         """
         :return: pair uuid-field of each matrix/vector.
@@ -214,16 +233,27 @@ class Data:
         return {self.field_uuid(k): k for k in self.matvecs()}
 
     @staticmethod
+    @profile
     def read_arff(file, target, storage=None):
+        """
+        Create Data from ARFF file.
+        See read_data_frame().
+        :param file:
+        :param target:
+        :param storage:
+        :return:
+        """
         data = arff.load(open(file, 'r'), encode_nominal=True)
         df = pd.DataFrame(data['data'],
                           columns=[attr[0] for attr in data['attributes']])
         return Data.read_data_frame(df, file, target, storage)
 
     @staticmethod
+    @profile
     def read_csv(file, target, storage=None):
         """
         Create Data from CSV file.
+        See read_data_frame().
         :param file:
         :param target:
         :param storage: Where to look for previously stored data if possible,
@@ -234,9 +264,11 @@ class Data:
         return Data.read_data_frame(df, file, target, storage)
 
     @staticmethod
+    @profile
     def read_data_frame(df, file, target, storage=None):
         """
-        ps. Assume there was no transformations (history) on this Data.
+        ps. Assume X,y classification task.
+        Andd that there was no transformations (history) on this Data.
         :param df:
         :param file:
         :param target:
@@ -249,19 +281,28 @@ class Data:
         if data is not None:
             return data
         Y = as_column_vector(df.pop(target).values.astype('float'))
-        X = df.values.astype('float') # Do not call this before setting Y!
+        X = df.values.astype('float')  # Do not call this before setting Y!
         return Data(name=arq, X=X, Y=Y, columns=list(df.columns), history=[])
 
     @staticmethod
+    @profile
     def random(n_attributes, n_classes, n_instances):
+        """
+        ps. Assume X,y classification task.
+        :param n_attributes:
+        :param n_classes:
+        :param n_instances:
+        :return:
+        """
         X, y = ds.make_classification(n_samples=n_instances,
                                       n_features=n_attributes,
                                       n_classes=n_classes,
                                       n_informative=int(
                                           np.sqrt(2 * n_classes)) + 1)
-        return Data(X=X, Y=as_column_vector(y), history=[])
+        return Data(X=X, Y=as_column_vector(y), history=[], n_classes=n_classes)
 
     @staticmethod
+    @profile
     def read_from_storage(name, storage, fields=None):
         """
         To just recover an original dataset you can pass fields='X,y'
@@ -277,6 +318,7 @@ class Data:
     def store(self, storage):
         storage.store_data(self)
 
+    @profile
     def updated(self, component_or_list, **kwargs):
         """ Return a new Data updated by given values.
         :param component_or_list: to put into transformations list for history purposes
@@ -296,6 +338,12 @@ class Data:
         if 'name' not in new_args:
             new_args['name'] = self.name()
 
+        if 'n_classes' not in new_args:
+            new_args['n_classes'] = self.n_classes()
+
+        if 'columns' not in new_args:
+            new_args['columns'] = self.columns()
+
         if 'history' not in new_args:
             if isinstance(component_or_list, list):
                 new_args['history'] = self.history() + component_or_list
@@ -305,8 +353,9 @@ class Data:
                 ]
         else:
             print('Warning: giving \'history\' from outside update().')
-        return Data(columns=self.columns(), **new_args)
+        return Data(**new_args)
 
+    @profile
     def merged(self, new_data):
         """
         Get more matrices/vectors (or new values) from another Data.
@@ -335,8 +384,9 @@ class Data:
         dic.update(new_data.matvecs())
 
         return Data(name=self.name(), history=history, columns=self.columns(),
-                    **dic)
+                    n_classes=self.n_classes(), **dic)
 
+    @profile
     def select(self, fields):
         """
         Return a subset of the dictionary of kwargs.
@@ -369,10 +419,6 @@ class Data:
 
         return {k: v for k, v in self.matvecs().items() if k in names}
 
-    def shrink_to(self, fields):
-        return Data(name=self.name(), history=self.history(),
-                    columns=self.columns(), **self.select(fields))
-
     def __setattr__(self, attr, value):
         raise MutabilityException(
             'Cannot set attributes on Data! (%s %r)'
@@ -381,6 +427,7 @@ class Data:
     def _set(self, name, value):
         object.__setattr__(self, name, value)
 
+    @profile
     def sid(self):
         """
         Short uuID
@@ -390,6 +437,7 @@ class Data:
         """
         return self.uuid()[:10]
 
+    @profile
     def uuid(self):
         if self._uuid is None:
             # The scenario when a dataset with the same name and fields
@@ -401,11 +449,13 @@ class Data:
             self._set('_uuid', uuid_)
         return self._uuid
 
+    @profile
     def name_uuid(self):
         if self._name_uuid is None:
             self._set('_name_uuid', uuid(self.name().encode()))
         return self._name_uuid
 
+    @profile
     def history_uuid(self):
         if self._history_uuid is None:
             self._set('_history_uuid', uuid(json_pack(self.history()).encode()))
@@ -418,9 +468,9 @@ class Data:
 
     def fields(self) -> str:
         if self._fields is None:
-            sorted = list(self.matvecs().keys())
-            sorted.sort()
-            self._set('_fields', ','.join(sorted))
+            sortd = list(self.matvecs().keys())
+            sortd.sort()
+            self._set('_fields', ','.join(sortd))
         return self._fields
 
     def __str__(self):
@@ -428,6 +478,7 @@ class Data:
         [txt.append(f'{k}: {str(v)}') for k, v in self.matvecs().items()]
         return '\n'.join(txt) + self.name()
 
+    @profile
     def split(self, test_size=0.25, random_state=1):
         cv = CV().build(random_state=random_state, split='holdout',
                         test_size=test_size, steps=1, testing_fold=0)
@@ -470,6 +521,7 @@ class Data:
         return self._vectors
 
     @classmethod
+    @profile
     def list_to_case_sensitive(cls, fields):
         sensitive = []
         for field in fields:
@@ -478,27 +530,37 @@ class Data:
             sensitive.append(f)
         return sensitive
 
+    # @profile
+    # def shrink_to(self, fields):
+    #     return Data(name=self.name(), history=self.history(),
+    #                 columns=self.columns(), n_classes=self.n_classes,
+    #                 **self.select(fields))
 
 class MutabilityException(Exception):
     pass
 
 
+@profile
 def as_vector(mat):
-    return mat.reshape(len(mat))
+    s = len(mat)
+    return mat.reshape(s)
 
 
 def as_column_vector(vec):
     return vec.reshape(len(vec), 1)
 
 
+@profile
 def dematrixify(m, default=None):
     return default if m is None else as_vector(m)
 
 
+@profile
 def devectorize(v, default=None):
     return default if v is None else v[0]
 
 
+@profile
 def get_first_non_none(l, default=None):
     """
     Consider the first non None list in the args for extracting metadata.
