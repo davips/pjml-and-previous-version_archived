@@ -332,8 +332,10 @@ class SQL(Cache):
                            if k not in mids}
             uuid_field = data.uuids_fields()
             for uuid_, dump in dumps2store.items():
-                self.store_matvec(uuid_, dump, data.width(uuid_field[uuid_]),
-                                  data.height(uuid_field[uuid_]))
+                self.store_matvec(
+                    uuid_, dump, data.width(uuid_field[uuid_]),
+                    data.height(uuid_field[uuid_])
+                )
 
             # Create metadata for upcoming row at table 'data'.
             self.store_metadata(data)
@@ -373,7 +375,6 @@ class SQL(Cache):
                 print(f'Unexpected: Data already stored before!', data.uuid())
             else:
                 print(self.__class__.__name__, f': Data inserted', data.name())
-
 
         else:
             # Check if data comes with new matrices/vectors (improbable).
@@ -467,7 +468,8 @@ class SQL(Cache):
             print('Locking...')
 
         # Store input set if not existent yet.
-        self.store_data(input_data)
+        # Calling impl to avoid nested storage doing the same twice.
+        self.store_data_impl(input_data)
 
         # Store component (if not existent yet) and attempt to acquire lock.
         # Mark as locked_by_others otherwise.
@@ -593,7 +595,8 @@ class SQL(Cache):
 
         # Store resulting Data
         if output_data is not None:
-            self.store_data(output_data)
+            # Calling impl to avoid nested storage doing the same twice.
+            self.store_data_impl(output_data)
 
         # Remove lock and point result to data inserted above.
         # We should set all timestamp fields even if with the same old value,

@@ -69,11 +69,41 @@ class Cache(ABC):
 
     @profile
     def get_data_by_uuid(self, data_uuid):
-        return self._nested_first('get_data_by_uuid', data_uuid)
+        # try locally
+        if self.nested_storage is not None:
+            local_result = self.nested_storage.get_data_by_uuid(data_uuid)
+            if local_result is not None:
+                return local_result
+
+        # try remotely
+        remote_result = self.get_data_by_uuid_impl(data_uuid)
+        if remote_result is None:
+            return None
+
+        # replicate locally if required
+        if self.nested_storage is not None:
+            self.nested_storage.store_data(remote_result)
+
+        return remote_result
 
     @profile
     def get_data_by_name(self, name, fields=None):
-        return self._nested_first('get_data_by_name', name, fields)
+        # try locally
+        if self.nested_storage is not None:
+            local_result = self.nested_storage.get_data_by_name(name, fields)
+            if local_result is not None:
+                return local_result
+
+        # try remotely
+        remote_result = self.get_data_by_name_impl(name, fields)
+        if remote_result is None:
+            return None
+
+        # replicate locally if required
+        if self.nested_storage is not None:
+            self.nested_storage.store_data(remote_result)
+
+        return remote_result
 
     @profile
     def get_finished_names_by_mark(self, mark):
@@ -81,9 +111,18 @@ class Cache(ABC):
 
     @profile
     def lock(self, component, op, input_data):
-        if self.nested_storage is not None:
+        """
+        Lock the given task to avoid wasting concurrent processing.
+        ps. When nesting storages, lock first the remote, since it assumes
+        exclusive access to local storage.
+        :param component:
+        :param op:
+        :param input_data:
+        :return:
+        """
+        self.lock_impl(component, op, input_data)
+        if not component.locked_by_others and self.nested_storage is not None:
             self.nested_storage.lock(component, op, input_data)
-        return self.lock_impl(component, op, input_data)
 
     @profile
     def store_data(self, data):
