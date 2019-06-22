@@ -5,7 +5,6 @@ from paje.automl.random import RandomAutoML
 from paje.base.data import Data
 from paje.evaluator.metrics import Metrics
 from paje.module.modules import default_modelers, default_preprocessors
-# @profile
 from paje.module.preprocessing.unsupervised.feature.transformer.drpca import \
     DRPCA
 from paje.result.mysql import MySQL

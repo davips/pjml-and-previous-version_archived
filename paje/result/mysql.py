@@ -35,8 +35,8 @@ class MySQL(SQL):
                                           password=self.password,
                                           charset='utf8mb4',
                                           cursorclass=pymysql.cursors.DictCursor)
-        self.connection.client_flag &= pymysql.constants.CLIENT.MULTI_STATEMENTS
-        self.connection.autocommit(False)
+        # self.connection.client_flag &= pymysql.constants.CLIENT.MULTI_STATEMENTS
+        self.connection.autocommit(True)
 
         if self.debug:
             print('getting cursor...')

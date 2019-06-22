@@ -17,8 +17,9 @@ class SQLite(SQL):
 
     def _open(self):
         # isolation_level=None -> SQLite autocommiting
+        # isolation_level='DEFERRED' -> SQLite transactioning
         self.connection = sqlite3.connect(self.database,
-                                          isolation_level="DEFERRED")
+                                          isolation_level=None)
         self.connection.row_factory = sqlite3.Row
         self.cursor = self.connection.cursor()
 

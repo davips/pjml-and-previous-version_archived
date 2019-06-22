@@ -6,6 +6,14 @@ import blosc
 import lz4.frame as lz
 import zstd as zs
 
+# Disabling profiling when not needed.
+try:
+    import builtins
+    profile = builtins.__dict__['profile']
+except KeyError:
+    # No line profiler, provide a pass-through version
+    def profile(func): return func
+
 
 def enc(big, alphabet='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
                       'abcdefghijklmnopqrstuvwxyzÀÂÃÄÅÆÇÈÊË'
@@ -96,7 +104,7 @@ def tiny_md5(hexdigest):
     return enc(int(hexdigest, 16))
 
 
-# @profile
+@profile
 def uuid(packed_content):
     """
     Generates a UUID for any reasonable finite universe.
@@ -108,7 +116,7 @@ def uuid(packed_content):
     return tiny_md5(hashlib.md5(packed_content).hexdigest())
 
 
-# @profile
+@profile
 def pack_comp(obj):
     """
     Nondeterministic (fast) parallel compression!
@@ -127,7 +135,7 @@ def pack_data(obj):
     return zs.compress(fast_reduced)
 
 
-# @profile
+@profile
 def unpack_comp(dump):
     decompressed = blosc.decompress(dump)
     fast_decompressed = lz.decompress(decompressed)

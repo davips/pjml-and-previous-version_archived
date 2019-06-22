@@ -372,7 +372,7 @@ class SQL(Cache):
             except IntegrityErrorMySQL as e:
                 print(f'Unexpected: Data already stored before!', data.uuid())
             else:
-                print(f'Data inserted', data.name())
+                print(self.__class__.__name__, f': Data inserted', data.name())
 
 
         else:
@@ -407,7 +407,7 @@ class SQL(Cache):
             # except IntegrityErrorMySQL as e:
             #     print(f'Unexpected: Data already stored before!', data.uuid())
             # else:
-            print(f'Data inserted', data.name())
+            print(self.__class__.__name__, f': Data updated', data.name())
 
     @profile
     def store_metadata(self, data: Data):
@@ -789,7 +789,7 @@ class SQL(Cache):
             return rows
 
     @profile
-    def query(self, sql, args=None, commit=True):
+    def query(self, sql, args=None):
         if self.read_only and not sql.startswith('select '):
             print('========================================\n',
                   'Attempt to write onto read-only storage!', sql)
@@ -808,8 +808,6 @@ class SQL(Cache):
 
         try:
             self.cursor.execute(sql, args)
-            if commit:
-                self.connection.commit()
         except Exception as ex:
             # From a StackOverflow answer...
             import sys
@@ -838,8 +836,8 @@ class SQL(Cache):
             # print('Couldn\'t close database, but that\'s ok...', e)
             pass
 
-    @profile
     @staticmethod
+    @profile
     def _interpolate(sql, lst0):
         lst = [str(w)[:100] for w in lst0]
         zipped = zip(sql.replace('?', '"?"').split('?'), map(str, lst + ['']))
