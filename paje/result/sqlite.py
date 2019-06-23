@@ -6,8 +6,8 @@ from paje.result.sql import SQL
 
 class SQLite(SQL):
     def __init__(self, database='/tmp/paje.db', debug=False, read_only=False,
-                 nested_storage=None):
-        super().__init__(nested_storage=nested_storage)
+                 nested_storage=None, sync=False):
+        super().__init__(nested_storage=nested_storage,sync=sync)
         self.info = database
         self.read_only = read_only
         self.hostname = socket.gethostname()

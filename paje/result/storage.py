@@ -14,23 +14,37 @@ except KeyError:
 
 class Cache(ABC):
     """
-    The children classes are expected to provide storage in:
-     SQLite, remote/local MongoDB or MySQL server.
+    The children classes are expected to provide storage in e.g.:
+     SQLite, remote/local MongoDB, MySQL server or even CSV files.
     """
 
-    def __init__(self, nested_storage=None):
+    def __init__(self, nested_storage=None, sync=False):
         """
         This class stores and recovers results from some place.
         :param nested_storage: usually the nested storage is local and the
-        other is remote. So, all operations occur locally,
-        but failed local look ups are tried again remotely.
-        If the look up succeeds, then it inserts a replication locally.
+            other is remote. So, all operations occur locally,
+            but failed local look ups are tried again remotely.
+            If the look up succeeds, then it inserts a replication locally.
 
-        Inserts are replicated in both storages.
+            Inserts are replicated in both storages.
 
-        More than one nesting level can exist, good luck doing that.
+            More than one nesting level can exist, good luck doing that.
+
+        :param sync: whether to replicate cached local results (found in
+            nested_storage) in remote storage. Usually this is not needed.
+            However, if one wants to perform a first fast run in a local
+            storage (e.g., non-nested SQLite) and be able to sync to a remote
+            server later (e.g., MySQL), they could enable sync in the second
+            run using the local storage nested into the remote with sync=True.
+            ps. Currently, it does not check if the results are already
+            remotely stored. It assumes that if the user is asking to sync,
+            then it means that the remote part is not synced. If this is not
+            the case for some results, useless traffic will be generated,
+            but the respective operations will be ignored at the database level.
+
         """
         self.nested_storage = nested_storage
+        self.sync = sync
         self.name = self.__class__.__name__
 
     @profile
@@ -55,6 +69,9 @@ class Cache(ABC):
         if self.nested_storage is not None:
             local_result = self.nested_storage.get_result(component, op, data)
             if local_result is not None:
+                if self.sync:
+                    print('Replicating remotely...', self.name)
+                    self.store_result_impl(component, op, data, local_result)
                 return local_result
 
         # try remotely
@@ -66,7 +83,7 @@ class Cache(ABC):
 
         # replicate locally if required
         if self.nested_storage is not None:
-            print('Replicating locally...')
+            print('Replicating locally...', self.nested_storage.name)
             self.nested_storage.store_result(component, op, data, remote_result)
 
         return remote_result
@@ -77,6 +94,9 @@ class Cache(ABC):
         if self.nested_storage is not None:
             local_result = self.nested_storage.get_data_by_uuid(data_uuid)
             if local_result is not None:
+                if self.sync:
+                    print('Replicating remotely...', self.name)
+                    self.store_data_impl(local_result)
                 return local_result
 
         # try remotely
@@ -88,7 +108,7 @@ class Cache(ABC):
 
         # replicate locally if required
         if self.nested_storage is not None:
-            print('Replicating locally...')
+            print('Replicating locally...', self.nested_storage.name)
             self.nested_storage.store_data(remote_result)
 
         return remote_result
@@ -99,6 +119,9 @@ class Cache(ABC):
         if self.nested_storage is not None:
             local_result = self.nested_storage.get_data_by_name(name, fields)
             if local_result is not None:
+                if self.sync:
+                    print('Replicating remotely...', self.name)
+                    self.store_data_impl(local_result)
                 return local_result
 
         # try remotely
@@ -110,7 +133,7 @@ class Cache(ABC):
 
         # replicate locally if required
         if self.nested_storage is not None:
-            print('Replicating locally...')
+            print('Replicating locally...', self.nested_storage.name)
             self.nested_storage.store_data(remote_result)
 
         return remote_result
@@ -132,7 +155,7 @@ class Cache(ABC):
         """
         self.lock_impl(component, op, input_data)
         if not component.locked_by_others and self.nested_storage is not None:
-            print('Replicating locally...')
+            print('Replicating locally...', self.nested_storage.name)
             self.nested_storage.lock(component, op, input_data)
 
     @profile
