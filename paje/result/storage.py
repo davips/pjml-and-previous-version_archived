@@ -175,8 +175,12 @@ class Cache(ABC):
     @profile
     def syncronize_copying_from_nested(self):
         """
-        Needed only when one wants to distribute results stored
-        locally by a previous non nesting (and probably offline) run.
+        Replicate all nested content into the nesting storage.
+        Needed only when one wants to ensure the nesting storage is equal or a
+        superset of the nested storage.
+        Although sharing only of results could be done by sync=True,
+        it may be useful to distribute complete data stored locally by a
+        previous non-nesting (and probably offline) run.
         :return:
         """
         raise NotImplementedError('this method will upload from local to '
@@ -185,8 +189,14 @@ class Cache(ABC):
     @profile
     def syncronize_copying_to_nested(self):
         """
-        Needed only when one wants to be able to continue running locally,
-        but offline (i.e. with a non nesting storage).
+        Replicate all nesting content into the nested storage.
+        Needed only when one wants to ensure the nested store is equal or a
+        superset of the nesting storage.
+        Regarding only results, this is already done by an ordinary nesting.
+        However, complete data from the nesting storage can be fetched by this
+        method.
+        Both situations are useful when one wants to be able to continue
+        running locally, but offline (i.e. with a non nesting storage).
         It takes advantage from results previously stored remotely by any
         other node (or even itself).
         :return:
