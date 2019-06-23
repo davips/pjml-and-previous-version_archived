@@ -1,4 +1,5 @@
 import warnings
+import zlib
 from abc import abstractmethod
 from sqlite3 import IntegrityError as IntegrityErrorSQLite
 
@@ -8,7 +9,7 @@ from paje.base.component import Component
 from paje.base.data import Data
 from paje.result.storage import Cache
 from paje.util.encoders import unpack_data, json_unpack, json_pack, pack_comp, \
-    uuid, pack_data
+    uuid, pack_data, hist_pack, hist_unpack
 
 # Disabling profiling when not needed.
 try:
@@ -140,7 +141,7 @@ class SQL(Cache):
                 did char(19) NOT NULL UNIQUE,
 
                 name char(19) NOT NULL,
-                hist char(19),
+                hist char(19) NOT NULL,
 
                 x char(19),
                 y char(19),
@@ -451,9 +452,9 @@ class SQL(Cache):
             )'''
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            self.query(sql, [data.history_uuid(),
-                             json_pack(data.history())])
-            # TODO: codify history to be shorter
+            self.query(sql, [data.history_uuid(), hist_pack(data.history())])
+            # TODO: codify a custom zipper for history to be shorter
+            # TODO: create a lazy method hist_dump() in Data
 
     @profile
     def lock_impl(self, component, op, input_data):
@@ -571,7 +572,7 @@ class SQL(Cache):
                         )
 
             # Create Data.
-            history = json_unpack(result['history'])
+            history = hist_unpack(result['history'])
             columns = unpack_data(result['cols'])
             data = Data(name=result['des'], history=history, columns=columns,
                         **dic)
@@ -668,19 +669,18 @@ class SQL(Cache):
         """
         if history is None:
             history = []
-        hist = json_pack(history)
+        hist_uuid = uuid(hist_pack(history))
 
         sql = f'''
                 select 
-                    x,y,z,p,u,v,w,q,r,s,t,cols,txt,des
+                    x,y,z,p,u,v,w,q,r,s,t,cols,des
                 from 
                     data 
                         left join name on name=nid 
-                        left join hist on hist=hid
                         left join atr on atr=aid
                 where 
-                    des=? and txt=?'''
-        self.query(sql, [name, hist])
+                    des=? and hist=?'''
+        self.query(sql, [name, hist_uuid])
         row = self.get_one()
         if row is None:
             return None
@@ -751,7 +751,8 @@ class SQL(Cache):
 
         # Recover requested matrices/vectors.
         # TODO: surely there is duplicated code to be refactored in this file!
-        dic = {'name': row['des'], 'history': json_unpack(row['txt'])}
+        dic = {'name': row['des'],
+               'history': hist_unpack(row['txt'])}
         fields = [k for k, v in row.items() if len(k) == 1 and v is not None]
         for field in Data.list_to_case_sensitive(fields):
             mid = row[field.lower()]
@@ -774,7 +775,7 @@ class SQL(Cache):
         """
         self.query(f"""
                 select
-                    des, txt as history
+                    des, txt
                 from
                     res join data on dtr=did 
                         join name on name=nid 
@@ -789,6 +790,7 @@ class SQL(Cache):
         else:
             for row in rows:
                 row['name'] = row.pop('des')
+                row['history'] = hist_unpack(row.pop('txt'))
             return rows
 
     @profile

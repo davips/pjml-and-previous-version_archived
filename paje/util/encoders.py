@@ -1,5 +1,6 @@
 import hashlib
 import json
+import zlib
 
 import _pickle as pickle
 import blosc
@@ -189,6 +190,19 @@ def json_pack(obj):
 @profile
 def json_unpack(dump):
     obj = json.loads(dump)
+    if obj == 'null':
+        return None
+    return obj
+
+@profile
+def hist_pack(obj):
+    dump = zlib.compress(json.dumps(obj, sort_keys=True).encode())
+    return dump
+
+
+@profile
+def hist_unpack(dump):
+    obj = json.loads(zlib.decompress(dump))
     if obj == 'null':
         return None
     return obj

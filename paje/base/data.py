@@ -5,7 +5,7 @@ import sklearn
 import sklearn.datasets as ds
 from paje.module.experimenting.cv import CV
 from paje.util.encoders import pack_data, uuid, uuid_enumerated_dic, \
-    json_unpack, json_pack
+    json_unpack, json_pack, hist_pack
 from sklearn.utils import check_X_y
 
 # Disabling profiling when not needed.
@@ -321,7 +321,8 @@ class Data:
     @profile
     def updated(self, component_or_list, **kwargs):
         """ Return a new Data updated by given values.
-        :param component_or_list: to put into transformations list for history purposes
+        :param component_or_list: to put into transformations list for
+        history purposes
         (it can be a list also for internal use in Data).
         :param kwargs:
         :return:
@@ -376,9 +377,9 @@ class Data:
             raise Exception('Incompatible transformations, self.history '
                             'should be the start of new_data.history')
 
-        history = new_data.history()
+        history = new_data.history().copy()
         if len(history) == len(self.history()):
-            history += ['Merge']
+            history.append('Merge')
 
         dic = self.matvecs().copy()
         dic.update(new_data.matvecs())
@@ -458,7 +459,7 @@ class Data:
     @profile
     def history_uuid(self):
         if self._history_uuid is None:
-            self._set('_history_uuid', uuid(json_pack(self.history()).encode()))
+            self._set('_history_uuid', uuid(hist_pack(self.history())))
         return self._history_uuid
 
     def name(self):
@@ -535,6 +536,7 @@ class Data:
     #     return Data(name=self.name(), history=self.history(),
     #                 columns=self.columns(), n_classes=self.n_classes,
     #                 **self.select(fields))
+
 
 class MutabilityException(Exception):
     pass
