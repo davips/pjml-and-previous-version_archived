@@ -62,31 +62,38 @@ class Cache(ABC):
                 return result
         return getattr(self, f + '_impl')(*args)
 
-    # TODO: reinsert misses locally
     @profile
     def get_result(self, component, op, data):
         # try locally
         if self.nested_storage is not None:
-            local_result = self.nested_storage.get_result(component, op, data)
-            if local_result is not None:
+            local_result, started, ended = \
+                self.nested_storage.get_result(component, op, data)
+            if started:
                 if self.sync:
                     print('Replicating remotely...', self.name)
-                    self.store_result_impl(component, op, data, local_result)
-                return local_result
+                    self.lock_impl(component, op, data)
+                    if ended:
+                        self.store_result_impl(
+                            component, op, data, local_result
+                        )
+                return local_result, started, ended
 
         # try remotely
         if self.nested_storage is not None:
-            print('Trying remotely...')
-        remote_result = self.get_result_impl(component, op, data)
-        if remote_result is None:
-            return None
+            print('Trying remotely...', self.name)
+        remote_result, started, ended = \
+            self.get_result_impl(component, op, data)
 
         # replicate locally if required
-        if self.nested_storage is not None:
+        if started and self.nested_storage is not None:
             print('Replicating locally...', self.nested_storage.name)
-            self.nested_storage.store_result(component, op, data, remote_result)
+            self.nested_storage.lock(component, op, data)
+            if ended:
+                self.nested_storage.store_result(
+                    component, op, data, remote_result
+                )
 
-        return remote_result
+        return remote_result, started, ended
 
     @profile
     def get_data_by_uuid(self, data_uuid):
@@ -101,7 +108,7 @@ class Cache(ABC):
 
         # try remotely
         if self.nested_storage is not None:
-            print('Trying remotely...')
+            print('Trying remotely...', self.name)
         remote_result = self.get_data_by_uuid_impl(data_uuid)
         if remote_result is None:
             return None
@@ -126,7 +133,7 @@ class Cache(ABC):
 
         # try remotely
         if self.nested_storage is not None:
-            print('Trying remotely...')
+            print('Trying remotely...', self.name)
         remote_result = self.get_data_by_name_impl(name, fields)
         if remote_result is None:
             return None

@@ -380,13 +380,16 @@ class SQL(Cache):
                 print(self.name, f': Data inserted', data.name())
 
         else:
-            # Check if data comes with new matrices/vectors (improbable).
+            if self.debug:
+                print('Check if data comes with new matrices/vectors '
+                      '(improbable).')
             stored_dumps = {k: v for k, v in rone.items() if v is not None}
             fields_low = [k.lower() for k in data.matvecs().keys()]
             fields2store = [f for f in fields_low if f
                             is not None and f not in stored_dumps]
 
-            # Insert only dumps that are missing in storage
+            if self.debug:
+                print('Insert only dumps that are missing in storage')
             dumps2store = {data.field_uuid(f): (data.field_dump(f), f)
                            for f in fields2store}
             to_update = {}
@@ -395,7 +398,8 @@ class SQL(Cache):
                                   data.height(field))
                 to_update[field] = uuid_
 
-            # Update row at table 'data'. ---------------------
+            if self.debug:
+                print('Update row at table "data" if needed...')
             if len(to_update) > 0:
                 sql = f''' 
                     update data set
@@ -525,7 +529,7 @@ class SQL(Cache):
         :return: Resulting Data
         """
         if compo.failed or compo.locked_by_others:
-            return None
+            return None, True, compo.failed is not None
         fields = Data.sql_all_fields if compo.touched_fields() is None \
             else compo.touched_fields()
 
@@ -552,7 +556,7 @@ class SQL(Cache):
                     input_data.uuid()])
         result = self.get_one()
         if result is None:
-            return None
+            return None, False, False
         if result['des'] is not None:
             # sanity check
             if result['des'] != input_data.name():
@@ -586,7 +590,7 @@ class SQL(Cache):
         compo.failed = result['fail'] and result['fail'] == 1
         compo.locked_by_others = result['end'] == '0000-00-00 00:00:00'
         compo.node = result['node']
-        return output_data
+        return output_data, True, compo.failed is not None
 
     @profile
     def store_result_impl(self, component, op, input_data, output_data):
@@ -846,7 +850,7 @@ class SQL(Cache):
     def _interpolate(sql, lst0):
         lst = [str(w)[:100] for w in lst0]
         zipped = zip(sql.replace('?', '"?"').split('?'), map(str, lst + ['']))
-        return ''.join(list(sum(zipped, ())))
+        return ''.join(list(sum(zipped, ()))).replace('"None"', 'NULL')
 
         # # upsert, works for mysql and sqlite 3.24 (not yet in python 3.7)
         # sql = f'''
