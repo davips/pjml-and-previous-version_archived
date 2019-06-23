@@ -30,8 +30,9 @@ class Cache(ABC):
 
             More than one nesting level can exist, good luck doing that.
 
-        :param sync: whether to replicate cached local results (found in
-            nested_storage) in remote storage. Usually this is not needed.
+        :param sync: EXPERIMENTAL!
+        whether to replicate cached local results (found in nested_storage)
+            in remote storage. Usually this is not needed.
             However, if one wants to perform a first fast run in a local
             storage (e.g., non-nested SQLite) and be able to sync to a remote
             server later (e.g., MySQL), they could enable sync in the second
