@@ -39,6 +39,9 @@ def main():
                 storage = MySQL(db=arg['db'], debug=not True)
             elif arg['storage'] == 'cached':
                 storage = MySQL(db=arg['db'], nested_storage=SQLite())
+            elif arg['storage'] == 'sync':
+                storage = MySQL(db=arg['db'], nested_storage=SQLite(),
+                                sync=True)
             else:
                 raise Exception('Wrong storage', arg['storage'])
         else:
