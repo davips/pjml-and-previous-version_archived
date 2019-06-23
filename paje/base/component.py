@@ -135,7 +135,7 @@ class Component(ABC):
         # TODO: CV() is too cheap to be recovered from storage,
         #  specially if it is a LOO.
         #  Maybe some components could inform whether they are cheap.
-        output_data, started = None, False, False
+        output_data, started, ended = None, False, False
         if self.storage is not None:
             output_data, started, ended = \
                 self.storage.get_result(self, 'a', data)
