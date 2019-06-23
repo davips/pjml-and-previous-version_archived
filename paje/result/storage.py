@@ -30,6 +30,9 @@ class Cache(ABC):
 
             More than one nesting level can exist, good luck doing that.
 
+            ps.: only useful for basic, fully defined, operations
+            (not get_names_by_mark, e.g.)
+
         :param sync: EXPERIMENTAL!
         whether to replicate cached local results (found in nested_storage)
             in remote storage. Usually this is not needed.
@@ -148,6 +151,8 @@ class Cache(ABC):
 
     @profile
     def get_finished_names_by_mark(self, mark):
+        # TODO: somehow replicate locally the remote results?
+        #  or expect the user to run the needed scripts before the current one?
         return self._nested_first('get_finished_names_by_mark', mark)
 
     @profile
