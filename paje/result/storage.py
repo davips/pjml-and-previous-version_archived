@@ -167,17 +167,17 @@ class Cache(ABC):
 
     @profile
     def store_data(self, data):
+        self.store_data_impl(data)
         if self.nested_storage is not None:
             self.nested_storage.store_data(data)
-        return self.store_data_impl(data)
 
     @profile
     def store_result(self, component, op, input_data, output_data):
+        self.store_result_impl(component, op, input_data, output_data)
         if self.nested_storage is not None:
             self.nested_storage.store_result(
                 component, op, input_data, output_data
             )
-        return self.store_result_impl(component, op, input_data, output_data)
 
     @profile
     def syncronize_copying_from_nested(self):
