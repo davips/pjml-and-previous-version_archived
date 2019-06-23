@@ -9,7 +9,7 @@ class Melting(Frozen):
         self.dic.update(self.params)
         self.components[0] = self.components[0].build(**self.dic)
 
-    def tree_impl(self, data=None):
-        tree = self.components[0].tree(data)
+    def tree_impl(self):
+        tree = self.components[0].tree()
         tree.name = self.name + tree.name
         return tree

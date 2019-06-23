@@ -58,12 +58,15 @@ class Cache(ABC):
                 return local_result
 
         # try remotely
+        if self.nested_storage is not None:
+            print('Trying remotely...')
         remote_result = self.get_result_impl(component, op, data)
         if remote_result is None:
             return None
 
         # replicate locally if required
         if self.nested_storage is not None:
+            print('Replicating locally...')
             self.nested_storage.store_result(component, op, data, remote_result)
 
         return remote_result
@@ -77,12 +80,15 @@ class Cache(ABC):
                 return local_result
 
         # try remotely
+        if self.nested_storage is not None:
+            print('Trying remotely...')
         remote_result = self.get_data_by_uuid_impl(data_uuid)
         if remote_result is None:
             return None
 
         # replicate locally if required
         if self.nested_storage is not None:
+            print('Replicating locally...')
             self.nested_storage.store_data(remote_result)
 
         return remote_result
@@ -96,12 +102,15 @@ class Cache(ABC):
                 return local_result
 
         # try remotely
+        if self.nested_storage is not None:
+            print('Trying remotely...')
         remote_result = self.get_data_by_name_impl(name, fields)
         if remote_result is None:
             return None
 
         # replicate locally if required
         if self.nested_storage is not None:
+            print('Replicating locally...')
             self.nested_storage.store_data(remote_result)
 
         return remote_result
@@ -123,6 +132,7 @@ class Cache(ABC):
         """
         self.lock_impl(component, op, input_data)
         if not component.locked_by_others and self.nested_storage is not None:
+            print('Replicating locally...')
             self.nested_storage.lock(component, op, input_data)
 
     @profile
