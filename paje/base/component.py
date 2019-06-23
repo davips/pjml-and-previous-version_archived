@@ -194,7 +194,7 @@ class Component(ABC):
             self.msg(f"Using {self.name} on None returns None.")
             return None
 
-        output_data, started = None, False, False
+        output_data, started, ended = None, False, False
         if self.storage is not None:
             output_data, started, ended = \
                 self.storage.get_result(self, 'u', data)
