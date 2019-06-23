@@ -155,7 +155,7 @@ class Cache(ABC):
         """
         self.lock_impl(component, op, input_data)
         if not component.locked_by_others and self.nested_storage is not None:
-            print('Replicating locally...', self.nested_storage.name)
+            print('Locking locally...', self.nested_storage.name)
             self.nested_storage.lock(component, op, input_data)
 
     @profile
