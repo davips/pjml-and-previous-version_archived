@@ -52,7 +52,7 @@ class SQL(Cache):
 
                 hid char(19) NOT NULL UNIQUE,
 
-                txt text NOT NULL
+                txt BLOB NOT NULL
             )''')
 
         # Columns of Data ======================================================
