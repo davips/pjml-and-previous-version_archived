@@ -202,7 +202,7 @@ def hist_pack(obj):
 
 @profile
 def hist_unpack(dump):
-    obj = json.loads(zlib.decompress(dump))
+    obj = json.loads(zlib.decompress(dump).decode())
     if obj == 'null':
         return None
     return obj
