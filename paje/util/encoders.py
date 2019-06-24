@@ -10,10 +10,12 @@ import zstd as zs
 # Disabling profiling when not needed.
 try:
     import builtins
+
     profile = builtins.__dict__['profile']
 except KeyError:
     # No line profiler, provide a pass-through version
-    def profile(func): return func
+    def profile(func):
+        return func
 
 
 @profile
@@ -194,14 +196,15 @@ def json_unpack(dump):
         return None
     return obj
 
+
 @profile
-def hist_pack(obj):
+def text_pack(obj):
     dump = zlib.compress(json.dumps(obj, sort_keys=True).encode())
     return dump
 
 
 @profile
-def hist_unpack(dump):
+def text_unpack(dump):
     obj = json.loads(zlib.decompress(dump).decode())
     if obj == 'null':
         return None

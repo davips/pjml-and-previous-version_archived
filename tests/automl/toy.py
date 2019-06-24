@@ -7,8 +7,6 @@ from paje.evaluator.metrics import Metrics
 from paje.module.modules import default_modelers, default_preprocessors
 from paje.module.preprocessing.unsupervised.feature.transformer.drpca import \
     DRPCA
-from paje.result.mysql import MySQL
-from paje.result.sqlite import SQLite
 from paje.module.modelling.classifier.svmc import SVMC
 from paje.module.modelling.classifier.dt import DT
 from paje.module.modelling.classifier.cb import CB
@@ -34,12 +32,18 @@ def main():
 
         if 'storage' in arg:
             if arg['storage'] == 'sqlite':
+                from paje.result.sqlite import SQLite
                 storage = SQLite(debug=not True)
             elif arg['storage'] == 'mysql':
+                from paje.result.mysql import MySQL
                 storage = MySQL(db=arg['db'], debug=not True)
             elif arg['storage'] == 'cached':
+                from paje.result.mysql import MySQL
+                from paje.result.sqlite import SQLite
                 storage = MySQL(db=arg['db'], nested_storage=SQLite())
             elif arg['storage'] == 'sync':
+                from paje.result.mysql import MySQL
+                from paje.result.sqlite import SQLite
                 storage = MySQL(db=arg['db'], nested_storage=SQLite(),
                                 sync=True)
             else:

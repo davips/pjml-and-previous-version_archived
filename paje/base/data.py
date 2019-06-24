@@ -5,7 +5,7 @@ import sklearn
 import sklearn.datasets as ds
 from paje.module.experimenting.cv import CV
 from paje.util.encoders import pack_data, uuid, uuid_enumerated_dic, \
-    json_unpack, json_pack, hist_pack
+    json_unpack, json_pack, text_pack
 from sklearn.utils import check_X_y
 
 # Disabling profiling when not needed.
@@ -459,7 +459,7 @@ class Data:
     @profile
     def history_uuid(self):
         if self._history_uuid is None:
-            self._set('_history_uuid', uuid(hist_pack(self.history())))
+            self._set('_history_uuid', uuid(text_pack(self.history())))
         return self._history_uuid
 
     def name(self):

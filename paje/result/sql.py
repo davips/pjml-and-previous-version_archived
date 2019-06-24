@@ -1,15 +1,11 @@
 import warnings
-import zlib
 from abc import abstractmethod
-from sqlite3 import IntegrityError as IntegrityErrorSQLite
-
-from pymysql import IntegrityError as IntegrityErrorMySQL
 
 from paje.base.component import Component
 from paje.base.data import Data
 from paje.result.storage import Cache
-from paje.util.encoders import unpack_data, json_unpack, json_pack, pack_comp, \
-    uuid, pack_data, hist_pack, hist_unpack
+from paje.util.encoders import unpack_data, pack_comp, \
+    uuid, pack_data, text_pack, text_unpack
 
 # Disabling profiling when not needed.
 try:
@@ -52,7 +48,7 @@ class SQL(Cache):
 
                 hid char(19) NOT NULL UNIQUE,
 
-                txt BLOB NOT NULL
+                txt LONGBLOB NOT NULL
             )''')
 
         # Columns of Data ======================================================
@@ -365,6 +361,8 @@ class SQL(Cache):
                          data.field_uuid('w'), data.field_uuid('q'),
                          data.field_uuid('r'), data.field_uuid('s'),
                          data.field_uuid('t')]
+            from sqlite3 import IntegrityError as IntegrityErrorSQLite
+            from pymysql import IntegrityError as IntegrityErrorMySQL
             try:
                 self.query(sql, data_args)
                 # unfortunately, it seems that FKs generate the same exception as
@@ -421,7 +419,7 @@ class SQL(Cache):
         """
         # atr ---------------------------------------------------------
         # TODO: avoid sending long cols blob when unneeded
-        cols = pack_data(data.columns())
+        cols = text_pack(data.columns())
         uuid_cols = uuid(cols)
         sql = f'''
             insert or ignore into atr values (
@@ -456,7 +454,7 @@ class SQL(Cache):
             )'''
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            self.query(sql, [data.history_uuid(), hist_pack(data.history())])
+            self.query(sql, [data.history_uuid(), text_pack(data.history())])
             # TODO: codify a custom zipper for history to be shorter
             # TODO: create a lazy method hist_dump() in Data
 
@@ -576,7 +574,7 @@ class SQL(Cache):
                         )
 
             # Create Data.
-            history = hist_unpack(result['history'])
+            history = text_unpack(result['history'])
             columns = unpack_data(result['cols'])
             data = Data(name=result['des'], history=history, columns=columns,
                         **dic)
@@ -673,7 +671,7 @@ class SQL(Cache):
         """
         if history is None:
             history = []
-        hist_uuid = uuid(hist_pack(history))
+        hist_uuid = uuid(text_pack(history))
 
         sql = f'''
                 select 
@@ -756,7 +754,7 @@ class SQL(Cache):
         # Recover requested matrices/vectors.
         # TODO: surely there is duplicated code to be refactored in this file!
         dic = {'name': row['des'],
-               'history': hist_unpack(row['txt'])}
+               'history': text_unpack(row['txt'])}
         fields = [k for k, v in row.items() if len(k) == 1 and v is not None]
         for field in Data.list_to_case_sensitive(fields):
             mid = row[field.lower()]
@@ -764,7 +762,7 @@ class SQL(Cache):
                 self.query(f'select val from mat where mid=?', [mid])
                 rone = self.get_one()
                 dic[field] = unpack_data(rone['val'])
-        return Data(columns=unpack_data(row['cols']), **dic)
+        return Data(columns=text_unpack(row['cols']), **dic)
 
     @profile
     def get_finished_names_by_mark_impl(self, mark):
@@ -794,7 +792,7 @@ class SQL(Cache):
         else:
             for row in rows:
                 row['name'] = row.pop('des')
-                row['history'] = hist_unpack(row.pop('txt'))
+                row['history'] = text_unpack(row.pop('txt'))
             return rows
 
     @profile
