@@ -265,12 +265,12 @@ class Data:
 
     @staticmethod
     @profile
-    def read_data_frame(df, file, target, storage=None):
+    def read_data_frame(df, file, target=None, storage=None):
         """
         ps. Assume X,y classification task.
         Andd that there was no transformations (history) on this Data.
         :param df:
-        :param file:
+        :param file: name of the dataset (if a path, name will be extracted)
         :param target:
         :param storage:
         :return:
@@ -280,7 +280,7 @@ class Data:
                Data.read_from_storage(name=arq, storage=storage, fields='X,y')
         if data is not None:
             return data
-        Y = as_column_vector(df.pop(target).values.astype('float'))
+        Y = target and as_column_vector(df.pop(target).values.astype('float'))
         X = df.values.astype('float')  # Do not call this before setting Y!
         return Data(name=arq, X=X, Y=Y, columns=list(df.columns), history=[])
 
