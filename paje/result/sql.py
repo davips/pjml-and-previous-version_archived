@@ -62,7 +62,7 @@ class SQL(Cache):
 
                 aid char(19) NOT NULL UNIQUE,
 
-                cols BLOB NOT NULL
+                cols LONGBLOB NOT NULL
             )''')
 
         # Names of Data ========================================================
