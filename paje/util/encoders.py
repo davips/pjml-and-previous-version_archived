@@ -199,13 +199,44 @@ def json_unpack(dump):
 
 @profile
 def text_pack(obj):
-    dump = zlib.compress(json.dumps(obj, sort_keys=True).encode())
+    """
+    MySQL-friendly compression with zlib.
+    :param obj:
+    :return:
+    """
+    dump = mysql_compress(json.dumps(obj, sort_keys=True).encode())
     return dump
 
 
 @profile
 def text_unpack(dump):
-    obj = json.loads(zlib.decompress(dump).decode())
+    """
+    MySQL-friendly decompression with zlib.
+    :param dump:
+    :return:
+    """
+    obj = json.loads(mysql_uncompress(dump).decode())
     if obj == 'null':
         return None
     return obj
+
+
+@profile
+def mysql_compress(s):
+    """
+    Unfortunately, MySQL command UNCOMPRESS() expects a 4-byte prefix.
+    So we are adding it here, just like COMPRESS() does.
+    It is useful to be able to see the contents directly at the mysql prompt.
+    :return:
+    """
+    return len(s).to_bytes(4, byteorder='little') + zlib.compress(s)
+
+
+@profile
+def mysql_uncompress(z):
+    """
+    Unfortunately, MySQL command COMPRESS() creates a 4-byte prefix.
+    So we are removing it before sending it to zlib, just like COMPRESS() does.
+    :return:
+    """
+    return zlib.decompress(z[4:])
