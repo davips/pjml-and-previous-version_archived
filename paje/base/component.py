@@ -391,8 +391,8 @@ class Component(ABC):
     @staticmethod
     def clock():
         t = os.times()
-        return t[4]
-        # return usage[0] + usage[1]  # TOTAL CPU whole-system time
+        # return t[4]  # Wall time
+        return t[0] + t[1] + t[2] + t[3]
 
     def train_data_uuid__mutable(self):
         if self._train_data_uuid__mutable is None:

@@ -198,7 +198,7 @@ def json_unpack(dump):
 
 
 @profile
-def text_pack(obj):
+def zlibext_pack(obj):
     """
     MySQL-friendly compression with zlib.
     :param obj:
@@ -209,7 +209,7 @@ def text_pack(obj):
 
 
 @profile
-def text_unpack(dump):
+def zlibext_unpack(dump):
     """
     MySQL-friendly decompression with zlib.
     :param dump:

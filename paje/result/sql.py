@@ -5,7 +5,7 @@ from paje.base.component import Component
 from paje.base.data import Data
 from paje.result.storage import Cache
 from paje.util.encoders import unpack_data, pack_comp, \
-    uuid, pack_data, text_pack, text_unpack
+    uuid, pack_data, zlibext_pack, zlibext_unpack
 
 # Disabling profiling when not needed.
 try:
@@ -419,7 +419,7 @@ class SQL(Cache):
         """
         # atr ---------------------------------------------------------
         # TODO: avoid sending long cols blob when unneeded
-        cols = text_pack(data.columns())
+        cols = zlibext_pack(data.columns())
         uuid_cols = uuid(cols)
         sql = f'''
             insert or ignore into atr values (
@@ -454,7 +454,7 @@ class SQL(Cache):
             )'''
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            self.query(sql, [data.history_uuid(), text_pack(data.history())])
+            self.query(sql, [data.history_uuid(), zlibext_pack(data.history())])
             # TODO: codify a custom zipper for history to be shorter
             # TODO: create a lazy method hist_dump() in Data
 
@@ -574,8 +574,8 @@ class SQL(Cache):
                         )
 
             # Create Data.
-            history = text_unpack(result['history'])
-            columns = unpack_data(result['cols'])
+            history = zlibext_unpack(result['history'])
+            columns = zlibext_unpack(result['cols'])
             data = Data(name=result['des'], history=history, columns=columns,
                         **dic)
 
@@ -671,7 +671,7 @@ class SQL(Cache):
         """
         if history is None:
             history = []
-        hist_uuid = uuid(text_pack(history))
+        hist_uuid = uuid(zlibext_pack(history))
 
         sql = f'''
                 select 
@@ -699,7 +699,7 @@ class SQL(Cache):
                 self.query(f'select val from mat where mid=?', [mid])
                 rone = self.get_one()
                 dic[field] = unpack_data(rone['val'])
-        return Data(columns=unpack_data(row['cols']), **dic)
+        return Data(columns=zlibext_unpack(row['cols']), **dic)
 
     # def get_component_by_uuid(self, component_uuid, just_check_exists=False):
     #     field = 'arg'
@@ -754,7 +754,7 @@ class SQL(Cache):
         # Recover requested matrices/vectors.
         # TODO: surely there is duplicated code to be refactored in this file!
         dic = {'name': row['des'],
-               'history': text_unpack(row['txt'])}
+               'history': zlibext_unpack(row['txt'])}
         fields = [k for k, v in row.items() if len(k) == 1 and v is not None]
         for field in Data.list_to_case_sensitive(fields):
             mid = row[field.lower()]
@@ -762,7 +762,7 @@ class SQL(Cache):
                 self.query(f'select val from mat where mid=?', [mid])
                 rone = self.get_one()
                 dic[field] = unpack_data(rone['val'])
-        return Data(columns=text_unpack(row['cols']), **dic)
+        return Data(columns=zlibext_unpack(row['cols']), **dic)
 
     @profile
     def get_finished_names_by_mark_impl(self, mark):
@@ -792,7 +792,7 @@ class SQL(Cache):
         else:
             for row in rows:
                 row['name'] = row.pop('des')
-                row['history'] = text_unpack(row.pop('txt'))
+                row['history'] = zlibext_unpack(row.pop('txt'))
             return rows
 
     @profile
