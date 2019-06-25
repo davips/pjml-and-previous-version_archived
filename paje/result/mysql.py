@@ -7,7 +7,7 @@ from paje.result.sql import SQL
 
 
 class MySQL(SQL):
-    def __init__(self, database='paje@143.107.183.114', password='pajelanca19',
+    def __init__(self, database='paje@143.107.183.114', password='pagelanca19',
                  db='curumim', debug=False, read_only=False,
                  nested_storage=None, sync=False):
         super().__init__(nested_storage=nested_storage, sync=sync)
