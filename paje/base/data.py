@@ -35,14 +35,16 @@ class Data:
         'v': 'V',
         'w': 'W',
         'p': 'P',
-        'q': 'Q'
+        'q': 'Q',
+        'l': 'l',
+        'm': 'm'
     })
     sql_all_fields = list(to_case_sensitive.keys())
 
     @profile
     def __init__(self, name, X=None, Y=None, Z=None, P=None, e=None,
                  U=None, V=None, W=None, Q=None, f=None,
-                 k=None,
+                 k=None, l=None, m=None,
                  columns=None, history=None, task=None, n_classes=None):
         # ALERT: all single-letter args will be considered matrices/vectors!
         """
@@ -54,25 +56,40 @@ class Data:
 
              Vector e (or f) summarizes e.g. some operation over y,z (or v,w)
              k is a vector indicating the time step of each row.
-             However, when the vectors e,f,k have only one value,
+             Vector k has the time steps of each instance, t has a single time
+             step for the entire chunk (all rows in Data). t == k[0]
+
+             For instance, when the vectors e,f,k have only one value,
              which is the most common scenario, they can be accessed as values
-             r,s,t.
+             r,s,t. r == e[0] and s == f[0]
+
+             Vector of metafeatures 'm' can have any length, which is
+             dependent on the MF() component used and explicited in history.
 
         :param name:
-        :param X:
-        :param Y:
+
+        :param X: attribute values
+        :param Y: labels
         :param Z: Predictions
         :param P: Predicted probabilities
         :param e: Results, summarized in some way
+
         :param U: X of unlabeled set
         :param V: Y of unlabeled set
         :param W: Predictions for unlabeled set
         :param Q: Predicted probabilities for unlabeled set
         :param f: Results for unlabeled, summarized in some way
-        :param k: Time steps for the current chunk (this Data)
-        :param columns:
-        :param component: component that generated current Data
+
+        :param k: Time steps for the current chunk (this Data), one per row
+
+        :param l: supervised metafeatures characterizing this Data's X and y
+        :param m: unsupervised metafeatures characterizing this Data's X+U
+
+        :param columns: attribute names
         :param history: History of transformations suffered by the data
+        :param task: intended use for this data: classification, clustering,...
+        :param n_classes: this could be calculated,
+            but it is too time consuming to do it every transformation.
         """
         if history is None:
             print('No history provided to Data')
@@ -84,8 +101,8 @@ class Data:
         all_mats_vecs = {k: v for k, v in locals().items() if len(k) == 1}
 
         self.__dict__.update(all_mats_vecs)
-        prediction = {k: v for k, v in matvecs.items()
-                      if k in ['Z', 'W', 'P', 'Q']}
+        # prediction = {k: v for k, v in matvecs.items()
+        #               if k in ['Z', 'W', 'P', 'Q']}
 
         # Metadata
         # TODO: store n_classes or avoid this lengthy set build every time
@@ -105,7 +122,7 @@ class Data:
             # variables, not functions.
             'Xy': (X, dematrixify(Y)),
             'Uv': (U, dematrixify(V)),
-            '_prediction': prediction,
+            # '_prediction': prediction,
             '_history': history or [],
             '_matvecs': matvecs,
             '_columns': columns,
@@ -121,7 +138,7 @@ class Data:
             self.__dict__[vec] = dematrixify(self.__dict__[vec.upper()])
 
         # Add single-valued shortcuts for vectors.
-        self._set('_single_values', self._val2vec.keys())  # TODO: needed?
+        # self._set('_single_values', self._val2vec.keys())  # TODO: needed?
         for k, v in self._val2vec.items():
             self.__dict__[k] = devectorize(v)
 
@@ -262,7 +279,7 @@ class Data:
         to avoid useless waits loading from file and recalculating UUID.
         :return:
         """
-        df = pd.read_csv(file) # 1169_airlines explodes here with RAM < 6GiB
+        df = pd.read_csv(file)  # 1169_airlines explodes here with RAM < 6GiB
         return Data.read_data_frame(df, file, target, storage)
 
     @staticmethod
@@ -505,8 +522,8 @@ class Data:
     def n_attributes(self):
         return self._n_attributes
 
-    def prediction(self):
-        return self._prediction
+    # def prediction(self):
+    #     return self._prediction
 
     def history(self):
         return self._history
@@ -517,8 +534,8 @@ class Data:
     def columns(self):
         return self._columns
 
-    def has_prediction_data(self):
-        return self._has_prediction_data
+    # def has_prediction_data(self):
+    #     return self._has_prediction_data
 
     def vectors(self):
         return self._vectors
@@ -568,6 +585,7 @@ def devectorize(v, default=None):
 def get_first_non_none(l, default=None):
     """
     Consider the first non None list in the args for extracting metadata.
+    :param default:
     :param l:
     :return:
     """
