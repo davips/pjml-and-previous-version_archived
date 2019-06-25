@@ -5,7 +5,7 @@ from paje.base.component import Component
 from paje.base.data import Data
 from paje.result.storage import Cache
 from paje.util.encoders import unpack_data, pack_comp, \
-    uuid, pack_data, zlibext_pack, zlibext_unpack
+    uuid, pack_data, zlibext_pack, zlibext_unpack, mysql_compress
 
 # Disabling profiling when not needed.
 try:
@@ -105,12 +105,11 @@ class SQL(Cache):
 
                 cid char(19) NOT NULL UNIQUE,
 
-                arg TEXT NOT NULL,
+                arg LONGBLOB NOT NULL,
 
                 insc timestamp NOT NULL
             )''')
-        self.query(f'CREATE INDEX com0 ON com (arg{self._keylimit()})')
-        self.query(f'CREATE INDEX com1 ON com (insc)')
+        self.query(f'CREATE INDEX com0 ON com (insc)')
 
         # Matrices/vectors
         # =============================================================
@@ -498,7 +497,8 @@ class SQL(Cache):
             )'''
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            self.query(sql, [component.uuid(), component.serialized()])
+            self.query(sql, [component.uuid(),
+                             mysql_compress(component.serialized())])
 
         sql = f'''insert into res values (
                 null,

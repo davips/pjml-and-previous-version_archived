@@ -207,7 +207,7 @@ def zlibext_pack(obj):
     :param obj:
     :return:
     """
-    dump = mysql_compress(json.dumps(obj, sort_keys=True).encode())
+    dump = mysql_compress(json_pack(obj).encode())
     return dump
 
 
@@ -218,7 +218,7 @@ def zlibext_unpack(dump):
     :param dump:
     :return:
     """
-    obj = json.loads(mysql_uncompress(dump).decode())
+    obj = json_unpack(mysql_uncompress(dump).decode())
     if obj == 'null':
         return None
     return obj
