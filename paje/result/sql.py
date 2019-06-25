@@ -498,7 +498,7 @@ class SQL(Cache):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             self.query(sql, [component.uuid(),
-                             mysql_compress(component.serialized())])
+                             mysql_compress(component.serialized().encode())])
 
         sql = f'''insert into res values (
                 null,
