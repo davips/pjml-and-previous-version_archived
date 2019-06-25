@@ -52,7 +52,7 @@ class SQL(Cache):
 
         # Columns of Data ======================================================
         self.query(f'''
-            create table if not exists atr (
+            create table if not exists attr (
                 n integer NOT NULL primary key {self._auto_incr()},
 
                 aid char(19) NOT NULL UNIQUE,
@@ -69,12 +69,12 @@ class SQL(Cache):
 
                 des TEXT NOT NULL,
 
-                atr char(19),
+                attr char(19),
 
-                FOREIGN KEY (atr) REFERENCES atr(aid)
+                FOREIGN KEY (attr) REFERENCES attr(aid)
             )''')
         self.query(f'CREATE INDEX nam0 ON name (des{self._keylimit()})')
-        self.query(f'CREATE INDEX nam1 ON name (atr)')
+        self.query(f'CREATE INDEX nam1 ON name (attr)')
 
         # Dump of Component instances  =========================================
         self.query(f'''
@@ -155,6 +155,9 @@ class SQL(Cache):
 
                 t char(19),
 
+                l char(19),
+                m char(19),
+
                 insd timestamp NOT NULL,
                 upd timestamp,
 
@@ -172,7 +175,9 @@ class SQL(Cache):
                 FOREIGN KEY (q) REFERENCES mat(mid),
                 FOREIGN KEY (r) REFERENCES mat(mid),
                 FOREIGN KEY (s) REFERENCES mat(mid),
-                FOREIGN KEY (t) REFERENCES mat(mid)
+                FOREIGN KEY (t) REFERENCES mat(mid),
+                FOREIGN KEY (l) REFERENCES mat(mid),
+                FOREIGN KEY (m) REFERENCES mat(mid)
                )''')
         # guardar last comp nao adianta pq o msm comp pode ser aplicado
         # varias vezes
@@ -193,6 +198,8 @@ class SQL(Cache):
         self.query(f'CREATE INDEX datar ON data (r)')
         self.query(f'CREATE INDEX datas ON data (s)')
         self.query(f'CREATE INDEX datat ON data (t)')
+        self.query(f'CREATE INDEX datal ON data (l)')
+        self.query(f'CREATE INDEX datam ON data (m)')
 
         # Results ==============================================================
         self.query(f'''
@@ -348,6 +355,7 @@ class SQL(Cache):
                     ?,?,
                     ?,?,
                     ?,
+                    ?,?,
                     {self._now_function()},
                     null
                 )
@@ -359,13 +367,16 @@ class SQL(Cache):
                          data.field_uuid('u'), data.field_uuid('v'),
                          data.field_uuid('w'), data.field_uuid('q'),
                          data.field_uuid('r'), data.field_uuid('s'),
-                         data.field_uuid('t')]
+                         data.field_uuid('t'),
+                         data.field_uuid('l'), data.field_uuid('m')
+                         ]
             from sqlite3 import IntegrityError as IntegrityErrorSQLite
             from pymysql import IntegrityError as IntegrityErrorMySQL
             try:
                 self.query(sql, data_args)
-                # unfortunately, it seems that FKs generate the same exception as
-                # reinsertion. so, missing FKs will might not be detected here.
+                # unfortunately,
+                # it seems that FKs generate the same exception as reinsertion.
+                # so, missing FKs will might not be detected here.
                 # not a worrying issue whatsoever.
             except IntegrityErrorSQLite as e:
                 print(self.name,
@@ -416,12 +427,12 @@ class SQL(Cache):
         :param data:
         :return:
         """
-        # atr ---------------------------------------------------------
+        # attr ---------------------------------------------------------
         # TODO: avoid sending long cols blob when unneeded
         cols = zlibext_pack(data.columns())
         uuid_cols = uuid(cols)
         sql = f'''
-            insert or ignore into atr values (
+            insert or ignore into attr values (
                 NULL,
                 ?,
                 ?
@@ -545,7 +556,7 @@ class SQL(Cache):
                     left join data on dout = did
                     left join name on name = nid
                     left join hist on hist = hid
-                    left join atr on atr = aid
+                    left join attr on attr = aid
                     {'left join inst on inst = iid' if compo.dump_it else ''}                    
             where                
                 com=? and op=? and dtr=? and din=?''',
@@ -676,11 +687,11 @@ class SQL(Cache):
 
         sql = f'''
                 select 
-                    x,y,z,p,u,v,w,q,r,s,t,cols,des
+                    x,y,z,p,u,v,w,q,r,s,t,l,m,cols,des
                 from 
                     data 
                         left join name on name=nid 
-                        left join atr on atr=aid
+                        left join attr on attr=aid
                 where 
                     des=? and hist=?'''
         self.query(sql, [name, hist_uuid])
@@ -739,12 +750,12 @@ class SQL(Cache):
     def get_data_by_uuid_impl(self, datauuid):
         sql = f'''
                 select 
-                    x,y,z,p,u,v,w,q,r,s,t,cols,txt,des
+                    x,y,z,p,u,v,w,q,r,s,t,l,m,cols,txt,des
                 from 
                     data 
                         left join name on name=nid 
                         left join hist on hist=hid
-                        left join atr on atr=aid
+                        left join attr on attr=aid
                 where 
                     did=?'''
         self.query(sql, [datauuid])
