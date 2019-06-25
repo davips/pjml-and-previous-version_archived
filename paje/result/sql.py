@@ -504,6 +504,8 @@ class SQL(Cache):
         args_res = [self.hostname,
                     component.uuid(), op,
                     component.train_data_uuid__mutable(), input_data.uuid()]
+        from sqlite3 import IntegrityError as IntegrityErrorSQLite
+        from pymysql import IntegrityError as IntegrityErrorMySQL
         try:
             self.query(sql, args_res)
         except IntegrityErrorSQLite as e:
