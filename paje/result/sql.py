@@ -37,8 +37,7 @@ class SQL(Cache):
 
     @profile
     def _setup(self):
-        if self.debug:
-            print(self.name, 'creating tables...')
+        print(self.name, 'creating tables...', self.info)
 
         # History of Data
         # ========================================================
