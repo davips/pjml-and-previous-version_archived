@@ -182,7 +182,9 @@ class Data:
             raise Exception(f'Field {field} not available in this Data!')
         key = '_dump' + field
         if self.__dict__[key] is None:
-            self.__dict__[key] = pack_data(self.matvecs()[field])
+            self.__dict__[key] = pack_data(self.matvecs()[field],
+                                           self.width(field),
+                                           self.height(field))
         return self.__dict__[key]
 
     def is_vector(self, v):
@@ -260,7 +262,7 @@ class Data:
         to avoid useless waits loading from file and recalculating UUID.
         :return:
         """
-        df = pd.read_csv(file)
+        df = pd.read_csv(file) # 1169_airlines explodes here with RAM < 6GiB
         return Data.read_data_frame(df, file, target, storage)
 
     @staticmethod

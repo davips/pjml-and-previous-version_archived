@@ -567,11 +567,11 @@ class SQL(Cache):
             for field in fields:
                 mid = result[field]
                 if mid is not None:
-                    self.query(f'select val from mat where mid=?', [mid])
+                    self.query(f'select val,w,h from mat where mid=?', [mid])
                     rone = self.get_one()
                     if rone is not None:
                         dic[Data.to_case_sensitive[field]] = unpack_data(
-                            rone['val']
+                            rone['val'], rone['w'], rone['h']
                         )
 
             # Create Data.
@@ -697,9 +697,9 @@ class SQL(Cache):
         for field in Data.list_to_case_sensitive(flst):
             mid = row[field.lower()]
             if mid is not None:
-                self.query(f'select val from mat where mid=?', [mid])
+                self.query(f'select val,w,h from mat where mid=?', [mid])
                 rone = self.get_one()
-                dic[field] = unpack_data(rone['val'])
+                dic[field] = unpack_data(rone['val'], rone['w'], rone['h'])
         return Data(columns=zlibext_unpack(row['cols']), **dic)
 
     # def get_component_by_uuid(self, component_uuid, just_check_exists=False):
@@ -760,9 +760,9 @@ class SQL(Cache):
         for field in Data.list_to_case_sensitive(fields):
             mid = row[field.lower()]
             if mid is not None:
-                self.query(f'select val from mat where mid=?', [mid])
+                self.query(f'select val,w,h from mat where mid=?', [mid])
                 rone = self.get_one()
-                dic[field] = unpack_data(rone['val'])
+                dic[field] = unpack_data(rone['val'], rone['w'], rone['h'])
         return Data(columns=zlibext_unpack(row['cols']), **dic)
 
     @profile

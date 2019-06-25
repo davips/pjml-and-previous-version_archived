@@ -6,7 +6,7 @@ import _pickle as pickle
 import blosc
 import lz4.frame as lz
 import zstd as zs
-
+import numpy as np
 # Disabling profiling when not needed.
 try:
     import builtins
@@ -136,9 +136,9 @@ def pack_comp(obj):
 
 
 @profile
-def pack_data(obj):
-    pickled = pickle.dumps(obj)
-    fast_reduced = lz.compress(pickled, compression_level=1)
+def pack_data(obj, w, h):
+    # pickled = pickle.dumps(obj) # 1169_airlines explodes here with RAM < ?
+    fast_reduced = lz.compress(obj.reshape(w * h), compression_level=1)
     return zs.compress(fast_reduced)
 
 
@@ -150,10 +150,13 @@ def unpack_comp(dump):
 
 
 @profile
-def unpack_data(dump):
+def unpack_data(dump, w, h):
     decompressed = zs.decompress(dump)
     fast_decompressed = lz.decompress(decompressed)
-    return pickle.loads(fast_decompressed)
+    return np.reshape(np.frombuffer(fast_decompressed), newshape=(h, w))
+
+    # 1169_airlines explodes here with RAM < ?
+    # return pickle.loads(fast_decompressed)
 
 
 def zip_array(X):
