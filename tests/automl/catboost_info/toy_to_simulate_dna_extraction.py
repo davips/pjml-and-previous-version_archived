@@ -1,14 +1,10 @@
 from sys import argv
 
 from paje.base.data import Data
-from paje.composer.concat import Concat
 from paje.evaluator.metrics import Metrics
 from paje.module.modelling.classifier.nb import NB
-from paje.module.noop import Noop
-from paje.module.preprocessing.supervised.supmtfe import SupMtFe
-from paje.module.preprocessing.unsupervised.unsupmtfe import UnsupMtFe
+from paje.module.preprocessing.mfe import MFE
 from paje.result.mysql import MySQL
-import numpy as np
 
 
 def main():
@@ -21,7 +17,7 @@ def main():
             print(a)
         path = argv[1]
         datasets = argv[2].split(',')
-        mfe = SupMtFe()  # Concat([SupMtFe()], ['X'], direction='horizontal')
+        mfe = MFE()  # Concat([SupMtFe()], ['X'], direction='horizontal')
         rows = []
         for dataset in datasets:
             data = Data.read_arff(path + dataset, "class")
