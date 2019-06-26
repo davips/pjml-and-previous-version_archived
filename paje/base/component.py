@@ -128,7 +128,8 @@ class Component(ABC):
         # Checklist / get from storage -----------------------------------
         self.check_if_built()
         if data is None:
-            raise Exception(f"Applying {self.name} on None !")
+            self.msg(f"Applying {self.name} on None returns None.")
+            return None  # If the Pipeline is done, that's ok.
 
         self._train_data_uuid__mutable = data.uuid()
 

@@ -23,7 +23,7 @@ class Classifier(Component, ABC):
         # self.model will be set in the child class
         # print('classif.......', data)
         self.model.fit(*data.Xy)
-        return self.use_impl(data)
+        return None
 
     def use_impl(self, data):
         return data.updated(self, z=self.model.predict(data.X))

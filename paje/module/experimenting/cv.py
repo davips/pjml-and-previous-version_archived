@@ -13,21 +13,21 @@ class CV(Component):
         self._max = 0
 
     def next(self):
-        if self.dic['testing_fold'] == self._max:
+        if self.dic['iteration'] == self._max:
             return None
 
         # Creates new, updated instance.
         newdic = self.dic.copy()
-        newdic['testing_fold'] += 1
+        newdic['iteration'] += 1
         inst = self.build(**newdic)
         inst._max = self._max
         inst._memoized = self._memoized
         return inst
 
-    def build(self, testing_fold=0, **kwargs):
-        if testing_fold == 0:
+    def build(self, iteration=0, **kwargs):
+        if iteration == 0:
             self._memoized = {}
-        kwargs['testing_fold'] = testing_fold
+        kwargs['iteration'] = iteration
         return super().build(**kwargs)
 
     def build_impl(self):
@@ -44,7 +44,7 @@ class CV(Component):
                 n_splits=self.dic['steps'],
                 test_size=self.dic['test_size'],
                 random_state=self.dic['random_state'])
-        self.testing_fold = self.dic['testing_fold']
+        self.iteration = self.dic['iteration']
 
     def apply_impl(self, data):
         if data.uuid() in self._memoized:
@@ -53,7 +53,7 @@ class CV(Component):
             partitions = self._memoized[data.uuid()] = \
                 list(self.model.split(*data.Xy))
         self._max = len(partitions) - 1
-        indices, _ = partitions[self.testing_fold]
+        indices, _ = partitions[self.iteration]
 
         # for sanity check in use()
         self._applied_data_uuid = data.uuid()
@@ -65,7 +65,7 @@ class CV(Component):
         if self._applied_data_uuid != data.uuid():
             raise Exception('apply() and use() must partition the same data!')
 
-        _, indices = list(self._memoized[data.uuid()])[self.testing_fold]
+        _, indices = list(self._memoized[data.uuid()])[self.iteration]
 
         return data.updated(Use(self), X=data.X[indices], Y=data.Y[indices])
 
@@ -82,7 +82,7 @@ class CV(Component):
         loo = {
             'split': ['c', ['loo']],
         }
-        HPTree({'testing_fold': ['c', [0]]}, [holdout, cv, loo])
+        HPTree({'iteration': ['c', [0]]}, [holdout, cv, loo])
 
     def touched_fields(self):
         return None
