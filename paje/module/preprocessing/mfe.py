@@ -24,6 +24,3 @@ class MFE(Component):
         # TODO: suppressing NaNs with 0s!!
         l[~np.isfinite(l)] = 0
         return data.updated(self, l=l)
-
-    def touched_fields(self):
-        return ['l']

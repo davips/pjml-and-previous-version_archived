@@ -5,9 +5,6 @@ from paje.base.hps import HPTree
 
 
 class Reductor(Component, ABC):
-    def touched_fields(self):
-        return ['x']
-
     def apply_impl(self, data):
         self.att_labels = data.columns
         max_components = min(data.n_instances(), data.n_attributes())

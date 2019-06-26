@@ -4,9 +4,6 @@ from paje.base.component import Component
 
 
 class Classifier(Component, ABC):
-    def touched_fields(self):
-        return ['z']
-
     def apply_impl(self, data):
         """
         Output of classifier.apply() does not represent the

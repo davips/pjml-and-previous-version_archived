@@ -14,9 +14,6 @@ from paje.util.distributions import exponential_integers
 
 
 class NRNN(Component, ABC):
-    def touched_fields(self):
-        return None
-
     def build_impl(self):
         self.vote = self.dic['vote']
         self.algorithm = self.dic['algorithm']

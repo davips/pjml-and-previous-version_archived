@@ -84,9 +84,6 @@ class CV(Component):
         }
         HPTree({'iteration': ['c', [0]]}, [holdout, cv, loo])
 
-    def touched_fields(self):
-        return None
-
 # Needed classes to mark history of transformations when apply() give different
 # results than use().
 class Apply:

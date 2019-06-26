@@ -177,6 +177,3 @@ class AutoML(Component, ABC):
             "AutoML has no tree() implemented!"
         )
 
-    def touched_fields(self):
-        return None
-

@@ -5,12 +5,6 @@ import copy
 
 
 class Pipeline(Composer):
-    def touched_fields(self):
-        return list(set(
-            sum([c.touched_fields() or Data.sql_all_fields
-                 for c in self.components], [])
-        ))
-
     def build_impl(self):
         """
         The only parameter is dics with the dic of each component.

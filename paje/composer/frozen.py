@@ -3,9 +3,6 @@ from paje.composer.composer import Composer
 
 
 class Frozen(Composer):
-    def touched_fields(self):
-        return self.components[0].touched_fields()
-
     def __init__(self, component, storage=None,
                  show_warns=True, **kwargs):
         super().__init__(components=[component],

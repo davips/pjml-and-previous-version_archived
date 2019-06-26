@@ -25,9 +25,12 @@ def sub(a, b):
 
 # TODO: convert in dataclass
 class Data:
+    # Conversions between vector and its single-valued shortcut.
     _val2vec = {'r': 'e', 's': 'f', 't': 'k'}
-    to_case_sensitive = _val2vec.copy()
-    to_case_sensitive.update({  # mostly for sql
+
+    # This is mostly for converting from storage/sql to Data() constructor.
+    to_constructor_format = _val2vec.copy()
+    to_constructor_format.update({
         'x': 'X',
         'y': 'Y',
         'z': 'Z',
@@ -39,13 +42,16 @@ class Data:
         'l': 'l',
         'm': 'm'
     })
-    sql_all_fields = list(to_case_sensitive.keys())
+
+    # And the other way around.
+    to_lowercase_format = {v: k for k, v in to_constructor_format.items()}
 
     @profile
     def __init__(self, name, X=None, Y=None, Z=None, P=None, e=None,
                  U=None, V=None, W=None, Q=None, f=None,
                  k=None, l=None, m=None,
-                 columns=None, history=None, task=None, n_classes=None):
+                 columns=None, history=None, modified=None,
+                 task=None, n_classes=None):
         # ALERT: all single-letter args will be considered matrices/vectors!
         """
             Immutable lazy data for all machine learning scenarios
@@ -87,6 +93,7 @@ class Data:
 
         :param columns: attribute names
         :param history: History of transformations suffered by the data
+        :param modified: list of fields modified in the last trasnformation
         :param task: intended use for this data: classification, clustering,...
         :param n_classes: this could be calculated,
             but it is too time consuming to do it every transformation.
@@ -101,8 +108,10 @@ class Data:
         all_mats_vecs = {k: v for k, v in locals().items() if len(k) == 1}
 
         self.__dict__.update(all_mats_vecs)
-        # prediction = {k: v for k, v in matvecs.items()
-        #               if k in ['Z', 'W', 'P', 'Q']}
+
+        if modified is None:
+            print('No list of modified fields provided to Data')
+            modified = [self.to_lowercase_format[f] for f in matvecs.keys()]
 
         # Metadata
         # TODO: store n_classes or avoid this lengthy set build every time
@@ -122,13 +131,10 @@ class Data:
             # variables, not functions.
             'Xy': (X, dematrixify(Y)),
             'Uv': (U, dematrixify(V)),
-            # '_prediction': prediction,
             '_history': history or [],
             '_matvecs': matvecs,
             '_columns': columns,
-            # '_has_prediction_data': bool(prediction),
-            # '_is_prediction_data': bool(set(prediction.keys()) -
-            #                             set(matvecs.keys()))
+            '_modified': modified or [],
         })
 
         # Add vectorized shortcuts for matrices.
@@ -151,9 +157,6 @@ class Data:
         self._set('_name_uuid', None)
         self._set('_name', name)
         self._set('_fields', None)
-
-        # # WARNING: Filled on-demand, following calls to field_uuid().
-        # self._set('uuid_fields', {})
 
         # Check list
         if not isinstance(name, str):
@@ -364,6 +367,12 @@ class Data:
         if 'columns' not in new_args:
             new_args['columns'] = self.columns()
 
+        if 'modified' not in new_args:
+            fields = kwargs.keys()
+            new_args['modified'] = [self.to_lowercase_format[f] for f in fields]
+        else:
+            print('Warning: giving \'modified\' from outside updated().')
+
         if 'history' not in new_args:
             if isinstance(component_or_list, list):
                 new_args['history'] = self.history() + component_or_list
@@ -372,7 +381,7 @@ class Data:
                     json_unpack(component_or_list.serialized())
                 ]
         else:
-            print('Warning: giving \'history\' from outside update().')
+            print('Warning: giving \'history\' from outside updated().')
         return Data(**new_args)
 
     @profile
@@ -380,8 +389,8 @@ class Data:
         """
         Get more matrices/vectors (or new values) from another Data.
         The longest history will be kept.
-        They should have the same name and be different by at least one
-        transformation.
+        They should have the same name and 'new_data' history should contain
+        the history of self.
         Otherwise, an exception will be raised.
         new_data has precedence over self.
         :param new_data:
@@ -403,20 +412,23 @@ class Data:
         dic = self.matvecs().copy()
         dic.update(new_data.matvecs())
 
+        fields = new_data.matvecs().keys()
+        modified = [self.to_lowercase_format[f] for f in fields]
+
         return Data(name=self.name(), history=history, columns=self.columns(),
-                    n_classes=self.n_classes(), **dic)
+                    n_classes=self.n_classes(), modified=modified, **dic)
 
     @profile
     def select(self, fields):
         """
-        Return a subset of the dictionary of kwargs.
+        Conveniently converts field names to return the dict of matrices/vectors
         ps.: Automatically convert vectorized/single-valued shortcuts to
         matrices/vectors.
         ps 2: ignore inexistent fields
         ps 3: raise exception in none fields
         :param fields: 'all' means 'don't touch anything'
         'except:z,w' means keep all except z,w
-        :return:
+        :return: a subset of the dictionary of kwargs.
         """
         fields.replace(':', ',')
         if fields == 'all':
@@ -545,16 +557,22 @@ class Data:
     def list_to_case_sensitive(cls, fields):
         sensitive = []
         for field in fields:
-            f = cls.to_case_sensitive[field] \
-                if field in cls.to_case_sensitive else field
+            f = cls.to_constructor_format[field] \
+                if field in cls.to_constructor_format else field
             sensitive.append(f)
         return sensitive
 
-    # @profile
-    # def shrink_to(self, fields):
-    #     return Data(name=self.name(), history=self.history(),
-    #                 columns=self.columns(), n_classes=self.n_classes,
-    #                 **self.select(fields))
+    @profile
+    def modified(self):
+        """
+        Matrices transformed or created by the last applied/used component.
+        Useful to be able to store and recover only new info, minimizing
+        traffic.
+
+        :return: lowercase list of modified sql-friendly fields:
+        ['x','y','z','u','v','w','p','q','r','s','t']
+        """
+        return self._modified
 
 
 class MutabilityException(Exception):

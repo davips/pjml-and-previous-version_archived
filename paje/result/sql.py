@@ -540,8 +540,7 @@ class SQL(Cache):
         """
         if compo.failed or compo.locked_by_others:
             return None, True, compo.failed is not None
-        fields = Data.sql_all_fields if compo.touched_fields() is None \
-            else compo.touched_fields()
+        fields = Data.touched_fields()
 
         if compo.dump_it:
             raise Exception('Are we really starting to store dump of '
@@ -581,7 +580,7 @@ class SQL(Cache):
                     self.query(f'select val,w,h from mat where mid=?', [mid])
                     rone = self.get_one()
                     if rone is not None:
-                        dic[Data.to_case_sensitive[field]] = unpack_data(
+                        dic[Data.to_constructor_format[field]] = unpack_data(
                             rone['val'], rone['w'], rone['h']
                         )
 
@@ -615,7 +614,8 @@ class SQL(Cache):
 
         # Store resulting Data
         if output_data is not None:
-            # Calling impl to avoid nested storage doing the same twice.
+            # We call impl here,
+            # to avoid nested storage trying to do the same work twice.
             self.store_data_impl(output_data)
 
         # Remove lock and point result to data inserted above.
