@@ -2,7 +2,7 @@ import arff
 import numpy as np
 import pandas as pd
 import sklearn.datasets as ds
-from paje.component.element.preprocessing.supervised.instance.sampler.cv \
+from paje.ml.element.preprocessing.supervised.instance.sampler.cv \
     import CV
 from paje.util.encoders import pack_data, uuid, json_unpack, zlibext_pack
 from sklearn.utils import check_X_y

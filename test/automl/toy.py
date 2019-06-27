@@ -1,9 +1,9 @@
 import sys
 
 from paje.base.data import Data
-from paje.component.automl.random import RandomAutoML
+from paje.automl import RandomAutoML
 from paje.evaluator.metrics import Metrics
-from paje.component.element.modelling.classifier.dt import DT
+from paje.ml.element.modelling.classifier.dt import DT
 
 
 def main():

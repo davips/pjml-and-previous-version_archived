@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 
 import numpy as np
 
-from paje.component.element.preprocessing.supervised.instance.sampler.cv \
+from paje.ml.element.preprocessing.supervised.instance.sampler.cv \
     import CV
 from paje.evaluator.metrics import Metrics
 

@@ -1,7 +1,7 @@
 import warnings
 from abc import abstractmethod
 
-from paje.component.component import Component
+from paje.ml.component import Component
 from paje.base.data import Data
 from paje.result.storage import Cache
 from paje.util.encoders import unpack_data, pack_comp, \

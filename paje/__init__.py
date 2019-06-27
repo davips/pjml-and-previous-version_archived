@@ -1,9 +1,9 @@
 from ._version import __version__
-from .component.automl import *
-from .component.composer import *
-from .component.element.modelling import *
-from .component.element.preprocessing.unsupervised.instance import *
-from .component.element.preprocessing.unsupervised.feature import *
-from .component.element.preprocessing.supervised.instance import *
-from .component.element.preprocessing.supervised.feature import *
+from paje.automl import *
+from paje.automl.composer import *
+from .ml.element.modelling import *
+from .ml.element.preprocessing.unsupervised.instance import *
+from .ml.element.preprocessing.unsupervised.feature import *
+from .ml.element.preprocessing.supervised.instance import *
+from .ml.element.preprocessing.supervised.feature import *
 
