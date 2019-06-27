@@ -426,3 +426,7 @@ class Component(ABC):
         :return:
         """
         return self.uuid()[:5]
+
+    @abstractmethod
+    def modifies(self):
+        pass

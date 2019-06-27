@@ -1,9 +1,10 @@
 from abc import ABC
 
 from paje.component.component import Component
+from paje.component.element.element import Element
 
 
-class Classifier(Component, ABC):
+class Classifier(Element, ABC):
     def apply_impl(self, data):
         """
         Output of classifier.apply() does not represent the

@@ -109,7 +109,6 @@ class Data:
         self.__dict__.update(all_mats_vecs)
 
         if modified is None:
-            print('No list of modified fields provided to Data')
             modified = [self.to_lowercase_format[f] for f in matvecs.keys()]
 
         # Metadata

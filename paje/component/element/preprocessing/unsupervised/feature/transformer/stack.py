@@ -1,7 +1,8 @@
 from paje.component.component import Component
+from paje.component.element.element import Element
 
 
-class Stack(Component):
+class Stack(Element):
     def __init__(self, component, storage=None,
                  show_warns=True, **kwargs):
         super().__init__(storage=storage, show_warns=show_warns)

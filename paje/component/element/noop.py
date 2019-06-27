@@ -1,8 +1,9 @@
 from paje.component.component import Component
 from paje.base.hps import HPTree
+from paje.component.element.element import Element
 
 
-class Noop(Component):
+class Noop(Element):
     def build_impl(self):
         self.model = 42 # TODO: better model here?
 
