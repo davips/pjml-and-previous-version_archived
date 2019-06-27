@@ -1,11 +1,11 @@
 import warnings
 from abc import abstractmethod
 
-from paje.base.component import Component
+from paje.component.component import Component
 from paje.base.data import Data
 from paje.result.storage import Cache
 from paje.util.encoders import unpack_data, pack_comp, \
-    uuid, pack_data, zlibext_pack, zlibext_unpack, mysql_compress
+    uuid, zlibext_pack, zlibext_unpack, mysql_compress
 
 # Disabling profiling when not needed.
 try:

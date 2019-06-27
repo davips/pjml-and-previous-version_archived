@@ -1,11 +1,10 @@
 import arff
 import numpy as np
 import pandas as pd
-import sklearn
 import sklearn.datasets as ds
-from paje.module.experimenting.cv import CV
-from paje.util.encoders import pack_data, uuid, uuid_enumerated_dic, \
-    json_unpack, json_pack, zlibext_pack
+from paje.component.element.preprocessing.supervised.instance.sampler.cv \
+    import CV
+from paje.util.encoders import pack_data, uuid, json_unpack, zlibext_pack
 from sklearn.utils import check_X_y
 
 # Disabling profiling when not needed.

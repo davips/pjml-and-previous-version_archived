@@ -1,22 +1,9 @@
 import sys
-from sys import argv
 
-from paje.automl.random import RandomAutoML
 from paje.base.data import Data
+from paje.component.automl.random import RandomAutoML
 from paje.evaluator.metrics import Metrics
-from paje.module.modules import default_modelers, default_preprocessors
-from paje.module.preprocessing.unsupervised.feature.transformer.drpca import \
-    DRPCA
-from paje.module.modelling.classifier.svmc import SVMC
-from paje.module.modelling.classifier.dt import DT
-from paje.module.modelling.classifier.cb import CB
-from paje.module.modelling.classifier.knn import KNN
-from paje.module.modelling.classifier.nb import NB
-from paje.module.modelling.classifier.nbp import NBP
-from paje.module.modelling.classifier.mlp import MLP
-from paje.module.modelling.classifier.rf import RF
-from paje.module.modelling.classifier.svm import SVM
-from paje.module.modelling.classifier.svmc import SVMC
+from paje.component.element.modelling.classifier.dt import DT
 
 
 def main():
