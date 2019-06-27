@@ -1,85 +1,29 @@
-"""Setup for paje package."""
-import os
-import setuptools
-import paje
+from setuptools import setup, find_packages
 
-NAME = 'paje'
+setup(name="paje",
+      version="0.0.1",
+      packages=find_packages(),
+      )
 
-
-VERSION = paje.__version__
-
-
-AUTHOR = 'Edesio Alcobaça, David Pereira dos Santos'
-
-
-AUTHOR_EMAIL = 'edesio@usp.br'
-
-
-DESCRIPTION = 'Pajé - Automated machine learning tool.'
-
-
-with open('README.md', 'r') as fh:
-    LONG_DESCRIPTION = fh.read()
-
-
-LICENSE = 'GPL3'
-
-
-URL = 'https://github.com/ealcobaca/automl-paje'
-
-
-DOWNLOAD_URL = 'https://github.com/ealcobaca/automl-paje/releases'
-
-
-CLASSIFIERS = ['Intended Audience :: Science/Research',
-               'Intended Audience :: Developers',
-               'License :: OSI Approved :: MIT License',
-               'Natural Language :: English',
-               'Programming Language :: Python',
-               'Topic :: Software Development',
-               'Topic :: Scientific/Engineering',
-               'Operating System :: OS Independent',
-               'Programming Language :: Python :: 3.6',
-               'Programming Language :: Python :: 3.7']
-
-
-INSTALL_REQUIRES = [
-    'scipy', 'numpy', 'pandas', 'scikit-learn', 'pymysql', 'blosc',
-    'zstd', 'lz4', 'catboost', 'imbalanced-learn', 'liac-arff', 'pymfe'
-]
-
-
-EXTRAS_REQUIRE = {
-    'code-check': [
-        'pytest',
-        'mypy'
-    ],
-    'tests': [
-        'pytest',
-        'pytest-cov',
-    ],
-    'docs': [
-        'sphinx',
-        'sphinx-gallery',
-        'sphinx_rtd_theme',
-        'numpydoc'
-    ]
-}
-
-
-setuptools.setup(
-    name=NAME,
-    version=VERSION,
-    author=AUTHOR,
-    author_email=AUTHOR_EMAIL,
-    description=DESCRIPTION,
-    long_description=LONG_DESCRIPTION,
-    long_description_content_type="text/markdown",
-    license=LICENSE,
-    url=URL,
-    download_url=DOWNLOAD_URL,
-    packages=setuptools.find_packages(),
-    classifiers=CLASSIFIERS,
-    install_requires=INSTALL_REQUIRES,
-    extras_require=EXTRAS_REQUIRE,
-)
+setup(name='paje',
+      version='0.1',
+      description='Paje automated machine leaning tool.',
+      url='https://github.com/ealcobaca/automl-paje',
+      author=["Edesio Alcobaça"],
+      author_email='e.alcobaca@gmail.com',
+      license='GPL3',
+      packages=['paje'],
+      install_requires=[
+          "scipy",
+          "catboost",
+          "numpy",
+          "scikit-learn",
+          "imbalanced-learn",
+          "liac-arff",
+          "numpy",
+          "pandas",
+          "pymysql", 'blosc', 'zstd', 'lz4'
+      ],
+      setup_requires=["pytest-runner"],
+      tests_require=["pytest"],
+      zip_safe=False)
