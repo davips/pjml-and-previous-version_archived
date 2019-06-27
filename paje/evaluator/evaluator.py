@@ -1,11 +1,9 @@
 from abc import ABC, abstractmethod
 
 import numpy as np
-from sklearn.model_selection import LeaveOneOut
-from sklearn.model_selection import StratifiedKFold
-from sklearn.model_selection import StratifiedShuffleSplit
 
-from paje.module.experimenting.cv import CV
+from paje.component.element.preprocessing.supervised.instance.sampler.cv \
+    import CV
 from paje.evaluator.metrics import Metrics
 
 
