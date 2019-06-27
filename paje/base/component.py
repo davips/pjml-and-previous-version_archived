@@ -428,5 +428,5 @@ class Component(ABC):
         return self.uuid()[:5]
 
     @abstractmethod
-    def modifies(self):
+    def modifies(self, op):
         pass

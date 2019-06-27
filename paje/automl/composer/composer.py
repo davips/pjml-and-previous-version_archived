@@ -88,7 +88,7 @@ class Composer(Component):
                 raise Exception('Using subcomponent failed! ', component)
         return data
 
-    def modifies(self):
+    def modifies(self, op):
         print('ALERT: implement Composer.modifies() correctly to avoid '
               'useless traffic!')
         print(' Evil plan: inspect.getsource( ... ) ')

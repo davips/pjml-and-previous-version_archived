@@ -540,7 +540,7 @@ class SQL(Cache):
         """
         if compo.failed or compo.locked_by_others:
             return None, True, compo.failed is not None
-        fields = compo.modifies()
+        fields = compo.modifies(op)
 
         if compo.dump_it:
             raise Exception('Are we really starting to store dump of '

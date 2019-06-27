@@ -2,7 +2,7 @@ from paje.base.component import Component
 
 
 class Element(Component):
-    def modifies(self):
+    def modifies(self, op):
         print('ALERT: implement Element.modifies() correctly to avoid '
               'useless traffic!')
         print(' Evil plan: inspect.getsource( ... ) ')
