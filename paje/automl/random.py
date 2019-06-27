@@ -2,7 +2,7 @@ import random
 
 import numpy as np
 
-from paje.automl import AutoML
+from paje.automl.automl import AutoML
 from paje.automl.composer.pipeline import Pipeline
 from paje.util.distributions import SamplingException
 from paje.evaluator.evaluator import EvaluatorClassif

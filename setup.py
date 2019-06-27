@@ -33,7 +33,7 @@ DOWNLOAD_URL = 'https://github.com/ealcobaca/automl-paje/releases'
 
 CLASSIFIERS = ['Intended Audience :: Science/Research',
                'Intended Audience :: Developers',
-               'License :: OSI Approved :: MIT License',
+               'License :: OSI Approved :: GPL3 License',
                'Natural Language :: English',
                'Programming Language :: Python',
                'Topic :: Software Development',

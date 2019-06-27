@@ -1,4 +1,4 @@
-from paje.automl.composer import Frozen
+from paje.automl.composer.frozen import Frozen
 
 
 class Melting(Frozen):

@@ -41,7 +41,7 @@ class Composer(Component):
 
         # Updated after build()
         self.random_state = 0
-        self._mytree = None
+        self.mytree = None
 
         # TODO: better model here?
         self.model = 42
