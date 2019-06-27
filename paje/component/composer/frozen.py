@@ -1,5 +1,5 @@
 from paje.base.hps import HPTree
-from paje.component.composer import Composer
+from paje.component.composer.composer import Composer
 
 
 class Frozen(Composer):

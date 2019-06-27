@@ -176,3 +176,9 @@ class AutoML(Component, ABC):
             "AutoML has no tree() implemented!"
         )
 
+    def modifies(self):
+        print('ALERT: implement AutoML.modifies() correctly to avoid '
+              'useless traffic!')
+        print(' Evil plan: inspect.getsource( ... ) ')
+        # inspect.getsource(
+        return ['x', 'y', 'z']
