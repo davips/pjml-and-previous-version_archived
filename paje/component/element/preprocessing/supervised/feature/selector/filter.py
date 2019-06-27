@@ -2,9 +2,10 @@ from abc import ABC
 
 from paje.component.component import Component
 from paje.base.hps import HPTree
+from paje.component.element.element import Element
 
 
-class Filter(Component, ABC):
+class Filter(Element, ABC):
     """ Filter base class"""
     def build_impl(self):
         self.ratio = self.dic['ratio']

@@ -3,10 +3,11 @@ from paje.base.hps import HPTree
 from sklearn.model_selection import StratifiedKFold, LeaveOneOut, \
     StratifiedShuffleSplit
 
+from paje.component.element.element import Element
 from paje.util.encoders import json_unpack, json_pack
 
 
-class CV(Component):
+class CV(Element):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._memoized = {}

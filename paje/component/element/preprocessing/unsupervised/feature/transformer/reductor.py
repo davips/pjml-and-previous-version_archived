@@ -2,9 +2,10 @@ from abc import ABC, abstractmethod
 
 from paje.component.component import Component
 from paje.base.hps import HPTree
+from paje.component.element.element import Element
 
 
-class Reductor(Component, ABC):
+class Reductor(Element, ABC):
     def apply_impl(self, data):
         self.att_labels = data.columns
         max_components = min(data.n_instances(), data.n_attributes())

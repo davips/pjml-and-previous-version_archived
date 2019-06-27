@@ -9,10 +9,11 @@ from sklearn.neighbors import KNeighborsClassifier
 
 from paje.component.component import Component
 from paje.base.hps import HPTree
+from paje.component.element.element import Element
 from paje.util.distributions import exponential_integers
 
 
-class NRNN(Component, ABC):
+class NRNN(Element, ABC):
     def build_impl(self):
         self.vote = self.dic['vote']
         self.algorithm = self.dic['algorithm']

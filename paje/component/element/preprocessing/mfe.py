@@ -2,8 +2,10 @@ from pymfe.mfe import MFE as PYMFE
 from paje.component.component import Component
 import numpy as np
 
+from paje.component.element.element import Element
 
-class MFE(Component):
+
+class MFE(Element):
     def tree_impl(self):
         raise Exception('Specify parameters like "supervised"/"unsupervised"'
                         'in the HP tree?')

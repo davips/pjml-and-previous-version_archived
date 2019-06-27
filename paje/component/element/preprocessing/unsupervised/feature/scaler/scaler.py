@@ -3,9 +3,10 @@
 from abc import ABC
 
 from paje.component.component import Component
+from paje.component.element.element import Element
 
 
-class Scaler(Component, ABC):
+class Scaler(Element, ABC):
     def apply_impl(self, data):
         # self.model will be set in the child class
         self.model.fit(*data.Xy)
