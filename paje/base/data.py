@@ -28,8 +28,8 @@ class Data:
     _val2vec = {'r': 'e', 's': 'f', 't': 'k'}
 
     # This is mostly for converting from storage/sql to Data() constructor.
-    to_constructor_format = _val2vec.copy()
-    to_constructor_format.update({
+    fields_in_constructor_format = _val2vec.copy()
+    fields_in_constructor_format.update({
         'x': 'X',
         'y': 'Y',
         'z': 'Z',
@@ -43,7 +43,36 @@ class Data:
     })
 
     # And the other way around.
-    to_lowercase_format = {v: k for k, v in to_constructor_format.items()}
+    fields_in_lowercase_format = {v: k for k, v in
+                                  fields_in_constructor_format.items()}
+
+    # And the identities for both ways.
+    fields_in_lowercase_format.update({
+        'x': 'x',
+        'y': 'y',
+        'z': 'z',
+        'u': 'u',
+        'v': 'v',
+        'w': 'w',
+        'p': 'p',
+        'q': 'q',
+        'r': 'r',
+        's': 's',
+        't': 't'
+    })
+    fields_in_constructor_format.update({
+        'X': 'X',
+        'Y': 'Y',
+        'Z': 'Z',
+        'U': 'U',
+        'V': 'V',
+        'W': 'W',
+        'P': 'P',
+        'Q': 'Q',
+        'e': 'e',
+        'f': 'f',
+        'k': 'k'
+    })
 
     @profile
     def __init__(self, name, X=None, Y=None, Z=None, P=None, e=None,
@@ -109,7 +138,8 @@ class Data:
         self.__dict__.update(all_mats_vecs)
 
         if modified is None:
-            modified = [self.to_lowercase_format[f] for f in matvecs.keys()]
+            modified = [self.fields_in_lowercase_format[f]
+                        for f in matvecs.keys()]
 
         # Metadata
         # TODO: store n_classes or avoid this lengthy set build every time
@@ -192,9 +222,7 @@ class Data:
         :param field: Case insensitive.
         :return: binary compressed dump
         '''
-        # TODO: get rid of this gambiarra
-        field = field if field in self.matvecs() else field.lower()
-        field = field if field in self.matvecs() else field.upper()
+        field = self.fields_in_constructor_format[field]
 
         if self.matvecs()[field] is None:
             raise Exception(f'Field {field} not available in this Data!')
@@ -367,7 +395,8 @@ class Data:
 
         if 'modified' not in new_args:
             fields = kwargs.keys()
-            new_args['modified'] = [self.to_lowercase_format[f] for f in fields]
+            new_args['modified'] = [self.fields_in_lowercase_format[f]
+                                    for f in fields]
         else:
             print('Warning: giving \'modified\' from outside updated().')
 
@@ -411,7 +440,7 @@ class Data:
         dic.update(new_data.matvecs())
 
         fields = new_data.matvecs().keys()
-        modified = [self.to_lowercase_format[f] for f in fields]
+        modified = [self.fields_in_lowercase_format[f] for f in fields]
 
         return Data(name=self.name(), history=history, columns=self.columns(),
                     n_classes=self.n_classes(), modified=modified, **dic)
@@ -555,8 +584,8 @@ class Data:
     def list_to_case_sensitive(cls, fields):
         sensitive = []
         for field in fields:
-            f = cls.to_constructor_format[field] \
-                if field in cls.to_constructor_format else field
+            f = cls.fields_in_constructor_format[field] \
+                if field in cls.fields_in_constructor_format else field
             sensitive.append(f)
         return sensitive
 

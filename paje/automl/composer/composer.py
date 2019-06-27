@@ -4,14 +4,16 @@
 This module is a generic module to build a 'Composer'. The idea of the Composer
 is to make operations over 'Components'. For example, the Pipeline is a
 Composer that applies Components sequentially. On the other hand, the Switch
-Composer applies only one Component by time.
+Composer applies only one Component at a time.
 
-For more information about the Compoeser concept see [1].
+For more information about the Composer concept see [1].
 
 .. _paje_arch Paje Architecture:
     TODO: put the link here
 """
+
 from paje.base.component import Component
+from paje.util.misc import flatten
 
 
 class Composer(Component):
@@ -20,7 +22,11 @@ class Composer(Component):
 
     def __init__(self, components=None, **kwargs):
         """The class provides easy access for metafeature extraction from
-        datasets
+        datasets.
+
+        ps. It should transform data only through its internal components,
+        never directly (to avoid inconsistencies, e.g. the need to
+        override the method modifies()).
 
         Attributes
         ----------
@@ -89,8 +95,11 @@ class Composer(Component):
         return data
 
     def modifies(self, op):
-        print('ALERT: implement Composer.modifies() correctly to avoid '
-              'useless traffic!')
-        print(' Evil plan: inspect.getsource( ... ) ')
-        # inspect.getsource(
-        return ['x', 'y', 'z']
+        if op not in ['a', 'u']:
+            raise Exception('Wrong op:', op)
+
+        if self._modified[op] is None:
+            self._modified[op] = list(set(
+                flatten([compo.modifies(op) for compo in self.components])
+            ))
+        return self._modified[op]

@@ -8,6 +8,7 @@ from abc import ABC, abstractmethod
 
 # from paje
 from paje.base.component import Component
+from paje.base.data import Data
 
 
 class AutoML(Component, ABC):
@@ -169,7 +170,7 @@ class AutoML(Component, ABC):
         )
 
     @classmethod
-    def tree_impl(cls, data=None):
+    def tree_impl(cls):
         """ TODO the docstring documentation
         """
         raise NotImplementedError(
@@ -177,8 +178,14 @@ class AutoML(Component, ABC):
         )
 
     def modifies(self, op):
-        print('ALERT: implement AutoML.modifies() correctly to avoid '
-              'useless traffic!')
-        print(' Evil plan: inspect.getsource( ... ) ')
-        # inspect.getsource(
-        return ['x', 'y', 'z']
+        if op not in ['a', 'u']:
+            raise Exception('Wrong op:', op)
+
+        if self._modified[op] is None:
+            if op == 'a':
+                # Assumes all fields will be modified by AutoML during apply().
+                self._modified[op] = Data.fields_in_constructor_format().keys()
+            else:
+                self._modified[op] = self.model.modifies(op)
+
+        return self._modified[op]

@@ -36,6 +36,7 @@ class Component(ABC):
         # that has self.model.
         self.unfit = True
         self.model = None
+        self._modified = {'a': None, 'u': None}
         self.dic = {}
         self.name = self.__class__.__name__
         self.module = self.__class__.__module__
@@ -154,7 +155,7 @@ class Component(ABC):
                 return output_data
 
         # Apply if still needed  ----------------------------------
-        if output_data is None:
+        if not ended:
             if self.storage is not None:
                 self.storage.lock(self, 'a', data)
 
@@ -213,7 +214,7 @@ class Component(ABC):
                 return output_data
 
         # Use if still needed  ----------------------------------
-        if output_data is None:
+        if not ended:
             if self.storage is not None:
                 self.storage.lock(self, 'u', data)
 
@@ -255,14 +256,22 @@ class Component(ABC):
     def isdeterministic(self):
         return False
 
+    _ps = '''ps.: All Data transformation must be done via method updated() with 
+        explicit keyworded args (e.g. X=X, y=...)!
+        This is needed because modifies() will inspect the code and look for 
+        the fields that can be modified by the component.'''
     @abstractmethod
     def apply_impl(self, data):
-        """Todo the doc string
+        f"""
+                
+        {self._ps} 
         """
 
     @abstractmethod
     def use_impl(self, data):
-        """Todo the doc string
+        f"""
+
+        {self._ps}
         """
 
     # @abstractmethod

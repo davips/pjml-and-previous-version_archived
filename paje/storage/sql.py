@@ -479,7 +479,7 @@ class SQL(Cache):
         :return:
         """
         if self.debug:
-            print(self.name, 'Locking...')
+            print(self.name, 'Locking...', op)
 
         # Store input set if not existent yet.
         # Calling impl to avoid nested storage doing the same twice.
@@ -547,8 +547,8 @@ class SQL(Cache):
                             'components?')
         self.query(f'''
             select 
-                des, spent, fail, end, node, txt as history, cols,
-                {','.join(fields)}
+                des, spent, fail, end, node, txt as history, cols
+                {',' + ','.join(fields) if len(fields) > 0 else ''}
                 {', dump' if compo.dump_it else ''}
             from 
                 res 
@@ -580,9 +580,8 @@ class SQL(Cache):
                     self.query(f'select val,w,h from mat where mid=?', [mid])
                     rone = self.get_one()
                     if rone is not None:
-                        dic[Data.to_constructor_format[field]] = unpack_data(
-                            rone['val'], rone['w'], rone['h']
-                        )
+                        dic[Data.fields_in_constructor_format[field]] = \
+                            unpack_data(rone['val'], rone['w'], rone['h'])
 
             # Create Data.
             history = zlibext_unpack(result['history'])

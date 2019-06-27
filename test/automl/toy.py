@@ -2,8 +2,11 @@ import sys
 
 from paje.base.data import Data
 from paje.automl.optimization.blind.random import RandomAutoML
+from paje.ml.element.preprocessing.unsupervised.feature.scaler.equalization import \
+    Equalization
 from paje.ml.metric.supervised.classification.mclassif import Metrics
 from paje.ml.element.modelling.supervised.classifier.dt import DT
+from paje.util.defaults import default_preprocessors
 
 
 def main():
@@ -47,7 +50,7 @@ def main():
         automl_rs = RandomAutoML(
             # preprocessors=default_preprocessors,
             # modelers=default_modelers,
-            preprocessors=[],
+            preprocessors=[Equalization()],
             modelers=my_modelers,
             storage_for_components=storage,
             show_warns=False,
