@@ -32,7 +32,7 @@ class Composer(Component):
         """
 
         # TODO: An empty Pipeline/composer may return perfect predictions.
-        super().__init__(kwargs)
+        super().__init__(**kwargs)
         if components is None:
             components = []
 
