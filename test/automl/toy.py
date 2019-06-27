@@ -1,9 +1,9 @@
 import sys
 
 from paje.base.data import Data
-from paje.automl.random import RandomAutoML
-from paje.evaluator.metrics import Metrics
-from paje.ml.element.modelling.classifier.dt import DT
+from paje.automl.optimization.blind.random import RandomAutoML
+from paje.ml.metric.supervised.classification.mclassif import Metrics
+from paje.ml.element.modelling.supervised.classifier.dt import DT
 
 
 def main():
@@ -19,18 +19,18 @@ def main():
 
         if 'storage' in arg:
             if arg['storage'] == 'sqlite':
-                from paje.result.sqlite import SQLite
+                from paje.storage.sqlite import SQLite
                 storage = SQLite(debug=not True)
             elif arg['storage'] == 'mysql':
-                from paje.result.mysql import MySQL
+                from paje.storage.mysql import MySQL
                 storage = MySQL(db=arg['db'], debug=not True)
             elif arg['storage'] == 'cached':
-                from paje.result.mysql import MySQL
-                from paje.result.sqlite import SQLite
+                from paje.storage.mysql import MySQL
+                from paje.storage.sqlite import SQLite
                 storage = MySQL(db=arg['db'], nested_storage=SQLite())
             elif arg['storage'] == 'sync':
-                from paje.result.mysql import MySQL
-                from paje.result.sqlite import SQLite
+                from paje.storage.mysql import MySQL
+                from paje.storage.sqlite import SQLite
                 storage = MySQL(db=arg['db'], nested_storage=SQLite(),
                                 sync=True)
             else:

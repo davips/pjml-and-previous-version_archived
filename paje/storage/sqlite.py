@@ -1,7 +1,7 @@
 import socket
 import sqlite3
 
-from paje.result.sql import SQL
+from paje.storage.sql import SQL
 
 
 class SQLite(SQL):

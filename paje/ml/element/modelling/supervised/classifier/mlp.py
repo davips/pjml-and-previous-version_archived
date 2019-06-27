@@ -1,10 +1,8 @@
-import numpy as np
 import math
 from sklearn.neural_network import MLPClassifier
 
-from paje.base.exceptions import ExceptionInApplyOrUse
 from paje.base.hps import HPTree
-from paje.ml.element.modelling.classifier.classifier import Classifier
+from paje.ml.element.modelling.supervised.classifier.classifier import Classifier
 from paje.util.distributions import exponential_integers
 
 

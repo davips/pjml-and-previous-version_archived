@@ -4,7 +4,7 @@ import numpy as np
 
 from paje.ml.element.preprocessing.supervised.instance.sampler.cv \
     import CV
-from paje.evaluator.metrics import Metrics
+from paje.ml.metric.supervised.classification.mclassif import Metrics
 
 
 class Evaluator(ABC):

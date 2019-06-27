@@ -1,9 +1,9 @@
 import warnings
 from abc import abstractmethod
 
-from paje.ml.component import Component
+from paje.base.component import Component
 from paje.base.data import Data
-from paje.result.storage import Cache
+from paje.storage.storage import Cache
 from paje.util.encoders import unpack_data, pack_comp, \
     uuid, zlibext_pack, zlibext_unpack, mysql_compress
 
@@ -816,7 +816,7 @@ class SQL(Cache):
             return
         if args is None:
             args = []
-        from paje.result.mysql import MySQL
+        from paje.storage.mysql import MySQL
         msg = self._interpolate(sql, args)
         if self.debug:
             print(self.name, msg)

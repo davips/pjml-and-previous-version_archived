@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 # import numpy as np
 
 # from paje
-from paje.ml.component import Component
+from paje.base.component import Component
 
 
 class AutoML(Component, ABC):
@@ -36,7 +36,7 @@ class AutoML(Component, ABC):
 
         # Other class attributes.
         # These attributes can be set here or in the build_impl method. They
-        # should not influence the AutoML final result.
+        # should not influence the AutoML final storage.
         self.n_jobs = n_jobs  # I am not sure if this variable should be here.
         self.verbose = verbose
 

@@ -3,7 +3,7 @@ import socket
 import pymysql
 import pymysql.cursors
 
-from paje.result.sql import SQL
+from paje.storage.sql import SQL
 
 
 class MySQL(SQL):

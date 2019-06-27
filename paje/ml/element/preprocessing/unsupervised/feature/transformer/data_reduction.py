@@ -27,7 +27,7 @@ is the new amount of features. PCA aims to reduce a matrix Amxn to Amxd
 
     5 - Get eigenvector subset: W = eig_vecs[:, 0 : d]
 
-    6 - PCA result: Y = A @ W # Y = A W
+    6 - PCA storage: Y = A @ W # Y = A W
 
 
 - apply_PCA parameters are presented bellow:

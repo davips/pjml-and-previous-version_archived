@@ -1,4 +1,4 @@
-from paje.ml.component import Component
+from paje.base.component import Component
 from paje.base.hps import HPTree
 from sklearn.model_selection import StratifiedKFold, LeaveOneOut, \
     StratifiedShuffleSplit

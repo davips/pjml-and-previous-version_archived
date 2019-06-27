@@ -1,5 +1,5 @@
 from pymfe.mfe import MFE as PYMFE
-from paje.ml.component import Component
+from paje.base.component import Component
 import numpy as np
 
 from paje.ml.element.element import Element

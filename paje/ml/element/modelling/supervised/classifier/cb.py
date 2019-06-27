@@ -1,8 +1,7 @@
 from catboost import CatBoostClassifier
-from math import *
 
 from paje.base.hps import HPTree
-from paje.ml.element.modelling.classifier.classifier import Classifier
+from paje.ml.element.modelling.supervised.classifier.classifier import Classifier
 
 
 class CB(Classifier):

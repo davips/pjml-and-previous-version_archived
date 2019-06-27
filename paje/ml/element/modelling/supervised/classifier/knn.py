@@ -1,11 +1,9 @@
-from math import *
-
 import numpy as np
 from sklearn.neighbors.classification import KNeighborsClassifier
 
 from paje.base.exceptions import ExceptionInApplyOrUse
 from paje.base.hps import HPTree
-from paje.ml.element.modelling.classifier.classifier import Classifier
+from paje.ml.element.modelling.supervised.classifier.classifier import Classifier
 from paje.util.distributions import exponential_integers
 
 

@@ -1,9 +1,7 @@
-from math import *
-
 from sklearn.tree import DecisionTreeClassifier
 
 from paje.base.hps import HPTree
-from paje.ml.element.modelling.classifier.classifier import Classifier
+from paje.ml.element.modelling.supervised.classifier.classifier import Classifier
 
 
 class DT(Classifier):

@@ -1,4 +1,4 @@
-from paje.ml.component import Component
+from paje.base.component import Component
 from paje.ml.element.element import Element
 
 

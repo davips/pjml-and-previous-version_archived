@@ -11,7 +11,7 @@ For more information about the Compoeser concept see [1].
 .. _paje_arch Paje Architecture:
     TODO: put the link here
 """
-from paje.ml.component import Component
+from paje.base.component import Component
 
 
 class Composer(Component):

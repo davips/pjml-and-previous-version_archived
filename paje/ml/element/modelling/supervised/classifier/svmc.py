@@ -1,19 +1,25 @@
-from sklearn.dummy import DummyClassifier
-from sklearn.svm import NuSVC
+from sklearn.svm import SVC
 
 from paje.base.hps import HPTree
-from paje.ml.element.modelling.classifier.classifier import Classifier
+from paje.ml.element.modelling.supervised.classifier.classifier import Classifier
 
 
-class SVM(Classifier):
+class SVMC(Classifier): #, JSONEncoder):
+    # def default(self, o):
+    #     if isinstance(o, SVMC):
+    #         print(o)
+    #         return o.__name__
+    #     else:
+    #         return JSONEncoder.default(self, o)
+
     def build_impl(self):
-        self.model = NuSVC(**self.dic)
+        self.model = SVC(**self.dic)
 
     @classmethod
     def tree_impl(self):
         # todo: set random seed; set 'cache_size'
         dic = {
-            'nu': ['r', [0.0001, 0.8]],
+            'C': ['r', [0.0001, 100]],
             'shrinking': ['c', [True, False]],
             'probability': ['c', [False]],
             'tol': ['o',

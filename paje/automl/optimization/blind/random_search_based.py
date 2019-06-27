@@ -4,14 +4,14 @@ import numpy as np
 
 from paje.automl import AutoML
 from paje.evaluator.evaluator import Evaluator
-from paje.evaluator.metrics import Metrics
-from paje.ml.element.modelling.classifier.cb import CB
-from paje.ml.element.modelling.classifier.dt import DT
-from paje.ml.element.modelling.classifier.knn import KNN
-from paje.ml.element.modelling.classifier.mlp import MLP
-from paje.ml.element.modelling.classifier.nb import NB
-from paje.ml.element.modelling.classifier.rf import RF
-from paje.ml.element.modelling.classifier.svm import SVM
+from paje.ml.metric.supervised.classification.mclassif import Metrics
+from paje.ml.element.modelling.supervised.classifier.cb import CB
+from paje.ml.element.modelling.supervised.classifier.dt import DT
+from paje.ml.element.modelling.supervised.classifier.knn import KNN
+from paje.ml.element.modelling.supervised.classifier.mlp import MLP
+from paje.ml.element.modelling.supervised.classifier.nb import NB
+from paje.ml.element.modelling.supervised.classifier.rf import RF
+from paje.ml.element.modelling.supervised.classifier.svm import SVM
 from paje.ml.element.preprocessing.supervised.feature.selector.statistical.cfs import FilterCFS
 from paje.ml.element.preprocessing.supervised.feature.selector.statistical.chi_square import FilterChiSquare
 from paje.ml.element.preprocessing.supervised.instance.sampler.over.ran_over_sampler import RanOverSampler
