@@ -3,7 +3,6 @@ import json
 import zlib
 
 import _pickle as pickle
-import blosc
 import lz4.frame as lz
 import zstd as zs
 import numpy as np
@@ -129,6 +128,7 @@ def pack_comp(obj):
     :param obj:
     :return:
     """
+    import blosc
     pickled = pickle.dumps(obj)
     fast_reduced = lz.compress(pickled, compression_level=1)
     return blosc.compress(fast_reduced,
@@ -144,6 +144,7 @@ def pack_data(obj, w, h):
 
 @profile
 def unpack_comp(dump):
+    import blosc
     decompressed = blosc.decompress(dump)
     fast_decompressed = lz.decompress(decompressed)
     return pickle.loads(fast_decompressed)
