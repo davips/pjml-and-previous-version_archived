@@ -51,7 +51,7 @@ INSTALL_REQUIRES = [
 
 EXTRAS_REQUIRE = {
     'code-check': [
-        'pytest',
+        'pylint',
         'mypy'
     ],
     'tests': [
