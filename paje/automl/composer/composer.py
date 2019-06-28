@@ -11,12 +11,13 @@ For more information about the Composer concept see [1].
 .. _paje_arch Paje Architecture:
     TODO: put the link here
 """
+from abc import ABC
 
 from paje.base.component import Component
 from paje.util.misc import flatten
 
 
-class Composer(Component):
+class Composer(Component, ABC):
     """Core Composer class.
     """
 
