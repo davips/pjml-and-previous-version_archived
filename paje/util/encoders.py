@@ -125,6 +125,7 @@ def uuid(packed_content):
 def pack_comp(obj):
     """
     Nondeterministic (fast) parallel compression!
+    Due to multithreading, blosc in nondeterministic and useless for UUIDs.
     :param obj:
     :return:
     """
@@ -158,28 +159,6 @@ def unpack_data(dump, w, h):
 
     # 1169_airlines explodes here with RAM < ?
     # return pickle.loads(fast_decompressed)
-
-
-def zip_array(X):
-    """
-    WARNING, blosc size limits: bytesobj cannot be larger than 2147483631 bytes
-    Attempt to zip faster than with pack, but benchmarks are still needed.
-    ps. 1
-    Parameters optimized for digits dataset. 115008 rows, 64 attrs
-    ps. 2
-    The hope of speed gains with this method is probably not worth the
-    trouble of applying it to individual parts of Data.
-    ps. 3
-    Due to multithreading, blosc in nondeterministic and useless for UUIDs
-    :param X:
-    :return:
-    """
-    return blosc.compress(X.reshape(1, 115008), cname='blosclz',
-                          shuffle=blosc.BITSHUFFLE)
-
-
-def unzip_array(zipped):
-    return blosc.decompress(zipped)
 
 
 @profile
