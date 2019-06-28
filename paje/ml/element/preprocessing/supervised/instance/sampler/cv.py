@@ -1,8 +1,13 @@
-from paje.base.component import Component
-from paje.base.hps import HPTree
 from sklearn.model_selection import StratifiedKFold, LeaveOneOut, \
     StratifiedShuffleSplit
 
+from paje.base.hps import HPTree
+from paje.ml.element.element import Element
+from paje.util.encoders import json_unpack, json_pack
+from sklearn.model_selection import StratifiedKFold, LeaveOneOut, \
+    StratifiedShuffleSplit
+
+from paje.base.hps import HPTree
 from paje.ml.element.element import Element
 from paje.util.encoders import json_unpack, json_pack
 
