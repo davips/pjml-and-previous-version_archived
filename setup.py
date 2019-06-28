@@ -9,7 +9,7 @@ NAME = 'paje'
 VERSION = paje.__version__
 
 
-AUTHOR = 'Edesio Alcobaça, David Pereira dos Santos'
+AUTHOR = 'Edesio Alcobaça, Davi Pereira dos Santos'
 
 
 AUTHOR_EMAIL = 'edesio@usp.br'
