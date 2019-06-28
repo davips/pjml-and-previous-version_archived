@@ -59,7 +59,7 @@ def enc(big, alphabet='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 
     Example alphabets are given below:
 
-    gnome-terminal friendly (base147)  [\\ <- scaped slash]
+    gnome-terminal friendly (base147)  [\\ <- escaped slash]
 #%&+,-./0123456789=?@ABCDEFGHIJKLMNOPQRSTUVWXYZ\\_abcdefghijklmnopqrstuvwxyz
 ~ª²³µ·¹º¼½¾ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõöøùúûüýþ
 
