@@ -1,7 +1,7 @@
 from paje.automl.composer.frozen import Frozen
 
 
-class Melting(Frozen):
+class Molten(Frozen):
     def build_impl(self):
         # rnd_state vem de quem chama build()
         self.components = self.components.copy()
