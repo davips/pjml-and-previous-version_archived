@@ -1,7 +1,4 @@
-from paje.ml.element.element import Element
-from paje.automl.composer.pipeline import Pipeline
 from paje.automl.composer.composer import Composer
-from paje.base.hps import HPTree
 from paje.base.data import Data
 import numpy as np
 import pytest
@@ -19,70 +16,6 @@ class SimpCompr(Composer):
 
     def tree_impl(self):
         pass
-
-
-class SimpElem(Element):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.count_apply = 0
-        self.count_use = 0
-        self.count_buid = 0
-        self.count_tree = 0
-        self.model = None
-
-    def build_impl(self):
-        self.count_buid += 1
-        self.oper = self.dic['oper']
-
-    def apply_impl(self, data):
-        self.count_apply += 1
-
-        value = data.X
-        if self.oper == '+':
-            value = data.X + data.X
-        elif self.oper == '*':
-            value = data.X * data.X
-        elif self.oper == '/':
-            value = data.X / data.X
-        elif self.oper == '-':
-            value = data.X - data.X
-        elif self.oper == '.':
-            value = np.dot(data.X, data.X)
-
-        self.model = value.copy()
-        data = data.updated(self, X=value)
-        return data
-
-    def use_impl(self, data):
-        self.count_use += 1
-        value = self.model + data.X
-        data = data.updated(self, X=value)
-        return data
-
-    def tree_impl(self):
-        pass
-
-
-@pytest.fixture
-def simple_elems():
-    return (SimpElem(), SimpElem(), SimpElem())
-
-
-@pytest.fixture
-def simple_data():
-    return Data('simple', X=np.array([[1, 2], [3, 4]]))
-
-
-@pytest.fixture
-def get_elements(simple_elems, simple_data):
-    elem_a, elem_b, elem_d = simple_elems
-
-    aaa = elem_a.build(oper='+')
-    bbb = elem_b.build(oper='.')
-    ccc = elem_a.build(oper='+')
-    ddd = elem_d.build(oper='*')
-
-    return (aaa, bbb, ccc, ddd)
 
 
 @pytest.fixture
