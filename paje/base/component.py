@@ -109,7 +109,9 @@ class Component(ABC):
         # TODO: which init vars should be restarted here?
         obj_copied.failure = None
 
-        obj_copied.build_impl()
+        print(">>>>>>", obj_copied.args_set)
+        print(obj_copied.name)
+        obj_copied.build_impl(**(obj_copied.args_set))
         return obj_copied
 
     @profile
@@ -250,7 +252,7 @@ class Component(ABC):
         return output_data
 
     @abstractmethod
-    def build_impl(self):
+    def build_impl(self, **args_set):
         pass
 
     def isdeterministic(self):

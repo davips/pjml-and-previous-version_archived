@@ -69,7 +69,7 @@ class RandomAutoML(AutoML):
         self.curr_eval = None
         self.curr_pipe = None
 
-    def build_impl(self):
+    def build_impl(self, **args_set):
         """ TODO the docstring documentation
         """
         # The 'self' is a copy.

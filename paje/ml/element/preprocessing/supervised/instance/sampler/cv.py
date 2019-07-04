@@ -36,7 +36,7 @@ class CV(Element):
         kwargs['iteration'] = iteration
         return super().build(**kwargs)
 
-    def build_impl(self):
+    def build_impl(self, **args_set):
         # split, steps, test_size, random_state
         if self.args_set['split'] == "cv":
             self.model = StratifiedKFold(

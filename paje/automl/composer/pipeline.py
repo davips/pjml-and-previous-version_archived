@@ -17,7 +17,7 @@ from paje.base.hps import HPTree
 
 
 class Pipeline(Composer):
-    def build_impl(self):
+    def build_impl(self, **args_set):
         """
         The only parameter is dics with the dic of each component.
         :param dics

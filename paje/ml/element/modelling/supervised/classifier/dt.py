@@ -5,7 +5,7 @@ from paje.ml.element.modelling.supervised.classifier.classifier import Classifie
 
 
 class DT(Classifier):
-    def build_impl(self):
+    def build_impl(self, **args_set):
         self.model = DecisionTreeClassifier(**self.args_set)
 
     @classmethod
