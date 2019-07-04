@@ -10,17 +10,17 @@ class MLP(Classifier):
     def build_impl(self):
         # Convert '@' hyperparameters to sklearn format.
         n_hidden_layers = 0
-        new_kwargs = self.dic.copy()
+        new_kwargs = self.args_set.copy()
 
         if '@neurons' in new_kwargs:
             neurons = new_kwargs.pop('@neurons')
             # in_out = new_kwargs.pop('@in_out')
             l = [0, 0, 0, 0]
-            for k in self.dic:
+            for k in self.args_set:
                 if k.startswith('@hidden_layer_size'):
                     layer = int(k[-1])
                     n_hidden_layers = max(n_hidden_layers, layer)
-                    l[layer] = self.dic.get(k)
+                    l[layer] = self.args_set.get(k)
                     del new_kwargs[k]
 
             l_sum = sum(l)

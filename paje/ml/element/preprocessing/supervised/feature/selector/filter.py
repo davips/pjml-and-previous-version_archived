@@ -8,7 +8,7 @@ from paje.ml.element.element import Element
 class Filter(Element, ABC):
     """ Filter base class"""
     def build_impl(self):
-        self.ratio = self.dic['ratio']
+        self.ratio = self.args_set['ratio']
         self._rank = self._score = self._nro_features = None
         self.model = 42 # TODO: better model here?
 
@@ -27,5 +27,5 @@ class Filter(Element, ABC):
     def tree_impl(cls, data):
         return HPTree(
             # TODO: check if it would be better to adopt a 'z' hyperparameter
-            dic={'ratio': ['r', [1e-05, 1]]},
+            node={'ratio': ['r', [1e-05, 1]]},
             children=[])

@@ -8,7 +8,7 @@ from paje.ml.element.modelling.supervised.classifier.classifier import Classifie
 class RF(Classifier):
     def build_impl(self):
         # TODO: set n_jobs in constructor
-        self.model = RandomForestClassifier(**self.dic)
+        self.model = RandomForestClassifier(**self.args_set)
 
     @classmethod
     def tree_impl(self):

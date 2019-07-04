@@ -35,7 +35,7 @@ rd = fa.apply(2)
 
 class DRFtAg(Reductor):
     def build_impl(self):
-        newdic = self.dic.copy()
+        newdic = self.args_set.copy()
         if newdic['linkage'] == 'ward':
             newdic['affinity'] = 'euclidean'
         newdic['n_clusters'] = newdic.pop('n_components')  # Replace key name.

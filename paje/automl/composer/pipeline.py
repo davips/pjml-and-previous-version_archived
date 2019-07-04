@@ -1,6 +1,19 @@
+# -*- coding: utf-8 -*-
+""" Composer module
+
+This module implements and describes the 'Pipeline' composer.  This composer
+sequentially operates on 'Elements' component or 'Composers'.
+
+For more information about the Composer concept see [1].
+
+.. _paje_arch Paje Architecture:
+    TODO: put the link here
+"""
+
+import copy
+
 from paje.automl.composer.composer import Composer
 from paje.base.hps import HPTree
-import copy
 
 
 class Pipeline(Composer):
@@ -12,8 +25,8 @@ class Pipeline(Composer):
         """
         dics = [{} for _ in self.components]  # Default value
 
-        if 'dics' in self.dic:
-            dics = self.dic['dics']
+        if 'dics' in self.args_set:
+            dics = self.args_set['dics']
         self.components = self.components.copy()
         zipped = zip(range(0, len(self.components)), dics)
         for idx, dic in zipped:

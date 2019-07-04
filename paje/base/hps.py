@@ -6,14 +6,14 @@ from paje.util.distributions import sample
 
 
 class HPTree(object):
-    def __init__(self, dic, children, name=None, tmp_uuid=None):
-        self.dic = dic
+    def __init__(self, node, children, name=None, tmp_uuid=None):
+        self.node = node
         self.children = children
         self.name = name
         self.tmp_uuid = tmp_uuid
 
     def expand(self) -> (Dict, List):
-        return self.dic, self.children
+        return self.node, self.children
 
     def tree_to_dict(self):
         """
@@ -33,7 +33,7 @@ class HPTree(object):
         if tree.name is not None:
             args['name'] = tree.name
 
-        for k, kind_interval in tree.dic.items():
+        for k, kind_interval in tree.node.items():
             try:
                 args[k] = sample(*kind_interval)
             except Exception as e:
@@ -47,8 +47,8 @@ class HPTree(object):
 
             # if child is not a component (it is a, e.g., a kernel)
             if child.name is None:
-                dic, tree = self.moduletree_to_dic(child)
-                args.update(dic)
+                node, tree = self.moduletree_to_dic(child)
+                args.update(node)
 
         return args, tree
 
@@ -80,7 +80,7 @@ class HPTree(object):
         return {'name': tree.name[3:], 'dics': argss}, tree.children
 
     def __str__(self, depth=''):
-        rows = [str(self.dic)]
+        rows = [str(self.node)]
         for child in self.children:
             rows.append(child.__str__(depth + '   '))
         return depth + self.name + '\n'.join(rows)

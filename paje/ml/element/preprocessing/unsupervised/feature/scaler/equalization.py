@@ -6,7 +6,7 @@ from paje.ml.element.preprocessing.unsupervised.feature.scaler.scaler import Sca
 
 class Equalization(Scaler):
     def build_impl(self):
-        newdic = self.dic.copy()
+        newdic = self.args_set.copy()
         self.model = MinMaxScaler(**newdic)
 
     @classmethod

@@ -37,7 +37,7 @@ class Component(ABC):
         self.unfit = True
         self.model = None
         self._modified = {'a': None, 'u': None}
-        self.dic = {}
+        self.args_set = {}
         self.name = self.__class__.__name__
         self.module = self.__class__.__module__
         self.tmp_uuid = uuid4().hex  # used when eliminating End* from tree
@@ -82,7 +82,7 @@ class Component(ABC):
         return tree
 
     @profile
-    def build(self, **dic):
+    def build(self, **args_set):
         # Check if build has already been called. This is the case when one
         # calls build() on an already built instance of component.
 
@@ -97,10 +97,10 @@ class Component(ABC):
         # Se for mesmo necessario dar update, podemos dar update usando uma
         # copia de dic? ou seria inutil?
         # obj_copied.dic.update(dic)
-        obj_copied.dic = dic
+        obj_copied.args_set = args_set
 
-        if obj_copied.isdeterministic() and "random_state" in obj_copied.dic:
-            del obj_copied.dic["random_state"]
+        if obj_copied.isdeterministic() and "random_state" in obj_copied.args_set:
+            del obj_copied.args_set["random_state"]
 
         # Create an encoded (uuid) unambiguous (sorted) version of args_set.
         obj_copied._serialized = 'building'
@@ -296,7 +296,7 @@ class Component(ABC):
     @classmethod
     def check_tree(cls, tree):
         try:
-            dic = tree.dic
+            node = tree.node
         except Exception as e:
             print(e)
             print()
@@ -305,9 +305,9 @@ class Component(ABC):
             raise Exception('Problems with hyperparameter space')
 
         try:
-            for k in dic:
-                t = dic[k][0]
-                v = dic[k][1]
+            for k in node:
+                t = node[k][0]
+                v = node[k][1]
                 if t == 'c' or t == 'o':
                     if not isinstance(v, list):
                         raise Exception('Categorical and ordinal \
@@ -322,7 +322,7 @@ class Component(ABC):
             print()
             print(cls.__name__)
             print()
-            raise Exception('Problems with hyperparameter space: ' + str(dic))
+            raise Exception('Problems with hyperparameter space: ' + str(node))
 
         for child in tree.children:
             cls.check_tree(child)
@@ -334,7 +334,7 @@ class Component(ABC):
         return self._uuid
 
     def __str__(self, depth=''):
-        return self.name + " " + str(self.dic)
+        return self.name + " " + str(self.args_set)
 
     __repr__ = __str__
 
@@ -371,30 +371,30 @@ class Component(ABC):
         if self._serialized == 'building':
             # When the build is not created by a dic coming from a HPTree,
             #  it can be lacking a name, so here we put it.
-            if 'name' not in self.dic:
-                self.dic['name'] = self.name
+            if 'name' not in self.args_set:
+                self.args_set['name'] = self.name
 
             # 'mark' should not identify components, it only marks results.
             # when a component is loaded from storage, nobody knows whether
             # it was part of an experiment or not, except by consulting
             # the field 'mark' of the registered result.
-            if 'mark' in self.dic:
-                self.mark = self.dic.pop('mark')
+            if 'mark' in self.args_set:
+                self.mark = self.args_set.pop('mark')
 
             # 'description' is needed because some components are not entirely
             # described by build() args.
-            self.dic['description'] = self.describe()
+            self.args_set['description'] = self.describe()
 
             # Create an unambiguous (sorted) version of
             # args_set (build args+name+max_time) + init_vars (description).
-            self._serialized = json_pack(self.dic)
+            self._serialized = json_pack(self.args_set)
 
             # 'description','name','max_time' are reserved words, not for
             # building.
-            del self.dic['name']
-            if 'max_time' in self.dic:
-                self.max_time = self.dic.pop('max_time')
-            del self.dic['description']
+            del self.args_set['name']
+            if 'max_time' in self.args_set:
+                self.max_time = self.args_set.pop('max_time')
+            del self.args_set['description']
 
         return self._serialized
 

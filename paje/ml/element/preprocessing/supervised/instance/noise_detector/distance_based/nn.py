@@ -15,9 +15,9 @@ from paje.util.distributions import exponential_integers
 
 class NRNN(Element, ABC):
     def build_impl(self):
-        self.vote = self.dic['vote']
-        self.algorithm = self.dic['algorithm']
-        self.k = self.dic['k']
+        self.vote = self.args_set['vote']
+        self.algorithm = self.args_set['algorithm']
+        self.k = self.args_set['k']
         self.model = 42 # TODO: better model here?
 
     def apply_impl(self, data):

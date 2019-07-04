@@ -9,7 +9,7 @@ from paje.util.distributions import exponential_integers
 
 class KNN(Classifier):
     def build_impl(self):
-        newdic = self.dic.copy()
+        newdic = self.args_set.copy()
         self.model = KNeighborsClassifier(**newdic)
 
     def apply_impl(self, data):

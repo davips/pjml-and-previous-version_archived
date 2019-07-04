@@ -13,7 +13,7 @@ class SVMC(Classifier): #, JSONEncoder):
     #         return JSONEncoder.default(self, o)
 
     def build_impl(self):
-        self.model = SVC(**self.dic)
+        self.model = SVC(**self.args_set)
 
     @classmethod
     def tree_impl(self):

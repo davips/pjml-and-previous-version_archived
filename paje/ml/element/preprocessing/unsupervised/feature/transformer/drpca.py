@@ -62,7 +62,7 @@ class DRPCA(Reductor):
 
     def build_impl(self):
         # TODO: check if random_state is useful for PCA
-        newdic = self.dic.copy()
+        newdic = self.args_set.copy()
         self.model = PCA(**newdic)
 
     @classmethod

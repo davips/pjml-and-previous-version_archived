@@ -6,7 +6,7 @@ from paje.ml.element.modelling.supervised.classifier.classifier import Classifie
 
 class SVM(Classifier):
     def build_impl(self):
-        self.model = NuSVC(**self.dic)
+        self.model = NuSVC(**self.args_set)
 
     @classmethod
     def tree_impl(self):

@@ -16,7 +16,7 @@ class CB(Classifier):
         return data.updated(self, z=self.model.predict(data.X).flatten())
 
     def build_impl(self):
-        self.model = CatBoostClassifier(**self.dic,
+        self.model = CatBoostClassifier(**self.args_set,
                                         verbose=self.verbose)
 
     @classmethod

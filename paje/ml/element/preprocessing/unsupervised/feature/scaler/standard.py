@@ -5,7 +5,7 @@ from paje.ml.element.preprocessing.unsupervised.feature.scaler.scaler import Sca
 
 class Standard(Scaler):
     def build_impl(self):
-        newdic = self.dic.copy()
+        newdic = self.args_set.copy()
         mean_std = newdic.get('@with_mean/std')
         if mean_std is None:
             with_mean, with_std = True, True

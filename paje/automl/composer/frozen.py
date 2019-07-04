@@ -14,7 +14,7 @@ class Frozen(Composer):
         # rnd_state vem de quem chama build()
         self.components = self.components.copy()
         # self.params = self.params.copy()  # TODO: why we needed this here?
-        self.components[0] = self.components[0].build(**self.dic)
+        self.components[0] = self.components[0].build(**self.args_set)
 
     def freeze_hptree(self):
         aux = {}
@@ -23,7 +23,7 @@ class Frozen(Composer):
         return aux
 
     def tree_impl(self, data=None):
-        return HPTree(dic=self.freeze_hptree(), children=[],
+        return HPTree(node=self.freeze_hptree(), children=[],
                       name=self.name + self.components[0].name)
 
     def __str__(self, depth=''):

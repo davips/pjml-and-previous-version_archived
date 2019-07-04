@@ -9,8 +9,8 @@ class Switch(Composer):
         :param dics
         :return:
         """
-        if 'dics' in self.dic:
-            dics = self.dic['dics']
+        if 'dics' in self.args_set:
+            dics = self.args_set['dics']
 
         self.components = self.components.copy()
 
@@ -18,7 +18,7 @@ class Switch(Composer):
         component_idx = int(component_idx.split("_")[0])
 
         dic = dics[0].copy()
-        dic['random_state'] = self.dic['random_state']  # TODO: check this
+        dic['random_state'] = self.args_set['random_state']  # TODO: check this
         del dic["component"]
         # TODO: is switch ready?
 

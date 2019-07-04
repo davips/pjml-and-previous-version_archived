@@ -6,7 +6,7 @@ from paje.ml.element.preprocessing.supervised.instance.sampler.resampler import 
 
 class RanOverSampler(Resampler):
     def build_impl(self):
-        self.model = RandomOverSampler(**self.dic)
+        self.model = RandomOverSampler(**self.args_set)
 
     @classmethod
     def tree_impl(cls, data=None):

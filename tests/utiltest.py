@@ -14,8 +14,8 @@ class SimpElem(Element):
 
     def build_impl(self):
         self.count_buid += 1
-        print(">>>>> ", self.dic)
-        self.oper = self.dic['oper']
+        print(">>>>> ", self.args_set)
+        self.oper = self.args_set['oper']
 
     def apply_impl(self, data):
         self.count_apply += 1

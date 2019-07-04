@@ -77,7 +77,7 @@ class RandomAutoML(AutoML):
         # shallow (copy.copy(self)).
         # See more details in the Component.build() method.
 
-        self.__dict__.update(self.dic)
+        self.__dict__.update(self.args_set)
         np.random.seed(self.random_state)
         random.seed(self.random_state)
 
