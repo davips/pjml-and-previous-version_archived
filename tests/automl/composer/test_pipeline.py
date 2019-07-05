@@ -10,12 +10,12 @@ def get_composer(get_elements, simple_data):
 
     compr = Pipeline(components=[aaa, bbb, ccc, ddd])
     args_sets = {
-        'name':compr.name,
-        'dics':[
+        'dics': [
             {'name': aaa.name, 'oper': '+'},
             {'name': bbb.name, 'oper': '.'},
             {'name': ccc.name, 'oper': '+'},
-            {'name': ddd.name, 'oper': '*'},]
+            {'name': ddd.name, 'oper': '*'}
+        ]
     }
     print(compr.tree().tree_to_dict())
     mycompr = compr.build(**args_sets)
@@ -42,3 +42,35 @@ def test_apply_use(get_composer):
     X += X_ccc
     X += X_ddd
     assert np.allclose(X, data_use.X)
+
+
+def test_apply_use_pipeline(simple_data, get_elements):
+    aaa, bbb, ccc, ddd = get_elements
+    data = simple_data
+
+    compr1 = Pipeline(components=[aaa, bbb])
+    compr2 = Pipeline(components=[ccc, ddd])
+    compr3 = Pipeline(components=[compr1, compr2])
+    args_sets = {
+        'dics': [
+            {
+                'dics': [
+                    {'name': aaa.name, 'oper': '+'},
+                    {'name': bbb.name, 'oper': '.'}
+                ]
+            },
+            {
+                'dics': [
+                    {'name': ccc.name, 'oper': '+'},
+                    {'name': ddd.name, 'oper': '*'}
+                ]
+            }
+        ]
+    }
+
+    mycompr = compr3.build(**args_sets)
+
+    data_apply = mycompr.apply(data)
+    data_use = mycompr.use(data)
+
+    test_apply_use((aaa, bbb, ccc, ddd, mycompr, data_apply, data_use, data))
