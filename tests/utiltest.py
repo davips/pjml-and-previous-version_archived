@@ -12,10 +12,10 @@ class SimpElem(Element):
         self.count_tree = 0
         self.model = None
 
-    def build_impl(self):
+    def build_impl(self, **config):
         self.count_buid += 1
-        print(">>>>> ", self.args_set)
-        self.oper = self.args_set['oper']
+        print(">>>>> ", self.config)
+        self.oper = self.config['oper']
 
     def apply_impl(self, data):
         self.count_apply += 1

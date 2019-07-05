@@ -3,30 +3,62 @@ from paje.automl.composer.pipeline import Pipeline
 import numpy as np
 import pytest
 
+from paje.base.hps import HPTree
+
+
 @pytest.fixture
-def get_composer(get_elements, simple_data):
+def get_pipeline_of_elem(get_elements, simple_data):
     aaa, bbb, ccc, ddd = get_elements
     data = simple_data
 
     compr = Pipeline(components=[aaa, bbb, ccc, ddd])
-    args_sets = {
-        'dics': [
-            {'name': aaa.name, 'oper': '+'},
-            {'name': bbb.name, 'oper': '.'},
-            {'name': ccc.name, 'oper': '+'},
-            {'name': ddd.name, 'oper': '*'}
-        ]
-    }
-    print(compr.tree().tree_to_dict())
-    mycompr = compr.build(**args_sets)
+    configs = [
+        {'name': aaa.name, 'oper': '+'},
+        {'name': bbb.name, 'oper': '.'},
+        {'name': ccc.name, 'oper': '+'},
+        {'name': ddd.name, 'oper': '*'}
+    ]
+
+    mycompr = compr.build(configs=configs)
     data_apply = mycompr.apply(data)
     data_use = mycompr.use(data)
 
-    return (aaa, bbb, ccc, ddd, mycompr, data_apply, data_use, data)
+    return (mycompr, data_apply, data_use, data)
 
 
-def test_apply_use(get_composer):
-    aaa, _, _, _, _, data_apply, data_use, data = get_composer
+@pytest.fixture
+def get_pipeline_of_pipeline(get_elements):
+    aaa, bbb, ccc, ddd = get_elements
+
+    compr1 = Pipeline(components=[aaa, bbb])
+    compr2 = Pipeline(components=[ccc, ddd])
+    compr3 = Pipeline(components=[compr1, compr2])
+
+    config = {
+        # 'name': compr3.name,
+        'configs': [
+            {
+                # 'name': compr1.name,
+                'configs': [
+                    {'oper': '+'},
+                    {'oper': '.'}
+                ]
+            },
+            {
+                # 'name': compr2.name,
+                'configs': [
+                    {'oper': '+'},
+                    {'oper': '*'}
+                ]
+            }
+        ]
+    }
+
+    return compr3.build(**config)
+
+
+def test_apply_use(get_pipeline_of_elem):
+    _, data_apply, data_use, data = get_pipeline_of_elem
 
     # sequence made in apply
     X = data.X
@@ -44,33 +76,48 @@ def test_apply_use(get_composer):
     assert np.allclose(X, data_use.X)
 
 
-def test_apply_use_pipeline(simple_data, get_elements):
-    aaa, bbb, ccc, ddd = get_elements
+def test_apply_use_pipeline(simple_data, get_pipeline_of_pipeline):
+    mycompr = get_pipeline_of_pipeline
     data = simple_data
-
-    compr1 = Pipeline(components=[aaa, bbb])
-    compr2 = Pipeline(components=[ccc, ddd])
-    compr3 = Pipeline(components=[compr1, compr2])
-    args_sets = {
-        'dics': [
-            {
-                'dics': [
-                    {'name': aaa.name, 'oper': '+'},
-                    {'name': bbb.name, 'oper': '.'}
-                ]
-            },
-            {
-                'dics': [
-                    {'name': ccc.name, 'oper': '+'},
-                    {'name': ddd.name, 'oper': '*'}
-                ]
-            }
-        ]
-    }
-
-    mycompr = compr3.build(**args_sets)
 
     data_apply = mycompr.apply(data)
     data_use = mycompr.use(data)
 
-    test_apply_use((aaa, bbb, ccc, ddd, mycompr, data_apply, data_use, data))
+    test_apply_use((mycompr, data_apply, data_use, data))
+
+
+def test_tree_pipeline(get_pipeline_of_pipeline):
+    mycompr = get_pipeline_of_pipeline
+
+    # teste pipeline of pipeline tree
+
+    end = ('EndPipeline', {})
+    pip = ('Pipeline', {})
+    ele = ('SimpElem', {'oper': ['c', ['+', '-', '*', '.']]})
+
+    def rec(nnd, child=None):
+        l = [] if child is None else [child]
+        name, node = nnd
+        return HPTree(name=name, node=node, children=l)
+
+    aux = rec(pip,
+              rec(pip,
+                  rec(ele,
+                      rec(ele,
+                          rec(end,
+                              rec(pip,
+                                  rec(ele,
+                                      rec(ele,
+                                          rec(end,
+                                              rec(end)
+                                              )
+                                          )
+                                      )
+                                  )
+                              )
+                          )
+                      )
+                  )
+              )
+
+    assert str(aux) == str(mycompr.tree())
