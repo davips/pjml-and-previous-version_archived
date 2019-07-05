@@ -109,8 +109,6 @@ class Component(ABC):
         # TODO: which init vars should be restarted here?
         obj_copied.failure = None
 
-        print(">>>>>>", obj_copied.args_set)
-        print(obj_copied.name)
         obj_copied.build_impl(**(obj_copied.args_set))
         return obj_copied
 
