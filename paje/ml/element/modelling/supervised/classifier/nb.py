@@ -12,9 +12,9 @@ class NB(Classifier):
         # Extract n_instances from hps to be available to be used in apply()
         # if neeeded.
 
-        newdic = self.args_set.copy()
-        self.nb_type = newdic.get('@nb_type')
-        del newdic['@nb_type']
+        newconfig = self.config.copy()
+        self.nb_type = newconfig.get('@nb_type')
+        del newconfig['@nb_type']
 
         if self.nb_type == "GaussianNB":
             self.model = GaussianNB()
@@ -25,5 +25,5 @@ class NB(Classifier):
 
     @classmethod
     def tree_impl(self):
-        dic = {'@nb_type': ['c', ["GaussianNB", "BernoulliNB"]]}
-        return HPTree(node=dic, children=[])
+        node = {'@nb_type': ['c', ["GaussianNB", "BernoulliNB"]]}
+        return HPTree(node=node, children=[])

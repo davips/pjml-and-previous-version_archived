@@ -37,7 +37,7 @@ class Component(ABC):
         self.unfit = True
         self.model = None
         self._modified = {'a': None, 'u': None}
-        self.args_set = {}
+        self.config = {}
         self.name = self.__class__.__name__
         self.module = self.__class__.__module__
         self.tmp_uuid = uuid4().hex  # used when eliminating End* from tree
@@ -82,7 +82,7 @@ class Component(ABC):
         return tree
 
     @profile
-    def build(self, **args_set):
+    def build(self, **config):
         # Check if build has already been called. This is the case when one
         # calls build() on an already built instance of component.
 
@@ -95,21 +95,21 @@ class Component(ABC):
         # voltei para o que era antes para parar de fazer bruxaria
         # de alterar o bestpipeline quando fazia o build do proximo pipe.
         # Se for mesmo necessario dar update, podemos dar update usando uma
-        # copia de dic? ou seria inutil?
-        # obj_copied.dic.update(dic)
-        obj_copied.args_set = args_set
+        # copia de config? ou seria inutil?
+        # obj_copied.config.update(config)
+        obj_copied.config = config
 
-        if obj_copied.isdeterministic() and "random_state" in obj_copied.args_set:
-            del obj_copied.args_set["random_state"]
+        if obj_copied.isdeterministic() and "random_state" in obj_copied.config:
+            del obj_copied.config["random_state"]
 
-        # Create an encoded (uuid) unambiguous (sorted) version of args_set.
+        # Create an encoded (uuid) unambiguous (sorted) version of config.
         obj_copied._serialized = 'building'
         obj_copied._uuid = uuid(obj_copied.serialized().encode())
 
         # TODO: which init vars should be restarted here?
         obj_copied.failure = None
 
-        obj_copied.build_impl(**(obj_copied.args_set))
+        obj_copied.build_impl(**(obj_copied.config))
         return obj_copied
 
     @profile
@@ -250,7 +250,7 @@ class Component(ABC):
         return output_data
 
     @abstractmethod
-    def build_impl(self, **args_set):
+    def build_impl(self, **config):
         pass
 
     def isdeterministic(self):
@@ -281,8 +281,8 @@ class Component(ABC):
     #     raise NotImplementedError("Should it return probability\
     #                                distributions, rules?")
 
-    @abstractmethod
-    def tree_impl(self):  # previously known as hyper_spaces_tree_impl
+    # @classmethod
+    def tree_impl(self):
         """Todo the doc string
         """
         pass
@@ -334,7 +334,7 @@ class Component(ABC):
         return self._uuid
 
     def __str__(self, depth=''):
-        return self.name + " " + str(self.args_set)
+        return self.name + " " + str(self.config)
 
     __repr__ = __str__
 
@@ -358,7 +358,7 @@ class Component(ABC):
     def serialized(self):
         """
         Calculate a representation of this built component.
-        In the first call, remove reserved words from args_set
+        In the first call, remove reserved words from config
          (like 'mark', 'name').
         :return: 19-byte string
         """
@@ -367,34 +367,34 @@ class Component(ABC):
                                     'serialized() <-' + self.name)
 
         # The first time serialized() is called,
-        # it has to put needed (and remove unneeded) args from arg_set.
+        # it has to put needed (and remove unneeded) args from config.
         if self._serialized == 'building':
-            # When the build is not created by a dic coming from a HPTree,
+            # When the build is not created by a config coming from a HPTree,
             #  it can be lacking a name, so here we put it.
-            if 'name' not in self.args_set:
-                self.args_set['name'] = self.name
+            if 'name' not in self.config:
+                self.config['name'] = self.name
 
             # 'mark' should not identify components, it only marks results.
             # when a component is loaded from storage, nobody knows whether
             # it was part of an experiment or not, except by consulting
             # the field 'mark' of the registered result.
-            if 'mark' in self.args_set:
-                self.mark = self.args_set.pop('mark')
+            if 'mark' in self.config:
+                self.mark = self.config.pop('mark')
 
             # 'description' is needed because some components are not entirely
             # described by build() args.
-            self.args_set['description'] = self.describe()
+            self.config['description'] = self.describe()
 
             # Create an unambiguous (sorted) version of
-            # args_set (build args+name+max_time) + init_vars (description).
-            self._serialized = json_pack(self.args_set)
+            # config (build args+name+max_time) + init_vars (description).
+            self._serialized = json_pack(self.config)
 
             # 'description','name','max_time' are reserved words, not for
             # building.
-            del self.args_set['name']
-            if 'max_time' in self.args_set:
-                self.max_time = self.args_set.pop('max_time')
-            del self.args_set['description']
+            del self.config['name']
+            if 'max_time' in self.config:
+                self.max_time = self.config.pop('max_time')
+            del self.config['description']
 
         return self._serialized
 

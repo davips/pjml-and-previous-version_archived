@@ -5,20 +5,20 @@ from paje.ml.element.preprocessing.unsupervised.feature.scaler.scaler import Sca
 
 class Standard(Scaler):
     def build_impl(self):
-        newdic = self.args_set.copy()
-        mean_std = newdic.get('@with_mean/std')
+        newconfig = self.config.copy()
+        mean_std = newconfig.get('@with_mean/std')
         if mean_std is None:
             with_mean, with_std = True, True
         else:
-            del newdic['@with_mean/std']
+            del newconfig['@with_mean/std']
             with_mean, with_std = mean_std
-        self.model = StandardScaler(with_mean, with_std, **newdic)
+        self.model = StandardScaler(with_mean, with_std, **newconfig)
 
     @classmethod
     def tree_impl(cls, data=None):
-        dic = {
+        node = {
             '@with_mean/std':
                 ['c', [(True, False), (False, True), (True, True)]]
             # (False, False) seems to be useless
         }
-        return HPTree(dic, children=[])
+        return HPTree(node, children=[])

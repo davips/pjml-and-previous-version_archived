@@ -5,13 +5,13 @@ from paje.ml.element.preprocessing.unsupervised.feature.scaler.scaler import Sca
 
 
 class Equalization(Scaler):
-    def build_impl(self, **args_set):
-        newdic = self.args_set.copy()
-        self.model = MinMaxScaler(**newdic)
+    def build_impl(self, **config):
+        newconfig = self.config.copy()
+        self.model = MinMaxScaler(**newconfig)
 
     @classmethod
     def tree_impl(cls, data=None):
-        dic = {
+        node = {
             'feature_range': ['c', [(-1, 1), (0, 1)]],
         }
-        return HPTree(dic, children=[])
+        return HPTree(node, children=[])

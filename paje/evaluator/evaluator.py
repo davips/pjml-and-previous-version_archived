@@ -78,7 +78,7 @@ class EvaluatorClassif(Evaluator):
         return {
             'module': self.__class__.__module__,
             'name': self.__class__.__name__,
-            'args_set': {
+            'config': {
                 'metric': self.metric,
                 'split': self.split,
                 'steps': self.steps,

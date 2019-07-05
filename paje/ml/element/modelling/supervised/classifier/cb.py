@@ -16,12 +16,12 @@ class CB(Classifier):
         return data.updated(self, z=self.model.predict(data.X).flatten())
 
     def build_impl(self):
-        self.model = CatBoostClassifier(**self.args_set,
+        self.model = CatBoostClassifier(**self.config,
                                         verbose=self.verbose)
 
     @classmethod
     def tree_impl(self):
-        dic = {
+        node = {
             'iterations': ['c', [100, 500, 1000, 3000, 5000]],
             'learning_rate': ['r', [0.000001, 1.0]],
             'depth': ['z', [1, 15]],
@@ -31,4 +31,4 @@ class CB(Classifier):
             'thread_count': ['c', [-1]]
         }
 
-        return HPTree(dic, children=[])
+        return HPTree(node, children=[])

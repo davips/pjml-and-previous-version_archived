@@ -6,12 +6,12 @@ from paje.ml.element.modelling.supervised.classifier.classifier import Classifie
 
 class SVM(Classifier):
     def build_impl(self):
-        self.model = NuSVC(**self.args_set)
+        self.model = NuSVC(**self.config)
 
     @classmethod
     def tree_impl(self):
         # todo: set random seed; set 'cache_size'
-        dic = {
+        node = {
             'nu': ['r', [0.0001, 0.8]],
             'shrinking': ['c', [True, False]],
             'probability': ['c', [False]],
@@ -43,4 +43,4 @@ class SVM(Classifier):
                                   children=[kernel_poly, kernel_rbf,
                                             kernel_sigmoid])
 
-        return HPTree(dic, children=[kernel_linear, kernel_nonlinear])
+        return HPTree(node, children=[kernel_linear, kernel_nonlinear])

@@ -40,8 +40,8 @@ rd = ica.apply(2)
 
 class DRICA(Reductor):
     def build_impl(self):
-        self.model = FastICA(**self.args_set)
+        self.model = FastICA(**self.config)
 
     @classmethod
-    def specific_dictionary(cls, data):
+    def specific_node(cls, data):
         return {}

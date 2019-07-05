@@ -35,14 +35,14 @@ rd = fa.apply(2)
 
 class DRFtAg(Reductor):
     def build_impl(self):
-        newdic = self.args_set.copy()
-        if newdic['linkage'] == 'ward':
-            newdic['affinity'] = 'euclidean'
-        newdic['n_clusters'] = newdic.pop('n_components')  # Replace key name.
-        self.model = FeatureAgglomeration(**newdic)
+        newconfig = self.config.copy()
+        if newconfig['linkage'] == 'ward':
+            newconfig['affinity'] = 'euclidean'
+        newconfig['n_clusters'] = newconfig.pop('n_components')  # Replace key name.
+        self.model = FeatureAgglomeration(**newconfig)
 
     @classmethod
-    def specific_dictionary(cls, data):
+    def specific_node(cls, data):
         dists = ['euclidean', 'l1', 'l2', 'manhattan', 'cosine', 'precomputed']
         return {'affinity': ['c', dists],
                 'linkage': ['c', ['ward', 'complete', 'average', 'single']]}

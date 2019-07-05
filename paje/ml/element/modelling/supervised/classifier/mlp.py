@@ -10,17 +10,17 @@ class MLP(Classifier):
     def build_impl(self):
         # Convert '@' hyperparameters to sklearn format.
         n_hidden_layers = 0
-        new_kwargs = self.args_set.copy()
+        new_kwargs = self.config.copy()
 
         if '@neurons' in new_kwargs:
             neurons = new_kwargs.pop('@neurons')
             # in_out = new_kwargs.pop('@in_out')
             l = [0, 0, 0, 0]
-            for k in self.args_set:
+            for k in self.config:
                 if k.startswith('@hidden_layer_size'):
                     layer = int(k[-1])
                     n_hidden_layers = max(n_hidden_layers, layer)
-                    l[layer] = self.args_set.get(k)
+                    l[layer] = self.config.get(k)
                     del new_kwargs[k]
 
             l_sum = sum(l)
@@ -50,7 +50,7 @@ class MLP(Classifier):
         # Todo: set random seed
         max_neurons = 10000
 
-        dic = {
+        node = {
             'alpha': ['o',
                       [0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100,
                        1000, 10000]],
@@ -162,7 +162,7 @@ class MLP(Classifier):
             'solver': ['c', ['lbfgs']],
         }, children=layers)
 
-        tree = HPTree(dic, children=[solver_non_newton, solver_lbfgs])
+        tree = HPTree(node, children=[solver_non_newton, solver_lbfgs])
 
         return tree
 
@@ -175,7 +175,7 @@ class MLP(Classifier):
             (data.n_instances() / (data.n_attributes() + data.n_classes()))
         )
 
-        dic = {
+        node = {
             'alpha': ['o',
                       [0.000001, 0.00001, 0.0001, 0.001, 0.01, 0.1, 1, 10, 100,
                        1000, 10000]],
@@ -287,6 +287,6 @@ class MLP(Classifier):
             'solver': ['c', ['lbfgs']],
         }, children=layers)
 
-        tree = HPTree(dic, children=[solver_non_newton, solver_lbfgs])
+        tree = HPTree(node, children=[solver_non_newton, solver_lbfgs])
 
         return tree

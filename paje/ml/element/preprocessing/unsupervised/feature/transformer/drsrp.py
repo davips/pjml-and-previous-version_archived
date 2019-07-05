@@ -37,10 +37,10 @@ rd = srp.apply(2)
 
 class DRSRP(Reductor):
     def build_impl(self):
-        self.model = SparseRandomProjection(**self.args_set)
+        self.model = SparseRandomProjection(**self.config)
 
     @classmethod
-    def specific_dictionary(cls, data):
+    def specific_node(cls, data):
         return {
             # TODO: check if data.n_attributes is correct here and in the
             #  line below

@@ -26,11 +26,11 @@ class Reductor(Element, ABC):
     def tree_impl(cls, data):
         cls.check_data(data)
         # TODO: set random_state
-        dic = {'n_components': ['z', [1, data.n_attributes()]]}
-        dic.update(cls.specific_dictionary(data))
-        return HPTree(dic, children=[])
+        node = {'n_components': ['z', [1, data.n_attributes()]]}
+        node.update(cls.specific_node(data))
+        return HPTree(node, children=[])
 
     @classmethod
     @abstractmethod
-    def specific_dictionary(cls, data):
+    def specific_node(cls, data):
         pass

@@ -75,7 +75,7 @@ class RadomSearchAutoML(AutoML):
                 print()
                 print('Problems parsing HPTree:')
                 print(k)
-                print(space.dic.keys())
+                print(space.node.keys())
                 exit(0)
 
         if nro_branches:

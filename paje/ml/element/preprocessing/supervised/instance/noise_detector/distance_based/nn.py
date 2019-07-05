@@ -15,9 +15,9 @@ from paje.util.distributions import exponential_integers
 
 class NRNN(Element, ABC):
     def build_impl(self):
-        self.vote = self.args_set['vote']
-        self.algorithm = self.args_set['algorithm']
-        self.k = self.args_set['k']
+        self.vote = self.config['vote']
+        self.algorithm = self.config['algorithm']
+        self.k = self.config['k']
         self.model = 42 # TODO: better model here?
 
     def apply_impl(self, data):
@@ -152,11 +152,11 @@ class NRNN(Element, ABC):
         kmax = floor(min(400, data.n_instances() / 2 - 1))
 
         # TODO: put knn hyperparameters here?
-        dic = {
+        node = {
             # TODO: implement 'minority'
             'vote': ['c', ['majority', 'consensus']],
             'algorithm': ['c', ['ENN', 'RENN', 'AENN']],
             'k': ['c', exponential_integers(kmax)]
             # (False, False) seems to be useless
         }
-        return HPTree(dic, children=[])
+        return HPTree(node, children=[])

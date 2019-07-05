@@ -8,7 +8,7 @@ from paje.ml.element.modelling.supervised.classifier.classifier import Classifie
 
 class AB(Classifier):
     def build_impl(self):
-        self.model = AdaBoostClassifier(**self.args_set)
+        self.model = AdaBoostClassifier(**self.config)
         raise Exception(
             'Working in progress... AB still with RF hyperparameters.')
 
@@ -23,7 +23,7 @@ class AB(Classifier):
             'n_estimators': ['z', [2, 1000]],
             'max_depth': ['z', [2, data.n_instances()]]
         }  # Entre outros
-        dic = {'bootstrap': ['c', [True, False]],
+        node = {'bootstrap': ['c', [True, False]],
                'min_impurity_decrease': ['r', [0, 1]],
                'max_leaf_nodes': ['o',
                                   [2, 3, 5, 8, 12, 17, 23,
@@ -55,4 +55,4 @@ class AB(Classifier):
 
                # See DT.py for more details about other settings.
                }
-        return HPTree(dic, children=[])
+        return HPTree(node, children=[])

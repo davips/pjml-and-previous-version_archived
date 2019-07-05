@@ -19,13 +19,13 @@ class CV(Element):
         self._max = 0
 
     def next(self):
-        if self.args_set['iteration'] == self._max:
+        if self.config['iteration'] == self._max:
             return None
 
         # Creates new, updated instance.
-        newdic = self.args_set.copy()
-        newdic['iteration'] += 1
-        inst = self.build(**newdic)
+        newconfig = self.config.copy()
+        newconfig['iteration'] += 1
+        inst = self.build(**newconfig)
         inst._max = self._max
         inst._memoized = self._memoized
         return inst
@@ -36,21 +36,21 @@ class CV(Element):
         kwargs['iteration'] = iteration
         return super().build(**kwargs)
 
-    def build_impl(self, **args_set):
+    def build_impl(self, **config):
         # split, steps, test_size, random_state
-        if self.args_set['split'] == "cv":
+        if self.config['split'] == "cv":
             self.model = StratifiedKFold(
                 shuffle=True,
-                n_splits=self.args_set['steps'],
-                random_state=self.args_set['random_state'])
-        elif self.args_set['split'] == "loo":
+                n_splits=self.config['steps'],
+                random_state=self.config['random_state'])
+        elif self.config['split'] == "loo":
             self.model = LeaveOneOut()
-        elif self.args_set['split'] == 'holdout':
+        elif self.config['split'] == 'holdout':
             self.model = StratifiedShuffleSplit(
-                n_splits=self.args_set['steps'],
-                test_size=self.args_set['test_size'],
-                random_state=self.args_set['random_state'])
-        self.iteration = self.args_set['iteration']
+                n_splits=self.config['steps'],
+                test_size=self.config['test_size'],
+                random_state=self.config['random_state'])
+        self.iteration = self.config['iteration']
 
     def apply_impl(self, data):
         if data.uuid() in self._memoized:

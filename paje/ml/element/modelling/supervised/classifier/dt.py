@@ -5,13 +5,13 @@ from paje.ml.element.modelling.supervised.classifier.classifier import Classifie
 
 
 class DT(Classifier):
-    def build_impl(self, **args_set):
-        self.model = DecisionTreeClassifier(**self.args_set)
+    def build_impl(self, **config):
+        self.model = DecisionTreeClassifier(**self.config)
 
     @classmethod
     def tree_impl(self):
         # todo: set random seed
-        dic = {
+        node = {
             'criterion': ['c', ['gini', 'entropy']],
             'splitter': ['c', ['best']],
             'max_depth': ['z', [2, 1000]],
@@ -34,4 +34,4 @@ class DT(Classifier):
             # 'presort': False # Strange setting that slow down large datasets
             # and speed up small ones.
         }
-        return HPTree(dic, children=[])
+        return HPTree(node, children=[])

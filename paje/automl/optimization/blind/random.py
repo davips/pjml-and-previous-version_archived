@@ -9,6 +9,7 @@ from paje.evaluator.evaluator import EvaluatorClassif
 
 
 class RandomAutoML(AutoML):
+
     def __init__(self,
                  preprocessors,
                  modelers,
@@ -69,7 +70,7 @@ class RandomAutoML(AutoML):
         self.curr_eval = None
         self.curr_pipe = None
 
-    def build_impl(self, **args_set):
+    def build_impl(self, **config):
         """ TODO the docstring documentation
         """
         # The 'self' is a copy.
@@ -77,7 +78,7 @@ class RandomAutoML(AutoML):
         # shallow (copy.copy(self)).
         # See more details in the Component.build() method.
 
-        self.__dict__.update(self.args_set)
+        self.__dict__.update(self.config)
         np.random.seed(self.random_state)
         random.seed(self.random_state)
 
@@ -98,7 +99,7 @@ class RandomAutoML(AutoML):
         tree = self.curr_pipe.tree()
 
         try:
-            args = tree.tree_to_dict()
+            args = tree.tree_to_config()
         except SamplingException as exc:
             print(' ========== Pipe:\n', self.curr_pipe)
             raise Exception(exc)

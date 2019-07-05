@@ -1,7 +1,7 @@
 """ TODO the docstring documentation
 """
 # from python
-from abc import ABC, abstractmethod
+from abc import abstractmethod, ABC
 
 # from other packages
 # import numpy as np
@@ -169,8 +169,8 @@ class AutoML(Component, ABC):
             "AutoML has no next_pipelines() implemented!"
         )
 
-    @classmethod
-    def tree_impl(cls):
+    # @classmethod
+    def tree_impl(self):
         """ TODO the docstring documentation
         """
         raise NotImplementedError(

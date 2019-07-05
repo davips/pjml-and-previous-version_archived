@@ -15,17 +15,24 @@ class HPTree(object):
     def expand(self) -> (Dict, List):
         return self.node, self.children
 
-    def tree_to_dict(self):
-        """
-        Prepare arguments to a Component,
+    def tree_to_config(self, random_state=None):
+        """Prepare arguments to a Component,
         sampling randomly from the intervals in the given tree.
         The traversal is stopped at the first leaf found.
-        :param tree:
-        :return: kwargs for Component constructor
-        """
-        return self.pipeline_to_dic(self)[0]
 
-    def moduletree_to_dic(self, tree):
+        Parameters
+        ----------
+            random_state: int
+
+        Returns
+        -------
+            kwargs for Component constructor
+        """
+        if random_state is not None:
+            random.seed(random_state)
+        return self.pipeline_to_config(self)[0]
+
+    def moduletree_to_config(self, tree):
         args = {}
 
         # This is needed here because composers
@@ -47,7 +54,7 @@ class HPTree(object):
 
             # if child is not a component (it is a, e.g., a kernel)
             if child.name is None:
-                node, tree = self.moduletree_to_dic(child)
+                node, tree = self.moduletree_to_config(child)
                 args.update(node)
 
         return args, tree
@@ -57,9 +64,9 @@ class HPTree(object):
     #  It could be defined during the construction of the tree according to
     #  the size of its subtrees.
 
-    def pipeline_to_dic(self, tree):
-        argss = []
-        args, children = tree.expand()
+    def pipeline_to_config(self, tree):
+        configs = []
+        config, children = tree.expand()
         if len(children) != 1:
             raise Exception(
                 "Each pipeline should have only one child. Not " +
@@ -71,13 +78,13 @@ class HPTree(object):
 
             # TODO: this IF should be more general:
             if tree.name == 'Pipeline' or tree.name == 'Concat':
-                args, children = self.pipeline_to_dic(tree)
+                config, children = self.pipeline_to_config(tree)
             else:
-                args, last = self.moduletree_to_dic(tree)
+                config, last = self.moduletree_to_config(tree)
                 children = last.children
 
-            argss.append(args)
-        return {'name': tree.name[3:], 'dics': argss}, tree.children
+            configs.append(config)
+        return {'name': tree.name[3:], 'configs': configs}, tree.children
 
     def __str__(self, depth=''):
         rows = [str(self.node)]

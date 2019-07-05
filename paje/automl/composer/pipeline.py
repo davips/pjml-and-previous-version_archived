@@ -17,23 +17,23 @@ from paje.base.hps import HPTree
 
 
 class Pipeline(Composer):
-    def build_impl(self, **args_set):
+    def build_impl(self, **config):
         """
-        The only parameter is dics with the dic of each component.
-        :param dics
+        The only parameter is config with the dic of each component.
+        :param config
         :return:
         """
-        dics = [{} for _ in self.components]  # Default value
+        configs = [{} for _ in self.components]  # Default value
 
-        if 'dics' in self.args_set:
-            dics = self.args_set['dics']
+        if 'configs' in self.config:
+            configs = self.config['configs']
         self.components = self.components.copy()
-        zipped = zip(range(0, len(self.components)), dics)
-        for idx, dic in zipped:
+        zipped = zip(range(0, len(self.components)), configs)
+        for idx, compo_config in zipped:
             # TODO: setar showwarns?
-            dic = dic.copy()
-            dic['random_state'] = self.random_state
-            self.components[idx] = self.components[idx].build(**dic)
+            newconfig = compo_config.copy()
+            newconfig['random_state'] = self.random_state
+            self.components[idx] = self.components[idx].build(**newconfig)
 
     def set_leaf(self, tree, f):
         if len(tree.children) > 0:

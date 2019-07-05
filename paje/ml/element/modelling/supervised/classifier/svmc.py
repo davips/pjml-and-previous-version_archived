@@ -13,12 +13,12 @@ class SVMC(Classifier): #, JSONEncoder):
     #         return JSONEncoder.default(self, o)
 
     def build_impl(self):
-        self.model = SVC(**self.args_set)
+        self.model = SVC(**self.config)
 
     @classmethod
     def tree_impl(self):
         # todo: set random seed; set 'cache_size'
-        dic = {
+        node = {
             'C': ['r', [0.0001, 100]],
             'shrinking': ['c', [True, False]],
             'probability': ['c', [False]],
@@ -50,4 +50,4 @@ class SVMC(Classifier): #, JSONEncoder):
                                   children=[kernel_poly, kernel_rbf,
                                             kernel_sigmoid])
 
-        return HPTree(dic, children=[kernel_linear, kernel_nonlinear])
+        return HPTree(node, children=[kernel_linear, kernel_nonlinear])

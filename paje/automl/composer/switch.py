@@ -5,24 +5,24 @@ from paje.base.hps import HPTree
 class Switch(Composer):
     def build_impl(self):
         """
-        The only parameter is dics with the dic of each component.
-        :param dics
+        The only parameter is configs with the config of each component.
+        :param configs
         :return:
         """
-        if 'dics' in self.args_set:
-            dics = self.args_set['dics']
+        if 'configs' in self.config:
+            configs = self.config['configs']
 
         self.components = self.components.copy()
 
-        component_idx = dics[0]["component"]
+        component_idx = configs[0]["component"]
         component_idx = int(component_idx.split("_")[0])
 
-        dic = dics[0].copy()
-        dic['random_state'] = self.args_set['random_state']  # TODO: check this
-        del dic["component"]
+        compo_config = configs[0].copy()
+        compo_config['random_state'] = self.config['random_state']  # TODO: check this
+        del compo_config["component"]
         # TODO: is switch ready?
 
-        self.components = [self.components[component_idx].build(**dic)]
+        self.components = [self.components[component_idx].build(**compo_config)]
 
     def tree(self, data=None):
         forest = []

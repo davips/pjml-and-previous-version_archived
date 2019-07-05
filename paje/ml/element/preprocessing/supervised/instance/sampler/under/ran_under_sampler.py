@@ -7,10 +7,10 @@ from paje.ml.element.preprocessing.supervised.instance.sampler.resampler \
 
 class RanUnderSampler(Resampler):
     def build_impl(self):
-        self.model = RandomUnderSampler(**self.args_set)
+        self.model = RandomUnderSampler(**self.config)
 
     @classmethod
     def tree_impl(cls, data=None):
-        dic = {'sampling_strategy': ['c', ['majority', 'not minority',
+        node = {'sampling_strategy': ['c', ['majority', 'not minority',
                                            'not majority', 'all']]}
-        return HPTree(dic, children=[])
+        return HPTree(node, children=[])

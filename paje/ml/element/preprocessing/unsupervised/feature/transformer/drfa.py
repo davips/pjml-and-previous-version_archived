@@ -106,8 +106,8 @@ rd = fa.apply(2)
 
 class DRFA(Reductor):
     def build_impl(self):
-        self.model = FactorAnalysis(**self.args_set)
+        self.model = FactorAnalysis(**self.config)
 
     @classmethod
-    def specific_dictionary(cls, data):
+    def specific_node(cls, data):
         return {}

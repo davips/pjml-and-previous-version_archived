@@ -14,7 +14,7 @@ class Frozen(Composer):
         # rnd_state vem de quem chama build()
         self.components = self.components.copy()
         # self.params = self.params.copy()  # TODO: why we needed this here?
-        self.components[0] = self.components[0].build(**self.args_set)
+        self.components[0] = self.components[0].build(**self.config)
 
     def freeze_hptree(self):
         aux = {}

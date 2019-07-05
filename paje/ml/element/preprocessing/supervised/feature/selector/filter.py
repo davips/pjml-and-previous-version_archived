@@ -8,7 +8,7 @@ from paje.ml.element.element import Element
 class Filter(Element, ABC):
     """ Filter base class"""
     def build_impl(self):
-        self.ratio = self.args_set['ratio']
+        self.ratio = self.config['ratio']
         self._rank = self._score = self._nro_features = None
         self.model = 42 # TODO: better model here?
 

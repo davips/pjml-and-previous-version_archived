@@ -8,12 +8,12 @@ from paje.ml.element.modelling.supervised.classifier.classifier import Classifie
 class RF(Classifier):
     def build_impl(self):
         # TODO: set n_jobs in constructor
-        self.model = RandomForestClassifier(**self.args_set)
+        self.model = RandomForestClassifier(**self.config)
 
     @classmethod
     def tree_impl(self):
         n_estimators = [100, 500, 1000, 3000, 5000]
-        dic = {'bootstrap': ['c', [True, False]],
+        node = {'bootstrap': ['c', [True, False]],
                'criterion': ['c', ['gini', 'entropy']],
                'max_features': ['c', ['auto', 'sqrt', 'log2', None]],
                'min_impurity_decrease': ['r', [0, 0.2]],
@@ -23,7 +23,7 @@ class RF(Classifier):
                'max_depth': ['z', [2, 1000]],
                'n_estimators': ['c', n_estimators],
                }
-        return HPTree(dic, children=[])
+        return HPTree(node, children=[])
 
     @classmethod
     def tree_impl_back(cls, data):
@@ -34,7 +34,7 @@ class RF(Classifier):
         data_for_speed = {
             'n_estimators': ['z', [2, 1000]],
             'max_depth': ['z', [2, data.n_instances()]]}  # Entre outros
-        dic = {'bootstrap': ['c', [True, False]],
+        node = {'bootstrap': ['c', [True, False]],
                'min_impurity_decrease': ['r', [0, 1]],
                'max_leaf_nodes': ['o', [2, 3, 5, 8, 12, 17, 23, 30, 38, 47, 57,
                                         999999]],  # 999999 ~ None
@@ -57,4 +57,4 @@ class RF(Classifier):
                # Only to set the default, not for search.
                # See DT.py for more details about other settings.
                }
-        return HPTree(dic, children=[])
+        return HPTree(node, children=[])

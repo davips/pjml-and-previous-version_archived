@@ -9,8 +9,8 @@ from paje.util.distributions import exponential_integers
 
 class KNN(Classifier):
     def build_impl(self):
-        newdic = self.args_set.copy()
-        self.model = KNeighborsClassifier(**newdic)
+        newconfig = self.config.copy()
+        self.model = KNeighborsClassifier(**newconfig)
 
     def apply_impl(self, data):
         # TODO: decide how to handle this
@@ -38,10 +38,10 @@ class KNN(Classifier):
     def tree_impl(self):
         kmax = 100
 
-        dic = {
+        node = {
             'n_neighbors': ['c', exponential_integers(kmax)],
             'metric': ['c',
                        ['euclidean', 'manhattan', 'chebyshev', 'mahalanobis']],
             'weights': ['c', ['distance', 'uniform']],
         }
-        return HPTree(dic, children=[])
+        return HPTree(node, children=[])
