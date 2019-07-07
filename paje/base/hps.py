@@ -2,15 +2,60 @@ import random
 import traceback
 from typing import Dict, List
 
+import numpy
+
 from paje.util.distributions import sample
+from functools import partial
 
 
-class HPTree(object):
-    def __init__(self, node, children, name=None, tmp_uuid=None):
-        self.node = node
-        self.children = children
+class HyperParameter():
+    def __init__(self, name, func, *args, **kwargs):
         self.name = name
+        self.func = partial(func, *args, **kwargs)
+        self.args = args
+        self.kwargs = kwargs
+
+    def sample(self):
+        return self.func()
+
+
+class CatHP(HyperParameter):
+    pass
+
+
+class RealHP(HyperParameter):
+    pass
+
+
+class IntHP(HyperParameter):
+    def sample(self):
+        return numpy.round(self.func())
+
+
+class Node():
+
+    def add_child(self, child):
+        self.children.append(child)
+
+    def add_hp(self, hp):
+        self.node[hp.name] = hp
+
+class ConfigSpace(object):
+    def __init__(self, name='', node=None, children=None, tmp_uuid=None):
+
+        if node is None:
+            self.node = {}
+
+        if children is None:
+            self.children = []
+
+        self.name = name
+        self.start = Node('Start')
+        self.end = Node('End')
+
+        # TODO: remove?
         self.tmp_uuid = tmp_uuid
+
 
     def expand(self) -> (Dict, List):
         return self.node, self.children

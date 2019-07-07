@@ -10,6 +10,21 @@ class DT(Classifier):
 
     @classmethod
     def tree_impl(self):
+        cs = ConfigSpace('DT')
+        st = cs.start()
+
+        st.add_hp(CatHP('criterion', np.random.choise, a=['gini', 'entropy']))
+        st.add_hp(IntHP('max_depth', np.random.uniform, low=2, high=1000))
+
+        outro = st.new_child()
+        outro.add_hp()
+
+        outro1 = st.new_child()
+        outro1.add_hp()
+
+
+        cs.finish()
+
         # todo: set random seed
         node = {
             'criterion': ['c', ['gini', 'entropy']],
