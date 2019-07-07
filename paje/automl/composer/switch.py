@@ -30,8 +30,9 @@ class Switch(Composer):
         for component in self.components:
             idx += 1
             tree = component.tree(data)
-            comp_hptree = HPTree({"component": ['c', ["{0}_{1}".format(
-                idx, component.name)]]}, [tree])
+            comp_hptree = HPTree(
+                {"component": ['c', [f"{idx}_{component.name}"]]}, [tree]
+            )
             forest.append(comp_hptree)
 
         return HPTree({}, children=forest, name=self.name)
