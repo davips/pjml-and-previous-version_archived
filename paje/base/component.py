@@ -68,13 +68,19 @@ class Component(ABC):
         self._serialized = None
 
     @profile
-    def tree(self):  # previously known as hyperpar_spaces_forest
+    def tree(self, data=None):
         """
-        :param data:
-        :return: [tree]
+        Each tree represents a set of hyperparameter spaces and is a, possibly
+        infinite, set of configurations.
+        Parameters
+        ----------
+        data
+            If given, 'data' limits the search interval of some hyperparameters
+
+        Returns
+        -------
+            Tree representing all the possible hyperparameter spaces.
         """
-        # TODO: all child classes mark tree_impl as classmethod, turn it into
-        #  instance method?
         tree = self.tree_impl()
         self.check_tree(tree)
         if tree.name is None:
@@ -91,6 +97,7 @@ class Component(ABC):
         #     self.error('Build cannot be called on a built component!')
 
         obj_copied = copy.copy(self)
+        
         # descobrir no git log porque colocamos esse update aqui!!!!!
         # voltei para o que era antes para parar de fazer bruxaria
         # de alterar o bestpipeline quando fazia o build do proximo pipe.
@@ -109,7 +116,7 @@ class Component(ABC):
         # TODO: which init vars should be restarted here?
         obj_copied.failure = None
 
-        obj_copied.build_impl(**(obj_copied.config))
+        obj_copied.build_impl(**obj_copied.config)
         return obj_copied
 
     @profile
@@ -423,7 +430,8 @@ class Component(ABC):
 
     def check_if_applied(self):
         if self._train_data_uuid__mutable is None:
-            raise UseWithoutApply(f'{self.name} should be applied!')
+            raise UseWithoutApply(f'{self.name} should be applied after a '
+                                  f'build!')
 
     def check_if_built(self):
         self.serialized()  # Call just to raise exception, if needed.

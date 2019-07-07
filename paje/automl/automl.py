@@ -169,8 +169,7 @@ class AutoML(Component, ABC):
             "AutoML has no next_pipelines() implemented!"
         )
 
-    # @classmethod
-    def tree_impl(self):
+    def tree_impl(self, data=None):
         """ TODO the docstring documentation
         """
         raise NotImplementedError(
