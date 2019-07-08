@@ -33,26 +33,44 @@ class IntHP(HyperParameter):
 
 
 class Node():
+    def __init__(self, name):
+        self.name = name
+        self.children = []
+        self.config = {}
 
     def add_child(self, child):
         self.children.append(child)
 
+    def add_children(self, children):
+        self.children = self.children + children
+
     def add_hp(self, hp):
-        self.node[hp.name] = hp
+        self.config[hp.name] = hp
+
 
 class ConfigSpace(object):
-    def __init__(self, name='', node=None, children=None, tmp_uuid=None):
-
-        if node is None:
-            self.node = {}
-
-        if children is None:
-            self.children = []
+    def __init__(self, name):
 
         self.name = name
-        self.start = Node('Start')
-        self.end = Node('End')
+        self.start = Node('Start' + name)
+        self.end = Node('End' + name)
 
+    def new_node(self, name=''):
+        return Node(name)
+
+    def start(self):
+        return self.start
+
+    def finish(self, nodes):
+        for nd in nodes:
+            nd.add_child(self.end)
+
+    def sample(self):
+        pass
+
+
+class HPTree():
+    def __init__(self):
         # TODO: remove?
         self.tmp_uuid = tmp_uuid
 

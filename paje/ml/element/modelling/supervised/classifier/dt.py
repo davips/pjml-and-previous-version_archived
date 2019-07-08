@@ -10,20 +10,47 @@ class DT(Classifier):
 
     @classmethod
     def tree_impl(self):
+
+        # DT
         cs = ConfigSpace('DT')
         st = cs.start()
 
         st.add_hp(CatHP('criterion', np.random.choise, a=['gini', 'entropy']))
         st.add_hp(IntHP('max_depth', np.random.uniform, low=2, high=1000))
 
-        outro = st.new_child()
-        outro.add_hp()
-
-        outro1 = st.new_child()
-        outro1.add_hp()
+        nd = cs.new_node()
+        nd =...
+        st.add_child(nd)
 
 
-        cs.finish()
+        cs.finish([nd, nd2])
+
+        # Pip a,b,c
+        cs = ConfigSpace('Pipeline')
+        st = cs.start()
+
+        st.add_child(a.start)
+        a.end.add_child(b.start)
+        b.end.add_child(c.start)
+
+        c.end.add_child(cs.end())
+        cs.finish([c.end])
+
+        return cs
+
+
+        # Sw
+        cs = ConfigSpace('Switch')
+        st = cs.start()
+
+        st.add_children([a.start, b.start, c.start])
+
+        cs.finish([a.end,b.end,c.end])
+
+
+
+
+
 
         # todo: set random seed
         node = {
