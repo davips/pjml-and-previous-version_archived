@@ -1,6 +1,8 @@
 from sklearn.tree import DecisionTreeClassifier
 
-from paje.base.hps import HPTree
+from paje.base.hps import ConfigSpace
+from paje.base.hps import CatHP, RealHP, IntHP
+from numpy.random import choice, uniform
 from paje.ml.element.modelling.supervised.classifier.classifier import Classifier
 
 
@@ -10,70 +12,28 @@ class DT(Classifier):
 
     @classmethod
     def tree_impl(self):
-
-        # DT
-        cs = ConfigSpace('DT')
-        st = cs.start()
-
-        st.add_hp(CatHP('criterion', np.random.choise, a=['gini', 'entropy']))
-        st.add_hp(IntHP('max_depth', np.random.uniform, low=2, high=1000))
-
-        nd = cs.new_node()
-        nd =...
-        st.add_child(nd)
-
-
-        cs.finish([nd, nd2])
-
-        # Pip a,b,c
-        cs = ConfigSpace('Pipeline')
-        st = cs.start()
-
-        st.add_child(a.start)
-        a.end.add_child(b.start)
-        b.end.add_child(c.start)
-
-        c.end.add_child(cs.end())
-        cs.finish([c.end])
-
-        return cs
-
-
         # Sw
-        cs = ConfigSpace('Switch')
-        st = cs.start()
+        # cs = ConfigSpace('Switch')
+        # st = cs.start()
+        # st.add_children([a.start, b.start, c.start])
+        # cs.finish([a.end,b.end,c.end])
 
-        st.add_children([a.start, b.start, c.start])
+        config_space = ConfigSpace('DT')
+        start = config_space.start()
+        node = config_space.node()
+        start.add_child(node)
 
-        cs.finish([a.end,b.end,c.end])
+        node.add_hp(CatHP('criterion', choice, a=['gini', 'entropy']))
+        node.add_hp(CatHP('splitter', choice, a=['best']))
+        node.add_hp(CatHP('class_weight', choice, a=[None, 'balanced']))
+        node.add_hp(CatHP('max_features', choice,
+                          a=['auto', 'sqrt', 'log2', None]))
 
+        node.add_hp(IntHP('max_depth', uniform, low=2, high=1000))
 
+        node.add_hp(RealHP('min_samples_split', uniform, low=1e-6, high=0.3))
+        node.add_hp(RealHP('min_samples_leaf', uniform, low=1e-6, high=0.3))
+        node.add_hp(RealHP('min_weight_fraction_leaf', uniform, low=0.0, high=0.3))
+        node.add_hp(RealHP('min_impurity_decrease', uniform, low=0.0, high=0.2))
 
-
-
-
-        # todo: set random seed
-        node = {
-            'criterion': ['c', ['gini', 'entropy']],
-            'splitter': ['c', ['best']],
-            'max_depth': ['z', [2, 1000]],
-            'min_samples_split': ['r', [1e-6, 0.3]],
-            # Same reason as min_samples_leaf
-            'min_samples_leaf': ['r', [1e-6, 0.3]],
-            # Int (# of instances) is better than float
-            # (proportion of instances) because different floats can collide to
-            # a same int, making intervals of useless real values.
-            'min_weight_fraction_leaf': ['r', [0, 0.3]],
-            'max_features': ['c', ['auto', 'sqrt', 'log2', None]],
-            # For some reason, the interval [1, n_attributes] didn't work for
-            # DT.
-            # 'max_leaf_nodes': ['o',
-            #                    [2, 4, 7, 11, 16, 22, 29, 37, 46, 56, None]],
-            'min_impurity_decrease': ['r', [0.0, 0.2]],
-            # 'min_impurity_split': None, # deprecated in favour
-            # of min_impurity_decrease
-            'class_weight': ['c', [None, 'balanced']],
-            # 'presort': False # Strange setting that slow down large datasets
-            # and speed up small ones.
-        }
-        return HPTree(node, children=[])
+        return config_space

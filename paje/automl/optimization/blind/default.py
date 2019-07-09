@@ -15,7 +15,7 @@ class DefaultAutoML(RandomAutoML):
         tree = self.curr_pipe.tree()
 
         try:
-            args = tree.tree_to_config()
+            args = tree.sample()
         except SamplingException as exc:
             print(' ========== Pipe:\n', self.curr_pipe)
             raise Exception(exc)

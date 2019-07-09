@@ -85,7 +85,7 @@ class RandomAutoML(AutoML):
         if self.pipe_length < 1:
             raise ValueError("The 'pipe_length' must be greater than 0.")
 
-        #TODO: was this IF correct?  ass. Davi
+        # TODO: was this IF correct?  ass. Davi
         if self.repetitions < 0:
             print('self.repetitions', self.repetitions)
             raise ValueError("The 'repetitions' must be a non-negative int.")
@@ -96,10 +96,14 @@ class RandomAutoML(AutoML):
         components = self.choose_modules()
         self.curr_pipe = Pipeline(components, show_warns=self.show_warns,
                                   storage=self.storage_for_components)
-        tree = self.curr_pipe.tree()
+        tree = self.curr_pipe.tree(
+            config_spaces=[c.tree() for c in components]
+        )
+        # print('cfgspc:\n', tree, '\n')
 
         try:
-            args = tree.tree_to_config()
+            args = tree.sample()
+            # print('config=\n', args, '\n')
         except SamplingException as exc:
             print(' ========== Pipe:\n', self.curr_pipe)
             raise Exception(exc)

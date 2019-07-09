@@ -1,13 +1,9 @@
+from numpy.random import choice
 from sklearn.model_selection import StratifiedKFold, LeaveOneOut, \
     StratifiedShuffleSplit
 
-from paje.base.hps import HPTree
-from paje.ml.element.element import Element
-from paje.util.encoders import json_unpack, json_pack
-from sklearn.model_selection import StratifiedKFold, LeaveOneOut, \
-    StratifiedShuffleSplit
-
-from paje.base.hps import HPTree
+from paje.base.hps import CatHP, RealHP, IntHP
+from paje.base.hps import ConfigSpace
 from paje.ml.element.element import Element
 from paje.util.encoders import json_unpack, json_pack
 
@@ -75,20 +71,30 @@ class CV(Element):
 
         return data.updated(Use(self), X=data.X[indices], Y=data.Y[indices])
 
-    def tree_impl(self, data):
-        holdout = {
-            'split': ['c', ['holdout']],
-            'steps': ['z', [1, 100000]],  # TODO: which interval is good?
-            'test_size': ['r', [0.000001, 0.999999]]
-        }
-        cv = {
-            'split': ['c', ['cv']],
-            'steps': ['z', [1, 100000]],  # TODO: which intervals are good?
-        }
-        loo = {
-            'split': ['c', ['loo']],
-        }
-        HPTree({'iteration': ['c', [0]]}, [holdout, cv, loo])
+    def tree_impl(self):
+        config_space = ConfigSpace('CV')
+        start = config_space.start()
+
+        node = config_space.node()
+        start.add_child(node)
+        node.add_hp(CatHP('iteration', choice, a=[0]))
+
+        holdout = config_space.node()
+        node.add_child(holdout)
+        holdout.add_hp(CatHP('split', choice, a=['holdout']))
+        holdout.add_hp(IntHP('steps', choice, low=1, high=100000))
+        holdout.add_hp(RealHP('test_size', choice, low=1e-06, high=1-1e-06))
+
+        cv = config_space.node()
+        node.add_child(cv)
+        cv.add_hp(CatHP('split', choice, a=['cv']))
+        cv.add_hp(IntHP('steps', choice, low=1, high=100000))
+
+        loo = config_space.node()
+        node.add_child(loo)
+        loo.add_hp(CatHP('split', choice, a=['loo']))
+
+        return config_space
 
 
 # Needed classes to mark history of transformations when apply() give different

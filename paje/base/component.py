@@ -68,7 +68,7 @@ class Component(ABC):
         self._serialized = None
 
     @profile
-    def tree(self, data=None):
+    def tree(self, **kwargs):
         """
         Each tree represents a set of hyperparameter spaces and is a, possibly
         infinite, set of configurations.
@@ -81,8 +81,8 @@ class Component(ABC):
         -------
             Tree representing all the possible hyperparameter spaces.
         """
-        tree = self.tree_impl()
-        self.check_tree(tree)
+        tree = self.tree_impl(**kwargs)
+        # self.check_tree(tree)
         if tree.name is None:
             tree.name = self.name
         return tree
@@ -289,7 +289,7 @@ class Component(ABC):
     #                                distributions, rules?")
 
     # @classmethod
-    def tree_impl(self):
+    def tree_impl(self, **kwargs):
         """Todo the doc string
         """
         pass
@@ -300,39 +300,39 @@ class Component(ABC):
             raise Exception(cls.__name__ + ' needs a dataset to be able to \
                             estimate maximum values for some hyperparameters.')
 
-    @classmethod
-    def check_tree(cls, tree):
-        try:
-            node = tree.node
-        except Exception as e:
-            print(e)
-            print()
-            print(cls.__name__, ' <- problematic class')
-            print()
-            raise Exception('Problems with hyperparameter space')
-
-        try:
-            for k in node:
-                t = node[k][0]
-                v = node[k][1]
-                if t == 'c' or t == 'o':
-                    if not isinstance(v, list):
-                        raise Exception('Categorical and ordinal \
-                                        hyperparameters need a list of \
-                                        values: ' + str(k))
-                else:
-                    if len(v) != 2:
-                        raise Exception('Real and integer hyperparameters need'
-                                        ' a limit with two values: ' + str(k))
-        except Exception as e:
-            print(e)
-            print()
-            print(cls.__name__)
-            print()
-            raise Exception('Problems with hyperparameter space: ' + str(node))
-
-        for child in tree.children:
-            cls.check_tree(child)
+    # @classmethod
+    # def check_tree(cls, tree):
+    #     try:
+    #         node = tree.node
+    #     except Exception as e:
+    #         print(e)
+    #         print()
+    #         print(cls.__name__, ' <- problematic class')
+    #         print()
+    #         raise Exception('Problems with hyperparameter space')
+    #
+    #     try:
+    #         for k in node:
+    #             t = node[k][0]
+    #             v = node[k][1]
+    #             if t == 'c' or t == 'o':
+    #                 if not isinstance(v, list):
+    #                     raise Exception('Categorical and ordinal \
+    #                                     hyperparameters need a list of \
+    #                                     values: ' + str(k))
+    #             else:
+    #                 if len(v) != 2:
+    #                     raise Exception('Real and integer hyperparameters need'
+    #                                     ' a limit with two values: ' + str(k))
+    #     except Exception as e:
+    #         print(e)
+    #         print()
+    #         print(cls.__name__)
+    #         print()
+    #         raise Exception('Problems with hyperparameter space: ' + str(node))
+    #
+    #     for child in tree.children:
+    #         cls.check_tree(child)
 
     def uuid(self):
         if self._uuid is None:
