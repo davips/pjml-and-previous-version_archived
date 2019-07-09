@@ -36,16 +36,10 @@ class IntHP(HyperParameter):
         return numpy.round(self.func())
 
 
-class Node():
-    def __init__(self):
-        self.children = []
-        self.hps = {}
-
-    def add_child(self, child):
-        self.children.append(child)
-
-    def add_children(self, children):
-        self.children = self.children + children
+class Node:
+    def __init__(self, hps, children):
+        self.hps = hps
+        self.children = children
 
     def __str__(self, depth=''):
         rows = [str(self.hps)]
@@ -57,9 +51,9 @@ class Node():
 
 
 class SNode(Node):
-    def __init__(self, name):
+    def __init__(self, name, children):
         self.name = name
-        super().__init__()
+        super().__init__(hps=[], children=children)
 
 
 class ENode(Node):
@@ -67,8 +61,7 @@ class ENode(Node):
 
 
 class INode(Node):
-    def add_hp(self, hp):
-        self.hps[hp.name] = hp
+    pass
 
 
 class ConfigSpace(object):
@@ -78,14 +71,13 @@ class ConfigSpace(object):
         self._start = SNode(name)
         self._end = ENode()
 
-    def node(self):
-        return INode()
+    @staticmethod
+    def node(hps, children):
+        return INode(hps, children)
 
-    def start(self):
-        return self._start
-
-    def end(self):
-        return self._end
+    @staticmethod
+    def bottom():
+        return ENode()
 
     def finish(self, nodes):
         for node in nodes:
@@ -109,13 +101,13 @@ class ConfigSpace(object):
     def _elem_hps_to_config(self, node):
         args = {}
 
-        for k, hp in node.hps.items():
+        for hp in node.hps:
             try:
-                args[k] = hp.sample()
+                args[hp.name] = hp.sample()
             except Exception as e:
                 traceback.print_exc()
                 print(e)
-                print('Problems sampling: ', k, hp)
+                print('Problems sampling: ', hp.name, hp)
                 exit(0)
 
         if node.children:
@@ -147,7 +139,6 @@ class ConfigSpace(object):
         return f'{self.name} {str(self.start())}'
 
     __repr__ = __str__
-
 
 # class HPTree():
 #     def __init__(self):

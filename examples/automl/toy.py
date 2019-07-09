@@ -1,5 +1,6 @@
 import sys
 
+from paje.automl.composer.pipeline import Pipeline
 from paje.automl.optimization.blind.random import RandomAutoML
 from paje.base.data import Data
 from paje.ml.element.modelling.supervised.classifier.dt import DT
@@ -12,7 +13,10 @@ def main():
               '[iter=#] [seed=#] [storage=mysql/sqlite/cached] [db=dna] ')
     else:
         arg = {tupl.split('=')[0]: tupl.split('=')[1] for tupl in sys.argv[1:]}
-        my_modelers = [DT()]
+        pip1 = Pipeline(components=[DT()])
+        pip2 = Pipeline(components=[pip1])
+        pip3 = Pipeline(components=[])
+        my_modelers = [DT(), pip1, pip2, pip3]
 
         for k, v in arg.items():
             print(f'{k}={v}')

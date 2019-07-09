@@ -18,22 +18,25 @@ class DT(Classifier):
         # st.add_children([a.start, b.start, c.start])
         # cs.finish([a.end,b.end,c.end])
 
-        config_space = ConfigSpace('DT')
-        start = config_space.start()
+        bottom = config_space.start()
         node = config_space.node()
         start.add_child(node)
 
-        node.add_hp(CatHP('criterion', choice, a=['gini', 'entropy']))
-        node.add_hp(CatHP('splitter', choice, a=['best']))
-        node.add_hp(CatHP('class_weight', choice, a=[None, 'balanced']))
-        node.add_hp(CatHP('max_features', choice,
-                          a=['auto', 'sqrt', 'log2', None]))
+        hps = [
+            CatHP('criterion', choice, a=['gini', 'entropy']),
+            CatHP('splitter', choice, a=['best']),
+            CatHP('class_weight', choice, a=[None, 'balanced']),
+            CatHP('max_features', choice,
+                  a=['auto', 'sqrt', 'log2', None]),
 
-        node.add_hp(IntHP('max_depth', uniform, low=2, high=1000))
+            IntHP('max_depth', uniform, low=2, high=1000),
 
-        node.add_hp(RealHP('min_samples_split', uniform, low=1e-6, high=0.3))
-        node.add_hp(RealHP('min_samples_leaf', uniform, low=1e-6, high=0.3))
-        node.add_hp(RealHP('min_weight_fraction_leaf', uniform, low=0.0, high=0.3))
-        node.add_hp(RealHP('min_impurity_decrease', uniform, low=0.0, high=0.2))
+            RealHP('min_samples_split', uniform, low=1e-6, high=0.3),
+            RealHP('min_samples_leaf', uniform, low=1e-6, high=0.3),
+            RealHP('min_weight_fraction_leaf', uniform, low=0.0, high=0.3),
+            RealHP('min_impurity_decrease', uniform, low=0.0, high=0.2)
+        ]
 
-        return config_space
+        node = ConfigSpace.node(hps, children=[bottom])
+
+        return ConfigSpace('DT', children=[node])
