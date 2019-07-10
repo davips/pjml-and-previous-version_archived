@@ -154,7 +154,7 @@ class ConfigSpace(Node):
             if self.iselement_hps(child):
                 config, node = self._elem_hps_to_config(child)
             else:
-                config, node = self._compr_hps_to_config(node)
+                config, node = self._compr_hps_to_config(child)
 
             res.append(config)
 

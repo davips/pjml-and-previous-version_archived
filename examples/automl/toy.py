@@ -19,7 +19,7 @@ def main():
         # pip1 = Pipeline.tree(children=[dt])
         # pip2 = Pipeline.tree(children=[pip1])
         # pip3 = Pipeline(components=[])
-        my_modelers = [dt] #, pip1, pip2, pip3]
+        my_modelers = [dt()] #, pip1, pip2, pip3]
 
         for k, v in arg.items():
             print(f'{k}={v}')

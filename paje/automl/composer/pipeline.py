@@ -33,6 +33,7 @@ class Pipeline(Composer):
             # TODO: setar showwarns?
             newconfig = compo_config.copy()
             newconfig['random_state'] = self.random_state
+            print(55555555, self.components[idx], newconfig)
             self.components[idx] = self.components[idx].build(**newconfig)
 
     @classmethod

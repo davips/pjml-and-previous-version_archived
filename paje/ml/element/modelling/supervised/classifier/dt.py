@@ -8,7 +8,7 @@ from paje.ml.element.modelling.supervised.classifier.classifier import Classifie
 
 class DT(Classifier):
     def build_impl(self, **config):
-        self.model = DecisionTreeClassifier(**self.config)
+        self.model = DecisionTreeClassifier(**config)
 
     @classmethod
     def tree_impl(cls):
