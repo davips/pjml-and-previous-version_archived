@@ -18,10 +18,6 @@ class DT(Classifier):
         # st.add_children([a.start, b.start, c.start])
         # cs.finish([a.end,b.end,c.end])
 
-        bottom = config_space.start()
-        node = config_space.node()
-        start.add_child(node)
-
         hps = [
             CatHP('criterion', choice, a=['gini', 'entropy']),
             CatHP('splitter', choice, a=['best']),
@@ -37,6 +33,8 @@ class DT(Classifier):
             RealHP('min_impurity_decrease', uniform, low=0.0, high=0.2)
         ]
 
+        bottom = ConfigSpace.bottom()
         node = ConfigSpace.node(hps, children=[bottom])
+        top = ConfigSpace.top('DT', children=[node])
 
-        return ConfigSpace('DT', children=[node])
+        return ConfigSpace(start=top, end=bottom)

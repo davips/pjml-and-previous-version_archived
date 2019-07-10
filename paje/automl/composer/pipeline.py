@@ -44,16 +44,15 @@ class Pipeline(Composer):
     #             tree.children.append(f())
     #
     def tree_impl(self, config_spaces):
-        new_config_space = ConfigSpace('Pipeline')
+        bottom = ConfigSpace.bottom()
+        for config_space in reversed(config_spaces):
+            bottom = config_space.end().updated(children=[bottom])
 
-        aux = new_config_space.start()
-        for config_space in config_spaces:
-            aux.add_child(config_space.start())
-            aux = config_space.end()
-        new_config_space.finish([aux])
 
-        return new_config_space
 
+        node = ConfigSpace.node(hps, children=[ConfigSpace.bottom()])
+
+        return ConfigSpace('Pipeline', children=[node], end=bottom)
 
     # def tree_impl_(self):
     #     if self.mytree is None:

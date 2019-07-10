@@ -61,15 +61,15 @@ class ENode(Node):
 
 
 class INode(Node):
-    pass
+    def updated(self, children):
+        INode(self.hps, children=children)
 
 
 class ConfigSpace(object):
-    def __init__(self, name):
-
-        self.name = name
-        self._start = SNode(name)
-        self._end = ENode()
+    def __init__(self, start, end, children=None):
+        self.children = [] if children is None else children
+        self._start = start
+        self._end = end
 
     @staticmethod
     def node(hps, children):
@@ -77,22 +77,30 @@ class ConfigSpace(object):
 
     @staticmethod
     def bottom():
-        return ENode()
+        return ENode(hps=[], children=[])
 
-    def finish(self, nodes):
-        for node in nodes:
-            node.add_child(self._end)
+    def start(self):
+        return self._start
+
+    def end(self):
         return self._end
 
     def sample(self):
         """TODO:
         """
-        if self.iselement_hps(self._start):
-            config, _ = self._elem_hps_to_config(self._start)
-        else:
-            config, _ = self._compr_hps_to_config(self._start)
+        res = []
+        node = self
 
-        return config
+        while node.children:
+            child = random.choice(node.children)
+            if self.iselement_hps(child):
+                config, node = self._elem_hps_to_config(child)
+            else:
+                config, node = self._compr_hps_to_config(node)
+
+            res.append(config)
+
+        return {'configs': res}, child
 
     @staticmethod
     def iselement_hps(node):

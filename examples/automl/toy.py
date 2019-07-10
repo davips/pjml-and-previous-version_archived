@@ -13,10 +13,15 @@ def main():
               '[iter=#] [seed=#] [storage=mysql/sqlite/cached] [db=dna] ')
     else:
         arg = {tupl.split('=')[0]: tupl.split('=')[1] for tupl in sys.argv[1:]}
-        pip1 = Pipeline(components=[DT()])
-        pip2 = Pipeline(components=[pip1])
-        pip3 = Pipeline(components=[])
-        my_modelers = [DT(), pip1, pip2, pip3]
+        dt = DT.tree()
+        cs = DT.config_space
+        mycfg = cs()
+        mycfg = cs()
+
+        pip1 = Pipeline.tree([dt])
+        pip2 = Pipeline.tree([pip1])
+        # pip3 = Pipeline(components=[])
+        my_modelers = [DT()] #, pip1, pip2, pip3]
 
         for k, v in arg.items():
             print(f'{k}={v}')
