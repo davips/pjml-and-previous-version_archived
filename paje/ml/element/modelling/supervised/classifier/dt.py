@@ -11,7 +11,7 @@ class DT(Classifier):
         self.model = DecisionTreeClassifier(**self.config)
 
     @classmethod
-    def tree_impl(self):
+    def tree_impl(cls):
         # Sw
         # cs = ConfigSpace('Switch')
         # st = cs.start()
@@ -35,6 +35,6 @@ class DT(Classifier):
 
         bottom = ConfigSpace.bottom()
         node = ConfigSpace.node(hps, children=[bottom])
-        top = ConfigSpace.top('DT', children=[node])
+        top = ConfigSpace.top(name='DT', children=[node])
 
         return ConfigSpace(start=top, end=bottom)

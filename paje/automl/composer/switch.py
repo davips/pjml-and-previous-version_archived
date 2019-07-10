@@ -24,7 +24,7 @@ class Switch(Composer):
 
         self.components = [self.components[component_idx].build(**compo_config)]
 
-    def tree(self, data=None):
+    def tree_impl(self, data=None):
         forest = []
         idx = -1
         for component in self.components:

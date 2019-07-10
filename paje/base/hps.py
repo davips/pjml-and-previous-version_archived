@@ -37,9 +37,39 @@ class IntHP(HyperParameter):
 
 
 class Node:
-    def __init__(self, hps, children):
-        self.hps = hps
+    def __init__(self, children):
         self.children = children
+
+    def __str__(self, depth=''):
+        rows = []
+        for child in self.children:
+            rows.append(child.__str__(depth + '   '))
+        return depth + self.__class__.__name__ + '\n'.join(rows)
+
+    __repr__ = __str__
+
+
+class SNode(Node):
+    def __init__(self, name, children):
+        super().__init__(children=children)
+        self.name = name
+        self.hps = []
+
+
+class ENode(Node):
+    def __init__(self):
+        super().__init__(children=[])
+        self.hps = []
+
+
+class INode(Node):
+    def __init__(self, hps, children=None):
+        children = [] if children is None else children
+        super().__init__(children=children)
+        self.hps = hps
+
+    def updated(self, children):
+        return INode(self.hps, children=children)
 
     def __str__(self, depth=''):
         rows = [str(self.hps)]
@@ -50,34 +80,27 @@ class Node:
     __repr__ = __str__
 
 
-class SNode(Node):
-    def __init__(self, name, children):
-        self.name = name
-        super().__init__(hps=[], children=children)
-
-
-class ENode(Node):
-    pass
-
-
-class INode(Node):
-    def updated(self, children):
-        INode(self.hps, children=children)
-
-
-class ConfigSpace(object):
+class ConfigSpace(Node):
     def __init__(self, start, end, children=None):
-        self.children = [] if children is None else children
+        children = [] if children is None else children
+        super().__init__(children=children)
         self._start = start
         self._end = end
+
+    def updated(self, children):
+        return ConfigSpace(self.start(), self.end(), children=children)
 
     @staticmethod
     def node(hps, children):
         return INode(hps, children)
 
     @staticmethod
+    def top(name, children):
+        return SNode(name=name, children=children)
+
+    @staticmethod
     def bottom():
-        return ENode(hps=[], children=[])
+        return ENode()
 
     def start(self):
         return self._start
@@ -88,23 +111,17 @@ class ConfigSpace(object):
     def sample(self):
         """TODO:
         """
-        res = []
-        node = self
+        if self.iselement_hps(self._start):
+            config, _ = self._elem_hps_to_config(self._start)
+        else:
+            config, _ = self._compr_hps_to_config(self._start)
 
-        while node.children:
-            child = random.choice(node.children)
-            if self.iselement_hps(child):
-                config, node = self._elem_hps_to_config(child)
-            else:
-                config, node = self._compr_hps_to_config(node)
-
-            res.append(config)
-
-        return {'configs': res}, child
+        return config
 
     @staticmethod
     def iselement_hps(node):
-        return not any([not isinstance(child, INode) for child in node.children])
+        return not any(
+            [not isinstance(child, INode) for child in node.children])
 
     def _elem_hps_to_config(self, node):
         args = {}
@@ -144,7 +161,8 @@ class ConfigSpace(object):
         return {'configs': res}, child
 
     def __str__(self):
-        return f'{self.name} {str(self.start())}'
+        return f'{self.name if not isinstance(self, ConfigSpace) else ""}' \
+            f' {str(self.start())}'
 
     __repr__ = __str__
 

@@ -15,6 +15,7 @@ import copy
 from paje.automl.composer.composer import Composer
 from paje.base.hps import ConfigSpace
 
+
 class Pipeline(Composer):
     def build_impl(self, **config):
         """
@@ -34,42 +35,18 @@ class Pipeline(Composer):
             newconfig['random_state'] = self.random_state
             self.components[idx] = self.components[idx].build(**newconfig)
 
-    # def set_leaf(self, tree, f):
-    #     if len(tree.children) > 0:
-    #         for child in tree.children:
-    #             self.set_leaf(child, f)
-    #     else:
-    #         if not (tree.name and tree.name.startswith('End')
-    #                 and tree.tmp_uuid == self.tmp_uuid):
-    #             tree.children.append(f())
-    #
-    def tree_impl(self, config_spaces):
+    @classmethod
+    def tree_impl(cls, config_spaces):
         bottom = ConfigSpace.bottom()
+
+        current = bottom
+        print(current)
         for config_space in reversed(config_spaces):
-            bottom = config_space.end().updated(children=[bottom])
+            current = config_space.updated(children=[current])
+            print(current)
+        top = ConfigSpace.top(name='Pipeline', children=[current])
 
-
-
-        node = ConfigSpace.node(hps, children=[ConfigSpace.bottom()])
-
-        return ConfigSpace('Pipeline', children=[node], end=bottom)
-
-    # def tree_impl_(self):
-    #     if self.mytree is None:
-    #         trees = []
-    #         for i in range(0, len(self.components)):
-    #             # TODO: Why were we using deepcopy here?
-    #             tree = copy.copy(self.components[i]).tree()
-    #             trees.append(tree)
-    #
-    #         self.set_leaf(trees[len(trees) - 1], lambda:
-    #         HPTree({}, [], name='End' + self.name, tmp_uuid=self.tmp_uuid))
-    #         for i in reversed(range(1, len(trees))):
-    #             self.set_leaf(trees[i - 1], lambda: trees[i])
-    #
-    #         self.mytree = HPTree({}, [trees[0]], name=self.name)
-    #
-    #     return self.mytree
+        return ConfigSpace(start=top, end=bottom)
 
     def __str__(self, depth=''):
         newdepth = depth + '    '

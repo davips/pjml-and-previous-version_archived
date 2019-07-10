@@ -27,6 +27,7 @@ except KeyError:
 class Component(ABC):
     """Todo the docs string
     """
+    name = __name__
 
     def __init__(self, storage=None, show_warns=True, dump_it=None):
 
@@ -38,7 +39,6 @@ class Component(ABC):
         self.model = None
         self._modified = {'a': None, 'u': None}
         self.config = {}
-        self.name = self.__class__.__name__
         self.module = self.__class__.__module__
         self.tmp_uuid = uuid4().hex  # used when eliminating End* from tree
 
@@ -67,8 +67,8 @@ class Component(ABC):
 
         self._serialized = None
 
-    @profile
-    def tree(self, **kwargs):
+    @classmethod
+    def tree(cls, **kwargs):
         """
         Each tree represents a set of hyperparameter spaces and is a, possibly
         infinite, set of configurations.
@@ -81,10 +81,10 @@ class Component(ABC):
         -------
             Tree representing all the possible hyperparameter spaces.
         """
-        tree = self.tree_impl(**kwargs)
+        tree = cls.tree_impl(**kwargs)
         # self.check_tree(tree)
-        if tree.name is None:
-            tree.name = self.name
+        if tree.start().name is None:
+            tree.name = cls.name
         return tree
 
     @profile
@@ -288,8 +288,9 @@ class Component(ABC):
     #     raise NotImplementedError("Should it return probability\
     #                                distributions, rules?")
 
-    # @classmethod
-    def tree_impl(self, **kwargs):
+    @classmethod
+    @abstractmethod
+    def tree_impl(cls, **kwargs):
         """Todo the doc string
         """
         pass
@@ -390,7 +391,7 @@ class Component(ABC):
 
             # 'description' is needed because some components are not entirely
             # described by build() args.
-            self.config['description'] = self.describe()
+            # self.config['description'] = self.describe()
 
             # Create an unambiguous (sorted) version of
             # config (build args+name+max_time) + init_vars (description).
@@ -401,7 +402,7 @@ class Component(ABC):
             del self.config['name']
             if 'max_time' in self.config:
                 self.max_time = self.config.pop('max_time')
-            del self.config['description']
+            # del self.config['description']
 
         return self._serialized
 
