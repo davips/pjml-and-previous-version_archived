@@ -14,12 +14,12 @@ def main():
     else:
         arg = {tupl.split('=')[0]: tupl.split('=')[1] for tupl in sys.argv[1:]}
         dt = DT
-        print('configspace-----\n', dt)
-        print('config=======\n', dt.tree().sample())
-        # pip1 = Pipeline.tree(children=[dt])
+        pip1 = Pipeline.tree(config_spaces=[dt.tree()])
+        print('configspace-----\n', pip1)
+        print('config=======\n', pip1.sample())
         # pip2 = Pipeline.tree(children=[pip1])
         # pip3 = Pipeline(components=[])
-        my_modelers = [dt()] #, pip1, pip2, pip3]
+        my_modelers = [Pipeline([DT()])] #, pip1, pip2, pip3]
 
         for k, v in arg.items():
             print(f'{k}={v}')
@@ -56,6 +56,7 @@ def main():
             # modelers=default_modelers,
             preprocessors=[],
             modelers=my_modelers,
+            tree=pip1,
             storage_for_components=storage,
             show_warns=False,
         ).build(

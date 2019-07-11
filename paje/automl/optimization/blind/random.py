@@ -13,6 +13,7 @@ class RandomAutoML(AutoML):
     def __init__(self,
                  preprocessors,
                  modelers,
+                 tree,
                  storage_for_components=None,
                  **kwargs):
         """
@@ -69,6 +70,7 @@ class RandomAutoML(AutoML):
         self.best_pipe = None
         self.curr_eval = None
         self.curr_pipe = None
+        self.tree=tree
 
     def build_impl(self, **config):
         """ TODO the docstring documentation
@@ -96,9 +98,7 @@ class RandomAutoML(AutoML):
         components = self.choose_modules()
         self.curr_pipe = Pipeline(components, show_warns=self.show_warns,
                                   storage=self.storage_for_components)
-        tree = self.curr_pipe.tree(
-            config_spaces=[c.tree() for c in components]
-        )
+        tree = self.tree
         # print('cfgspc:\n', tree, '\n')
 
         try:

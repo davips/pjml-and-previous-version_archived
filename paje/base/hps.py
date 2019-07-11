@@ -86,6 +86,7 @@ class ConfigSpace(Node):
         super().__init__(children=children)
         self._start = start
         self._end = end
+        self.hps = []
 
     def updated(self, children):
         return ConfigSpace(self.start(), self.end(), children=children)
@@ -111,6 +112,7 @@ class ConfigSpace(Node):
     def sample(self):
         """TODO:
         """
+        print(444444, self)
         if self.iselement_hps(self._start):
             config, _ = self._elem_hps_to_config(self._start)
         else:
@@ -152,7 +154,7 @@ class ConfigSpace(Node):
             if isinstance(child, ENode):
                 break
             if self.iselement_hps(child):
-                config, node = self._elem_hps_to_config(child)
+                config, node = self._elem_hps_to_config(child.start())
             else:
                 config, node = self._compr_hps_to_config(child)
 
@@ -160,7 +162,7 @@ class ConfigSpace(Node):
 
         return {'configs': res}, child
 
-    def __str__(self):
+    def __str__(self, depth=''):
         return f'{self.name if not isinstance(self, ConfigSpace) else ""}' \
             f' {str(self.start())}'
 

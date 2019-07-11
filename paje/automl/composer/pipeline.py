@@ -23,6 +23,7 @@ class Pipeline(Composer):
         :param config
         :return:
         """
+        print(22333332222,self.components)
         configs = [{} for _ in self.components]  # Default value
 
         if 'configs' in self.config:
@@ -33,21 +34,49 @@ class Pipeline(Composer):
             # TODO: setar showwarns?
             newconfig = compo_config.copy()
             newconfig['random_state'] = self.random_state
-            print(55555555, self.components[idx], newconfig)
             self.components[idx] = self.components[idx].build(**newconfig)
 
     @classmethod
     def tree_impl(cls, config_spaces):
+        top = ConfigSpace.top(name='Pipeline', children=[config_spaces[0]])
+
+        current = config_spaces[0]
+        for config_space in config_spaces[1:]:
+            current = current.updated(children=[config_space])
+            print(1111111111,current)
+
         bottom = ConfigSpace.bottom()
 
-        current = bottom
-        print(current)
-        for config_space in reversed(config_spaces):
-            current = config_space.updated(children=[current])
-            print(current)
-        top = ConfigSpace.top(name='Pipeline', children=[current])
-
         return ConfigSpace(start=top, end=bottom)
+
+    #
+    # @classmethod
+    # def tree_impl(cls, config_spaces):
+    #     top = ConfigSpace.top(name='Pipeline', children=[config_spaces[0]])
+    #
+    #     current = config_spaces[0]
+    #     for config_space in config_spaces[1:]:
+    #         current = ConfigSpace(
+    #             start=current.start(), end=current.end(),
+    #             children=[config_space]
+    #         )
+    #         print(current)
+    #
+    #     bottom = ConfigSpace.bottom()
+    #
+    #     return ConfigSpace(start=top, end=bottom)
+
+    # @classmethod
+    # def tree_impl(cls, config_spaces):
+    #     bottom = ConfigSpace.bottom()
+    #
+    #     current = bottom
+    #     for config_space in reversed(config_spaces):
+    #         current = config_space.updated(children=[current])
+    #
+    #     top = ConfigSpace.top(name='Pipeline', children=[current])
+    #
+    #     return ConfigSpace(start=top, end=bottom)
 
     def __str__(self, depth=''):
         newdepth = depth + '    '
