@@ -112,7 +112,6 @@ class ConfigSpace(Node):
     def sample(self):
         """TODO:
         """
-        print(444444, self)
         if self.iselement_hps(self._start):
             config, _ = self._elem_hps_to_config(self._start)
         else:

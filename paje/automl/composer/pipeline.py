@@ -23,7 +23,6 @@ class Pipeline(Composer):
         :param config
         :return:
         """
-        print(22333332222,self.components)
         configs = [{} for _ in self.components]  # Default value
 
         if 'configs' in self.config:
@@ -43,7 +42,6 @@ class Pipeline(Composer):
         current = config_spaces[0]
         for config_space in config_spaces[1:]:
             current = current.updated(children=[config_space])
-            print(1111111111,current)
 
         bottom = ConfigSpace.bottom()
 
