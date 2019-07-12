@@ -25,3 +25,6 @@ class Classifier(Element, ABC):
 
     def use_impl(self, data):
         return data.updated(self, z=self.model.predict(data.X))
+
+    def modifies(self, op):
+        return ['z'] if op=='u' else []

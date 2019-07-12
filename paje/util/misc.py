@@ -21,3 +21,10 @@ def unsandwich(st):
     :return:
     """
     return st[st.find("(") + 1:st.rfind(")")]
+
+
+def get_class(module, class_name):
+    import importlib
+    module = importlib.import_module(module)
+    class_ = getattr(module, class_name)
+    return class_

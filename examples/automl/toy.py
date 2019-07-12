@@ -1,9 +1,13 @@
 import sys
 
+from sklearn.decomposition import PCA
+
 from paje.automl.composer.pipeline import Pipeline
 from paje.automl.optimization.blind.random import RandomAutoML
+from paje.base.component import StorageSettings
 from paje.base.data import Data
 from paje.ml.element.modelling.supervised.classifier.dt import DT
+from paje.ml.element.modelling.supervised.classifier.knn import KNN
 from paje.ml.metric.supervised.classification.mclassif import Metrics
 
 
@@ -13,13 +17,15 @@ def main():
               '[iter=#] [seed=#] [storage=mysql/sqlite/cached] [db=dna] ')
     else:
         arg = {tupl.split('=')[0]: tupl.split('=')[1] for tupl in sys.argv[1:]}
-        dt = DT
-        pip1 = Pipeline.tree(config_spaces=[dt.tree()])
+        dt = DT.tree()
+        pip1 = Pipeline.tree(config_spaces=[dt])
+        # pip1 = Pipeline.tree(config_spaces=[dt.tree()])
+        # pip2 = Pipeline.tree(config_spaces=[pip1])
         print('configspace-----\n', pip1)
+        # print('config dt =======\n', dt.tree().sample())
         print('config=======\n', pip1.sample())
-        # pip2 = Pipeline.tree(children=[pip1])
         # pip3 = Pipeline(components=[])
-        my_modelers = [Pipeline([DT()])] #, pip1, pip2, pip3]
+        my_modelers = [dt]
 
         for k, v in arg.items():
             print(f'{k}={v}')
@@ -56,13 +62,13 @@ def main():
             # modelers=default_modelers,
             preprocessors=[],
             modelers=my_modelers,
-            tree=pip1,
-            storage_for_components=storage,
-            show_warns=False,
-        ).build(
+            storage_settings_for_components=StorageSettings(storage=storage),
             max_iter=iterations,
             pipe_length=15, repetitions=2,
-            random_state=random_state
+            random_state=random_state,
+            config = {}
+        # config = {'max_iter': iterations, 'pipe_length': 15, 'repetitions': 2,
+        #           'random_state': random_state}
         )
         automl_rs.apply(trainset)
         testout = automl_rs.use(testset)

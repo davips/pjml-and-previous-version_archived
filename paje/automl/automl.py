@@ -18,6 +18,7 @@ class AutoML(Component, ABC):
     def __init__(self,
                  components,
                  evaluator,
+                 max_iter,
                  n_jobs=1,
                  verbose=True,
                  **kwargs):
@@ -29,8 +30,6 @@ class AutoML(Component, ABC):
         # These attributes identify uniquely AutoML.
         # This structure is necessary because the AutoML is a Component and it
         # could be used into other Components, like the Pipeline one.
-        self.random_state = 0
-        self.max_iter = None
 
         self.components = components
         self.evaluator = evaluator
@@ -47,6 +46,7 @@ class AutoML(Component, ABC):
         self.all_eval_results = None
         self.fails, self.locks, self.successes, self.total = 0, 0, 0, 0
         self.current_iteration = 0
+        self.max_iter = max_iter
 
     def describe(self):
         return {

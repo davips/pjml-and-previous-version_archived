@@ -2,37 +2,18 @@ from numpy.random import choice
 from sklearn.model_selection import StratifiedKFold, LeaveOneOut, \
     StratifiedShuffleSplit
 
-from paje.base.hps import CatHP, RealHP, IntHP
 from paje.base.hps import ConfigSpace
 from paje.ml.element.element import Element
 from paje.util.encoders import json_unpack, json_pack
 
 
 class CV(Element):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, config, **kwargs):
+        if 'iteration' not in config:
+            config['iteration']=0
+        super().__init__(config, **kwargs)
         self._memoized = {}
         self._max = 0
-
-    def next(self):
-        if self.config['iteration'] == self._max:
-            return None
-
-        # Creates new, updated instance.
-        newconfig = self.config.copy()
-        newconfig['iteration'] += 1
-        inst = self.build(**newconfig)
-        inst._max = self._max
-        inst._memoized = self._memoized
-        return inst
-
-    def build(self, iteration=0, **kwargs):
-        if iteration == 0:
-            self._memoized = {}
-        kwargs['iteration'] = iteration
-        return super().build(**kwargs)
-
-    def build_impl(self, **config):
         # split, steps, test_size, random_state
         if self.config['split'] == "cv":
             self.model = StratifiedKFold(
@@ -47,6 +28,18 @@ class CV(Element):
                 test_size=self.config['test_size'],
                 random_state=self.config['random_state'])
         self.iteration = self.config['iteration']
+
+    def next(self):
+        if self.config['iteration'] == self._max:
+            return None
+
+        # Creates new, updated instance.
+        newconfig = self.config.copy()
+        newconfig['iteration'] += 1
+        inst = CV(newconfig)
+        inst._max = self._max
+        inst._memoized = self._memoized
+        return inst
 
     def apply_impl(self, data):
         if data.uuid() in self._memoized:

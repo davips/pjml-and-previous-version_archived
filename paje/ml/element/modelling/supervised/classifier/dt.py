@@ -1,14 +1,15 @@
 from sklearn.tree import DecisionTreeClassifier
 
-from paje.base.hps import ConfigSpace
-from paje.base.hps import CatHP, RealHP, IntHP
+from paje.base.hp import CatHP, IntHP, RealHP
+from paje.base.hps import ConfigSpace, Node
 from numpy.random import choice, uniform
 from paje.ml.element.modelling.supervised.classifier.classifier import Classifier
 
 
 class DT(Classifier):
-    def build_impl(self, **config):
-        self.model = DecisionTreeClassifier(**config)
+    def __init__(self, config, **kwargs):
+        super().__init__(config, **kwargs)
+        self.model = DecisionTreeClassifier(**self.config)
 
     @classmethod
     def tree_impl(cls):
@@ -33,8 +34,4 @@ class DT(Classifier):
             RealHP('min_impurity_decrease', uniform, low=0.0, high=0.2)
         ]
 
-        bottom = ConfigSpace.bottom()
-        node = ConfigSpace.node(hps, children=[bottom])
-        top = ConfigSpace.top(name='DT', children=[node])
-
-        return ConfigSpace(start=top, end=bottom)
+        return ConfigSpace(name='DT', hps=hps)

@@ -2,7 +2,6 @@ import numpy as np
 from sklearn.neighbors.classification import KNeighborsClassifier
 
 from paje.base.exceptions import ExceptionInApplyOrUse
-from paje.base.hps import HPTree
 from paje.ml.element.modelling.supervised.classifier.classifier import Classifier
 from paje.util.distributions import exponential_integers
 
@@ -31,7 +30,8 @@ class KNN(Classifier):
 
         return super().apply_impl(data)
 
-    def isdeterministic(self):
+    @classmethod
+    def isdeterministic(cls):
         return True
 
     @classmethod

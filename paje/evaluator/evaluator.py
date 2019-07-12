@@ -73,24 +73,24 @@ class EvaluatorClassif(Evaluator):
             raise ValueError(
                 "summary must be 'mean' or 'median' or 'std'"
             )
-
-    def describe(self):
-        return {
-            'module': self.__class__.__module__,
-            'name': self.__class__.__name__,
-            'config': {
-                'metric': self.metric,
-                'split': self.split,
-                'steps': self.steps,
-                'test_size': self.test_size,
-                'summary': self.summary,
-                'random_state': self.random_state
-            }
-        }
+    #
+    # def describe(self):
+    #     return {
+    #         'module': self.__class__.__module__,
+    #         'name': self.__class__.__name__,
+    #         'config': {
+    #             'metric': self.metric,
+    #             'split': self.split,
+    #             'steps': self.steps,
+    #             'test_size': self.test_size,
+    #             'summary': self.summary,
+    #             'random_state': self.random_state
+    #         }
+    #     }
 
     def eval(self, component, data):
         # Start CV from beginning.
-        self.cv = CV().build(**self.cvargs)
+        self.cv = CV(self.cvargs)
         validation = self.cv
 
         result = {

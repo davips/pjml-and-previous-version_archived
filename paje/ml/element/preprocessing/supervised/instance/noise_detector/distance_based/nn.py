@@ -31,7 +31,8 @@ class NRNN(Element, ABC):
         # TODO: check with LPaulo
         return data # TODO: is updated() needed here for history purposes?
 
-    def isdeterministic(self):
+    @classmethod
+    def isdeterministic(cls):
         # TODO: check with LPaulo
         return True
 

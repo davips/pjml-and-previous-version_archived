@@ -542,21 +542,22 @@ class SQL(Cache):
             return None, True, compo.failed is not None
         fields = compo.modifies(op)
 
-        if compo.dump_it:
+        if compo._dump_it:
             raise Exception('Are we really starting to store dump of '
                             'components?')
         self.query(f'''
             select 
                 des, spent, fail, end, node, txt as history, cols
                 {',' + ','.join(fields) if len(fields) > 0 else ''}
-                {', dump' if compo.dump_it else ''}
+                {', dump' if compo._dump_it else ''}
             from 
                 res 
                     left join data on dout = did
                     left join name on name = nid
                     left join hist on hist = hid
                     left join attr on attr = aid
-                    {'left join inst on inst = iid' if compo.dump_it else ''}                    
+                    {'left join inst on inst = iid' if compo._dump_it else 
+        ''}                    
             where                
                 com=? and op=? and dtr=? and din=?''',
                    [compo.uuid(),
@@ -624,11 +625,11 @@ class SQL(Cache):
         now = self._now_function()
 
         # Store dump if requested.
-        dump_uuid = component.dump_it and uuid(
+        dump_uuid = component._dump_it and uuid(
             (component.uuid() + op +
              component.train_data_uuid__mutable() + input_data.uuid()).encode()
         )
-        if component.dump_it:
+        if component._dump_it:
             sql = f'insert or ignore into inst values (null, ?, ?)'
             # pack_comp is nondeterministic and its result is big,
             # so we need to identify it by other, deterministic, means

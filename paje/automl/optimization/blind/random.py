@@ -4,6 +4,7 @@ import numpy as np
 
 from paje.automl.automl import AutoML
 from paje.automl.composer.pipeline import Pipeline
+from paje.base.component import StorageSettings
 from paje.util.distributions import SamplingException
 from paje.evaluator.evaluator import EvaluatorClassif
 
@@ -13,8 +14,10 @@ class RandomAutoML(AutoML):
     def __init__(self,
                  preprocessors,
                  modelers,
-                 tree,
-                 storage_for_components=None,
+                 pipe_length,
+                 repetitions,
+                 random_state,
+                 storage_settings_for_components=None,
                  **kwargs):
         """
         AutoML
@@ -44,8 +47,8 @@ class RandomAutoML(AutoML):
         # This structure is necessary because the AutoML is a Component and it
         # could be used into other Components, like the Pipeline one.
         # build_impl()
-        self.repetitions = 0  # by default, no repetitions was be performed
-        self.pipe_length = 2  # by default, the pipeline has two components
+        self.repetitions = repetitions
+        self.pipe_length = pipe_length
         # __init__()
         self.modelers = modelers
         self.preprocessors = preprocessors
@@ -62,7 +65,7 @@ class RandomAutoML(AutoML):
         # Other class attributes.
         # These attributes can be set here or in the build_impl method. They
         # should not influence the AutoML final result.
-        self.storage_for_components = storage_for_components
+        self.storage_settings_for_components = storage_settings_for_components
 
         # Class internal attributes
         # Attributes that were not parameterizable
@@ -70,7 +73,8 @@ class RandomAutoML(AutoML):
         self.best_pipe = None
         self.curr_eval = None
         self.curr_pipe = None
-        self.tree=tree
+
+        self.random_state = random_state
 
     def build_impl(self, **config):
         """ TODO the docstring documentation
@@ -96,20 +100,19 @@ class RandomAutoML(AutoML):
         """ TODO the docstring documentation
         """
         components = self.choose_modules()
-        self.curr_pipe = Pipeline(components, show_warns=self.show_warns,
-                                  storage=self.storage_for_components)
-        tree = self.tree
-        # print('cfgspc:\n', tree, '\n')
+        tree = Pipeline.tree(config_spaces=components)
 
         try:
-            args = tree.sample()
+            config = tree.sample()
             # print('config=\n', args, '\n')
         except SamplingException as exc:
-            print(' ========== Pipe:\n', self.curr_pipe)
+            print(' ========== Pipe:\n', tree)
             raise Exception(exc)
 
-        args['random_state'] = self.random_state
-        self.curr_pipe = self.curr_pipe.build(**args)
+        config['random_state'] = self.random_state
+        self.curr_pipe = Pipeline(
+            config, storage_settings=self.storage_settings_for_components
+        )
         return [self.curr_pipe]
 
     def choose_modules(self):

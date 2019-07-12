@@ -11,59 +11,27 @@ For more information about the Composer concept see [1].
 .. _paje_arch Paje Architecture:
     TODO: put the link here
 """
-from abc import ABC
+from abc import ABC, abstractmethod
 
 from paje.base.component import Component
-from paje.util.misc import flatten
+from paje.base.hp import CatHP
+from paje.base.hps import ConfigSpace
+from paje.util.misc import flatten, get_class
 
 
 class Composer(Component, ABC):
     """Core Composer class.
     """
 
-    def __init__(self, components=None, **kwargs):
-        """The class provides easy access for metafeature extraction from
-        datasets.
-
-        ps. It should transform data only through its internal components,
-        never directly (to avoid inconsistencies, e.g. the need to
-        override the method modifies()).
-
-        Attributes
-        ----------
-        components : :obj:`list`
-            A list with Components.
-        **kwargs
-            The parent class attributes.
-
-        """
-
-        # TODO: An empty Pipeline/composer may return perfect predictions.
-        super().__init__(**kwargs)
-        if components is None:
-            components = []
-
-        # before build()
-        self.components = components
-
-        # Updated after build()
-        self.random_state = 0
-        self.mytree = None
-
-        # TODO: better model here?
+    def __init__(self, config, **kwargs):
+        super().__init__(config, **kwargs)
+        self.components = []
+        for subconfig in self.config['configs']:
+            aux = get_class(subconfig['module'], subconfig['class'])
+            if aux.isdeterministic():
+                subconfig['random_state'] = self.config['random_state']
+            self.components.append(aux(subconfig))
         self.model = 42
-
-    def describe(self):
-        """The describing function called to uniquely identify the object.
-        """
-
-        if self._describe is None:
-            self._describe = {
-                'module': self.module,
-                'name': self.name,
-                'sub_components': [comp.describe() for comp in self.components]
-            }
-        return self._describe
 
     def apply_impl(self, data):
         """ This function will be called by Component in the the 'apply()' step.
@@ -104,3 +72,22 @@ class Composer(Component, ABC):
                 flatten([compo.modifies(op) for compo in self.components])
             ))
         return self._modified[op]
+
+    @staticmethod
+    @abstractmethod
+    def sampling_function(config_spaces):
+        pass
+
+    @classmethod
+    def tree_impl(cls, config_spaces):
+        hps = [CatHP('configs', cls.sampling_function,
+                     config_spaces=config_spaces),
+               ]
+        return ConfigSpace(name='Switch', hps=hps)
+
+    def __str__(self, depth=''):
+        newdepth = depth + '    '
+        strs = [component.__str__(newdepth) for component in self.components]
+        return self.name + " {\n" + \
+               newdepth + ("\n" + newdepth).join(str(x) for x in strs) + '\n' \
+               + depth + "}"

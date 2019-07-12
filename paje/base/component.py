@@ -3,15 +3,15 @@
 import copy
 import os
 from abc import ABC, abstractmethod
-from uuid import uuid4
 
 import numpy as np
+from numpy.random import choice
 
 from paje.base.exceptions import ApplyWithoutBuild, UseWithoutApply, \
     handle_exception
+from paje.base.hp import CatHP
 from paje.evaluator.time import time_limit
 from paje.util.encoders import uuid, json_pack
-from paje.util.log import *
 
 # Disabling profiling when not needed.
 try:
@@ -24,12 +24,30 @@ except KeyError:
         return func
 
 
+class StorageSettings:
+    def __init__(self, storage=None, dump_it=None):
+        self.storage = storage
+        self.dump_it = dump_it
+
+
 class Component(ABC):
     """Todo the docs string
     """
     name = __name__
 
-    def __init__(self, storage=None, show_warns=True, dump_it=None):
+    def __init__(self, config, storage_settings=None):
+        self._storage = storage_settings and storage_settings.storage
+        self._dump_it = storage_settings and storage_settings.dump_it
+        if 'class' not in config:
+            config['class'] = self.__class__.__name__
+        if 'module' not in config:
+            config['module'] = self.__module__
+        self._serialized = json_pack(config)
+        self._uuid = uuid(self._serialized.encode())
+        self.config = config.copy()
+        del self.config['class']
+        del self.config['module']
+        self._modified = {'a': None, 'u': None}
 
         # self.model here refers to classifiers, preprocessors and, possibly,
         # some representation of pipelines or the autoML itself.
@@ -37,13 +55,6 @@ class Component(ABC):
         # that has self.model.
         self.unfit = True
         self.model = None
-        self._modified = {'a': None, 'u': None}
-        self.config = {}
-        self.module = self.__class__.__module__
-        self.tmp_uuid = uuid4().hex  # used when eliminating End* from tree
-
-        self.storage = storage
-        self._uuid = None  # UUID will be known only after build()
 
         # Each apply() uses a different training data, so this uuid is mutable
         self._train_data_uuid__mutable = None
@@ -54,18 +65,8 @@ class Component(ABC):
         self.node = None
         self.max_time = None
         self.mark = None
-        self._describe = None
         self.failure = None
-
-        # Whether to dump this comp. or not, if a storage is given.
-        self.dump_it = dump_it or None  # 'or'->possib.vals=Tru,Non See sql.py
-
-        self.log = logging.getLogger('component')
-        # if True show warnings
-        self.log.setLevel(0)
-        self.show_warns = show_warns
-
-        self._serialized = None
+        self.show_warns = True
 
     @classmethod
     def tree(cls, **kwargs):
@@ -82,13 +83,16 @@ class Component(ABC):
             Tree representing all the possible hyperparameter spaces.
         """
         tree = cls.tree_impl(**kwargs)
-        # self.check_tree(tree)
-        if tree.start().name is None:
-            tree.name = cls.name
-        return tree
+        hps = tree.hps + [
+            CatHP('module', choice, a=[cls.__module__]),
+            CatHP('class', choice, a=[cls.__name__])
+        ]
+        if cls.isdeterministic():
+            del obj_copied.config["random_state"]
+        return tree.updated(hps=hps)
 
     @profile
-    def build(self, **config):
+    def buildo(self, **config):
         # Check if build has already been called. This is the case when one
         # calls build() on an already built instance of component.
 
@@ -97,7 +101,7 @@ class Component(ABC):
         #     self.error('Build cannot be called on a built component!')
 
         obj_copied = copy.copy(self)
-        
+
         # descobrir no git log porque colocamos esse update aqui!!!!!
         # voltei para o que era antes para parar de fazer bruxaria
         # de alterar o bestpipeline quando fazia o build do proximo pipe.
@@ -105,9 +109,6 @@ class Component(ABC):
         # copia de config? ou seria inutil?
         # obj_copied.config.update(config)
         obj_copied.config = config
-
-        if obj_copied.isdeterministic() and "random_state" in obj_copied.config:
-            del obj_copied.config["random_state"]
 
         # Create an encoded (uuid) unambiguous (sorted) version of config.
         obj_copied._serialized = 'building'
@@ -118,16 +119,6 @@ class Component(ABC):
 
         obj_copied.build_impl(**obj_copied.config)
         return obj_copied
-
-    @profile
-    def describe(self):
-        if self._describe is None:
-            self._describe = {
-                'module': self.module,
-                'name': self.name,
-                'sub_components': []
-            }
-        return self._describe
 
     @profile
     def apply(self, data=None):
@@ -145,9 +136,9 @@ class Component(ABC):
         #  specially if it is a LOO.
         #  Maybe some components could inform whether they are cheap.
         output_data, started, ended = None, False, False
-        if self.storage is not None:
+        if self._storage is not None:
             output_data, started, ended = \
-                self.storage.get_result(self, 'a', data)
+                self._storage.get_result(self, 'a', data)
 
         if started:
             if self.failed:
@@ -163,8 +154,8 @@ class Component(ABC):
 
         # Apply if still needed  ----------------------------------
         if not ended:
-            if self.storage is not None:
-                self.storage.lock(self, 'a', data)
+            if self._storage is not None:
+                self._storage.lock(self, 'a', data)
 
             self.handle_warnings()
             if self.name != 'CV':
@@ -187,8 +178,8 @@ class Component(ABC):
             # self.msg('Component ' + self.name + ' applied.')
             self.dishandle_warnings()
 
-            if self.storage is not None:
-                self.storage.store_result(self, 'a', data, output_data)
+            if self._storage is not None:
+                self._storage.store_result(self, 'a', data, output_data)
 
         return output_data
 
@@ -204,9 +195,9 @@ class Component(ABC):
             return None
 
         output_data, started, ended = None, False, False
-        if self.storage is not None:
+        if self._storage is not None:
             output_data, started, ended = \
-                self.storage.get_result(self, 'u', data)
+                self._storage.get_result(self, 'u', data)
 
         if started:
             if self.locked_by_others:
@@ -222,8 +213,8 @@ class Component(ABC):
 
         # Use if still needed  ----------------------------------
         if not ended:
-            if self.storage is not None:
-                self.storage.lock(self, 'u', data)
+            if self._storage is not None:
+                self._storage.lock(self, 'u', data)
 
                 # If the component was applied (probably simulated by storage),
                 # but there is no model, we reapply it...
@@ -237,7 +228,7 @@ class Component(ABC):
                         f'comp: {self.sid()}  data: {data.sid()} ...')
                     train_uuid = self.train_data_uuid__mutable()
                     stored_train_data = \
-                        self.storage.get_data_by_uuid(train_uuid)
+                        self._storage.get_data_by_uuid(train_uuid)
                     self.model = self.apply_impl(stored_train_data)
 
             self.handle_warnings()
@@ -252,21 +243,19 @@ class Component(ABC):
             # self.msg('Component ' + self.name + 'used.')
             self.dishandle_warnings()
 
-            if self.storage is not None:
-                self.storage.store_result(self, 'u', data, output_data)
+            if self._storage is not None:
+                self._storage.store_result(self, 'u', data, output_data)
         return output_data
 
-    @abstractmethod
-    def build_impl(self, **config):
-        pass
-
-    def isdeterministic(self):
+    @classmethod
+    def isdeterministic(cls):
         return False
 
     _ps = '''ps.: All Data transformation must be done via method updated() with 
         explicit keyworded args (e.g. X=X, y=...)!
         This is needed because modifies() will inspect the code and look for 
         the fields that can be modified by the component.'''
+
     @abstractmethod
     def apply_impl(self, data):
         f"""

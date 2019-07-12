@@ -539,8 +539,8 @@ class Data:
 
     @profile
     def split(self, test_size=0.25, random_state=1):
-        cv = CV().build(random_state=random_state, split='holdout',
-                        test_size=test_size, steps=1, iteration=0)
+        cv = CV(config={'random_state': random_state, 'split': 'holdout',
+                        'test_size': test_size, 'steps': 1, 'iteration': 0})
         return cv.apply(self), cv.use(self)
 
     def shapes(self):
