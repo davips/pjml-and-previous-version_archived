@@ -10,6 +10,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from paje.base.component import Component
 from paje.base.hps import HPTree
 from paje.ml.element.element import Element
+from paje.ml.element.modelling.supervised.classifier.knn import KNN
 from paje.util.distributions import exponential_integers
 
 
@@ -28,12 +29,10 @@ class NRNN(Element, ABC):
         return data.updated(self, X=X, y=y)
 
     def use_impl(self, data):
-        # TODO: check with LPaulo
-        return data # TODO: is updated() needed here for history purposes?
+        return data
 
     @classmethod
     def isdeterministic(cls):
-        # TODO: check with LPaulo
         return True
 
     def ENN(self, X, y):
@@ -160,4 +159,7 @@ class NRNN(Element, ABC):
             'k': ['c', exponential_integers(kmax)]
             # (False, False) seems to be useless
         }
+
+        tree = KNN.tree(delete=[k])
+        del tree['']
         return HPTree(node, children=[])

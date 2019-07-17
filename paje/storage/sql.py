@@ -497,7 +497,7 @@ class SQL(Cache):
             )'''
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            self.query(sql, [component.uuid(),
+            self.query(sql, [component._uuid,
                              mysql_compress(component.serialized().encode())])
 
         sql = f'''insert into res values (
@@ -512,8 +512,8 @@ class SQL(Cache):
                 0, 0, null
             )'''
         args_res = [self.hostname,
-                    component.uuid(), op,
-                    component.train_data_uuid__mutable(), input_data.uuid()]
+                    component._uuid, op,
+                    component.train_data_uuid__mutable(), input_data._uuid]
         from sqlite3 import IntegrityError as IntegrityErrorSQLite
         from pymysql import IntegrityError as IntegrityErrorMySQL
         try:
@@ -560,7 +560,7 @@ class SQL(Cache):
         ''}                    
             where                
                 com=? and op=? and dtr=? and din=?''',
-                   [compo.uuid(),
+                   [compo._uuid,
                     op,
                     compo.train_data_uuid__mutable(),
                     input_data.uuid()])
@@ -626,7 +626,7 @@ class SQL(Cache):
 
         # Store dump if requested.
         dump_uuid = component._dump_it and uuid(
-            (component.uuid() + op +
+            (component._uuid + op +
              component.train_data_uuid__mutable() + input_data.uuid()).encode()
         )
         if component._dump_it:
@@ -660,7 +660,7 @@ class SQL(Cache):
                 '''
         set_args = [log_uuid, output_data and output_data.uuid(),
                     component.time_spent, dump_uuid, fail, component.mark]
-        where_args = [component.uuid(), op,
+        where_args = [component._uuid, op,
                       component.train_data_uuid__mutable(), input_data.uuid()]
         # TODO: is there any important exception to handle here?
         self.query(sql, set_args + where_args)

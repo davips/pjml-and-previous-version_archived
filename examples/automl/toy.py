@@ -8,6 +8,8 @@ from paje.base.component import StorageSettings
 from paje.base.data import Data
 from paje.ml.element.modelling.supervised.classifier.dt import DT
 from paje.ml.element.modelling.supervised.classifier.knn import KNN
+from paje.ml.element.preprocessing.unsupervised.feature.scaler.equalization import \
+    Equalization
 from paje.ml.metric.supervised.classification.mclassif import Metrics
 
 
@@ -18,6 +20,7 @@ def main():
     else:
         arg = {tupl.split('=')[0]: tupl.split('=')[1] for tupl in sys.argv[1:]}
         dt = DT.tree()
+        eq = Equalization.tree()
         pip1 = Pipeline.tree(config_spaces=[dt])
         # pip1 = Pipeline.tree(config_spaces=[dt.tree()])
         # pip2 = Pipeline.tree(config_spaces=[pip1])
@@ -26,6 +29,7 @@ def main():
         print('config=======\n', pip1.sample())
         # pip3 = Pipeline(components=[])
         my_modelers = [dt]
+        my_preprocessors = [eq]
 
         for k, v in arg.items():
             print(f'{k}={v}')
@@ -60,7 +64,7 @@ def main():
         automl_rs = RandomAutoML(
             # preprocessors=default_preprocessors,
             # modelers=default_modelers,
-            preprocessors=[],
+            preprocessors=my_preprocessors,
             modelers=my_modelers,
             storage_settings_for_components=StorageSettings(storage=storage),
             max_iter=iterations,

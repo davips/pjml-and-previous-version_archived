@@ -33,7 +33,6 @@ class StorageSettings:
 class Component(ABC):
     """Todo the docs string
     """
-    name = __name__
 
     def __init__(self, config, storage_settings=None):
         self._storage = storage_settings and storage_settings.storage
@@ -45,9 +44,25 @@ class Component(ABC):
         self._serialized = json_pack(config)
         self._uuid = uuid(self._serialized.encode())
         self.config = config.copy()
-        del self.config['class']
+        self.name = self.config.pop('class')
         del self.config['module']
+        if self.isdeterministic() and 'random_state' in self.config:
+            del self.config['random_state']
         self._modified = {'a': None, 'u': None}
+
+        # 'mark' should not identify components, it only marks results.
+        # when a component is loaded from storage, nobody knows whether
+        # it was part of an experiment or not, except by consulting
+        # the field 'mark' of the registered result.
+        if 'mark' in self.config:
+            self.mark = self.config.pop('mark')
+
+        # 'description','name','max_time' are reserved words, not for
+        # building.
+        if 'max_time' in self.config:
+            self.max_time = self.config.pop('max_time')
+        # del self.config['description']
+
 
         # self.model here refers to classifiers, preprocessors and, possibly,
         # some representation of pipelines or the autoML itself.
@@ -87,8 +102,6 @@ class Component(ABC):
             CatHP('module', choice, a=[cls.__module__]),
             CatHP('class', choice, a=[cls.__name__])
         ]
-        if cls.isdeterministic():
-            del obj_copied.config["random_state"]
         return tree.updated(hps=hps)
 
     @profile
@@ -324,12 +337,6 @@ class Component(ABC):
     #     for child in tree.children:
     #         cls.check_tree(child)
 
-    def uuid(self):
-        if self._uuid is None:
-            raise ApplyWithoutBuild('build() should be called before '
-                                    'uuid() <-' + self.name)
-        return self._uuid
-
     def __str__(self, depth=''):
         return self.name + " " + str(self.config)
 
@@ -353,6 +360,9 @@ class Component(ABC):
         raise Exception(msg)
 
     def serialized(self):
+        return self._serialized
+
+    def serializedo(self):
         """
         Calculate a representation of this built component.
         In the first call, remove reserved words from config
@@ -371,13 +381,6 @@ class Component(ABC):
             if 'name' not in self.config:
                 self.config['name'] = self.name
 
-            # 'mark' should not identify components, it only marks results.
-            # when a component is loaded from storage, nobody knows whether
-            # it was part of an experiment or not, except by consulting
-            # the field 'mark' of the registered result.
-            if 'mark' in self.config:
-                self.mark = self.config.pop('mark')
-
             # 'description' is needed because some components are not entirely
             # described by build() args.
             # self.config['description'] = self.describe()
@@ -385,13 +388,6 @@ class Component(ABC):
             # Create an unambiguous (sorted) version of
             # config (build args+name+max_time) + init_vars (description).
             self._serialized = json_pack(self.config)
-
-            # 'description','name','max_time' are reserved words, not for
-            # building.
-            del self.config['name']
-            if 'max_time' in self.config:
-                self.max_time = self.config.pop('max_time')
-            # del self.config['description']
 
         return self._serialized
 

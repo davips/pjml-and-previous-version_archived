@@ -83,7 +83,7 @@ class Composer(Component, ABC):
         hps = [CatHP('configs', cls.sampling_function,
                      config_spaces=config_spaces),
                ]
-        return ConfigSpace(name='Switch', hps=hps)
+        return ConfigSpace(name=cls.__name__, hps=hps)
 
     def __str__(self, depth=''):
         newdepth = depth + '    '
