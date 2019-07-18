@@ -28,10 +28,10 @@ class Composer(Component, ABC):
         self.components = []
         for subconfig in self.config['configs']:
             aux = get_class(subconfig['module'], subconfig['class'])
-            if aux.isdeterministic():
+            if not aux.isdeterministic():
                 subconfig['random_state'] = self.config['random_state']
             self.components.append(aux(subconfig))
-        self.model = 42
+        # self.model = 42
 
     def apply_impl(self, data):
         """ This function will be called by Component in the the 'apply()' step.
@@ -46,6 +46,7 @@ class Composer(Component, ABC):
             data = component.apply(data)
             if component.failed:
                 raise Exception('Applying subcomponent failed! ', component)
+        self.model = self.components
         return data
 
     def use_impl(self, data):
@@ -57,7 +58,7 @@ class Composer(Component, ABC):
             The `Data` object that represent a dataset used for testing phase.
         """
 
-        for component in self.components:
+        for component in self.model:
             data = component.use(data)
             if component.failed:
                 raise Exception('Using subcomponent failed! ', component)
