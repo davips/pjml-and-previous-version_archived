@@ -5,6 +5,7 @@ from paje.base.hp import CatHP
 from paje.base.hps import ConfigSpace
 from paje.ml.element.preprocessing.unsupervised.feature.scaler.scaler import \
     Scaler
+from paje.util.distributions import choice
 
 
 class Equalization(Scaler):
@@ -13,13 +14,8 @@ class Equalization(Scaler):
         self.model = MinMaxScaler(**self.config)
 
     @classmethod
-    def tree_impl(cls, data=None):
+    def tree_impl(cls):
         hps = [
-            CatHP('feature_range', cls.sampling_function, items=[(-1, 1), (0, 1)])
+            CatHP('feature_range', choice, items=[(-1, 1), (0, 1)])
         ]
         return ConfigSpace(name=cls.__name__, hps=hps)
-
-    @staticmethod
-    def sampling_function(items):
-        idx = randint(0, len(items))
-        return items[idx]
