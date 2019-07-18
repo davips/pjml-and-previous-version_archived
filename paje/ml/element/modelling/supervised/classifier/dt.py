@@ -19,19 +19,18 @@ class DT(Classifier):
         # st.add_children([a.start, b.start, c.start])
         # cs.finish([a.end,b.end,c.end])
 
-        hps = [
-            CatHP('criterion', choice, a=['gini', 'entropy']),
-            CatHP('splitter', choice, a=['best']),
-            CatHP('class_weight', choice, a=[None, 'balanced']),
-            CatHP('max_features', choice,
-                  a=['auto', 'sqrt', 'log2', None]),
+        hps = {
+            'criterion': CatHP(choice, a=['gini', 'entropy']),
+            'splitter': CatHP(choice, a=['best']),
+            'class_weight': CatHP(choice, a=[None, 'balanced']),
+            'max_features': CatHP(choice, a=['auto', 'sqrt', 'log2', None]),
 
-            IntHP('max_depth', uniform, low=2, high=1000),
+            'max_depth': IntHP(uniform, low=2, high=1000),
 
-            RealHP('min_samples_split', uniform, low=1e-6, high=0.3),
-            RealHP('min_samples_leaf', uniform, low=1e-6, high=0.3),
-            RealHP('min_weight_fraction_leaf', uniform, low=0.0, high=0.3),
-            RealHP('min_impurity_decrease', uniform, low=0.0, high=0.2)
-        ]
+            'min_samples_split': RealHP(uniform, low=1e-6, high=0.3),
+            'min_samples_leaf': RealHP(uniform, low=1e-6, high=0.3),
+            'min_weight_fraction_leaf': RealHP(uniform, low=0.0, high=0.3),
+            'min_impurity_decrease': RealHP(uniform, low=0.0, high=0.2)
+        }
 
         return ConfigSpace(name='DT', hps=hps)

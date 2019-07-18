@@ -23,7 +23,7 @@ class Summ(Element):
         return data.updated(**{self._field: self._function(data.g)})
 
     @classmethod
-    def tree_impl(cls, config_spaces):
+    def tree_impl(cls):
         hps = [
             CatHP('function', choice, itens=['mean'])
         ]

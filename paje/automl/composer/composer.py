@@ -27,10 +27,17 @@ class Composer(Component, ABC):
         super().__init__(config, **kwargs)
         self.components = []
         for subconfig in self.config['configs']:
-            aux = get_class(subconfig['module'], subconfig['class'])
-            if not aux.isdeterministic():
-                subconfig['random_state'] = self.config['random_state']
-            self.components.append(aux(subconfig))
+            # If the subcomponent is a config (a dict) we need to instantiate,
+            # otherwise it is an object and can be added directly in the component list
+            if isinstance(subconfig, dict):
+                print(111111111111, subconfig)
+                aux = get_class(subconfig['module'], subconfig['class'])
+                if not aux.isdeterministic():
+                    subconfig['random_state'] = self.config['random_state']
+                self.components.append(aux(subconfig))
+            else:
+                self.components.append(subconfig)
+
         # self.model = 42
 
     def apply_impl(self, data):
@@ -81,9 +88,7 @@ class Composer(Component, ABC):
 
     @classmethod
     def tree_impl(cls, config_spaces):
-        hps = [CatHP('configs', cls.sampling_function,
-                     config_spaces=config_spaces),
-               ]
+        hps = {'configs': CatHP(cls.sampling_function, config_spaces=config_spaces)}
         return ConfigSpace(name=cls.__name__, hps=hps)
 
     def __str__(self, depth=''):

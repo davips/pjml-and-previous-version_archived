@@ -24,7 +24,7 @@ class Metric(Element):
         return data.updated(r=self._function(data))
 
     @classmethod
-    def tree_impl(cls, config_spaces):
+    def tree_impl(cls):
         hps = [
             CatHP('function', choice, itens=['mean'])
         ]

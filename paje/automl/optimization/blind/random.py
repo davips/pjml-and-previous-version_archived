@@ -3,10 +3,13 @@ import random
 import numpy as np
 
 from paje.automl.automl import AutoML
+from paje.automl.composer.iterator import Iterator
 from paje.automl.composer.pipeline import Pipeline
-from paje.base.component import StorageSettings
-from paje.util.distributions import SamplingException
 from paje.evaluator.evaluator import EvaluatorClassif
+from paje.ml.element.posprocessing.metric import Metric
+from paje.ml.element.posprocessing.reduce import Reduce
+from paje.ml.element.posprocessing.summ import Summ
+from paje.ml.element.preprocessing.supervised.instance.sampler.cv import CV
 
 
 class RandomAutoML(AutoML):
@@ -102,12 +105,7 @@ class RandomAutoML(AutoML):
         components = self.choose_modules()
         tree = Pipeline.tree(config_spaces=components)
 
-        try:
-            config = tree.sample()
-            # print('config=\n', args, '\n')
-        except SamplingException as exc:
-            print(' ========== Pipe:\n', tree)
-            raise Exception(exc)
+        config = tree.sample()
 
         config['random_state'] = self.random_state
         self.curr_pipe = Pipeline(
@@ -147,3 +145,68 @@ class RandomAutoML(AutoML):
         """ TODO the docstring documentation
         """
         return self.best_eval
+
+    def eval(self, component, data):
+        internal = cfg(Pipeline, configs=[
+            cfg(CV, split='cv', steps=10, random_state=self.random_state),
+            component.config,
+            cfg(Metric, function='accuracy')
+        ], random_state=self.random_state)
+
+        pip = Pipeline(config={
+            'configs': [
+                cfg(Iterator, configs=[internal], reduce=cfg(Reduce, field='r')),
+                cfg(Summ, field='r', function='mean')
+            ],
+            'random_state': self.random_state
+        })
+
+        return pip.apply(data).r, pip.use(data).r
+
+    def _eval(self, component, data):
+        # Start CV from beginning.
+        self.cv = CV(self.cvargs)
+        validation = self.cv
+
+        result = {
+            'measure_train': [],
+            'measure_test': []
+        }
+
+        while True:
+            train = validation.apply(data)
+            test = validation.use(data)
+
+            # TODO already did:
+            #  ALERT!  apply() returns accuracy on the transformed set,
+            #  not on the training set. E.g. noise reduction produces a smaller
+            #  set to be evaluated by the model.
+            #  We should use() the component on training data, if we want
+            #  the training accuracy. So I discarded the result of apply()
+            #  and added a new use().
+            component.apply(train)
+            output_train = component.use(train)
+            output_test = component.use(test)
+
+            if not (output_test and output_train):
+                return None, None
+
+            measure_train = output_train and self._metric(output_train)
+            measure_test = output_test and self._metric(output_test)
+            result['measure_train'].append(measure_train)
+            result['measure_test'].append(measure_test)
+
+            validation = validation.next()
+            if validation is None:
+                break
+
+        return (
+            self._summary(result['measure_train']),
+            self._summary(result['measure_test'])
+        )
+
+
+def cfg(component, **kwargs):
+    kwargs['class'] = component.__name__
+    kwargs['module'] = component.__module__
+    return kwargs

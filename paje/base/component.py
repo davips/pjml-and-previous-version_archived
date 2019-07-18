@@ -9,7 +9,7 @@ from numpy.random import choice
 
 from paje.base.exceptions import ApplyWithoutBuild, UseWithoutApply, \
     handle_exception
-from paje.base.hp import CatHP
+from paje.base.hp import CatHP, FixedHP
 from paje.evaluator.time import time_limit
 from paje.util.encoders import uuid, json_pack
 
@@ -63,7 +63,6 @@ class Component(ABC):
             self.max_time = self.config.pop('max_time')
         # del self.config['description']
 
-
         # self.model here refers to classifiers, preprocessors and, possibly,
         # some representation of pipelines or the autoML itself.
         # Another possibility is to generalize modules to a new class Module()
@@ -97,11 +96,19 @@ class Component(ABC):
         -------
             Tree representing all the possible hyperparameter spaces.
         """
+        print(cls.__name__, 999999999)
         tree = cls.tree_impl(**kwargs)
-        hps = tree.hps + [
-            CatHP('module', choice, a=[cls.__module__]),
-            CatHP('class', choice, a=[cls.__name__])
-        ]
+        if 'config_spaces' in kwargs:
+            del kwargs['config_spaces']
+        hps = tree.hps.copy()
+
+        hps['module'] = CatHP(choice, a=[cls.__module__])
+        hps['class'] = CatHP(choice, a=[cls.__name__])
+
+        # Freeze args passed via kwargs
+        for k, v in kwargs.items():
+            hps[k] = FixedHP(v)
+
         return tree.updated(hps=hps)
 
     @profile

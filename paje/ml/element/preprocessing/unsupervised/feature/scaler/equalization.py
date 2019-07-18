@@ -15,7 +15,7 @@ class Equalization(Scaler):
 
     @classmethod
     def tree_impl(cls):
-        hps = [
-            CatHP('feature_range', choice, items=[(-1, 1), (0, 1)])
-        ]
+        hps = {
+            'feature_range': CatHP(choice, items=[(-1, 1), (0, 1)])
+        }
         return ConfigSpace(name=cls.__name__, hps=hps)

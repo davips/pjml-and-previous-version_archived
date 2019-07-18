@@ -60,9 +60,9 @@ class Node:
     def _elem_hps_to_config(self, node):
         args = {}
 
-        for hp in node.hps:
+        for name, hp in node.hps.items():
             try:
-                args[hp.name] = hp.sample()
+                args[name] = hp.sample()
             except Exception as e:
                 traceback.print_exc()
                 print(e)

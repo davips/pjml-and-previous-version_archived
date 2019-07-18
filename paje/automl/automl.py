@@ -79,7 +79,7 @@ class AutoML(Component, ABC):
             self.total += 1
             if self.verbose:
                 print(pipe)
-            eval_result = self.evaluator.eval(pipe, data)
+            eval_result = self.eval(pipe, data)
             if pipe.failed:
                 self.fails += 1
             elif pipe.locked_by_others:

@@ -1,6 +1,7 @@
-from paje.automl.composer import Composer
+from paje.automl.composer.composer import Composer
 from paje.base.hp import CatHP
 from paje.base.hps import ConfigSpace
+
 
 class Iterator(Composer):
     def __init__(self, config, **kwargs):
@@ -52,3 +53,7 @@ class Iterator(Composer):
                   config_spaces=config_spaces[1])
         ]
         return ConfigSpace(name=cls.__name__, hps=hps)
+
+    @staticmethod
+    def sampling_function(config_spaces):
+        raise Exception('useless call!!!!!!!!')

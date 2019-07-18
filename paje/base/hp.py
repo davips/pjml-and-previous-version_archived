@@ -3,9 +3,8 @@ from functools import partial
 import numpy
 
 
-class HyperParameter():
-    def __init__(self, name, func, **kwargs):
-        self.name = name
+class HyperParameter:
+    def __init__(self, func, **kwargs):
         self.func = partial(func, **kwargs)
         self.kwargs = kwargs
 
@@ -30,3 +29,8 @@ class RealHP(HyperParameter):
 class IntHP(HyperParameter):
     def sample(self):
         return numpy.round(self.func())
+
+
+class FixedHP(HyperParameter):
+    def __init__(self, value):
+        super().__init__(lambda _: value)
