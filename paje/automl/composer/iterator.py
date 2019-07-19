@@ -6,7 +6,7 @@ from paje.base.hps import ConfigSpace
 class Iterator(Composer):
     def __init__(self, config, **kwargs):
         super().__init__(config, **kwargs)
-        self.reduce = self.config['reduce']
+        self.reduce = self.materialize(self.config['reduce'])
 
     def apply_impl(self, data):
         component = self.components[0]
@@ -15,14 +15,16 @@ class Iterator(Composer):
         data_r = data
         while True:
             aux = component.apply(data)
+            if aux is None:
+                break
             field = self.reduce.field
-            aux = data.updated(**{field: aux.get(field)})
+            aux = data.updated(self, **{field: aux._get(field)})
             data_r = self.reduce.apply(aux)
-
             self.model.append(component)
             component = component.next()
             if component is None:
                 break
+
         return data_r
 
     def use_impl(self, data):
@@ -38,7 +40,7 @@ class Iterator(Composer):
         for component in self.model:
             aux = component.use(data)
             field = self.reduce.field
-            aux = data.updated(**{field: aux.get(field)})
+            aux = data.updated(self, **{field: aux._get(field)})
             data_r = self.reduce.use(aux)
             if component.failed:
                 raise Exception('Using subcomponent failed! ', component)

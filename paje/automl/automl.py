@@ -72,14 +72,14 @@ class AutoML(Component, ABC):
         """ TODO the docstring documentation
         """
 
-    def eval_pipelines_seq(self, pipelines, data, eval_results):
+    def eval_pipelines_seq(self, configs, data, eval_results):
         """ TODO the docstring documentation
         """
-        for pipe in pipelines:
+        for config in configs:
             self.total += 1
+            pipe, eval_result = self.eval(config, data)
             if self.verbose:
                 print(pipe)
-            eval_result = self.eval(pipe, data)
             if pipe.failed:
                 self.fails += 1
             elif pipe.locked_by_others:
@@ -92,6 +92,7 @@ class AutoML(Component, ABC):
         """ TODO the docstring documentation
         """
         self.all_eval_results = []
+
         for iteration in range(1, self.max_iter + 1):
             self.current_iteration = iteration
             if self.verbose:

@@ -26,19 +26,13 @@ class Composer(Component, ABC):
     def __init__(self, config, **kwargs):
         super().__init__(config, **kwargs)
         self.components = []
-        for subconfig in self.config['configs']:
-            # If the subcomponent is a config (a dict) we need to instantiate,
-            # otherwise it is an object and can be added directly in the component list
-            if isinstance(subconfig, dict):
-                print(111111111111, subconfig)
-                aux = get_class(subconfig['module'], subconfig['class'])
-                if not aux.isdeterministic():
-                    subconfig['random_state'] = self.config['random_state']
-                self.components.append(aux(subconfig))
-            else:
-                self.components.append(subconfig)
+        self.components = [self.materialize(subconfig) for subconfig in self.config['configs']]
 
-        # self.model = 42
+    def materialize(self, config):
+        aux = get_class(config['module'], config['class'])
+        if not aux.isdeterministic():
+            config['random_state'] = self.config['random_state']
+        return aux(config)
 
     def apply_impl(self, data):
         """ This function will be called by Component in the the 'apply()' step.

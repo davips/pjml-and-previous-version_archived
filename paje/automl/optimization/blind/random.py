@@ -108,10 +108,11 @@ class RandomAutoML(AutoML):
         config = tree.sample()
 
         config['random_state'] = self.random_state
-        self.curr_pipe = Pipeline(
-            config, storage_settings=self.storage_settings_for_components
-        )
-        return [self.curr_pipe]
+        # self.curr_pipe = Pipeline(
+        #     config, storage_settings=self.storage_settings_for_components
+        # )
+        self.curr_pipe = config
+        return [config]
 
     def choose_modules(self):
         """ TODO the docstring documentation
@@ -134,7 +135,7 @@ class RandomAutoML(AutoML):
     def get_best_pipeline(self):
         """ TODO the docstring documentation
         """
-        return self.best_pipe
+        return Pipeline(self.best_pipe)
 
     def get_current_eval(self):
         """ TODO the docstring documentation
@@ -146,22 +147,23 @@ class RandomAutoML(AutoML):
         """
         return self.best_eval
 
-    def eval(self, component, data):
+    def eval(self, pip_config, data):
         internal = cfg(Pipeline, configs=[
             cfg(CV, split='cv', steps=10, random_state=self.random_state),
-            component.config,
+            pip_config,
             cfg(Metric, function='accuracy')
         ], random_state=self.random_state)
 
-        pip = Pipeline(config={
-            'configs': [
-                cfg(Iterator, configs=[internal], reduce=cfg(Reduce, field='r')),
-                cfg(Summ, field='r', function='mean')
+        pip = Pipeline(config=cfg(
+            Pipeline,
+            configs=[
+                cfg(Iterator, configs=[internal], reduce=cfg(Reduce, field='e')),
+                cfg(Summ, field='e', function='mean')
             ],
-            'random_state': self.random_state
-        })
+            random_state=self.random_state
+        ))
 
-        return pip.apply(data).r, pip.use(data).r
+        return pip, (pip.apply(data).e[0], pip.use(data).e[0])
 
     def _eval(self, component, data):
         # Start CV from beginning.

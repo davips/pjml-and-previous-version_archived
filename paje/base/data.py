@@ -77,8 +77,8 @@ class Data:
     @profile
     def __init__(self, name, X=None, Y=None, Z=None, P=None, e=None,
                  U=None, V=None, W=None, Q=None, f=None,
-                 k=None, l=None, m=None,
-                 columns=None, history=None, modified=None,
+                 k=None, l=None, m=None, g=None,
+                 columns=None, history=None,
                  task=None, n_classes=None):
         # ALERT: all single-letter args will be considered matrices/vectors!
         """
@@ -121,7 +121,9 @@ class Data:
 
         :param columns: attribute names
         :param history: History of transformations suffered by the data
-        :param modified: list of fields modified in the last trasnformation
+
+        #:param modified: list of fields modified in the last trasnformation
+
         :param task: intended use for this data: classification, clustering,...
         :param n_classes: this could be calculated,
             but it is too time consuming to do it every transformation.
@@ -130,6 +132,10 @@ class Data:
             print('No history provided to Data')
             history = []
 
+        if g is None:
+            g = []
+
+
         # Init matrices/vectors to factory new Data instances in the future.
         matvecs = {k: v for k, v in locals().items()  # Only used ones.
                    if v is not None and len(k) == 1}
@@ -137,9 +143,9 @@ class Data:
 
         self.__dict__.update(all_mats_vecs)
 
-        if modified is None:
-            modified = [self.fields_in_lowercase_format[f]
-                        for f in matvecs.keys()]
+        # if modified is None:
+        #     modified = [self.fields_in_lowercase_format[f]
+        #                 for f in matvecs.keys()]
 
         # Metadata
         # TODO: store n_classes or avoid this lengthy set build every time
@@ -162,7 +168,9 @@ class Data:
             '_history': history or [],
             '_matvecs': matvecs,
             '_columns': columns,
-            '_modified': modified or [],
+            # '_modified': modified or [],
+            'g': g,
+            'r': None if e is None else e[0]
         })
 
         # Add vectorized shortcuts for matrices.
@@ -383,7 +391,8 @@ class Data:
                 new_args[L] = as_column_vector(new_args.pop(l))
         for k, v in self._val2vec.items():
             if k in new_args:
-                new_args[v] = as_vector(new_args.pop(k))
+                new_args[v] = np.array([new_args.pop(k)])
+
         if 'name' not in new_args:
             new_args['name'] = self.name()
 
@@ -393,12 +402,12 @@ class Data:
         if 'columns' not in new_args:
             new_args['columns'] = self.columns()
 
-        if 'modified' not in new_args:
-            fields = kwargs.keys()
-            new_args['modified'] = [self.fields_in_lowercase_format[f]
-                                    for f in fields]
-        else:
-            print('Warning: giving \'modified\' from outside updated().')
+        # if 'modified' not in new_args:
+        #     fields = kwargs.keys()
+        #     new_args['modified'] = [self.fields_in_lowercase_format[f]
+        #                             for f in fields]
+        # else:
+        #     print('Warning: giving \'modified\' from outside updated().')
 
         if 'history' not in new_args:
             if isinstance(component_or_list, list):
@@ -409,6 +418,7 @@ class Data:
                 ]
         else:
             print('Warning: giving \'history\' from outside updated().')
+
         return Data(**new_args)
 
     @profile
@@ -440,10 +450,10 @@ class Data:
         dic.update(new_data.matvecs())
 
         fields = new_data.matvecs().keys()
-        modified = [self.fields_in_lowercase_format[f] for f in fields]
+        # modified = [self.fields_in_lowercase_format[f] for f in fields]
 
         return Data(name=self.name(), history=history, columns=self.columns(),
-                    n_classes=self.n_classes(), modified=modified, **dic)
+                    n_classes=self.n_classes(), **dic)
 
     @profile
     def select(self, fields):
@@ -485,6 +495,9 @@ class Data:
 
     def _set(self, name, value):
         object.__setattr__(self, name, value)
+
+    def _get(self, name):
+        return object.__getattribute__(self, name)
 
     @profile
     def sid(self):
@@ -589,17 +602,17 @@ class Data:
             sensitive.append(f)
         return sensitive
 
-    @profile
-    def modified(self):
-        """
-        Matrices transformed or created by the last applied/used component.
-        Useful to be able to store and recover only new info, minimizing
-        traffic.
-
-        :return: lowercase list of modified sql-friendly fields:
-        ['x','y','z','u','v','w','p','q','r','s','t']
-        """
-        return self._modified
+    # @profile
+    # def modified(self):
+    #     """
+    #     Matrices transformed or created by the last applied/used component.
+    #     Useful to be able to store and recover only new info, minimizing
+    #     traffic.
+    #
+    #     :return: lowercase list of modified sql-friendly fields:
+    #     ['x','y','z','u','v','w','p','q','r','s','t']
+    #     """
+    #     return self._modified
 
 
 class MutabilityException(Exception):

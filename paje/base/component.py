@@ -96,7 +96,6 @@ class Component(ABC):
         -------
             Tree representing all the possible hyperparameter spaces.
         """
-        print(cls.__name__, 999999999)
         tree = cls.tree_impl(**kwargs)
         if 'config_spaces' in kwargs:
             del kwargs['config_spaces']
@@ -439,4 +438,7 @@ class Component(ABC):
 
     @abstractmethod
     def modifies(self, op):
+        pass
+
+    def next(self):
         pass

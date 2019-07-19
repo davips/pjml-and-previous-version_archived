@@ -21,7 +21,7 @@ class Classifier(Element, ABC):
         # self.model will be set in the child class
         # print('classif.......', data)
         self.model.fit(*data.Xy)
-        return None
+        return self.use_impl(data)
 
     def use_impl(self, data):
         return data.updated(self, z=self.model.predict(data.X))

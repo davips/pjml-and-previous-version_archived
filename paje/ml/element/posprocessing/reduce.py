@@ -14,8 +14,8 @@ class Reduce(Element):
         return self.use_impl(data)
 
     def use_impl(self, data):
-        g = data.g + [data.get(self.field)]
-        return data.updated(g=g)
+        g = data.g + [data._get(self.field)]
+        return data.updated(self, g=g)
 
     @classmethod
     def tree_impl(cls):

@@ -91,7 +91,7 @@ class CV(Element):
 
 
 # Needed classes to mark history of transformations when apply() give different
-# results than use().
+# results than use() for same input data.
 class Apply:
     def __init__(self, component):
         self.component = component
