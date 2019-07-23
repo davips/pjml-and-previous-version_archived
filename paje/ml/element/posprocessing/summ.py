@@ -20,7 +20,11 @@ class Summ(Element):
         return self.use_impl(data)
 
     def use_impl(self, data):
-        return data.updated(self, **{self._field: numpy.array([self._function(data.g)])})
+        stack, aux = data.stack.pop()
+        return data.updated(
+            self,
+            stack=stack,
+            **{self._field: numpy.array([self._function(aux)])})
 
     @classmethod
     def tree_impl(cls):

@@ -11,7 +11,7 @@ from paje.util.distributions import choice
 class Equalization(Scaler):
     def __init__(self, config, **kwargs):
         super().__init__(config, **kwargs)
-        self.model = MinMaxScaler(**self.config)
+        self.model = MinMaxScaler(**self.param())
 
     @classmethod
     def tree_impl(cls):

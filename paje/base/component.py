@@ -13,16 +13,6 @@ from paje.base.hp import CatHP, FixedHP
 from paje.evaluator.time import time_limit
 from paje.util.encoders import uuid, json_pack
 
-# Disabling profiling when not needed.
-try:
-    import builtins
-
-    profile = builtins.__dict__['profile']
-except KeyError:
-    # No line profiler, provide a pass-through version
-    def profile(func):
-        return func
-
 
 class StorageSettings:
     def __init__(self, storage=None, dump_it=None):
@@ -37,31 +27,33 @@ class Component(ABC):
     def __init__(self, config, storage_settings=None):
         self._storage = storage_settings and storage_settings.storage
         self._dump_it = storage_settings and storage_settings.dump_it
-        if 'class' not in config:
-            config['class'] = self.__class__.__name__
-        if 'module' not in config:
-            config['module'] = self.__module__
-        self._serialized = json_pack(config)
-        self._uuid = uuid(self._serialized.encode())
+
         self.config = config.copy()
-        self.name = self.config.pop('class')
-        del self.config['module']
-        if self.isdeterministic() and 'random_state' in self.config:
-            del self.config['random_state']
-        self._modified = {'a': None, 'u': None}
 
         # 'mark' should not identify components, it only marks results.
         # when a component is loaded from storage, nobody knows whether
         # it was part of an experiment or not, except by consulting
-        # the field 'mark' of the registered result.
-        if 'mark' in self.config:
-            self.mark = self.config.pop('mark')
+        # the field 'mark' of the registered result. 'max_time' is reserved word
+        self.mark = self.config.pop('mark') if 'mark' in config else None
+        self.max_time = self.config.pop('max_time') \
+            if 'max_time' in config else None
 
-        # 'description','name','max_time' are reserved words, not for
-        # building.
-        if 'max_time' in self.config:
-            self.max_time = self.config.pop('max_time')
-        # del self.config['description']
+        # 'random_state' is reserved word
+        if self.isdeterministic() and 'random_state' in self.config:
+            del self.config['random_state']
+
+        if 'class' not in config:
+            self.config['class'] = self.__class__.__name__
+        if 'module' not in config:
+            self.config['module'] = self.__module__
+
+        self._serialized = json_pack(self.config)
+        self._uuid = uuid(self._serialized.encode())
+
+        self.name = self.config['class']
+        self.module = self.config['module']
+
+        self._modified = {'a': None, 'u': None}
 
         # self.model here refers to classifiers, preprocessors and, possibly,
         # some representation of pipelines or the autoML itself.
@@ -77,10 +69,9 @@ class Component(ABC):
         self.failed = False
         self.time_spent = None
         self.node = None
-        self.max_time = None
-        self.mark = None
         self.failure = None
         self.show_warns = True
+        self._param = None
 
     @classmethod
     def tree(cls, **kwargs):
@@ -110,7 +101,6 @@ class Component(ABC):
 
         return tree.updated(hps=hps)
 
-    @profile
     def buildo(self, **config):
         # Check if build has already been called. This is the case when one
         # calls build() on an already built instance of component.
@@ -139,7 +129,6 @@ class Component(ABC):
         obj_copied.build_impl(**obj_copied.config)
         return obj_copied
 
-    @profile
     def apply(self, data=None):
         """Todo the doc string
         """
@@ -202,7 +191,6 @@ class Component(ABC):
 
         return output_data
 
-    @profile
     def use(self, data=None):
         """Todo the doc string
         """
@@ -442,3 +430,11 @@ class Component(ABC):
 
     def next(self):
         pass
+
+    def param(self):
+        if self._param is None:
+            self._param = self.config.copy()
+            del self._param['class']
+            del self._param['module']
+
+        return self._param

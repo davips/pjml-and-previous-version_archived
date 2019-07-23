@@ -1,3 +1,4 @@
+from paje.base.chain import Chain
 from paje.base.data import Data
 from paje.base.hp import CatHP
 from paje.base.hps import ConfigSpace
@@ -14,8 +15,8 @@ class Reduce(Element):
         return self.use_impl(data)
 
     def use_impl(self, data):
-        g = data.g + [data._get(self.field)]
-        return data.updated(self, g=g)
+        val = data._get(self.field)
+        return data.updated(self, stack=Chain(val, data.stack, idx=0))
 
     @classmethod
     def tree_impl(cls):

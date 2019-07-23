@@ -10,7 +10,7 @@ from paje.util.encoders import json_unpack, json_pack
 class CV(Element):
     def __init__(self, config, **kwargs):
         if 'iteration' not in config:
-            config['iteration']=0
+            config['iteration'] = 0
         super().__init__(config, **kwargs)
         self._memoized = {}
         self._max = 0
@@ -76,7 +76,7 @@ class CV(Element):
         node.add_child(holdout)
         holdout.add_hp(CatHP('split', choice, a=['holdout']))
         holdout.add_hp(IntHP('steps', choice, low=1, high=100000))
-        holdout.add_hp(RealHP('test_size', choice, low=1e-06, high=1-1e-06))
+        holdout.add_hp(RealHP('test_size', choice, low=1e-06, high=1 - 1e-06))
 
         cv = config_space.node()
         node.add_child(cv)
@@ -95,18 +95,12 @@ class CV(Element):
 class Apply:
     def __init__(self, component):
         self.component = component
-
-    def serialized(self):
-        return json_pack(
-            {'op': 'a', 'comp': json_unpack(self.component.serialized())}
-        )
+        self.config = {'op': 'a',
+                       'comp': json_unpack(self.component.serialized())}
 
 
 class Use:
     def __init__(self, component):
         self.component = component
-
-    def serialized(self):
-        return json_pack(
-            {'op': 'u', 'comp': json_unpack(self.component.serialized())}
-        )
+        self.config = {'op': 'u',
+                       'comp': json_unpack(self.component.serialized())}

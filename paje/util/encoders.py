@@ -6,6 +6,7 @@ import _pickle as pickle
 import lz4.frame as lz
 import zstd as zs
 import numpy as np
+
 # Disabling profiling when not needed.
 try:
     import builtins
@@ -17,7 +18,6 @@ except KeyError:
         return func
 
 
-@profile
 def enc(big, alphabet='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
                       'abcdefghijklmnopqrstuvwxyzÀÂÃÄÅÆÇÈÊË'
                       'ÌÎÏÑÒÔÕÖØÙÛÜÝÞßàâãäåæçèêëìîïðñòóôõöøùûüýþ'):
@@ -80,10 +80,9 @@ def enc(big, alphabet='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
     return ''.join(res)[::-1]
 
 
-@profile
 def dec(digest, alphabet='0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'
                          'abcdefghijklmnopqrstuvwxyzÀÂÃÄÅÆÇÈÊË'
-                         'ÌÎÏÑÒÔÕÖØÙÛÜÝÞßàâãäåæçèêëìîïðñòóôõöøùûüýþ'):
+                         'ÌÎÏÑÒÔÕÖØÙÛÜÝÞßàâãäåæçèêëìîïðñòóôõöøùûüýþ '):
     """
     Decode digest from base-len(alphabet).
     See enc() for more info.
@@ -138,8 +137,11 @@ def pack_comp(obj):
 
 
 @profile
-def pack_data(obj, w, h):
+def pack_data(obj):
+    if obj is None:
+        return None
     # pickled = pickle.dumps(obj) # 1169_airlines explodes here with RAM < ?
+    h, w = obj.shape
     fast_reduced = lz.compress(obj.reshape(w * h), compression_level=1)
     return zs.compress(fast_reduced)
 
