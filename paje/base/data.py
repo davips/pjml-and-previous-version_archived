@@ -9,7 +9,6 @@ from paje.base.chain import Chain
 from paje.ml.element.preprocessing.supervised.instance.sampler.cv \
     import CV
 from paje.util.encoders import pack_data, uuid, json_unpack, zlibext_pack
-from sklearn.utils import check_X_y
 
 
 class Data:
@@ -17,6 +16,16 @@ class Data:
     """
     _vectors = {i: i.upper() for i in ['y', 'z', 'v', 'w', 'e', 'f']}
     _scalars = {'r': 'E', 's': 'F', 't': 'k'}
+    _unshortcut = {v: k for k, v in _vectors.items()}
+    _unshortcut.update({v: k for k, v in _scalars.items()})
+    _unshortcut.update({
+        'X': 'X',
+        'U': 'U',
+        'l': 'l',
+        'm': 'm',
+        'S': 'S'
+    })
+    print(9999999999999999, _unshortcut)
 
     def __init__(self, name,
                  X, Y=None, Z=None, P=None,
@@ -24,7 +33,7 @@ class Data:
                  E=None, F=None,
                  l=None, m=None,
                  k=None,
-                 stack=None,
+                 S=None,
                  columns=None, history=None):
         """
             Immutable lazy data for all machine learning scenarios
@@ -75,11 +84,11 @@ class Data:
         """
         # ALERT: all single-letter args will be considered matrices/vectors!
         self._fields = {k: v for k, v in locals().items() if len(k) == 1}
+        self._fields['S'] = Chain() if S is None else S
         self.__dict__.update(self._fields)
 
         self.name = f'unnamed[{self.uuid()}]' if name is None else name
         self._history = Chain() if history is None else history
-        self.stack = Chain() if stack is None else stack
 
         if Y is not None:
             self.n_classes = np.unique(Y).shape[0]
@@ -242,13 +251,13 @@ class Data:
         else:
             new_args['history'] = Chain(component.config, self._history)
 
-        if 'stack' in kwargs:
-            new_args['stack'] = kwargs['stack']
+        if 'S' in kwargs:
+            new_args['S'] = kwargs['S']
 
         return Data(**new_args)
 
     def _get(self, name):
-        return object.__getattribute__(self, name)
+        return object.__getattribute__(self, self._unshortcut[name])
 
     def sid(self):
         """
@@ -283,7 +292,7 @@ class Data:
     def __str__(self):
         txt = []
         [txt.append(f'{k}: {str(v)}') for k, v in self._fields.items()]
-        return '\n'.join(txt) + "name" + self.name + "\n" +\
+        return '\n'.join(txt) + "name" + self.name + "\n" + \
                "history=" + str(self.history()) + "\n"
 
     def split(self, test_size=0.25, random_state=1):

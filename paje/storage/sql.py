@@ -137,25 +137,25 @@ class SQL(Cache):
                 name char(19) NOT NULL,
                 hist char(19) NOT NULL,
 
-                x char(19),
-                y char(19),
+                X char(19),
+                Y char(19),
+                Z char(19),
+                P char(19),
 
-                z char(19),
-                p char(19),
+                U char(19),
+                V char(19),
+                W char(19),
+                Q char(19),
 
-                u char(19),
-                v char(19),
-
-                w char(19),
-                q char(19),
-
-                r char(19),
-                s char(19),
-
-                t char(19),
+                E char(19),
+                F char(19),
 
                 l char(19),
                 m char(19),
+
+                k char(19),
+
+                S char(19),
 
                 insd timestamp NOT NULL,
                 upd timestamp,
@@ -164,19 +164,20 @@ class SQL(Cache):
                 FOREIGN KEY (name) REFERENCES name(nid),
                 FOREIGN KEY (hist) REFERENCES hist(hid),
                 
-                FOREIGN KEY (x) REFERENCES mat(mid),
-                FOREIGN KEY (y) REFERENCES mat(mid),
-                FOREIGN KEY (z) REFERENCES mat(mid),
-                FOREIGN KEY (p) REFERENCES mat(mid),
-                FOREIGN KEY (u) REFERENCES mat(mid),
-                FOREIGN KEY (v) REFERENCES mat(mid),
-                FOREIGN KEY (w) REFERENCES mat(mid),
-                FOREIGN KEY (q) REFERENCES mat(mid),
-                FOREIGN KEY (r) REFERENCES mat(mid),
-                FOREIGN KEY (s) REFERENCES mat(mid),
-                FOREIGN KEY (t) REFERENCES mat(mid),
+                FOREIGN KEY (X) REFERENCES mat(mid),
+                FOREIGN KEY (Y) REFERENCES mat(mid),
+                FOREIGN KEY (Z) REFERENCES mat(mid),
+                FOREIGN KEY (P) REFERENCES mat(mid),
+                FOREIGN KEY (U) REFERENCES mat(mid),
+                FOREIGN KEY (V) REFERENCES mat(mid),
+                FOREIGN KEY (W) REFERENCES mat(mid),
+                FOREIGN KEY (Q) REFERENCES mat(mid),
+                FOREIGN KEY (E) REFERENCES mat(mid),
+                FOREIGN KEY (F) REFERENCES mat(mid),
                 FOREIGN KEY (l) REFERENCES mat(mid),
-                FOREIGN KEY (m) REFERENCES mat(mid)
+                FOREIGN KEY (m) REFERENCES mat(mid),
+                FOREIGN KEY (k) REFERENCES mat(mid),
+                FOREIGN KEY (S) REFERENCES mat(mid)
                )''')
         # guardar last comp nao adianta pq o msm comp pode ser aplicado
         # varias vezes
@@ -186,19 +187,20 @@ class SQL(Cache):
         self.query(f'CREATE INDEX data1 ON data (name)')  # needed on FKs?
         self.query(f'CREATE INDEX data2 ON data (hist)')
         self.query(f'CREATE INDEX data3 ON data (upd)')
-        self.query(f'CREATE INDEX datax ON data (x)')
-        self.query(f'CREATE INDEX datay ON data (y)')
-        self.query(f'CREATE INDEX dataz ON data (z)')
-        self.query(f'CREATE INDEX datap ON data (p)')
-        self.query(f'CREATE INDEX datau ON data (u)')
-        self.query(f'CREATE INDEX datav ON data (v)')
-        self.query(f'CREATE INDEX dataw ON data (w)')
-        self.query(f'CREATE INDEX dataq ON data (q)')
-        self.query(f'CREATE INDEX datar ON data (r)')
-        self.query(f'CREATE INDEX datas ON data (s)')
-        self.query(f'CREATE INDEX datat ON data (t)')
+        self.query(f'CREATE INDEX datax ON data (X)')
+        self.query(f'CREATE INDEX datay ON data (Y)')
+        self.query(f'CREATE INDEX dataz ON data (Z)')
+        self.query(f'CREATE INDEX datap ON data (P)')
+        self.query(f'CREATE INDEX datau ON data (U)')
+        self.query(f'CREATE INDEX datav ON data (V)')
+        self.query(f'CREATE INDEX dataw ON data (W)')
+        self.query(f'CREATE INDEX dataq ON data (Q)')
+        self.query(f'CREATE INDEX datae ON data (E)')
+        self.query(f'CREATE INDEX dataf ON data (F)')
         self.query(f'CREATE INDEX datal ON data (l)')
         self.query(f'CREATE INDEX datam ON data (m)')
+        self.query(f'CREATE INDEX datak ON data (k)')
+        self.query(f'CREATE INDEX datas ON data (S)')
 
         # Results ==============================================================
         self.query(f'''
@@ -282,10 +284,10 @@ class SQL(Cache):
         return [dict(row) for row in rows]
 
     @profile
-    def store_matvec(self, uuid, dump, w, h):
+    def store_matvec(self, uuid_, dump, w, h):
         """
         Store the given pair uuid-dump of a matrix/vector.
-        :type uuid:
+        :type uuid_:
         :param dump:
         :param w: width
         :param h: height
@@ -300,7 +302,7 @@ class SQL(Cache):
         '''
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            self.query(sql, [uuid, w, h, dump])
+            self.query(sql, [uuid_, w, h, dump])
 
     @profile
     def store_data_impl(self, data: Data):
@@ -334,10 +336,11 @@ class SQL(Cache):
                            if k not in mids}
             uuid_field = data.uuids_fields()
             for uuid_, dump in dumps2store.items():
-                self.store_matvec(
-                    uuid_, dump, data.width(uuid_field[uuid_]),
-                    data.height(uuid_field[uuid_])
-                )
+                if data._get(uuid_field[uuid_]) is not None:
+                    self.store_matvec(
+                        uuid_, dump, data._get(uuid_field[uuid_]).shape[1],
+                        data._get(uuid_field[uuid_]).shape[0]
+                    )
 
             # Create metadata for upcoming row at table 'data'.
             self.store_metadata(data)
@@ -355,19 +358,21 @@ class SQL(Cache):
                     ?,?,
                     ?,
                     ?,?,
+                    ?,
                     {self._now_function()},
                     null
                 )
                 '''
             data_args = [data.uuid(),
                          data.name_uuid(), data.history_uuid(),
-                         data.field_uuid('x'), data.field_uuid('y'),
-                         data.field_uuid('z'), data.field_uuid('p'),
-                         data.field_uuid('u'), data.field_uuid('v'),
-                         data.field_uuid('w'), data.field_uuid('q'),
-                         data.field_uuid('r'), data.field_uuid('s'),
-                         data.field_uuid('t'),
-                         data.field_uuid('l'), data.field_uuid('m')
+                         data.field_uuid('X'), data.field_uuid('Y'),
+                         data.field_uuid('Z'), data.field_uuid('P'),
+                         data.field_uuid('U'), data.field_uuid('V'),
+                         data.field_uuid('W'), data.field_uuid('Q'),
+                         data.field_uuid('E'), data.field_uuid('F'),
+                         data.field_uuid('l'), data.field_uuid('m'),
+                         data.field_uuid('k'),
+                         data.field_uuid('S')
                          ]
             from sqlite3 import IntegrityError as IntegrityErrorSQLite
             from pymysql import IntegrityError as IntegrityErrorMySQL
@@ -384,25 +389,25 @@ class SQL(Cache):
                 print(self.name,
                       f'Unexpected: Data already stored before!', data.uuid())
             else:
-                print(self.name, f': Data inserted', data.name())
+                print(self.name, f': Data inserted', data.name)
 
         else:
             if self.debug:
                 print('Check if data comes with new matrices/vectors '
                       '(improbable).')
             stored_dumps = {k: v for k, v in rone.items() if v is not None}
-            fields_low = [k.lower() for k in data.matvecs().keys()]
-            fields2store = [f for f in fields_low if f
+            fields2store = [f for f in data._fields.keys() if f
                             is not None and f not in stored_dumps]
 
             if self.debug:
                 print('Insert only dumps that are missing in storage')
             dumps2store = {data.field_uuid(f): (data.field_dump(f), f)
-                           for f in fields2store}
+                           for f in fields2store if data.field_dump(f) is not None}
+            print(76767676, dumps2store)
             to_update = {}
             for uuid_, (dump, field) in dumps2store:
-                self.store_matvec(uuid_, dump, data.width(field),
-                                  data.height(field))
+                self.store_matvec(uuid_, dump, data._get(field).shape[1],
+                                  data._get(field).shape[0])
                 to_update[field] = uuid_
 
             if self.debug:
@@ -417,7 +422,7 @@ class SQL(Cache):
                         did=?
                     '''
                 self.query(sql, list(to_update.values()) + [data.uuid()])
-                print(self.name, f': Data updated', data.name())
+                print(self.name, f': Data updated', data.name)
 
     @profile
     def store_metadata(self, data: Data):
@@ -428,7 +433,7 @@ class SQL(Cache):
         """
         # attr ---------------------------------------------------------
         # TODO: avoid sending long cols blob when unneeded
-        cols = zlibext_pack(data.columns())
+        cols = zlibext_pack(data.columns)
         uuid_cols = uuid(cols)
         sql = f'''
             insert or ignore into attr values (
@@ -451,7 +456,7 @@ class SQL(Cache):
             );'''
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            self.query(sql, [data.name_uuid(), data.name(), uuid_cols])
+            self.query(sql, [data.name_uuid(), data.name, uuid_cols])
 
         # history ------------------------------------------------------
         # TODO: avoid sending long hist blob when unneeded
@@ -569,9 +574,9 @@ class SQL(Cache):
             return None, False, False
         if result['des'] is not None:
             # sanity check
-            if result['des'] != input_data.name():
+            if result['des'] != input_data.name:
                 raise Exception('Result name differs from input data',
-                                f"{result['des']}!={input_data.name()}")
+                                f"{result['des']}!={input_data.name}")
 
             # Recover relevant matrices/vectors.
             dic = {}
@@ -687,7 +692,7 @@ class SQL(Cache):
 
         sql = f'''
                 select 
-                    x,y,z,p,u,v,w,q,r,s,t,l,m,cols,des
+                    X,Y,Z,P,U,V,W,Q,E,F,l,m,k,S,cols,des
                 from 
                     data 
                         left join name on name=nid 
@@ -705,8 +710,8 @@ class SQL(Cache):
             flst = [k for k, v in row.items() if len(k) == 1 and v is not None]
         else:
             flst = fields.split(',')
-        for field in Data.list_to_case_sensitive(flst):
-            mid = row[field.lower()]
+        for field in flst:
+            mid = row[field]
             if mid is not None:
                 self.query(f'select val,w,h from mat where mid=?', [mid])
                 rone = self.get_one()
@@ -750,7 +755,7 @@ class SQL(Cache):
     def get_data_by_uuid_impl(self, datauuid):
         sql = f'''
                 select 
-                    x,y,z,p,u,v,w,q,r,s,t,l,m,cols,txt,des
+                    X,Y,Z,P,U,V,W,Q,E,F,l,m,k,S,cols,txt,des
                 from 
                     data 
                         left join name on name=nid 
@@ -769,7 +774,7 @@ class SQL(Cache):
                'history': zlibext_unpack(row['txt'])}
         fields = [k for k, v in row.items() if len(k) == 1 and v is not None]
         for field in Data.list_to_case_sensitive(fields):
-            mid = row[field.lower()]
+            mid = row[field]
             if mid is not None:
                 self.query(f'select val,w,h from mat where mid=?', [mid])
                 rone = self.get_one()

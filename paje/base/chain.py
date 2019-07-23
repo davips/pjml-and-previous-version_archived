@@ -10,6 +10,7 @@ class Chain:
                 self.idx = child.idx + 1
         else:
             self.idx = idx
+        self.shape = (None, None)
 
     def __str__(self):
         aux = str(self.value)

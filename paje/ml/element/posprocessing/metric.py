@@ -29,3 +29,7 @@ class Metric(Element):
             CatHP('function', choice, itens=['mean'])
         ]
         return ConfigSpace(name=cls.__name__, hps=hps)
+
+    @classmethod
+    def isdeterministic(cls):
+        return True

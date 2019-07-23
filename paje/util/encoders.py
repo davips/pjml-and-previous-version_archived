@@ -8,6 +8,8 @@ import zstd as zs
 import numpy as np
 
 # Disabling profiling when not needed.
+from paje.base.chain import Chain
+
 try:
     import builtins
 
@@ -118,6 +120,9 @@ def uuid(packed_content):
     :param packed_content: packed Data of Xy... or a JSON dump of Component args
     :return: currently a MD5 hash in hex format
     """
+    print(7777777777, packed_content)
+    if packed_content is None:
+        return None
     return tiny_md5(hashlib.md5(packed_content).hexdigest())
 
 
@@ -141,9 +146,28 @@ def pack_data(obj):
     if obj is None:
         return None
     # pickled = pickle.dumps(obj) # 1169_airlines explodes here with RAM < ?
-    h, w = obj.shape
-    fast_reduced = lz.compress(obj.reshape(w * h), compression_level=1)
+    if isinstance(obj, Chain):
+        pickled = pickle.dumps(obj)
+        fast_reduced = lz.compress(pickled, compression_level=1)
+    else:
+        h, w = obj.shape
+        fast_reduced = lz.compress(obj.reshape(w * h), compression_level=1)
     return zs.compress(fast_reduced)
+
+
+@profile
+def unpack_data(dump, w, h):
+    if dump is None:
+        return None
+    decompressed = zs.decompress(dump)
+    fast_decompressed = lz.decompress(decompressed)
+    if fast_decompressed[0] != b'\x00':
+        return pickle.loads(fast_decompressed)
+    else:
+        return np.reshape(np.frombuffer(fast_decompressed), newshape=(h, w))
+
+    # 1169_airlines explodes here with RAM < ?
+    # return pickle.loads(fast_decompressed)
 
 
 @profile
@@ -152,16 +176,6 @@ def unpack_comp(dump):
     decompressed = blosc.decompress(dump)
     fast_decompressed = lz.decompress(decompressed)
     return pickle.loads(fast_decompressed)
-
-
-@profile
-def unpack_data(dump, w, h):
-    decompressed = zs.decompress(dump)
-    fast_decompressed = lz.decompress(decompressed)
-    return np.reshape(np.frombuffer(fast_decompressed), newshape=(h, w))
-
-    # 1169_airlines explodes here with RAM < ?
-    # return pickle.loads(fast_decompressed)
 
 
 @profile

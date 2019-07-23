@@ -26,12 +26,13 @@ class Composer(Component, ABC):
     def __init__(self, config, **kwargs):
         super().__init__(config, **kwargs)
         self.components = []
-        self.components = [self.materialize(subconfig) for subconfig in self.config['configs']]
+        self.components = [self.materialize(subconfig)
+                           for subconfig in self.param()['configs']]
 
     def materialize(self, config):
         aux = get_class(config['module'], config['class'])
         if not aux.isdeterministic():
-            config['random_state'] = self.config['random_state']
+            config['random_state'] = self.param()['random_state']
         return aux(config)
 
     def apply_impl(self, data):

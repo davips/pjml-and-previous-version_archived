@@ -12,7 +12,6 @@ class Element(Component, ABC):
             raise Exception('Wrong op:', op)
 
         if self._modified[op] is None:
-            from paje.base.data import Data
             func = self.apply_impl if op == 'a' else self.use_impl
             source = inspect.getsource(func)
 
@@ -30,8 +29,6 @@ class Element(Component, ABC):
                     fields = [arg.split('=')[0].strip() for arg in args]
                     for f in fields:
                         if len(f) == 1:
-                            self._modified[op].append(
-                                Data.fields_in_lowercase_format[f]
-                            )
+                            self._modified[op].append(f)
             self._modified[op] = list(set(self._modified[op]))
         return self._modified[op]

@@ -1,7 +1,4 @@
-import random
-
 import numpy as np
-
 from paje.automl.automl import AutoML
 from paje.automl.composer.iterator import Iterator
 from paje.automl.composer.pipeline import Pipeline
@@ -78,26 +75,7 @@ class RandomAutoML(AutoML):
         self.curr_pipe = None
 
         self.random_state = random_state
-
-    def build_impl(self, **config):
-        """ TODO the docstring documentation
-        """
-        # The 'self' is a copy.
-        # Be careful, the copy made in the parent (Component) is
-        # shallow (copy.copy(self)).
-        # See more details in the Component.build() method.
-
-        self.__dict__.update(self.config)
         np.random.seed(self.random_state)
-        random.seed(self.random_state)
-
-        if self.pipe_length < 1:
-            raise ValueError("The 'pipe_length' must be greater than 0.")
-
-        # TODO: was this IF correct?  ass. Davi
-        if self.repetitions < 0:
-            print('self.repetitions', self.repetitions)
-            raise ValueError("The 'repetitions' must be a non-negative int.")
 
     def next_pipelines(self, data):
         """ TODO the docstring documentation
@@ -160,8 +138,9 @@ class RandomAutoML(AutoML):
                 cfg(Iterator, configs=[internal], reduce=cfg(Reduce, field='e')),
                 cfg(Summ, field='e', function='mean')
             ],
-            random_state=self.random_state
-        ))
+            random_state=self.random_state),
+            storage_settings=self.storage_settings_for_components
+        )
 
         return pip, (pip.apply(data).e[0], pip.use(data).e[0])
 

@@ -20,10 +20,10 @@ class Summ(Element):
         return self.use_impl(data)
 
     def use_impl(self, data):
-        stack, aux = data.stack.pop()
+        stack, aux = data.S.pop()
         return data.updated(
             self,
-            stack=stack,
+            S=stack,
             **{self._field: numpy.array([self._function(aux)])})
 
     @classmethod
@@ -32,3 +32,7 @@ class Summ(Element):
             CatHP('function', choice, itens=['mean'])
         ]
         return ConfigSpace(name=cls.__name__, hps=hps)
+
+    @classmethod
+    def isdeterministic(cls):
+        return True

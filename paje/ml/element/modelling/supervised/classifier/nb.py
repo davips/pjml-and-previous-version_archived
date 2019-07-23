@@ -1,20 +1,21 @@
-from sklearn.naive_bayes import GaussianNB
 from sklearn.naive_bayes import BernoulliNB
+from sklearn.naive_bayes import GaussianNB
 
-from paje.base.hps import HPTree
-from paje.ml.element.modelling.supervised.classifier.classifier import Classifier
+from paje.base.hp import CatHP
+from paje.base.hps import ConfigSpace
+from paje.ml.element.modelling.supervised.classifier.classifier import \
+    Classifier
+from paje.util.distributions import choice
 
 
 class NB(Classifier):
     """NB that accepts any values."""
+    def __init__(self, config, **kwargs):
+        super().__init__(config, **kwargs)
 
-    def build_impl(self):
         # Extract n_instances from hps to be available to be used in apply()
         # if neeeded.
-
-        newconfig = self.config.copy()
-        self.nb_type = newconfig.get('@nb_type')
-        del newconfig['@nb_type']
+        self.nb_type = self.config['@nb_type']
 
         if self.nb_type == "GaussianNB":
             self.model = GaussianNB()
@@ -24,6 +25,8 @@ class NB(Classifier):
             raise Exception('Wrong NB!')
 
     @classmethod
-    def tree_impl(self):
-        node = {'@nb_type': ['c', ["GaussianNB", "BernoulliNB"]]}
-        return HPTree(node=node, children=[])
+    def tree_impl(cls):
+        hps = {
+            '@nb_type': CatHP(choice, items=['GaussianNB', 'BernoulliNB'])
+        }
+        return ConfigSpace(name='NB', hps=hps)

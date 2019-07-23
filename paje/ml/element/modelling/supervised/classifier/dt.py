@@ -1,7 +1,7 @@
 from sklearn.tree import DecisionTreeClassifier
 
 from paje.base.hp import CatHP, IntHP, RealHP
-from paje.base.hps import ConfigSpace, Node
+from paje.base.hps import ConfigSpace
 from numpy.random import choice, uniform
 from paje.ml.element.modelling.supervised.classifier.classifier import Classifier
 
