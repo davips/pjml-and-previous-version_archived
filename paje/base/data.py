@@ -239,6 +239,8 @@ class Data:
         storage.store_data(self)
 
     def updated(self, component, **kwargs):
+        print("who? ", component)
+        print('uuuuuuuuuuuu', kwargs)
         """ Return a new Data updated by given values.
         :param component: for history purposes
         :param kwargs:
@@ -266,8 +268,25 @@ class Data:
 
         return Data(**new_args)
 
-    def _get(self, name):
+    def _get_mat(self, name):
         return object.__getattribute__(self, self.from_alias[name])
+
+    def get(self, name):
+        """
+        User-friendly access to matrices, vectors and scalars by name.
+        Parameters
+        ----------
+        name
+
+        Returns
+        -------
+
+        """
+        mat = object.__getattribute__(self, self.from_alias[name])
+        if name in self._vectors:
+            return self._as_vector(mat)
+        if name in self._scalars:
+            return mat[0][0]
 
     def sid(self):
         """

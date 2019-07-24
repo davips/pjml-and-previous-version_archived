@@ -21,7 +21,7 @@ class Metric(Element):
         return self.use_impl(data)
 
     def use_impl(self, data):
-        return data.updated(self, e=numpy.array([self._function(data)]))
+        return data.updated(self, r=self._function(data))
 
     @classmethod
     def tree_impl(cls):

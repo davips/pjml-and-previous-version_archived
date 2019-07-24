@@ -24,7 +24,7 @@ class Summ(Element):
         return data.updated(
             self,
             S=stack,
-            **{self._field: numpy.array([self._function(aux)])})
+            **{self._field: self._function(aux)})
 
     @classmethod
     def tree_impl(cls):

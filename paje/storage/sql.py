@@ -338,8 +338,9 @@ class SQL(Cache):
                            if k not in mids}
             uuid_field = data.uuids_fields()
             for uuid_, dump in dumps2store.items():
-                if data._get(uuid_field[uuid_]) is not None:
-                    self.store_matvec(uuid_, dump, data._get(uuid_field[uuid_]))
+                mat = data._get_mat(uuid_field[uuid_])
+                if mat is not None:
+                    self.store_matvec(uuid_, dump, mat)
 
             # Create metadata for upcoming row at table 'data'.
             self.store_metadata(data)
@@ -406,8 +407,8 @@ class SQL(Cache):
             print(76767676, dumps2store)
             to_update = {}
             for uuid_, (dump, field) in dumps2store:
-                self.store_matvec(uuid_, dump, data._get(field).shape[1],
-                                  data._get(field).shape[0])
+                mat = data._get_mat(field)
+                self.store_matvec(uuid_, dump, mat)
                 to_update[field] = uuid_
 
             if self.debug:

@@ -129,7 +129,7 @@ class RandomAutoML(AutoML):
         internal = cfg(Pipeline, configs=[
             cfg(CV, split='cv', steps=10, random_state=self.random_state),
             pip_config,
-            cfg(Metric, function='accuracy')
+            cfg(Metric, function='accuracy')  # from Y to r
         ], random_state=self.random_state)
 
         pip = Pipeline(config=cfg(
@@ -144,50 +144,12 @@ class RandomAutoML(AutoML):
             storage_settings=self.storage_settings_for_components
         )
 
+        print(1111111111111, pip.apply(data).s)
+        print(1111111111111, pip.use(data).s)
+        print(1111111111111, pip.apply(data).s)
+        print(1111111111111, pip.use(data).s)
+
         return pip, (pip.apply(data).s, pip.use(data).s)
-
-    def _eval(self, component, data):
-        # Start CV from beginning.
-        self.cv = CV(self.cvargs)
-        validation = self.cv
-
-        result = {
-            'measure_train': [],
-            'measure_test': []
-        }
-
-        while True:
-            train = validation.apply(data)
-            test = validation.use(data)
-
-            # TODO already did:
-            #  ALERT!  apply() returns accuracy on the transformed set,
-            #  not on the training set. E.g. noise reduction produces a smaller
-            #  set to be evaluated by the model.
-            #  We should use() the component on training data, if we want
-            #  the training accuracy. So I discarded the result of apply()
-            #  and added a new use().
-            component.apply(train)
-            output_train = component.use(train)
-            output_test = component.use(test)
-
-            if not (output_test and output_train):
-                return None, None
-
-            measure_train = output_train and self._metric(output_train)
-            measure_test = output_test and self._metric(output_test)
-            result['measure_train'].append(measure_train)
-            result['measure_test'].append(measure_test)
-
-            validation = validation.next()
-            if validation is None:
-                break
-
-        return (
-            self._summary(result['measure_train']),
-            self._summary(result['measure_test'])
-        )
-
 
 def cfg(component, **kwargs):
     kwargs['class'] = component.__name__

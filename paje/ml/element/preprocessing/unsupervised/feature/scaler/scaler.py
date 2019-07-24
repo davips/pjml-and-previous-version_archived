@@ -2,7 +2,6 @@
 """
 from abc import ABC
 
-from paje.base.component import Component
 from paje.ml.element.element import Element
 
 

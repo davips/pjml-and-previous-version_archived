@@ -1,5 +1,4 @@
 from paje.base.chain import Chain
-from paje.base.data import Data
 from paje.base.hp import CatHP
 from paje.base.hps import ConfigSpace
 from paje.ml.element.element import Element
@@ -15,13 +14,14 @@ class Reduce(Element):
         return self.use_impl(data)
 
     def use_impl(self, data):
-        val = data._get(self.field)
+        val = data.get(self.field)
         return data.updated(self, S=Chain(val, data.S, idx=0))
 
     @classmethod
     def tree_impl(cls):
+        # TODO: cirar funcao no data
         hps = [
-            CatHP('field', choice, itens=['X','Y','Z'])   # TODO: cirar funcao no data
+            CatHP('field', choice, itens=['X','Y','Z'])
         ]
         return ConfigSpace(name=cls.__name__, hps=hps)
 

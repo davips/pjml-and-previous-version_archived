@@ -18,7 +18,7 @@ class Iterator(Composer):
             if aux is None:
                 break
             field = self.reduce.field
-            aux = data.updated(self, **{field: aux._get(field)})
+            aux = data.updated(self, **{field: aux.get(field)})
             data_r = self.reduce.apply(aux)
             self.model.append(component)
             component = component.next()
@@ -40,7 +40,7 @@ class Iterator(Composer):
         for component in self.model:
             aux = component.use(data)
             field = self.reduce.field
-            aux = data.updated(self, **{field: aux._get(field)})
+            aux = data.updated(self, **{field: aux.get(field)})
             data_r = self.reduce.use(aux)
             if component.failed:
                 raise Exception('Using subcomponent failed! ', component)
