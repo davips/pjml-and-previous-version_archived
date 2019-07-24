@@ -150,13 +150,13 @@ class Component(ABC):
 
         if started:
             if self.failed:
-                self.msg(f"Won't apply on data {data.name()}"
+                self.msg(f"Won't apply on data {data.name}"
                          f"\nCurrent {self.name} already failed before.")
                 return output_data
 
             if self.locked_by_others:
                 print(f"Won't apply {self.name} on data "
-                      f"{data.name()}\n"
+                      f"{data.name}\n"
                       f"Currently probably working at node [{self.node}].")
                 return output_data
 
@@ -209,7 +209,7 @@ class Component(ABC):
         if started:
             if self.locked_by_others:
                 self.msg(f"Won't use {self.name} on data "
-                         f"{data.name()}\n"
+                         f"{data.name}\n"
                          f"Currently probably working at {self.node}.")
                 return output_data
 

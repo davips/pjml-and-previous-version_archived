@@ -1,3 +1,4 @@
+from collections import deque
 from logging import warning
 
 import arff
@@ -16,16 +17,25 @@ class Data:
     """
     _vectors = {i: i.upper() for i in ['y', 'z', 'v', 'w', 'e', 'f']}
     _scalars = {'r': 'E', 's': 'F', 't': 'k'}
-    _unshortcut = {v: k for k, v in _vectors.items()}
-    _unshortcut.update({v: k for k, v in _scalars.items()})
-    _unshortcut.update({
+    from_alias = _vectors.copy()
+    from_alias.update(_scalars)
+    from_alias.update({
         'X': 'X',
         'U': 'U',
         'l': 'l',
         'm': 'm',
         'S': 'S'
     })
-    print(9999999999999999, _unshortcut)
+    to_alias = {v: k for k, v in from_alias.items()}
+    from_alias.update({
+        'Y': 'Y',
+        'Z': 'Z',
+        'V': 'V',
+        'W': 'W',
+        'E': 'E',
+        'F': 'F',
+        'k': 'k'
+    })
 
     def __init__(self, name,
                  X, Y=None, Z=None, P=None,
@@ -83,12 +93,12 @@ class Data:
             but it is too time consuming to do it every transformation.
         """
         # ALERT: all single-letter args will be considered matrices/vectors!
-        self._fields = {k: v for k, v in locals().items() if len(k) == 1}
-        self._fields['S'] = Chain() if S is None else S
-        self.__dict__.update(self._fields)
+        self.fields = {k: v for k, v in locals().items() if len(k) == 1}
+        self.fields['S'] = Chain() if S is None else S
+        self.__dict__.update(self.fields)
 
         self.name = f'unnamed[{self.uuid()}]' if name is None else name
-        self._history = Chain() if history is None else history
+        self.history = Chain() if history is None else history
 
         if Y is not None:
             self.n_classes = np.unique(Y).shape[0]
@@ -104,7 +114,7 @@ class Data:
             self.__dict__[k] = self._devectorize(self.__dict__[v])
 
         # Add lazy cache for dump and uuid
-        for var in self._fields:
+        for var in self.fields:
             self.__dict__['_dump' + var] = None
             self.__dict__['_uuid' + var] = None
 
@@ -120,12 +130,12 @@ class Data:
         :param field_name:
         :return: binary compressed dump
         """
-        if field_name not in self._fields:
+        if field_name not in self.fields:
             raise Exception(f'Field {field_name} not available in this Data!')
 
         key = '_dump' + field_name
         if self.__dict__[key] is None:
-            self.__dict__[key] = pack_data(self._fields[field_name])
+            self.__dict__[key] = pack_data(self.fields[field_name])
         return self.__dict__[key]
 
     def field_uuid(self, field_name):
@@ -145,14 +155,14 @@ class Data:
         """
         :return: pair uuid-dump of each matrix/vector.
         """
-        return {self.field_uuid(k): self.field_dump(k) for k in self._fields}
+        return {self.field_uuid(k): self.field_dump(k) for k in self.fields}
 
     # remover ?
     def uuids_fields(self):
         """
         :return: pair uuid-field of each matrix/vector.
         """
-        return {self.field_uuid(k): k for k in self._fields}
+        return {self.field_uuid(k): k for k in self.fields}
 
     @staticmethod
     def read_arff(file, target=None):
@@ -234,7 +244,7 @@ class Data:
         :param kwargs:
         :return:
         """
-        new_args = self._fields.copy()
+        new_args = self.fields.copy()
         for field, value in kwargs.items():
             if field in self._vectors:
                 new_args[self._vectors[field]] = self._as_column_vector(value)
@@ -249,7 +259,7 @@ class Data:
         if 'history' in kwargs:
             new_args['history'] = kwargs['history']
         else:
-            new_args['history'] = Chain(component.config, self._history)
+            new_args['history'] = Chain(component.config, self.history)
 
         if 'S' in kwargs:
             new_args['S'] = kwargs['S']
@@ -257,7 +267,7 @@ class Data:
         return Data(**new_args)
 
     def _get(self, name):
-        return object.__getattribute__(self, self._unshortcut[name])
+        return object.__getattribute__(self, self.from_alias[name])
 
     def sid(self):
         """
@@ -286,22 +296,19 @@ class Data:
 
     def history_uuid(self):
         if self._history_uuid is None:
-            self._history_uuid = uuid(zlibext_pack(str(self._history)))
+            self._history_uuid = uuid(pack_data(self.history))
         return self._history_uuid
 
     def __str__(self):
         txt = []
-        [txt.append(f'{k}: {str(v)}') for k, v in self._fields.items()]
+        [txt.append(f'{k}: {str(v)}') for k, v in self.fields.items()]
         return '\n'.join(txt) + "name" + self.name + "\n" + \
-               "history=" + str(self.history()) + "\n"
+               "history=" + str(self.history) + "\n"
 
     def split(self, test_size=0.25, random_state=1):
         cv = CV(config={'random_state': random_state, 'split': 'holdout',
                         'test_size': test_size, 'steps': 1, 'iteration': 0})
         return cv.apply(self), cv.use(self)
-
-    def history(self):
-        return str(self._history)
 
     @staticmethod
     def _as_vector(mat):
@@ -320,10 +327,89 @@ class Data:
     def _devectorize(v, default=None):
         return default if v is None else v[0]
 
-    # Todo: Jogar fora?
-    def field_names(self) -> str:
-        if self._fields is None:
-            sortd = list(self._fields.keys())
-            sortd.sort()
-            self._set('_fields', ','.join(sortd))
-        return self._fields
+    # # Todo: Jogar fora?
+    # def field_names(self) -> str:
+    #     if self.fields is None:
+    #         sortd = list(self.fields.keys())
+    #         sortd.sort()
+    #         self._set('_fields', ','.join(sortd))
+    #     return self.fields
+
+    def merged(self, new_data):
+        """
+        Get more matrices/vectors (or new values) from another Data.
+        The longest history will be kept.
+        They should have the same name and 'new_data' history should contain
+        the history of self.
+        Otherwise, an exception will be raised.
+        new_data has precedence over self.
+        :param new_data:
+        :return:
+        """
+        # checking...
+        if self.name != new_data.name:
+            raise Exception(f'Merging {self.name} with {new_data.name}')
+
+        # Check if new history includes the old one.
+        newnode = new_data.history
+        newrev = []
+        while newnode is not None:
+            newrev.append(newnode)
+            newnode = newnode.child
+
+        oldnode = self.history
+        oldrev = []
+        while oldnode is not None:
+            oldrev.append(oldnode)
+            oldnode = oldnode.child
+
+        while oldrev:
+            newnode = newrev.pop()
+            oldnode = oldrev.pop()
+            if oldnode.value != newnode.value:
+                print('>>', new_data.history, '<<\n>>', self.history, '<<')
+                print('>>', newnode.value, '<<\n>>', oldnode.value, '<<')
+                raise Exception('Incompatible transformations, self.history '
+                                'should be the start of new_data.history')
+
+        newfields = {k: v for k, v in new_data.fields.items() if v is not None}
+        hist = new_data.history
+        if newnode is None:
+            hist = Chain('MergedWith:' + ''.join(newfields.keys()), hist)
+
+        dic = self.fields.copy()
+        dic.update(newfields)
+
+        return Data(name=self.name, history=hist, columns=self.columns, **dic)
+
+    # def select(self, fields):
+    #     """
+    #     Conveniently converts field names to return the dict of matrices/vectors
+    #     ps.: Automatically convert vectorized/single-valued shortcuts to
+    #     matrices/vectors.
+    #     ps 2: ignore inexistent fields
+    #     ps 3: raise exception in none fields
+    #     :param fields: 'all' means 'don't touch anything'
+    #     'except:z,w' means keep all except z,w
+    #     :return: a subset of the dictionary of kwargs.
+    #     """
+    #     fields.replace(':', ',')
+    #     if fields == 'all':
+    #         fields_lst = self.fields()
+    #     else:
+    #         fields_lst = fields.split(',')
+    #         if fields_lst and fields_lst[0] == 'except':
+    #             fields_lst = sub(self.fields(), fields_lst[1:])
+    #
+    #     namesmats = [(x.upper() if x in self.vectors() else x)
+    #                  for x in fields_lst]
+    #     namesvecs = [vec for val, vec in self._val2vec.items()
+    #                  if val in fields_lst]
+    #     names = namesmats + namesvecs
+    #
+    #     # Raise exception if any requested matrix is None.
+    #     if any([mv not in self.matvecs() for mv in names]):
+    #         raise Exception('Requested None or inexistent matrix/vector/value',
+    #                         fields, self.matvecs().keys)
+    #
+    #     return {k: v for k, v in self.matvecs().items() if k in names}

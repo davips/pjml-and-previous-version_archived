@@ -5,7 +5,7 @@ from paje.base.component import Component
 from paje.base.data import Data
 from paje.storage.storage import Cache
 from paje.util.encoders import unpack_data, pack_comp, \
-    uuid, zlibext_pack, zlibext_unpack, mysql_compress
+    uuid, zlibext_pack, zlibext_unpack, mysql_compress, pack_data
 
 # Disabling profiling when not needed.
 try:
@@ -47,7 +47,7 @@ class SQL(Cache):
 
                 hid char(19) NOT NULL UNIQUE,
 
-                txt LONGBLOB NOT NULL
+                chain LONGBLOB NOT NULL
             )''')
 
         # Columns of Data ======================================================
@@ -284,7 +284,7 @@ class SQL(Cache):
         return [dict(row) for row in rows]
 
     @profile
-    def store_matvec(self, uuid_, dump, w, h):
+    def store_matvec(self, uuid_, dump, mat):
         """
         Store the given pair uuid-dump of a matrix/vector.
         :type uuid_:
@@ -300,6 +300,8 @@ class SQL(Cache):
             ?, ?,
             ?)
         '''
+        s = mat.shape
+        w, h = (s[1], s[0]) if len(s) == 2 else (1, s[0])
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             self.query(sql, [uuid_, w, h, dump])
@@ -337,10 +339,7 @@ class SQL(Cache):
             uuid_field = data.uuids_fields()
             for uuid_, dump in dumps2store.items():
                 if data._get(uuid_field[uuid_]) is not None:
-                    self.store_matvec(
-                        uuid_, dump, data._get(uuid_field[uuid_]).shape[1],
-                        data._get(uuid_field[uuid_]).shape[0]
-                    )
+                    self.store_matvec(uuid_, dump, data._get(uuid_field[uuid_]))
 
             # Create metadata for upcoming row at table 'data'.
             self.store_metadata(data)
@@ -396,13 +395,14 @@ class SQL(Cache):
                 print('Check if data comes with new matrices/vectors '
                       '(improbable).')
             stored_dumps = {k: v for k, v in rone.items() if v is not None}
-            fields2store = [f for f in data._fields.keys() if f
+            fields2store = [f for f in data.fields.keys() if f
                             is not None and f not in stored_dumps]
 
             if self.debug:
                 print('Insert only dumps that are missing in storage')
             dumps2store = {data.field_uuid(f): (data.field_dump(f), f)
-                           for f in fields2store if data.field_dump(f) is not None}
+                           for f in fields2store if
+                           data.field_dump(f) is not None}
             print(76767676, dumps2store)
             to_update = {}
             for uuid_, (dump, field) in dumps2store:
@@ -468,7 +468,7 @@ class SQL(Cache):
             )'''
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            self.query(sql, [data.history_uuid(), zlibext_pack(data.history())])
+            self.query(sql, [data.history_uuid(), pack_data(data.history)])
             # TODO: codify a custom zipper for history to be shorter
             # TODO: create a lazy method hist_dump() in Data
 
@@ -545,14 +545,14 @@ class SQL(Cache):
         """
         if compo.failed or compo.locked_by_others:
             return None, True, compo.failed is not None
-        fields = compo.modifies(op)
+        fields = [Data.from_alias[f] for f in compo.modifies(op)]
 
         if compo._dump_it:
             raise Exception('Are we really starting to store dump of '
                             'components?')
         self.query(f'''
             select 
-                des, spent, fail, end, node, txt as history, cols
+                des, spent, fail, end, node, chain as history, cols
                 {',' + ','.join(fields) if len(fields) > 0 else ''}
                 {', dump' if compo._dump_it else ''}
             from 
@@ -561,7 +561,7 @@ class SQL(Cache):
                     left join name on name = nid
                     left join hist on hist = hid
                     left join attr on attr = aid
-                    {'left join inst on inst = iid' if compo._dump_it else 
+                    {'left join inst on inst = iid' if compo._dump_it else
         ''}                    
             where                
                 com=? and op=? and dtr=? and din=?''',
@@ -586,11 +586,11 @@ class SQL(Cache):
                     self.query(f'select val,w,h from mat where mid=?', [mid])
                     rone = self.get_one()
                     if rone is not None:
-                        dic[Data.fields_in_constructor_format[field]] = \
+                        dic[field] = \
                             unpack_data(rone['val'], rone['w'], rone['h'])
 
             # Create Data.
-            history = zlibext_unpack(result['history'])
+            history = unpack_data(result['history'])
             columns = zlibext_unpack(result['cols'])
             data = Data(name=result['des'], history=history, columns=columns,
                         **dic)
@@ -688,7 +688,7 @@ class SQL(Cache):
         """
         if history is None:
             history = []
-        hist_uuid = uuid(zlibext_pack(history))
+        hist_uuid = uuid(pack_data(history))
 
         sql = f'''
                 select 
@@ -755,7 +755,7 @@ class SQL(Cache):
     def get_data_by_uuid_impl(self, datauuid):
         sql = f'''
                 select 
-                    X,Y,Z,P,U,V,W,Q,E,F,l,m,k,S,cols,txt,des
+                    X,Y,Z,P,U,V,W,Q,E,F,l,m,k,S,cols,chain,des
                 from 
                     data 
                         left join name on name=nid 
@@ -771,7 +771,7 @@ class SQL(Cache):
         # Recover requested matrices/vectors.
         # TODO: surely there is duplicated code to be refactored in this file!
         dic = {'name': row['des'],
-               'history': zlibext_unpack(row['txt'])}
+               'history': unpack_data(row['chain'])}
         fields = [k for k, v in row.items() if len(k) == 1 and v is not None]
         for field in Data.list_to_case_sensitive(fields):
             mid = row[field]
@@ -794,7 +794,7 @@ class SQL(Cache):
         """
         self.query(f"""
                 select
-                    des, txt
+                    des, chain
                 from
                     res join data on dtr=did 
                         join name on name=nid 
@@ -809,7 +809,7 @@ class SQL(Cache):
         else:
             for row in rows:
                 row['name'] = row.pop('des')
-                row['history'] = zlibext_unpack(row.pop('txt'))
+                row['history'] = unpack_data(row.pop('chain'))
             return rows
 
     @profile

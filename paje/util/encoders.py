@@ -120,7 +120,6 @@ def uuid(packed_content):
     :param packed_content: packed Data of Xy... or a JSON dump of Component args
     :return: currently a MD5 hash in hex format
     """
-    print(7777777777, packed_content)
     if packed_content is None:
         return None
     return tiny_md5(hashlib.md5(packed_content).hexdigest())
@@ -148,7 +147,7 @@ def pack_data(obj):
     # pickled = pickle.dumps(obj) # 1169_airlines explodes here with RAM < ?
     if isinstance(obj, Chain):
         pickled = pickle.dumps(obj)
-        fast_reduced = lz.compress(pickled, compression_level=1)
+        fast_reduced = lz.compress(b'Chain' + pickled, compression_level=1)
     else:
         h, w = obj.shape
         fast_reduced = lz.compress(obj.reshape(w * h), compression_level=1)
@@ -156,13 +155,13 @@ def pack_data(obj):
 
 
 @profile
-def unpack_data(dump, w, h):
+def unpack_data(dump, w=None, h=None):
     if dump is None:
         return None
     decompressed = zs.decompress(dump)
     fast_decompressed = lz.decompress(decompressed)
-    if fast_decompressed[0] != b'\x00':
-        return pickle.loads(fast_decompressed)
+    if fast_decompressed[:5] == b'Chain':
+        return pickle.loads(fast_decompressed[5:])
     else:
         return np.reshape(np.frombuffer(fast_decompressed), newshape=(h, w))
 

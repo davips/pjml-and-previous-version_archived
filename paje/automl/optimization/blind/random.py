@@ -135,14 +135,16 @@ class RandomAutoML(AutoML):
         pip = Pipeline(config=cfg(
             Pipeline,
             configs=[
-                cfg(Iterator, configs=[internal], reduce=cfg(Reduce, field='e')),
-                cfg(Summ, field='e', function='mean')
+                cfg(
+                    Iterator, configs=[internal], reduce=cfg(Reduce, field='r')
+                ),
+                cfg(Summ, field='s', function='mean')
             ],
             random_state=self.random_state),
             storage_settings=self.storage_settings_for_components
         )
 
-        return pip, (pip.apply(data).e[0], pip.use(data).e[0])
+        return pip, (pip.apply(data).s, pip.use(data).s)
 
     def _eval(self, component, data):
         # Start CV from beginning.

@@ -12,11 +12,13 @@ class Chain:
             self.idx = idx
         self.shape = (None, None)
 
-    def __str__(self):
-        aux = str(self.value)
+    def __str__(self, tab="  "):
+        aux = 'v='+str(self.value)
         if self.child is not None:
-            aux += str(self.child)
-        return aux
+            aux += self.child.__str__(tab + "  ")
+        return '\n' + tab + aux
+
+    __repr__ = __str__
 
     def pop(self):
         aux = []
