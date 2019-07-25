@@ -45,7 +45,7 @@ class MLP(Classifier):
 
 
     @classmethod
-    def tree_impl(self):
+    def cs_impl(self):
 
         # Todo: set random seed
         max_neurons = 10000

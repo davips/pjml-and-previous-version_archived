@@ -27,4 +27,4 @@ class Classifier(Element, ABC):
         return data.updated(self, z=self.model.predict(data.X))
 
     def modifies(self, op):
-        return ['Z'] if op=='u' else []
+        return ['Z']

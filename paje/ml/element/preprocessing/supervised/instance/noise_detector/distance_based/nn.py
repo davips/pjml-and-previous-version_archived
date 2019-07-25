@@ -49,7 +49,7 @@ class NRNN(Element, ABC):
         # Xtmp = np.delete(X, noise, axis=0)
         ytmp = np.delete(y, noise)
         if len(set(ytmp)) < 2:
-            self.warning('lacking classes!')
+            print('lacking classes!')
         else:
             X = np.delete(X, noise, axis=0)
             y = np.delete(y, noise)
@@ -66,7 +66,7 @@ class NRNN(Element, ABC):
             # Está restando apenas uma classe
             # checar com LPaulo se esse break é a melhor forma de lidar com isso
             if len(set(ytmp)) < 2:
-                self.warning('lacking classes!')
+                print('lacking classes!')
                 break
             X = Xtmp
             y = ytmp
@@ -76,7 +76,7 @@ class NRNN(Element, ABC):
             # TODO: k está diminuindo, chega uma hora que quebra
             # checar com LPaulo se esse break é a melhor forma de lidar com isso
             if self.k > len(X):
-                self.warning('excess of neighbors in NR!')
+                print('excess of neighbors in NR!')
                 break
             neigh = KNeighborsClassifier(n_neighbors=self.k, weights='uniform',
                                          algorithm='brute')
@@ -137,7 +137,7 @@ class NRNN(Element, ABC):
 
         ytmp = np.delete(y, noise)
         if len(set(ytmp)) < 2:
-            self.warning('lacking classes!')
+            print('lacking classes!')
         else:
             X = np.delete(X, noise, axis=0)
             y = np.delete(y, noise)
@@ -145,7 +145,7 @@ class NRNN(Element, ABC):
         return X, y
 
     @classmethod
-    def tree_impl(cls, data=None):
+    def cs_impl(cls, data=None):
         # Assumes worst case of k-fold CV, i.e. k=2. Undersampling is another
         # problem, handled by @n_instances.
         cls.check_data(data)
@@ -160,6 +160,6 @@ class NRNN(Element, ABC):
             # (False, False) seems to be useless
         }
 
-        tree = KNN.tree(delete=[k])
+        tree = KNN.cs(delete=[k])
         del tree['']
         return HPTree(node, children=[])

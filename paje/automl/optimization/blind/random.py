@@ -2,9 +2,7 @@ import numpy as np
 from paje.automl.automl import AutoML
 from paje.automl.composer.iterator import Iterator
 from paje.automl.composer.pipeline import Pipeline
-from paje.evaluator.evaluator import EvaluatorClassif
 from paje.ml.element.posprocessing.metric import Metric
-from paje.ml.element.posprocessing.reduce import Reduce
 from paje.ml.element.posprocessing.summ import Summ
 from paje.ml.element.preprocessing.supervised.instance.sampler.cv import CV
 
@@ -40,7 +38,6 @@ class RandomAutoML(AutoML):
 
         AutoML.__init__(self,
                         components=preprocessors + modelers,
-                        evaluator=EvaluatorClassif(),
                         **kwargs)
 
         # These attributes identify uniquely AutoML.
@@ -81,7 +78,7 @@ class RandomAutoML(AutoML):
         """ TODO the docstring documentation
         """
         components = self.choose_modules()
-        tree = Pipeline.tree(config_spaces=components)
+        tree = Pipeline.cs(config_spaces=components)
 
         config = tree.sample()
 
@@ -126,32 +123,36 @@ class RandomAutoML(AutoML):
         return self.best_eval
 
     def eval(self, pip_config, data):
-        internal = cfg(Pipeline, configs=[
-            cfg(CV, split='cv', steps=10, random_state=self.random_state),
-            pip_config,
-            cfg(Metric, function='accuracy')  # from Y to r
-        ], random_state=self.random_state)
-
-        pip = Pipeline(config=cfg(
-            Pipeline,
+        internal = Pipeline.cfg(
             configs=[
-                cfg(
-                    Iterator, configs=[internal], reduce=cfg(Reduce, field='r')
-                ),
-                cfg(Summ, field='s', function='mean')
+                pip_config,
+                Metric.cfg(function='accuracy')  # from Y to r
             ],
-            random_state=self.random_state),
+            random_state=self.random_state
+        )
+
+        pip = Pipeline(
+            config={
+                'configs': [
+                    Iterator.cfg(
+                        iterable=CV.cfg(split='cv', steps=10, fields=['X', 'Y'],
+                                        random_state=self.random_state),
+                        configs=[internal],
+                        field='r'
+                    ),
+                    Summ.cfg(field='s', function='mean')
+                ],
+                'random_state': self.random_state
+            },
             storage_settings=self.storage_settings_for_components
         )
 
-        print(1111111111111, pip.apply(data).s)
-        print(1111111111111, pip.use(data).s)
-        print(1111111111111, pip.apply(data).s)
-        print(1111111111111, pip.use(data).s)
+        datapp = pip.apply(data)
+        if datapp is None:
+            return pip, (None, None)
 
-        return pip, (pip.apply(data).s, pip.use(data).s)
+        datause = pip.use(data)
+        if datause is None:
+            return pip, (None, None)
 
-def cfg(component, **kwargs):
-    kwargs['class'] = component.__name__
-    kwargs['module'] = component.__module__
-    return kwargs
+        return pip, (datapp.s, datause.s)

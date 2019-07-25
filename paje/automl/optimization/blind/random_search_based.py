@@ -46,9 +46,9 @@ class RadomSearchAutoML(AutoML):
         self.best_pipeline = None
 
     def _build_hyperspace(self, data):
-        self.hps_prep = [pcomp.tree(data)
+        self.hps_prep = [pcomp.cs(data)
                          for pcomp in self.prep_comp]
-        self.hps_mode = [mcomp.tree(data)
+        self.hps_mode = [mcomp.cs(data)
                          for mcomp in self.mode_comp]
         self.comp_hps = self.hps_prep + self.hps_mode
 

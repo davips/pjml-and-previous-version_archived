@@ -42,7 +42,7 @@ class SimpElem(Element):
         data = data.updated(self, X=value)
         return data
 
-    def tree_impl(self):
+    def cs_impl(self):
         return HPTree({'oper': ['c', ['+', '-', '*', '.']]}, [])
 
 

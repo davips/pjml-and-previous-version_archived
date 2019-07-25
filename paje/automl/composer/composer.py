@@ -13,13 +13,13 @@ For more information about the Composer concept see [1].
 """
 from abc import ABC, abstractmethod
 
-from paje.base.component import Component
 from paje.base.hp import CatHP
 from paje.base.hps import ConfigSpace
+from paje.base.noniterable import NonIterable
 from paje.util.misc import flatten, get_class
 
 
-class Composer(Component, ABC):
+class Composer(NonIterable, ABC):
     """Core Composer class.
     """
 
@@ -82,8 +82,9 @@ class Composer(Component, ABC):
         pass
 
     @classmethod
-    def tree_impl(cls, config_spaces):
-        hps = {'configs': CatHP(cls.sampling_function, config_spaces=config_spaces)}
+    def cs_impl(cls, config_spaces):
+        hps = {'configs': CatHP(cls.sampling_function,
+                                config_spaces=config_spaces)}
         return ConfigSpace(name=cls.__name__, hps=hps)
 
     def __str__(self, depth=''):
@@ -92,3 +93,6 @@ class Composer(Component, ABC):
         return self.name + " {\n" + \
                newdepth + ("\n" + newdepth).join(str(x) for x in strs) + '\n' \
                + depth + "}"
+
+    def next(self):
+        return None

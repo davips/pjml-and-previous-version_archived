@@ -14,7 +14,7 @@ msgs = ['All features are either constant or ignored.',  # CB
         ]
 
 def handle_exception(component, e):
-    component.msg('Trying to handle: ' + str(e))
+    print('Trying to handle: ' + str(e))
     if not any([str(e).__contains__(msg) for msg in msgs]):
         traceback.print_exc()
         raise ExceptionInApplyOrUse(e)

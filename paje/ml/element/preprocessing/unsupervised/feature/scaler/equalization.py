@@ -1,6 +1,4 @@
-from numpy.random import randint
 from sklearn.preprocessing import MinMaxScaler
-
 from paje.base.hp import CatHP
 from paje.base.hps import ConfigSpace
 from paje.ml.element.preprocessing.unsupervised.feature.scaler.scaler import \
@@ -14,7 +12,7 @@ class Equalization(Scaler):
         self.model = MinMaxScaler(**self.param())
 
     @classmethod
-    def tree_impl(cls):
+    def cs_impl(cls):
         hps = {
             'feature_range': CatHP(choice, items=[(-1, 1), (0, 1)])
         }

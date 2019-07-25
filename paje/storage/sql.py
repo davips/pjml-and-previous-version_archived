@@ -155,7 +155,7 @@ class SQL(Cache):
 
                 k char(19),
 
-                S char(19),
+                C char(19),
 
                 insd timestamp NOT NULL,
                 upd timestamp,
@@ -177,7 +177,7 @@ class SQL(Cache):
                 FOREIGN KEY (l) REFERENCES mat(mid),
                 FOREIGN KEY (m) REFERENCES mat(mid),
                 FOREIGN KEY (k) REFERENCES mat(mid),
-                FOREIGN KEY (S) REFERENCES mat(mid)
+                FOREIGN KEY (C) REFERENCES mat(mid)
                )''')
         # guardar last comp nao adianta pq o msm comp pode ser aplicado
         # varias vezes
@@ -200,7 +200,7 @@ class SQL(Cache):
         self.query(f'CREATE INDEX datal ON data (l)')
         self.query(f'CREATE INDEX datam ON data (m)')
         self.query(f'CREATE INDEX datak ON data (k)')
-        self.query(f'CREATE INDEX datas ON data (S)')
+        self.query(f'CREATE INDEX datac ON data (C)')
 
         # Results ==============================================================
         self.query(f'''
@@ -338,7 +338,7 @@ class SQL(Cache):
                            if k not in mids}
             uuid_field = data.uuids_fields()
             for uuid_, dump in dumps2store.items():
-                mat = data._get_mat(uuid_field[uuid_])
+                mat = data.get_matrix(uuid_field[uuid_])
                 if mat is not None:
                     self.store_matvec(uuid_, dump, mat)
 
@@ -372,7 +372,7 @@ class SQL(Cache):
                          data.field_uuid('E'), data.field_uuid('F'),
                          data.field_uuid('l'), data.field_uuid('m'),
                          data.field_uuid('k'),
-                         data.field_uuid('S')
+                         data.field_uuid('C')
                          ]
             from sqlite3 import IntegrityError as IntegrityErrorSQLite
             from pymysql import IntegrityError as IntegrityErrorMySQL
@@ -404,10 +404,9 @@ class SQL(Cache):
             dumps2store = {data.field_uuid(f): (data.field_dump(f), f)
                            for f in fields2store if
                            data.field_dump(f) is not None}
-            print(76767676, dumps2store)
             to_update = {}
             for uuid_, (dump, field) in dumps2store:
-                mat = data._get_mat(field)
+                mat = data.get_matrix(field)
                 self.store_matvec(uuid_, dump, mat)
                 to_update[field] = uuid_
 
@@ -503,7 +502,7 @@ class SQL(Cache):
             )'''
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            self.query(sql, [component._uuid,
+            self.query(sql, [component.uuid,
                              mysql_compress(component.serialized().encode())])
 
         sql = f'''insert into res values (
@@ -518,8 +517,8 @@ class SQL(Cache):
                 0, 0, null
             )'''
         args_res = [self.hostname,
-                    component._uuid, op,
-                    component.train_data_uuid__mutable(), input_data._uuid]
+                    component.uuid, op,
+                    component.train_data_uuid__mutable(), input_data.uuid()]
         from sqlite3 import IntegrityError as IntegrityErrorSQLite
         from pymysql import IntegrityError as IntegrityErrorMySQL
         try:
@@ -566,7 +565,7 @@ class SQL(Cache):
         ''}                    
             where                
                 com=? and op=? and dtr=? and din=?''',
-                   [compo._uuid,
+                   [compo.uuid,
                     op,
                     compo.train_data_uuid__mutable(),
                     input_data.uuid()])
@@ -593,8 +592,8 @@ class SQL(Cache):
             # Create Data.
             history = unpack_data(result['history'])
             columns = zlibext_unpack(result['cols'])
-            data = Data(name=result['des'], history=history, columns=columns,
-                        **dic)
+            data = Data(X=None, name=result['des'], history=history,
+                        columns=columns, **dic)
 
             # Join untouched matrices/vectors.
             output_data = input_data.merged(data)
@@ -632,7 +631,7 @@ class SQL(Cache):
 
         # Store dump if requested.
         dump_uuid = component._dump_it and uuid(
-            (component._uuid + op +
+            (component.uuid + op +
              component.train_data_uuid__mutable() + input_data.uuid()).encode()
         )
         if component._dump_it:
@@ -666,7 +665,7 @@ class SQL(Cache):
                 '''
         set_args = [log_uuid, output_data and output_data.uuid(),
                     component.time_spent, dump_uuid, fail, component.mark]
-        where_args = [component._uuid, op,
+        where_args = [component.uuid, op,
                       component.train_data_uuid__mutable(), input_data.uuid()]
         # TODO: is there any important exception to handle here?
         self.query(sql, set_args + where_args)
@@ -693,7 +692,7 @@ class SQL(Cache):
 
         sql = f'''
                 select 
-                    X,Y,Z,P,U,V,W,Q,E,F,l,m,k,S,cols,des
+                    X,Y,Z,P,U,V,W,Q,E,F,l,m,k,C,cols,des
                 from 
                     data 
                         left join name on name=nid 
@@ -756,7 +755,7 @@ class SQL(Cache):
     def get_data_by_uuid_impl(self, datauuid):
         sql = f'''
                 select 
-                    X,Y,Z,P,U,V,W,Q,E,F,l,m,k,S,cols,chain,des
+                    X,Y,Z,P,U,V,W,Q,E,F,l,m,k,C,cols,chain,des
                 from 
                     data 
                         left join name on name=nid 

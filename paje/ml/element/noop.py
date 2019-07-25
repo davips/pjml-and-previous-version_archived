@@ -13,5 +13,5 @@ class Noop(Element):
     def use_impl(self, data):
         return data
 
-    def tree_impl(cls, data):
+    def cs_impl(cls, data):
         HPTree({}, [])

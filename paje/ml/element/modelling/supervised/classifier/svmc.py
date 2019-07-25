@@ -16,7 +16,7 @@ class SVMC(Classifier): #, JSONEncoder):
         self.model = SVC(**self.config)
 
     @classmethod
-    def tree_impl(self):
+    def cs_impl(self):
         # todo: set random seed; set 'cache_size'
         node = {
             'C': ['r', [0.0001, 100]],

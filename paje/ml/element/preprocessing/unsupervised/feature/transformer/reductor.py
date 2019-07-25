@@ -23,7 +23,7 @@ class Reductor(Element, ABC):
         return data.updated(self, X=self.model.transform(data.X))
 
     @classmethod
-    def tree_impl(cls, data):
+    def cs_impl(cls, data):
         cls.check_data(data)
         # TODO: set random_state
         node = {'n_components': ['z', [1, data.n_attributes()]]}

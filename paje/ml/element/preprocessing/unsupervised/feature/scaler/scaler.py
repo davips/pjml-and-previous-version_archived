@@ -17,3 +17,6 @@ class Scaler(Element, ABC):
     @classmethod
     def isdeterministic(cls):
         return True
+
+    def modifies(self, op):
+        return ['X']

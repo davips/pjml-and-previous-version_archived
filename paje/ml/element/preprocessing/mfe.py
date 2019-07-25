@@ -6,7 +6,7 @@ from paje.ml.element.element import Element
 
 
 class MFE(Element):
-    def tree_impl(self):
+    def cs_impl(self):
         raise Exception('Specify parameters like "supervised"/"unsupervised"'
                         'in the HP tree?')
 

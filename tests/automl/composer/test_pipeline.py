@@ -111,4 +111,4 @@ def test_tree_pipeline(get_pipeline_of_pipeline):
                                           rec(end,
                                               rec(end))))))))))
 
-    assert str(aux) == str(mycompr.tree())
+    assert str(aux) == str(mycompr.cs())

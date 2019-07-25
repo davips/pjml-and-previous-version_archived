@@ -24,7 +24,7 @@ class Metric(Element):
         return data.updated(self, r=self._function(data))
 
     @classmethod
-    def tree_impl(cls):
+    def cs_impl(cls):
         hps = [
             CatHP('function', choice, itens=['mean'])
         ]
@@ -33,3 +33,6 @@ class Metric(Element):
     @classmethod
     def isdeterministic(cls):
         return True
+
+    def modifies(self, op):
+        return ['r']

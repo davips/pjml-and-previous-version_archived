@@ -12,7 +12,7 @@ class DefaultAutoML(RandomAutoML):
         components = self.choose_modules()
         self.curr_pipe = Pipeline(components, show_warns=self.show_warns,
                                   storage=self.storage_for_components)
-        tree = self.curr_pipe.tree()
+        tree = self.curr_pipe.cs()
 
         try:
             args = tree.sample()

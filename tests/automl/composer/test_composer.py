@@ -14,7 +14,7 @@ class SimpCompr(Composer):
         self.count_build += 1
         self.nothing = 1
 
-    def tree_impl(self):
+    def cs_impl(self):
         pass
 
 

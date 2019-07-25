@@ -14,20 +14,20 @@ class Summ(Element):
     def __init__(self, config, **kwargs):
         super().__init__(config, **kwargs)
         self._function = self._functions[self.config['function']]
-        self._field = self.config['field']
+        self.field = self.config['field']
 
     def apply_impl(self, data):
         return self.use_impl(data)
 
     def use_impl(self, data):
-        stack, aux = data.S.pop()
+        chain, values = data.C.pop()
         return data.updated(
             self,
-            S=stack,
-            **{self._field: self._function(aux)})
+            C=chain,
+            **{self.field: self._function(values)})
 
     @classmethod
-    def tree_impl(cls):
+    def cs_impl(cls):
         hps = [
             CatHP('function', choice, itens=['mean'])
         ]
@@ -36,3 +36,6 @@ class Summ(Element):
     @classmethod
     def isdeterministic(cls):
         return True
+
+    def modifies(self, op):
+        return [self.field]

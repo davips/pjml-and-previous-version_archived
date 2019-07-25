@@ -12,7 +12,7 @@ class DT(Classifier):
         self.model = DecisionTreeClassifier(**self.param())
 
     @classmethod
-    def tree_impl(cls):
+    def cs_impl(cls):
         # Sw
         # cs = ConfigSpace('Switch')
         # st = cs.start()

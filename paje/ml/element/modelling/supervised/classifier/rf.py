@@ -11,7 +11,7 @@ class RF(Classifier):
         self.model = RandomForestClassifier(**self.config)
 
     @classmethod
-    def tree_impl(self):
+    def cs_impl(self):
         n_estimators = [100, 500, 1000, 3000, 5000]
         node = {'bootstrap': ['c', [True, False]],
                'criterion': ['c', ['gini', 'entropy']],

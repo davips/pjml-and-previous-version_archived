@@ -9,6 +9,6 @@ class RanOverSampler(Resampler):
         self.model = RandomOverSampler(**self.config)
 
     @classmethod
-    def tree_impl(cls, data=None):
+    def cs_impl(cls, data=None):
         node = {'sampling_strategy': ['c', ['not minority', 'not majority', 'all']]}
         return HPTree(node, children=[])

@@ -15,16 +15,19 @@ class Reduce(Element):
 
     def use_impl(self, data):
         val = data.get(self.field)
-        return data.updated(self, S=Chain(val, data.S, idx=0))
+        return data.updated(self, C=Chain(val, data.C))
 
     @classmethod
-    def tree_impl(cls):
+    def cs_impl(cls):
         # TODO: cirar funcao no data
         hps = [
-            CatHP('field', choice, itens=['X','Y','Z'])
+            CatHP('field', choice, itens=['X', 'Y', 'Z'])
         ]
         return ConfigSpace(name=cls.__name__, hps=hps)
 
     @classmethod
     def isdeterministic(cls):
         return True
+
+    def modifies(self, op):
+        return [self.field]

@@ -22,7 +22,7 @@ class Frozen(Composer):
             aux[i] = ['c', [self.params[i]]]
         return aux
 
-    def tree_impl(self, data=None):
+    def cs_impl(self, data=None):
         return HPTree(node=self.freeze_hptree(), children=[],
                       name=self.name + self.components[0].name)
 

@@ -15,7 +15,7 @@ class Standard(Scaler):
         self.model = StandardScaler(with_mean, with_std, **newconfig)
 
     @classmethod
-    def tree_impl(cls, data=None):
+    def cs_impl(cls, data=None):
         node = {
             '@with_mean/std':
                 ['c', [(True, False), (False, True), (True, True)]]

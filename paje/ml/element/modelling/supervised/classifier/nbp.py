@@ -24,6 +24,6 @@ class NBP(Classifier):
             raise Exception('Wrong NB!')
 
     @classmethod
-    def tree_impl(self):
+    def cs_impl(self):
         node = {'@nb_type': ['c', ["MultinomialNB", "ComplementNB"]]}
         return HPTree(node=node, children=[])

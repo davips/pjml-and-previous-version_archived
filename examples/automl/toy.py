@@ -18,19 +18,19 @@ def main():
               '[iter=#] [seed=#] [storage=mysql/sqlite/cached] [db=dna] ')
     else:
         arg = {tupl.split('=')[0]: tupl.split('=')[1] for tupl in sys.argv[1:]}
-        dt = DT.tree()
-        nb = NB.tree()
-        eq = Equalization.tree()
-        pip2 = Pipeline.tree(config_spaces=[eq])
-        pip1 = Pipeline.tree(config_spaces=[dt])
-        sw = Switch.tree(config_spaces=[dt, nb])
+        dt = DT.cs()
+        nb = NB.cs()
+        eq = Equalization.cs()
+        pip2 = Pipeline.cs(config_spaces=[eq])
+        pip1 = Pipeline.cs(config_spaces=[dt])
+        sw = Switch.cs(config_spaces=[dt, nb])
         # pip1 = Pipeline.tree(config_spaces=[dt.tree()])
         # pip2 = Pipeline.tree(config_spaces=[pip1])
         print('configspace-----\n', pip1)
         # print('config dt =======\n', dt.tree().sample())
         print('config=======\n', pip1.sample())
         # pip3 = Pipeline(components=[])
-        my_modelers = [sw]
+        my_modelers = [dt]
         my_preprocessors = [pip2]
 
         for k, v in arg.items():
@@ -61,7 +61,7 @@ def main():
         random_state = int(arg['seed']) if 'seed' in arg else 0
         data = Data.read_arff(arg['data'], "class")
 
-        trainset, testset = data.split()
+        trainset, testset = data.split(random_state=random_state)
 
         automl_rs = RandomAutoML(
             # preprocessors=default_preprocessors,
@@ -72,9 +72,7 @@ def main():
             max_iter=iterations,
             pipe_length=2, repetitions=1,
             random_state=random_state,
-            config = {}
-        # config = {'max_iter': iterations, 'pipe_length': 15, 'repetitions': 2,
-        #           'random_state': random_state}
+            config={}
         )
         automl_rs.apply(trainset)
         testout = automl_rs.use(testset)

@@ -1,6 +1,3 @@
-from collections import deque
-from logging import warning
-
 import arff
 import numpy as np
 import pandas as pd
@@ -24,7 +21,7 @@ class Data:
         'U': 'U',
         'l': 'l',
         'm': 'm',
-        'S': 'S'
+        'C': 'C'
     })
     to_alias = {v: k for k, v in from_alias.items()}
     from_alias.update({
@@ -36,6 +33,7 @@ class Data:
         'F': 'F',
         'k': 'k'
     })
+    all_mats = to_alias.keys()
 
     def __init__(self, name,
                  X, Y=None, Z=None, P=None,
@@ -43,7 +41,7 @@ class Data:
                  E=None, F=None,
                  l=None, m=None,
                  k=None,
-                 S=None,
+                 C=None,
                  columns=None, history=None):
         """
             Immutable lazy data for all machine learning scenarios
@@ -94,7 +92,7 @@ class Data:
         """
         # ALERT: all single-letter args will be considered matrices/vectors!
         self.fields = {k: v for k, v in locals().items() if len(k) == 1}
-        self.fields['S'] = Chain() if S is None else S
+        self.fields['C'] = Chain() if C is None else C
         self.__dict__.update(self.fields)
 
         self.name = f'unnamed[{self.uuid()}]' if name is None else name
@@ -102,21 +100,22 @@ class Data:
 
         if Y is not None:
             self.n_classes = np.unique(Y).shape[0]
-        self.n_instances = X.shape[0]
-        self.n_attributes = X.shape[1]
+        if X is not None:
+            self.n_instances = X.shape[0]
+            self.n_attributes = X.shape[1]
 
         # Add vectorized shortcuts for matrices.
         for k, v in self._vectors.items():
-            self.__dict__[k] = self._dematrixify(self.__dict__[v])
+            self.__dict__[k] = self._matrix_to_vector(self.__dict__[v])
 
-        # Add single-valued shortcuts for vectors.
+        # Add scalar shortcuts for matrices.
         for k, v in self._scalars.items():
-            self.__dict__[k] = self._devectorize(self.__dict__[v])
+            self.__dict__[k] = self._matrix_to_scalar(self.__dict__[v])
 
         # Add lazy cache for dump and uuid
         for var in self.fields:
             self.__dict__['_dump' + var] = None
-            self.__dict__['_uuid' + var] = None
+            self.__dict__['uuid' + var] = None
 
         self._uuid = None
         self._history_uuid = None
@@ -144,7 +143,7 @@ class Data:
         :param field_name: Case sensitive.
         :return: UUID
         """
-        key = '_uuid' + field_name
+        key = 'uuid' + field_name
         if self.__dict__[key] is None:
             uuid_ = uuid(self.field_dump(field_name))
             self.__dict__[key] = uuid_
@@ -239,8 +238,6 @@ class Data:
         storage.store_data(self)
 
     def updated(self, component, **kwargs):
-        print("who? ", component)
-        print('uuuuuuuuuuuu', kwargs)
         """ Return a new Data updated by given values.
         :param component: for history purposes
         :param kwargs:
@@ -252,6 +249,8 @@ class Data:
                 new_args[self._vectors[field]] = self._as_column_vector(value)
             elif field in self._scalars:
                 new_args[self._scalars[field]] = np.array(value, ndmin=2)
+            else:
+                new_args[field] = value
 
         new_args['name'] = kwargs['name'] if 'name' in kwargs else self.name
 
@@ -263,12 +262,11 @@ class Data:
         else:
             new_args['history'] = Chain(component.config, self.history)
 
-        if 'S' in kwargs:
-            new_args['S'] = kwargs['S']
-
+        if 'C' in kwargs:
+            new_args['C'] = kwargs['C']
         return Data(**new_args)
 
-    def _get_mat(self, name):
+    def get_matrix(self, name):
         return object.__getattribute__(self, self.from_alias[name])
 
     def get(self, name):
@@ -285,8 +283,10 @@ class Data:
         mat = object.__getattribute__(self, self.from_alias[name])
         if name in self._vectors:
             return self._as_vector(mat)
-        if name in self._scalars:
+        elif name in self._scalars:
             return mat[0][0]
+        else:
+            return mat
 
     def sid(self):
         """
@@ -320,14 +320,21 @@ class Data:
 
     def __str__(self):
         txt = []
-        [txt.append(f'{k}: {str(v)}') for k, v in self.fields.items()]
-        return '\n'.join(txt) + "name" + self.name + "\n" + \
-               "history=" + str(self.history) + "\n"
+        [txt.append(f'{k}: {str(v.shape)}')
+         for k, v in self.fields.items() if v is not None]
+        return '\n'.join(txt) + "\nname: " + self.name + "\n" + \
+               "history: " + str(self.history) + "\n"
 
-    def split(self, test_size=0.25, random_state=1):
-        cv = CV(config={'random_state': random_state, 'split': 'holdout',
-                        'test_size': test_size, 'steps': 1, 'iteration': 0})
-        return cv.apply(self), cv.use(self)
+    def split(self, test_size=0.25, fields=None, random_state=0):
+        fields = ['X', 'Y'] if fields is None else fields
+
+        cv_exp = CV(
+            config={'random_state': random_state, 'split': 'holdout',
+                    'test_size': test_size, 'steps': 1,
+                    'fields': fields}
+        ).iterations(self)[0]
+
+        return cv_exp.apply(self), cv_exp.use(self)
 
     @staticmethod
     def _as_vector(mat):
@@ -339,12 +346,12 @@ class Data:
         return vec.reshape(len(vec), 1)
 
     @staticmethod
-    def _dematrixify(m, default=None):
+    def _matrix_to_vector(m, default=None):
         return default if m is None else Data._as_vector(m)
 
     @staticmethod
-    def _devectorize(v, default=None):
-        return default if v is None else v[0]
+    def _matrix_to_scalar(m, default=None):
+        return default if m is None else m[0][0]
 
     # # Todo: Jogar fora?
     # def field_names(self) -> str:

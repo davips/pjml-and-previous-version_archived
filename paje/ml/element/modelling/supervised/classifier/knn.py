@@ -35,7 +35,7 @@ class KNN(Classifier):
         return True
 
     @classmethod
-    def tree_impl(self):
+    def cs_impl(self):
         kmax = 100
 
         node = {

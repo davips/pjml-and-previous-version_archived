@@ -9,7 +9,7 @@ class SVM(Classifier):
         self.model = NuSVC(**self.config)
 
     @classmethod
-    def tree_impl(self):
+    def cs_impl(self):
         # todo: set random seed; set 'cache_size'
         node = {
             'nu': ['r', [0.0001, 0.8]],

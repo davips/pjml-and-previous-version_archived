@@ -1,26 +1,19 @@
 """ TODO the docstring documentation
 """
-# from python
 from abc import abstractmethod, ABC
-
-# from other packages
-# import numpy as np
-
-# from paje
-from paje.base.component import Component
 from paje.base.data import Data
+from paje.base.noniterable import NonIterable
 
 
-class AutoML(Component, ABC):
+class AutoML(NonIterable, ABC):
     """ TODO the docstring documentation
     """
 
     def __init__(self,
                  components,
-                 evaluator,
                  max_iter,
                  n_jobs=1,
-                 verbose=True,
+                 verbose=False,
                  **kwargs):
         super().__init__(**kwargs)
         """ TODO the docstring documentation
@@ -32,7 +25,6 @@ class AutoML(Component, ABC):
         # could be used into other Components, like the Pipeline one.
 
         self.components = components
-        self.evaluator = evaluator
 
         # Other class attributes.
         # These attributes can be set here or in the build_impl method. They
@@ -47,26 +39,6 @@ class AutoML(Component, ABC):
         self.fails, self.locks, self.successes, self.total = 0, 0, 0, 0
         self.current_iteration = 0
         self.max_iter = max_iter
-
-    def describe(self):
-        return {
-            'module': self.module,
-            'name': self.name,
-            'sub_components': [comp.describe() for comp in self.components],
-            'evaluator': self.evaluator.describe()
-        }
-
-    # def build_impl(self):
-    #     """ TODO the docstring documentation
-    #         self.random_state
-    #         self.max_iter
-    #     """
-    #     # The 'self' is a copy, because of the Component.build().
-    #     # Be careful, the copy made in the parent (Component) is
-    #     # shallow (copy.copy(self)).
-    #     # See more details in the Component.build() method.
-    #
-    #     self.__dict__.update(self.dic)
 
     def eval_pipelines_par(self, pipelines, data, eval_results):
         """ TODO the docstring documentation
@@ -170,12 +142,17 @@ class AutoML(Component, ABC):
             "AutoML has no next_pipelines() implemented!"
         )
 
-    def tree_impl(self, data=None):
+    @classmethod
+    def cs_impl(cls):
         """ TODO the docstring documentation
         """
         raise NotImplementedError(
             "AutoML has no tree() implemented!"
         )
+
+    @abstractmethod
+    def eval(self, config, data):
+        pass
 
     def modifies(self, op):
         if op not in ['a', 'u']:
@@ -184,7 +161,7 @@ class AutoML(Component, ABC):
         if self._modified[op] is None:
             if op == 'a':
                 # Assumes all fields will be modified by AutoML during apply().
-                self._modified[op] = Data.fields_in_constructor_format().keys()
+                self._modified[op] = Data.all_mats.keys()
             else:
                 self._modified[op] = self.model.modifies(op)
 

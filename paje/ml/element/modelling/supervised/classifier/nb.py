@@ -25,7 +25,7 @@ class NB(Classifier):
             raise Exception('Wrong NB!')
 
     @classmethod
-    def tree_impl(cls):
+    def cs_impl(cls):
         hps = {
             '@nb_type': CatHP(choice, items=['GaussianNB', 'BernoulliNB'])
         }

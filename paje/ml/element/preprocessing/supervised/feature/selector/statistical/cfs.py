@@ -24,5 +24,5 @@ class FilterCFS(Filter):
     def selected(self):
         return self._selected
 
-    def tree_impl(cls, data):
+    def cs_impl(cls, data):
         return HPTree(node={}, children=[])
