@@ -1,6 +1,6 @@
 from paje.base.chain import Chain
-from paje.base.hp import CatHP
-from paje.base.hps import ConfigSpace
+from paje.searchspace.hp import CatHP
+from paje.searchspace.configspace import ConfigSpace
 from paje.ml.element.element import Element
 from paje.util.distributions import choice
 

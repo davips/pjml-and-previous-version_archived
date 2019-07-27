@@ -2,7 +2,7 @@ from math import *
 
 from sklearn.ensemble import AdaBoostClassifier
 
-from paje.base.hps import HPTree
+from paje.searchspace.configspace import HPTree
 from paje.ml.element.modelling.supervised.classifier.classifier import Classifier
 
 

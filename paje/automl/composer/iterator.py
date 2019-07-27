@@ -1,9 +1,7 @@
-import numpy
-
 from paje.automl.composer.composer import Composer
 from paje.base.chain import Chain
-from paje.base.hp import CatHP
-from paje.base.hps import ConfigSpace
+from paje.searchspace.hp import CatHP
+from paje.searchspace.configspace import ConfigSpace
 
 
 class Iterator(Composer):

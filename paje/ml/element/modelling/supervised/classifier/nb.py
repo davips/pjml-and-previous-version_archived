@@ -1,8 +1,8 @@
 from sklearn.naive_bayes import BernoulliNB
 from sklearn.naive_bayes import GaussianNB
 
-from paje.base.hp import CatHP
-from paje.base.hps import ConfigSpace
+from paje.searchspace.hp import CatHP
+from paje.searchspace.configspace import ConfigSpace
 from paje.ml.element.modelling.supervised.classifier.classifier import \
     Classifier
 from paje.util.distributions import choice

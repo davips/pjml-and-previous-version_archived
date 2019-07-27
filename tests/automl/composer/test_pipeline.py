@@ -1,9 +1,8 @@
-from paje.base.data import Data
 from paje.automl.composer.pipeline import Pipeline
 import numpy as np
 import pytest
 
-from paje.base.hps import HPTree
+from paje.searchspace.configspace import HPTree
 
 
 @pytest.fixture

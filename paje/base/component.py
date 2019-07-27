@@ -5,7 +5,7 @@ from abc import ABC, abstractmethod
 
 from numpy.random import choice
 
-from paje.base.hp import CatHP, FixedHP
+from paje.searchspace.hp import CatHP, FixedHP
 from paje.util.encoders import uuid, json_pack
 
 

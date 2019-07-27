@@ -1,7 +1,5 @@
-from paje.base.hps import HPTree
 from paje.ml.element.preprocessing.supervised.feature.selector.filter import Filter
 from skfeature.function.statistical_based import f_score
-from paje.util.check import check_float
 import pandas as pd
 import math
 

@@ -1,6 +1,6 @@
 from imblearn.over_sampling import RandomOverSampler
 
-from paje.base.hps import HPTree
+from paje.searchspace.configspace import HPTree
 from paje.ml.element.preprocessing.supervised.instance.sampler.resampler import Resampler
 
 

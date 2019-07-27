@@ -3,9 +3,7 @@ from itertools import combinations
 import numpy as np
 import pandas as pd
 
-from paje.base.hps import HPTree
 from paje.ml.element.preprocessing.supervised.feature.selector.filter import Filter
-from paje.util.check import check_float, check_X_y
 from skfeature.function.statistical_based import t_score
 import math
 

@@ -1,4 +1,4 @@
-from paje.base.hps import HPTree
+from paje.searchspace.configspace import HPTree
 from paje.automl.composer.composer import Composer
 
 

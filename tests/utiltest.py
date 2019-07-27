@@ -1,5 +1,5 @@
 from paje.ml.element.element import Element
-from paje.base.hps import HPTree
+from paje.searchspace.configspace import HPTree
 import numpy as np
 
 

@@ -1,6 +1,6 @@
 from paje.ml.element.preprocessing.supervised.feature.selector.filter import Filter
 from skfeature.function.statistical_based import CFS
-from paje.base.hps import HPTree
+from paje.searchspace.configspace import HPTree
 import pandas as pd
 
 

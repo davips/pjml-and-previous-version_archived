@@ -13,8 +13,8 @@ For more information about the Composer concept see [1].
 """
 from abc import ABC, abstractmethod
 
-from paje.base.hp import CatHP
-from paje.base.hps import ConfigSpace
+from paje.searchspace.hp import CatHP
+from paje.searchspace.configspace import ConfigSpace
 from paje.base.noniterable import NonIterable
 from paje.util.misc import flatten, get_class
 

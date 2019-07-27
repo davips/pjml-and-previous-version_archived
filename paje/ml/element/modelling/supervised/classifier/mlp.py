@@ -1,7 +1,7 @@
 import math
 from sklearn.neural_network import MLPClassifier
 
-from paje.base.hps import HPTree
+from paje.searchspace.configspace import HPTree
 from paje.ml.element.modelling.supervised.classifier.classifier import Classifier
 from paje.util.distributions import exponential_integers
 

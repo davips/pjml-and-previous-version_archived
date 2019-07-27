@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 
-from paje.base.component import Component
-from paje.base.hps import HPTree
+from paje.searchspace.configspace import HPTree
 from paje.ml.element.element import Element
 
 

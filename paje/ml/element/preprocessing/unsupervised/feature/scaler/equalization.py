@@ -1,6 +1,6 @@
 from sklearn.preprocessing import MinMaxScaler
-from paje.base.hp import CatHP
-from paje.base.hps import ConfigSpace
+from paje.searchspace.hp import CatHP
+from paje.searchspace.configspace import ConfigSpace
 from paje.ml.element.preprocessing.unsupervised.feature.scaler.scaler import \
     Scaler
 from paje.util.distributions import choice

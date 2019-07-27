@@ -1,7 +1,5 @@
 from paje.ml.element.preprocessing.supervised.feature.selector.filter import Filter
 from skfeature.function.statistical_based import chi_square
-from paje.util.check import check_float
-from paje.base.hps import HPTree
 import pandas as pd
 import math
 

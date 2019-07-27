@@ -1,6 +1,6 @@
 from sklearn.preprocessing import StandardScaler
 
-from paje.base.hps import HPTree
+from paje.searchspace.configspace import HPTree
 from paje.ml.element.preprocessing.unsupervised.feature.scaler.scaler import Scaler
 
 class Standard(Scaler):
