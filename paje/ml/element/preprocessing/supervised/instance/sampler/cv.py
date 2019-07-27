@@ -1,3 +1,4 @@
+import hashlib
 import json
 
 import numpy
@@ -6,7 +7,6 @@ from sklearn.model_selection import StratifiedKFold, LeaveOneOut, \
 
 from paje.base.iterable import Iterable
 from paje.ml.element.preprocessing.split import Split
-from paje.util.encoders import uuid
 
 
 class CV(Iterable):
@@ -34,11 +34,12 @@ class CV(Iterable):
         zeros = numpy.zeros(data.get_matrix(self.fields[0]).shape[0])
         partitions = list(self.model.split(X=zeros, y=zeros))
         for it, (tr_idxs, ts_idxs) in enumerate(partitions):
+            txt = json.dumps([tr_idxs.tolist(), ts_idxs.tolist()]).encode()
             split = Split(
                 config={
                     'fields': self.fields,
                     'iteration': it,
-                    'uuid': uuid(json.dumps([tr_idxs.tolist(), ts_idxs.tolist()]).encode())
+                    'hash': hashlib.md5(txt).hexdigest()
                 },
                 train=tr_idxs,
                 test=ts_idxs

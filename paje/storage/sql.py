@@ -47,7 +47,7 @@ class SQL(Cache):
 
                 hid char(19) NOT NULL UNIQUE,
 
-                chain LONGBLOB NOT NULL
+                nested LONGBLOB NOT NULL
             )''')
 
         # Columns of Data ======================================================
@@ -468,9 +468,7 @@ class SQL(Cache):
             )'''
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            self.query(sql, [data.history_uuid(), pack_data(data.history)])
-            # TODO: codify a custom zipper for history to be shorter
-            # TODO: create a lazy method hist_dump() in Data
+            self.query(sql, [data.history_uuid(), data.history_dump()])
 
     @profile
     def lock_impl(self, component, op, input_data):
@@ -552,7 +550,7 @@ class SQL(Cache):
                             'components?')
         self.query(f'''
             select 
-                des, spent, fail, end, host, chain as history, cols
+                des, spent, fail, end, host, nested as history, cols
                 {',' + ','.join(fields) if len(fields) > 0 else ''}
                 {', dump' if compo._dump_it else ''}
             from 
@@ -590,7 +588,7 @@ class SQL(Cache):
                             unpack_data(rone['val'], rone['w'], rone['h'])
 
             # Create Data.
-            history = unpack_data(result['history'])
+            history = zlibext_unpack(result['history'])
             columns = zlibext_unpack(result['cols'])
             data = Data(X=None, name=result['des'], history=history,
                         columns=columns, **dic)
@@ -682,13 +680,11 @@ class SQL(Cache):
          the history which led to the predictions should be provided.
         :param name:
         :param fields: None=get full Data; case insensitive; e.g. 'X,y,Z'
-        :param history: list of JSON(TODO:json??) strings describing components
+        :param history: nested tuples
         :param just_check_exists:
         :return:
         """
-        if history is None:
-            history = []
-        hist_uuid = uuid(pack_data(history))
+        hist_uuid = uuid(zlibext_pack(history))
 
         sql = f'''
                 select 
@@ -755,7 +751,7 @@ class SQL(Cache):
     def get_data_by_uuid_impl(self, datauuid):
         sql = f'''
                 select 
-                    X,Y,Z,P,U,V,W,Q,E,F,l,m,k,C,cols,chain,des
+                    X,Y,Z,P,U,V,W,Q,E,F,l,m,k,C,cols,nested,des
                 from 
                     data 
                         left join dataset on dataset=dsid 
@@ -771,9 +767,9 @@ class SQL(Cache):
         # Recover requested matrices/vectors.
         # TODO: surely there is duplicated code to be refactored in this file!
         dic = {'name': row['des'],
-               'history': unpack_data(row['chain'])}
+               'history': zlibext_unpack(row['nested'])}
         fields = [k for k, v in row.items() if len(k) == 1 and v is not None]
-        for field in Data.list_to_case_sensitive(fields):
+        for field in Data.to_alias.keys():
             mid = row[field]
             if mid is not None:
                 self.query(f'select val,w,h from mat where mid=?', [mid])
@@ -794,7 +790,7 @@ class SQL(Cache):
         """
         self.query(f"""
                 select
-                    des, chain
+                    des, nested
                 from
                     res join data on dtr=did 
                         join dataset on dataset=dsid 
@@ -809,7 +805,7 @@ class SQL(Cache):
         else:
             for row in rows:
                 row['name'] = row.pop('des')
-                row['history'] = unpack_data(row.pop('chain'))
+                row['history'] = zlibext_unpack(row.pop('nested'))
             return rows
 
     @profile

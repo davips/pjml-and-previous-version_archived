@@ -96,7 +96,7 @@ class Data:
         self.__dict__.update(self.fields)
 
         self.name = f'unnamed[{self.uuid()}]' if name is None else name
-        self.history = Chain() if history is None else history
+        self.history = history
 
         if Y is not None:
             self.n_classes = np.unique(Y).shape[0]
@@ -119,6 +119,7 @@ class Data:
 
         self._uuid = None
         self._history_uuid = None
+        self._history_dump = None
         self._name_uuid = None
         self.Xy = X, self.__dict__['y']
         self.columns = columns
@@ -260,7 +261,7 @@ class Data:
         if 'history' in kwargs:
             new_args['history'] = kwargs['history']
         else:
-            new_args['history'] = Chain(component.config, self.history)
+            new_args['history'] = (component.config, self.history)
 
         if 'C' in kwargs:
             new_args['C'] = kwargs['C']
@@ -315,15 +316,26 @@ class Data:
 
     def history_uuid(self):
         if self._history_uuid is None:
-            self._history_uuid = uuid(pack_data(self.history))
+            self._history_uuid = uuid(self.history_dump())
         return self._history_uuid
+
+    def history_dump(self):
+        if self._history_dump is None:
+            self._history_dump = zlibext_pack(self.history)
+        return self._history_dump
 
     def __str__(self):
         txt = []
         [txt.append(f'{k}: {str(v.shape)}')
          for k, v in self.fields.items() if v is not None]
-        return '\n'.join(txt) + "\nname: " + self.name + "\n" + \
-               "history: " + str(self.history) + "\n"
+        child = self.history
+        h = 'History\n'
+        htab = ''
+        while child:
+            h += htab + str(child[0]) + '\n'
+            child = child[1]
+            htab += '    '
+        return '\n'.join(txt) + "\nname: " + self.name + "\n" + h
 
     def split(self, test_size=0.25, fields=None, random_state=0):
         fields = ['X', 'Y'] if fields is None else fields
@@ -381,27 +393,27 @@ class Data:
         newrev = []
         while newnode is not None:
             newrev.append(newnode)
-            newnode = newnode.child
+            newnode = newnode[1]
 
         oldnode = self.history
         oldrev = []
         while oldnode is not None:
             oldrev.append(oldnode)
-            oldnode = oldnode.child
+            oldnode = oldnode[1]
 
         while oldrev:
             newnode = newrev.pop()
             oldnode = oldrev.pop()
-            if oldnode.value != newnode.value:
+            if oldnode[0] != newnode[0]:
                 print('>>', new_data.history, '<<\n>>', self.history, '<<')
-                print('>>', newnode.value, '<<\n>>', oldnode.value, '<<')
+                print('>>', newnode[0], '<<\n>>', oldnode[0], '<<')
                 raise Exception('Incompatible transformations, self.history '
                                 'should be the start of new_data.history')
 
         newfields = {k: v for k, v in new_data.fields.items() if v is not None}
         hist = new_data.history
         if newnode is None:
-            hist = Chain('MergedWith:' + ''.join(newfields.keys()), hist)
+            hist = ('MergedWith:' + ''.join(newfields.keys()), hist)
 
         dic = self.fields.copy()
         dic.update(newfields)
