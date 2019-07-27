@@ -9,26 +9,15 @@ from paje.searchspace.hp import CatHP, FixedHP
 from paje.util.encoders import uuid, json_pack
 
 
-class StorageSettings:
-    def __init__(self, storage=None, dump_it=None):
-        self.storage = storage
-        self.dump_it = dump_it
-
-
 class Component(ABC):
     """Todo the docs string
     """
 
-    def __init__(self, config, storage_settings=None):
-        self._storage = storage_settings and storage_settings.storage
-        self._dump_it = storage_settings and storage_settings.dump_it
-
+    def __init__(self, config):
         self.config = config.copy()
 
         # 'mark' should not identify components, it only marks results.
-        # when a component is loaded from storage, nobody knows whether
-        # it was part of an experiment or not, except by consulting
-        # the field 'mark' of the registered result. 'max_time' is reserved word
+        # 'mark', 'max_time', 'class', 'module' are reserved word
         self.mark = self.config.pop('mark') if 'mark' in config else None
         self.max_time = self.config.pop('max_time') \
             if 'max_time' in config else None
@@ -65,7 +54,6 @@ class Component(ABC):
         self.time_spent = None
         self.host = None
         self.failure = None
-        self.show_warns = True
         self._param = None
 
     @classmethod

@@ -2,6 +2,7 @@ import numpy as np
 from paje.automl.automl import AutoML
 from paje.automl.composer.iterator import Iterator
 from paje.automl.composer.pipeline import Pipeline
+from paje.base.storage import Storage
 from paje.ml.element.posprocessing.metric import Metric
 from paje.ml.element.posprocessing.summ import Summ
 from paje.ml.element.preprocessing.supervised.instance.sampler.cv import CV
@@ -125,14 +126,47 @@ class RandomAutoML(AutoML):
     def eval(self, pip_config, data):
         internal = Pipeline.cfg(
             configs=[
-                Pipeline.cfg(
-                    configs=[
-                        pip_config,
-                        Metric.cfg(function='accuracy')  # from Y to r
-                    ],
-                    random_state=self.random_state
-                )
+                pip_config,
+                Metric.cfg(function='accuracy')  # from Y to r
+            ],
+            random_state=self.random_state
+        )
+
+
+        alg = Pipeline.cfg(
+            configs=[
+                Iterator.cfg(
+                    iterable=CV.cfg(split='cv', steps=10, fields=['X', 'Y']),
+                    configs=[internal],
+                    field='r'
+                ),
+                Summ.cfg(field='s', function='mean')
             ]
+        )
+
+        pip = Storage(
+            config={
+                'configs': [alg],
+                'engine': 'sqlite',
+                'settings': {'db': 'paje'},
+                'nested': None,
+                'dump': False,
+                'random_state': self.random_state
+            }
+        )
+
+        internal = Pipeline.cfg(
+            configs=[
+                Storage.cfg(
+                    configs=[pip_config],
+                    engine='sqlite',
+                    settings={'db': 'paje'},
+                    nested=None,
+                    dump=False
+                ),
+                Metric.cfg(function='accuracy')  # from Y to r
+            ],
+            random_state=self.random_state
         )
 
         pip = Pipeline(
@@ -147,8 +181,7 @@ class RandomAutoML(AutoML):
                     Summ.cfg(field='s', function='mean')
                 ],
                 'random_state': self.random_state
-            },
-            storage_settings=self.storage_settings_for_components
+            }
         )
 
         datapp = pip.apply(data)

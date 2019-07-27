@@ -471,7 +471,7 @@ class SQL(Cache):
             self.query(sql, [data.history_uuid(), data.history_dump()])
 
     @profile
-    def lock_impl(self, component, op, input_data):
+    def lock_impl(self, component, input_data):
         """
         Store 'input_data' and 'component' if they are not yet stored.
         Insert a locking row that corresponds to comp,op,train_data,input_data.
@@ -482,7 +482,7 @@ class SQL(Cache):
         :return:
         """
         if self.debug:
-            print(self.name, 'Locking...', op)
+            print(self.name, 'Locking...', component.op)
 
         # Store input set if not existent yet.
         # Calling impl to avoid nested storage doing the same twice.
@@ -515,7 +515,7 @@ class SQL(Cache):
                 0, 0, null
             )'''
         args_res = [self.hostname,
-                    component.uuid, op,
+                    component.uuid, component.op,
                     component.train_data_uuid__mutable(), input_data.uuid()]
         from sqlite3 import IntegrityError as IntegrityErrorSQLite
         from pymysql import IntegrityError as IntegrityErrorMySQL
@@ -523,49 +523,51 @@ class SQL(Cache):
             self.query(sql, args_res)
         except IntegrityErrorSQLite as e:
             print(self.name,
-                  f'Unexpected lock! Giving up my turn on {op} ppy/se', e)
+                  f'Unexpected lock! '
+                  f'Giving up my turn on {component.op} ppy/se', e)
             component.locked_by_others = True
         except IntegrityErrorMySQL as e:
             print(self.name,
-                  f'Unexpected lock! Giving up my turn on {op} ppy/se', e)
+                  f'Unexpected lock! '
+                  f'Giving up my turn on {component.op} ppy/se', e)
             component.locked_by_others = True
         else:
             component.locked_by_others = False
             print(self.name,
-                  f'Now locked for {op}[ppying/sing] {component.name}')
+                  f'Now locked for {component.op}'
+                  f'[ppying/sing] {component.name}')
 
     @profile
-    def get_result_impl(self, compo: Component, op, input_data):
+    def get_result_impl(self, component: Component, input_data):
         """
         Look for a result in database. Download only affected matrices/vectors.
-        ps.: put a model inside component if it is 'dump_it'-enabled
+        ps.: put a model inside component requested
         :return: Resulting Data
         """
-        if compo.failed or compo.locked_by_others:
-            return None, True, compo.failed is not None
-        fields = [Data.from_alias[f] for f in compo.modifies(op)]
+        if component.failed or component.locked_by_others:
+            return None, True, component.failed is not None
+        fields = [Data.from_alias[f] for f in component.modifies(component.op)]
 
-        if compo._dump_it:
+        if self._dump:
             raise Exception('Are we really starting to store dump of '
                             'components?')
         self.query(f'''
             select 
                 des, spent, fail, end, host, nested as history, cols
                 {',' + ','.join(fields) if len(fields) > 0 else ''}
-                {', dump' if compo._dump_it else ''}
+                {', dump' if self._dump else ''}
             from 
                 res 
                     left join data on dout = did
                     left join dataset on dataset = dsid
                     left join hist on hist = hid
                     left join attr on attr = aid
-                    {'left join inst on inst = iid' if compo._dump_it else
-        ''}                    
+                    {'left join inst on inst=iid' if self._dump else ''}                    
             where                
                 config=? and op=? and dtr=? and din=?''',
-                   [compo.uuid,
-                    op,
-                    compo.train_data_uuid__mutable(),
+                   [component.uuid,
+                    component.op,
+                    component.train_data_uuid__mutable(),
                     input_data.uuid()])
         result = self.get_one()
         if result is None:
@@ -577,7 +579,7 @@ class SQL(Cache):
                                 f"{result['des']}!={input_data.name}")
 
             # Recover relevant matrices/vectors.
-            dic = {}
+            dic = {'X':None}
             for field in fields:
                 mid = result[field]
                 if mid is not None:
@@ -590,26 +592,25 @@ class SQL(Cache):
             # Create Data.
             history = zlibext_unpack(result['history'])
             columns = zlibext_unpack(result['cols'])
-            data = Data(X=None, name=result['des'], history=history,
+            data = Data(name=result['des'], history=history,
                         columns=columns, **dic)
 
             # Join untouched matrices/vectors.
             output_data = input_data.merged(data)
         else:
             output_data = None
-        compo.model = result['dump'].model if 'dump' in result else None
-        compo.time_spent = result['spent']
-        compo.failed = result['fail'] and result['fail'] == 1
-        compo.locked_by_others = result['end'] == '0000-00-00 00:00:00'
-        compo.host = result['host']
-        return output_data, True, compo.failed is not None
+        component.model = result['dump'].model if 'dump' in result else None
+        component.time_spent = result['spent']
+        component.failed = result['fail'] and result['fail'] == 1
+        component.locked_by_others = result['end'] == '0000-00-00 00:00:00'
+        component.host = result['host']
+        return output_data, True, component.failed is not None
 
     @profile
-    def store_result_impl(self, component, op, input_data, output_data):
+    def store_result_impl(self, component, input_data, output_data):
         """
         Store a result and remove lock.
         :param component:
-        :param op:
         :param input_data:
         :param output_data:
         :return:
@@ -628,11 +629,11 @@ class SQL(Cache):
         now = self._now_function()
 
         # Store dump if requested.
-        dump_uuid = component._dump_it and uuid(
-            (component.uuid + op +
+        dump_uuid = self._dump and uuid(
+            (component.uuid +
              component.train_data_uuid__mutable() + input_data.uuid()).encode()
         )
-        if component._dump_it:
+        if self._dump:
             sql = f'insert or ignore into inst values (null, ?, ?)'
             # pack_comp is nondeterministic and its result is big,
             # so we need to identify it by other, deterministic, means
@@ -663,7 +664,7 @@ class SQL(Cache):
                 '''
         set_args = [log_uuid, output_data and output_data.uuid(),
                     component.time_spent, dump_uuid, fail, component.mark]
-        where_args = [component.uuid, op,
+        where_args = [component.uuid, component.op,
                       component.train_data_uuid__mutable(), input_data.uuid()]
         # TODO: is there any important exception to handle here?
         self.query(sql, set_args + where_args)
@@ -768,8 +769,9 @@ class SQL(Cache):
         # TODO: surely there is duplicated code to be refactored in this file!
         dic = {'name': row['des'],
                'history': zlibext_unpack(row['nested'])}
-        fields = [k for k, v in row.items() if len(k) == 1 and v is not None]
-        for field in Data.to_alias.keys():
+        fields = [Data.from_alias[k]
+                  for k, v in row.items() if len(k) == 1 and v is not None]
+        for field in fields:
             mid = row[field]
             if mid is not None:
                 self.query(f'select val,w,h from mat where mid=?', [mid])

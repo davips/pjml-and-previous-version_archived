@@ -14,20 +14,23 @@ class Iterator(Composer):
         component = self.components[0]
         self.model = []
 
-        steps = self.iterable.iterations(data)
+        splits = self.iterable.iterations(data)
         chain = data.C
         idx = 0
-        for step in steps:
-            component.apply(step.apply(data))
-            aux = component.use(step.apply(data))
+        print('aaaaaaaaaaaaaaaaaaaaaaa', data.uuid())
+        for split in splits:
+            component.apply(split.apply(data))
+            aux = component.use(split.apply(data))
             if aux is None:
                 break
             chain = Chain(aux.get(self.field), chain, idx=idx)
+            print('chacahcah',chain)
 
-            self.model.append((step, component))
+            self.model.append((split, component))
             component = self.materialize(component.config)
             idx += 1
 
+        print('22222222222222222', data.updated(self, C=chain).C.pop())
         return data.updated(self, C=chain)
 
     def use_impl(self, data):
@@ -41,8 +44,9 @@ class Iterator(Composer):
 
         chain = data.C
         idx = 0
-        for step, component in self.model:
-            aux = component.use(step.use(data))
+        print('UUUUUUUUUUUUUUUUUUUUU', data.uuid())
+        for split, component in self.model:
+            aux = component.use(split.use(data))
             if aux is None:
                 break
 

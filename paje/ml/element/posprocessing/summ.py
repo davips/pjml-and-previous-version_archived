@@ -21,6 +21,7 @@ class Summ(Element):
 
     def use_impl(self, data):
         chain, values = data.C.pop()
+        print(1111111111111, self.field, self._function, values)
         return data.updated(
             self,
             C=chain,

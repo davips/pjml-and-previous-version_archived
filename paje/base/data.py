@@ -261,7 +261,7 @@ class Data:
         if 'history' in kwargs:
             new_args['history'] = kwargs['history']
         else:
-            new_args['history'] = (component.config, self.history)
+            new_args['history'] = (component.config, component.op, self.history)
 
         if 'C' in kwargs:
             new_args['C'] = kwargs['C']
@@ -332,8 +332,8 @@ class Data:
         h = 'History\n'
         htab = ''
         while child:
-            h += htab + str(child[0]) + '\n'
-            child = child[1]
+            h += htab + str(child[0],child[1]) + '\n'
+            child = child[2]
             htab += '    '
         return '\n'.join(txt) + "\nname: " + self.name + "\n" + h
 
@@ -393,13 +393,13 @@ class Data:
         newrev = []
         while newnode is not None:
             newrev.append(newnode)
-            newnode = newnode[1]
+            newnode = newnode[2]
 
         oldnode = self.history
         oldrev = []
         while oldnode is not None:
             oldrev.append(oldnode)
-            oldnode = oldnode[1]
+            oldnode = oldnode[2]
 
         while oldrev:
             newnode = newrev.pop()
@@ -407,13 +407,14 @@ class Data:
             if oldnode[0] != newnode[0]:
                 print('>>', new_data.history, '<<\n>>', self.history, '<<')
                 print('>>', newnode[0], '<<\n>>', oldnode[0], '<<')
+                print('>>', newnode[1], '<<\n>>', oldnode[1], '<<')
                 raise Exception('Incompatible transformations, self.history '
                                 'should be the start of new_data.history')
 
         newfields = {k: v for k, v in new_data.fields.items() if v is not None}
         hist = new_data.history
         if newnode is None:
-            hist = ('MergedWith:' + ''.join(newfields.keys()), hist)
+            hist = ('MergedWith:' + ''.join(newfields.keys()), 'm', hist)
 
         dic = self.fields.copy()
         dic.update(newfields)

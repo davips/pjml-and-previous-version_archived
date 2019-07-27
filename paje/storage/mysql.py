@@ -7,16 +7,16 @@ from paje.storage.sql import SQL
 
 
 class MySQL(SQL):
-    def __init__(self, database='paje@143.107.183.114', password='pagelanca19',
+    def __init__(self, server='paje@143.107.183.114', password='pagelanca19',
                  db='curumim', debug=False, read_only=False,
-                 nested_storage=None, sync=False):
-        super().__init__(nested_storage=nested_storage, sync=sync)
-        self.info = database + ', ' + db
+                 nested=None, sync=False):
+        super().__init__(nested_storage=nested, sync=sync)
+        self.info = server + ', ' + db
         self.read_only = read_only
-        self.database = database
+        self.database = server
         self.password = password
         self.db = db
-        self.user, self.host = database.split('@')
+        self.user, self.host = server.split('@')
         self.debug = debug
         if '-' in db:
             raise Exception("'-' not allowed in db name!")

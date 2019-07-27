@@ -93,6 +93,3 @@ class Composer(NonIterable, ABC):
         return self.name + " {\n" + \
                newdepth + ("\n" + newdepth).join(str(x) for x in strs) + '\n' \
                + depth + "}"
-
-    def next(self):
-        return None

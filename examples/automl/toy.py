@@ -3,7 +3,6 @@ import sys
 from paje.automl.composer.pipeline import Pipeline
 from paje.automl.composer.switch import Switch
 from paje.automl.optimization.blind.random import RandomAutoML
-from paje.base.component import StorageSettings
 from paje.base.data import Data
 from paje.ml.element.modelling.supervised.classifier.dt import DT
 from paje.ml.element.modelling.supervised.classifier.nb import NB
@@ -46,11 +45,11 @@ def main():
             elif arg['storage'] == 'cached':
                 from paje.storage.mysql import MySQL
                 from paje.storage.sqlite import SQLite
-                storage = MySQL(db=arg['db'], nested_storage=SQLite())
+                storage = MySQL(db=arg['db'], nested=SQLite())
             elif arg['storage'] == 'sync':
                 from paje.storage.mysql import MySQL
                 from paje.storage.sqlite import SQLite
-                storage = MySQL(db=arg['db'], nested_storage=SQLite(),
+                storage = MySQL(db=arg['db'], nested=SQLite(),
                                 sync=True)
             else:
                 raise Exception('Wrong storage', arg['storage'])
@@ -68,7 +67,6 @@ def main():
             # modelers=default_modelers,
             preprocessors=my_preprocessors,
             modelers=my_modelers,
-            storage_settings_for_components=StorageSettings(storage=storage),
             max_iter=iterations,
             pipe_length=2, repetitions=1,
             random_state=random_state,

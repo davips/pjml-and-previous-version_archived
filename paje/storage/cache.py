@@ -67,18 +67,21 @@ class Cache(ABC):
         return getattr(self, f + '_impl')(*args)
 
     @profile
-    def get_result(self, component, op, data):
+    def get_result(self, component, op, train_data_uuid, data):
+        component.op = op
+        component._train_data_uuid__mutable = train_data_uuid
+
         # try locally
         if self.nested_storage is not None:
             local_result, started, ended = \
-                self.nested_storage.get_result(component, op, data)
+                self.nested_storage.get_result(component, data)
             if started:
                 if self.sync:
                     print('Replicating remotely...', self.name)
-                    self.lock_impl(component, op, data)
+                    self.lock_impl(component, data)
                     if ended:
                         self.store_result_impl(
-                            component, op, data, local_result
+                            component, data, local_result
                         )
                 return local_result, started, ended
 
@@ -86,18 +89,18 @@ class Cache(ABC):
         if self.nested_storage is not None:
             print('Trying remotely...', self.name)
         remote_result, started, ended = \
-            self.get_result_impl(component, op, data)
+            self.get_result_impl(component, data)
 
         # replicate locally if required
         if started and self.nested_storage is not None:
             print('Replicating locally...', self.nested_storage.name)
-            self.nested_storage.lock(component, op, data)
+            self.nested_storage.lock(component, data)
             if ended:
                 self.nested_storage.store_result(
-                    component, op, data, remote_result
+                    component, data, remote_result
                 )
 
-        return remote_result, started, ended
+        return remote_result, started
 
     @profile
     def get_data_by_uuid(self, data_uuid):
@@ -156,20 +159,19 @@ class Cache(ABC):
         return self._nested_first('get_finished_names_by_mark', mark)
 
     @profile
-    def lock(self, component, op, input_data):
+    def lock(self, component, input_data):
         """
         Lock the given task to avoid wasting concurrent processing.
         ps. When nesting storages, lock first the remote, since it assumes
         exclusive access to local storage.
         :param component:
-        :param op:
         :param input_data:
         :return:
         """
-        self.lock_impl(component, op, input_data)
+        self.lock_impl(component, input_data)
         if not component.locked_by_others and self.nested_storage is not None:
             print('Locking locally...', self.nested_storage.name)
-            self.nested_storage.lock(component, op, input_data)
+            self.nested_storage.lock(component, input_data)
 
     @profile
     def store_data(self, data):
@@ -178,11 +180,11 @@ class Cache(ABC):
             self.nested_storage.store_data(data)
 
     @profile
-    def store_result(self, component, op, input_data, output_data):
-        self.store_result_impl(component, op, input_data, output_data)
+    def store_result(self, component, input_data, output_data):
+        self.store_result_impl(component, input_data, output_data)
         if self.nested_storage is not None:
             self.nested_storage.store_result(
-                component, op, input_data, output_data
+                component, input_data, output_data
             )
 
     @profile
@@ -218,7 +220,7 @@ class Cache(ABC):
                                   'storage to the local one')
 
     @abstractmethod
-    def get_result_impl(self, component, op, data):
+    def get_result_impl(self, component, data):
         pass
 
     @abstractmethod
@@ -234,7 +236,7 @@ class Cache(ABC):
         pass
 
     @abstractmethod
-    def lock_impl(self, component, op, test):
+    def lock_impl(self, component, test):
         pass
 
     @abstractmethod
@@ -242,7 +244,7 @@ class Cache(ABC):
         pass
 
     @abstractmethod
-    def store_result_impl(self, component, op, test, testout):
+    def store_result_impl(self, component, test, testout):
         pass
 
     # @abstractmethod

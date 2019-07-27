@@ -10,7 +10,7 @@ class DefaultAutoML(RandomAutoML):
         """ TODO the docstring documentation
         """
         components = self.choose_modules()
-        self.curr_pipe = Pipeline(components, show_warns=self.show_warns,
+        self.curr_pipe = Pipeline(components,
                                   storage=self.storage_for_components)
         tree = self.curr_pipe.cs()
 
