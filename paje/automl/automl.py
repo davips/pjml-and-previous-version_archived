@@ -13,7 +13,7 @@ class AutoML(NonIterable, ABC):
                  components,
                  max_iter,
                  n_jobs=1,
-                 verbose=False,
+                 verbose=True,
                  **kwargs):
         super().__init__(**kwargs)
         """ TODO the docstring documentation

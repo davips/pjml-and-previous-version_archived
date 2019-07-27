@@ -3,7 +3,7 @@ from abc import abstractmethod
 
 from paje.base.component import Component
 from paje.base.data import Data
-from paje.storage.storage import Cache
+from paje.storage.cache import Cache
 from paje.util.encoders import unpack_data, pack_comp, \
     uuid, zlibext_pack, zlibext_unpack, mysql_compress, pack_data
 
@@ -62,10 +62,10 @@ class SQL(Cache):
 
         # Names of Data ========================================================
         self.query(f'''
-            create table if not exists name (
+            create table if not exists dataset (
                 n integer NOT NULL primary key {self._auto_incr()},
 
-                nid char(19) NOT NULL UNIQUE,
+                dsid char(19) NOT NULL UNIQUE,
 
                 des TEXT NOT NULL,
 
@@ -73,8 +73,8 @@ class SQL(Cache):
 
                 FOREIGN KEY (attr) REFERENCES attr(aid)
             )''')
-        self.query(f'CREATE INDEX nam0 ON name (des{self._keylimit()})')
-        self.query(f'CREATE INDEX nam1 ON name (attr)')
+        self.query(f'CREATE INDEX nam0 ON dataset (des{self._keylimit()})')
+        self.query(f'CREATE INDEX nam1 ON dataset (attr)')
 
         # Dump of Component instances  =========================================
         self.query(f'''
@@ -100,16 +100,16 @@ class SQL(Cache):
 
         # Components ===========================================================
         self.query(f'''
-            create table if not exists com (
+            create table if not exists config (
                 n integer NOT NULL primary key {self._auto_incr()},
 
                 cid char(19) NOT NULL UNIQUE,
 
-                arg LONGBLOB NOT NULL,
+                cfg LONGBLOB NOT NULL,
 
                 insc timestamp NOT NULL
             )''')
-        self.query(f'CREATE INDEX com0 ON com (insc)')
+        self.query(f'CREATE INDEX config0 ON config (insc)')
 
         # Matrices/vectors
         # =============================================================
@@ -134,7 +134,7 @@ class SQL(Cache):
 
                 did char(19) NOT NULL UNIQUE,
 
-                name char(19) NOT NULL,
+                dataset char(19) NOT NULL,
                 hist char(19) NOT NULL,
 
                 X char(19),
@@ -160,8 +160,8 @@ class SQL(Cache):
                 insd timestamp NOT NULL,
                 upd timestamp,
 
-                unique(name, hist),
-                FOREIGN KEY (name) REFERENCES name(nid),
+                unique(dataset, hist),
+                FOREIGN KEY (dataset) REFERENCES dataset(nid),
                 FOREIGN KEY (hist) REFERENCES hist(hid),
                 
                 FOREIGN KEY (X) REFERENCES mat(mid),
@@ -184,7 +184,7 @@ class SQL(Cache):
         # history não vai conter comps inuteis como pipes e switches, apenas
         # quem transforma Data, ou seja, faz updated().
         self.query(f'CREATE INDEX data0 ON data (insd)')
-        self.query(f'CREATE INDEX data1 ON data (name)')  # needed on FKs?
+        self.query(f'CREATE INDEX data1 ON data (dataset)')  # needed on FKs?
         self.query(f'CREATE INDEX data2 ON data (hist)')
         self.query(f'CREATE INDEX data3 ON data (upd)')
         self.query(f'CREATE INDEX datax ON data (X)')
@@ -207,9 +207,9 @@ class SQL(Cache):
             create table if not exists res (
                 n integer NOT NULL primary key {self._auto_incr()},
 
-                node varchar(19) NOT NULL,
+                host varchar(19) NOT NULL,
 
-                com char(19) NOT NULL,
+                config char(19) NOT NULL,
                 op char(1) NOT NULL,
 
                 dtr char(19) NOT NULL,
@@ -231,8 +231,8 @@ class SQL(Cache):
                 locks int NOT NULL,
                 mark varchar(256),
 
-                UNIQUE(com, op, dtr, din),
-                FOREIGN KEY (com) REFERENCES com(cid),
+                UNIQUE(config, op, dtr, din),
+                FOREIGN KEY (config) REFERENCES config(cid),
                 FOREIGN KEY (dtr) REFERENCES data(did),
                 FOREIGN KEY (din) REFERENCES data(did),
                 FOREIGN KEY (dout) REFERENCES data(did),
@@ -246,7 +246,7 @@ class SQL(Cache):
         self.query('CREATE INDEX res4 ON res (start)')
         self.query('CREATE INDEX res5 ON res (end)')
         self.query('CREATE INDEX res6 ON res (alive)')
-        self.query('CREATE INDEX res7 ON res (node)')
+        self.query('CREATE INDEX res7 ON res (host)')
         self.query('CREATE INDEX res8 ON res (tries)')
         self.query('CREATE INDEX res9 ON res (locks)')
         self.query('CREATE INDEX res10 ON res (log)')
@@ -445,10 +445,10 @@ class SQL(Cache):
             warnings.simplefilter("ignore")
             self.query(sql, [uuid_cols, cols])
 
-        # name ---------------------------------------------------------
+        # dataset ---------------------------------------------------------
         # TODO: avoid sending long names when unneeded
         sql = f'''
-            insert or ignore into name values (
+            insert or ignore into dataset values (
                 NULL,
                 ?,
                 ?,
@@ -494,7 +494,7 @@ class SQL(Cache):
         # Mark as locked_by_others otherwise.
         nf = self._now_function()
         sql = f'''
-            insert or ignore into com values (
+            insert or ignore into config values (
                 NULL,
                 ?,
                 ?,
@@ -552,19 +552,19 @@ class SQL(Cache):
                             'components?')
         self.query(f'''
             select 
-                des, spent, fail, end, node, chain as history, cols
+                des, spent, fail, end, host, chain as history, cols
                 {',' + ','.join(fields) if len(fields) > 0 else ''}
                 {', dump' if compo._dump_it else ''}
             from 
                 res 
                     left join data on dout = did
-                    left join name on name = nid
+                    left join dataset on dataset = dsid
                     left join hist on hist = hid
                     left join attr on attr = aid
                     {'left join inst on inst = iid' if compo._dump_it else
         ''}                    
             where                
-                com=? and op=? and dtr=? and din=?''',
+                config=? and op=? and dtr=? and din=?''',
                    [compo.uuid,
                     op,
                     compo.train_data_uuid__mutable(),
@@ -603,7 +603,7 @@ class SQL(Cache):
         compo.time_spent = result['spent']
         compo.failed = result['fail'] and result['fail'] == 1
         compo.locked_by_others = result['end'] == '0000-00-00 00:00:00'
-        compo.node = result['node']
+        compo.host = result['host']
         return output_data, True, compo.failed is not None
 
     @profile
@@ -660,7 +660,7 @@ class SQL(Cache):
                     start=start, end={now}, alive={now},
                     mark=?
                 where
-                    com=? and op=? and 
+                    config=? and op=? and 
                     dtr=? and din=?
                 '''
         set_args = [log_uuid, output_data and output_data.uuid(),
@@ -695,7 +695,7 @@ class SQL(Cache):
                     X,Y,Z,P,U,V,W,Q,E,F,l,m,k,C,cols,des
                 from 
                     data 
-                        left join name on name=nid 
+                        left join dataset on dataset=dsid 
                         left join attr on attr=aid
                 where 
                     des=? and hist=?'''
@@ -719,10 +719,10 @@ class SQL(Cache):
         return Data(columns=zlibext_unpack(row['cols']), **dic)
 
     # def get_component_by_uuid(self, component_uuid, just_check_exists=False):
-    #     field = 'arg'
+    #     field = 'cfg'
     #     if just_check_exists:
     #         field = '1'
-    #     self.query(f'select {field} from com where cid=?', [component_uuid])
+    #     self.query(f'select {field} from config where cid=?', [component_uuid])
     #     result = self.get_one()
     #     if result is None:
     #         return None
@@ -732,13 +732,13 @@ class SQL(Cache):
 
     # def get_component(self, component, train_data, input_data,
     #                   just_check_exists=False):
-    #     field = 'bytes,arg'
+    #     field = 'bytes,cfg'
     #     if just_check_exists:
     #         field = '1'
     #     self.query(f'select {field} '
     #                f'from res'
     #                f'   left join dump on dumpc=duic '
-    #                f'   left join com on com=cid '
+    #                f'   left join config on config=cid '
     #                f'where cid=? and dtr=? and din=?',
     #                [component.uuid(),
     #                 component.train_data.uuid(),
@@ -749,7 +749,7 @@ class SQL(Cache):
     #     if just_check_exists:
     #         return True
     #     return Component.resurrect_from_dump(result['bytes'],
-    #                                          **json_unpack(result['arg']))
+    #                                          **json_unpack(result['cfg']))
 
     @profile
     def get_data_by_uuid_impl(self, datauuid):
@@ -758,7 +758,7 @@ class SQL(Cache):
                     X,Y,Z,P,U,V,W,Q,E,F,l,m,k,C,cols,chain,des
                 from 
                     data 
-                        left join name on name=nid 
+                        left join dataset on dataset=dsid 
                         left join hist on hist=hid
                         left join attr on attr=aid
                 where 
@@ -797,7 +797,7 @@ class SQL(Cache):
                     des, chain
                 from
                     res join data on dtr=did 
-                        join name on name=nid 
+                        join dataset on dataset=dsid 
                         join hist on hist=hid 
                 where
                     end!='0000-00-00 00:00:00' and 

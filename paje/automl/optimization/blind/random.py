@@ -125,10 +125,14 @@ class RandomAutoML(AutoML):
     def eval(self, pip_config, data):
         internal = Pipeline.cfg(
             configs=[
-                pip_config,
-                Metric.cfg(function='accuracy')  # from Y to r
-            ],
-            random_state=self.random_state
+                Pipeline.cfg(
+                    configs=[
+                        pip_config,
+                        Metric.cfg(function='accuracy')  # from Y to r
+                    ],
+                    random_state=self.random_state
+                )
+            ]
         )
 
         pip = Pipeline(

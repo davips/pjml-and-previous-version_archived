@@ -52,7 +52,7 @@ class NonIterable(Component):
             if self.locked_by_others:
                 print(f"Won't apply {self.name} on data "
                       f"{data.name}\n"
-                      f"Currently probably working at node [{self.node}].")
+                      f"Currently probably working at node [{self.host}].")
                 return output_data
 
         # Apply if still needed  ----------------------------------
@@ -105,7 +105,7 @@ class NonIterable(Component):
             if self.locked_by_others:
                 print(f"Won't use {self.name} on data "
                          f"{data.name}\n"
-                         f"Currently probably working at {self.node}.")
+                         f"Currently probably working at {self.host}.")
                 return output_data
 
             if self.failed:

@@ -63,7 +63,7 @@ class Component(ABC):
         self.locked_by_others = False
         self.failed = False
         self.time_spent = None
-        self.node = None
+        self.host = None
         self.failure = None
         self.show_warns = True
         self._param = None
