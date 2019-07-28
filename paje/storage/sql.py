@@ -579,7 +579,7 @@ class SQL(Cache):
                                 f"{result['des']}!={input_data.name}")
 
             # Recover relevant matrices/vectors.
-            dic = {'X':None}
+            dic = {'X': None}
             for field in fields:
                 mid = result[field]
                 if mid is not None:
@@ -604,7 +604,8 @@ class SQL(Cache):
         component.failed = result['fail'] and result['fail'] == 1
         component.locked_by_others = result['end'] == '0000-00-00 00:00:00'
         component.host = result['host']
-        return output_data, True, component.failed is not None
+        ended = component.failed is not None
+        return output_data, True, ended
 
     @profile
     def store_result_impl(self, component, input_data, output_data):
@@ -630,8 +631,7 @@ class SQL(Cache):
 
         # Store dump if requested.
         dump_uuid = self._dump and uuid(
-            (component.uuid +
-             component.train_data_uuid__mutable() + input_data.uuid()).encode()
+            (component.uuid + component.train_data_uuid__mutable()).encode()
         )
         if self._dump:
             sql = f'insert or ignore into inst values (null, ?, ?)'

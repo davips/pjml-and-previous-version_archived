@@ -10,56 +10,53 @@ from paje.util.encoders import uuid
 
 
 class PickledFile(Cache):
-    def store_data_impl(self, data: Data):
-        pickle.dump(data, data.uuid() + '.pickled')
+    @staticmethod
+    def _outdata_uuid(component, input_data):
+        return uuid(
+            (uuid(input_data.name.encode()) + (
+                component.config, component.op,
+                input_data.history
+            )).encode())
+
+    def store_data_impl(self, data):
+        pickle.dump(data, data.uuid() + '.pickle')
 
     def lock_impl(self, component, input_data):
-        Path(self._file_name(component, input_data)).touch()
+        Path(self._outdata_uuid(component, input_data) + '.pickle').touch()
 
     def get_result_impl(self, component, input_data):
-        output_data = pickle.load(self._file_name(component, input_data))
+        # Failed?
+        if Path(self._outdata_uuid(component, input_data) + '.fail'):
+            component.failed = True
+            ended = component.failed is not None
+            return None, True, ended
+        else:
+            ended = component.failed is not None
 
+        # Not started yet?
+        if not Path(self._outdata_uuid(component, input_data) +
+                    '.pickle').exists():
+            return None, False, ended
 
-
-
-
-
-
-
-
-
-        return output_data, True, component.failed is not None
+        # Successful.
+        output_data = pickle.load(
+            self._outdata_uuid(component, input_data) + '.pickle'
+        )
+        return output_data, True, ended
 
     def store_result_impl(self, component, input_data, output_data):
-        pickle.dump(
-            output_data,
-            f'{component.uuid}-{component.op}-{input_data.uuid}.pick'
-        )
-
-        # Store resulting Data
-        if output_data is not None:
-            # We call impl here,
-            # to avoid nested storage trying to do the same work twice.
-            self.store_data_impl(output_data)
-
-        # Remove lock and point result to data inserted above.
-        # We should set all timestamp fields even if with the same old value,
-        # due to automatic updates by DBMSs.
-        # Data train was inserted and dtr was created when locking().
-        now = self._now_function()
+        pickle.dump(output_data, output_data.uuid + '.pickle')
 
         # Store dump if requested.
-        dump_uuid = self._dump and uuid(
-            (component.uuid +
-             component.train_data_uuid__mutable() + input_data.uuid()).encode()
-        )
         if self._dump:
-            sql = f'insert or ignore into inst values (null, ?, ?)'
-            # pack_comp is nondeterministic and its result is big,
-            # so we need to identify it by other, deterministic, means
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                self.query(sql, [dump_uuid, pack_comp(component)])
+            dump_uuid = uuid((component.uuid + component.train_data_uuid__mutable()).encode()
+
+
+
+
+
+                             )
+            self.query(sql, [dump_uuid, pack_comp(component)])
 
         # Store a log if apply() failed.
         log_uuid = component.failure and uuid(component.failure.encode())
@@ -315,12 +312,3 @@ class PickledFile(Cache):
         #     insd = insd,
         #     upd = {self._now_function()}
         #     '''
-
-    def _file_name(self, component, input_data):
-        name = uuid(
-            (uuid(input_data.name.encode()) + (
-                component.config, component.op,
-                input_data.history
-            )).encode()
-        )
-        return f'{name}.pickle'
