@@ -13,7 +13,7 @@ class Data:
     """ Data
     """
     _vectors = {i: i.upper() for i in ['y', 'z', 'v', 'w', 'e', 'f']}
-    _scalars = {'r': 'E', 's': 'F', 't': 'k'}
+    _scalars = {'r': 'E', 's': 'F', 't': 'K'}
     from_alias = _vectors.copy()
     from_alias.update(_scalars)
     from_alias.update({
@@ -31,7 +31,7 @@ class Data:
         'W': 'W',
         'E': 'E',
         'F': 'F',
-        'k': 'k'
+        'K': 'K'
     })
     all_mats = to_alias.keys()
 
@@ -40,7 +40,7 @@ class Data:
                  U=None, V=None, W=None, Q=None,
                  E=None, F=None,
                  l=None, m=None,
-                 k=None,
+                 K=None,
                  C=None,
                  columns=None, history=None):
         """
@@ -84,7 +84,7 @@ class Data:
         :param columns: attribute names
         :param history: History of transformations suffered by the data
 
-        #:param modified: list of fields modified in the last trasnformation
+        #:param modified: list of fields modified in the last transformation
 
         :param task: intended use for this data: classification, clustering,...
         :param n_classes: this could be calculated,
