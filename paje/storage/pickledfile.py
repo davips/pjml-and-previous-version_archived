@@ -12,11 +12,13 @@ from paje.util.encoders import uuid
 class PickledFile(Cache):
     @staticmethod
     def _outdata_uuid(component, input_data):
-        return uuid(
-            (uuid(input_data.name.encode()) + (
-                component.config, component.op,
-                input_data.history
-            )).encode())
+        return uuid(str((
+            input_data.name, component.config, component.op, input_data.history
+        )).encode())
+
+    @staticmethod
+    def _dump_uuid(component, input_data):
+        return uuid(str((input_data.name, component.config)).encode())
 
     def store_data_impl(self, data):
         pickle.dump(data, data.uuid() + '.pickle')
@@ -48,23 +50,17 @@ class PickledFile(Cache):
         pickle.dump(output_data, output_data.uuid + '.pickle')
 
         # Store dump if requested.
+        dump_uuid = self._dump_uuid(component,input_data)
         if self._dump:
-            dump_uuid = uuid((component.uuid + component.train_data_uuid__mutable()).encode()
-
-
-
-
-
-                             )
-            self.query(sql, [dump_uuid, pack_comp(component)])
+            pickle.dump(
+                component, dump_uuid + '.pickle'
+            )
 
         # Store a log if apply() failed.
-        log_uuid = component.failure and uuid(component.failure.encode())
         if component.failure is not None:
-            sql = f'insert or ignore into log values (null, ?, ?, {now})'
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore")
-                self.query(sql, [log_uuid, component.failure])
+            fw = open(dump_uuid, 'w')
+            fw.write(component.failure)
+            fw.close()
 
         # Unlock and save result.
         fail = 1 if component.failed else 0
