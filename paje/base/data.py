@@ -13,7 +13,7 @@ class Data:
     """ Data
     """
     _vectors = {i: i.upper() for i in ['y', 'z', 'v', 'w', 'e', 'f']}
-    _scalars = {'r': 'E', 's': 'F', 't': 'K'}
+    _scalars = {'r': 'R', 't': 'T'}
     from_alias = _vectors.copy()
     from_alias.update(_scalars)
     from_alias.update({
@@ -29,21 +29,23 @@ class Data:
         'Z': 'Z',
         'V': 'V',
         'W': 'W',
-        'E': 'E',
+        'R': 'R',
         'F': 'F',
-        'K': 'K'
+        'T': 'T'
     })
     all_mats = to_alias.keys()
 
     def __init__(self, name,
                  X, Y=None, Z=None, P=None,
                  U=None, V=None, W=None, Q=None,
-                 E=None, F=None,
+                 R=None,
                  l=None, m=None,
-                 K=None,
+                 T=None,
                  C=None,
                  columns=None, history=None):
         """
+        TODO: update.
+
             Immutable lazy data for all machine learning scenarios
              we could imagine.
              Matrices Y, Z, V and W can be accessed as vectors y, z, v and w
