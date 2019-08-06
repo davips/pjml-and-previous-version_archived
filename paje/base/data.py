@@ -12,8 +12,8 @@ from paje.util.encoders import pack_data, uuid, json_unpack, zlibext_pack
 class Data:
     """ Data
     """
-    _vectors = {i: i.upper() for i in ['y', 'z', 'v', 'w', 'e', 'f']}
-    _scalars = {'r': 'R', 't': 'T'}
+    _vectors = {i: i.upper() for i in ['y', 'z', 'v', 'w']}
+    _scalars = {'r': 'R', 's': 'S', 't': 'T'}
     from_alias = _vectors.copy()
     from_alias.update(_scalars)
     from_alias.update({
@@ -30,7 +30,7 @@ class Data:
         'V': 'V',
         'W': 'W',
         'R': 'R',
-        'F': 'F',
+        'S': 'S',
         'T': 'T'
     })
     all_mats = to_alias.keys()
@@ -38,7 +38,7 @@ class Data:
     def __init__(self, name,
                  X, Y=None, Z=None, P=None,
                  U=None, V=None, W=None, Q=None,
-                 R=None,
+                 R=None, S=None,
                  l=None, m=None,
                  T=None,
                  C=None,
@@ -334,7 +334,7 @@ class Data:
         h = 'History\n'
         htab = ''
         while child:
-            h += htab + str(child[0],child[1]) + '\n'
+            h += htab + str(child[0], child[1]) + '\n'
             child = child[2]
             htab += '    '
         return '\n'.join(txt) + "\nname: " + self.name + "\n" + h

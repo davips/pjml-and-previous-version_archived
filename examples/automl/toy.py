@@ -14,7 +14,8 @@ from paje.ml.metric.supervised.classification.mclassif import Metrics
 def main():
     if len(sys.argv[1:]) < 1 or any(['=' not in k for k in sys.argv[1:]]):
         print('Usage: \npython toy.py data=/tmp/dataset.arff '
-              '[iter=#] [seed=#] [storage=mysql/sqlite/cached] [db=dna] ')
+              '[iter=#] [seed=#] [storage=mysql/sqlite/cached/dump] ['
+              'db=dna] ')
     else:
         arg = {tupl.split('=')[0]: tupl.split('=')[1] for tupl in sys.argv[1:]}
         dt = DT.cs()
@@ -42,6 +43,9 @@ def main():
             elif arg['storage'] == 'mysql':
                 from paje.storage.mysql import MySQL
                 storage = MySQL(db=arg['db'], debug=not True)
+            elif arg['storage'] == 'dump':
+                from paje.storage.pickledfile import PickledFile
+                storage = PickledFile()
             elif arg['storage'] == 'cached':
                 from paje.storage.mysql import MySQL
                 from paje.storage.sqlite import SQLite

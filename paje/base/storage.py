@@ -1,5 +1,6 @@
 from paje.automl.composer.composer import Composer
 from paje.storage.mysql import MySQL
+from paje.storage.pickledfile import PickledFile
 from paje.storage.sqlite import SQLite
 from paje.util.distributions import choice
 
@@ -16,6 +17,8 @@ class Storage(Composer):
             self._storage = MySQL(**settings)
         elif engine == "sqlite":
             self._storage = SQLite(**settings)
+        elif engine == "dump":
+            self._storage = PickledFile(**settings)
         else:
             raise Exception('Unknown engine:', settings['engine'])
         self.component = self.components[0]

@@ -148,6 +148,7 @@ class SQL(Cache):
                 Q char(19),
 
                 R char(19),
+                S char(19),
 
                 l char(19),
                 m char(19),
@@ -172,7 +173,7 @@ class SQL(Cache):
                 FOREIGN KEY (W) REFERENCES mat(mid),
                 FOREIGN KEY (Q) REFERENCES mat(mid),
                 FOREIGN KEY (R) REFERENCES mat(mid),
-                FOREIGN KEY (F) REFERENCES mat(mid),
+                FOREIGN KEY (S) REFERENCES mat(mid),
                 FOREIGN KEY (l) REFERENCES mat(mid),
                 FOREIGN KEY (m) REFERENCES mat(mid),
                 FOREIGN KEY (T) REFERENCES mat(mid),
@@ -195,7 +196,7 @@ class SQL(Cache):
         self.query(f'CREATE INDEX dataw ON data (W)')
         self.query(f'CREATE INDEX dataq ON data (Q)')
         self.query(f'CREATE INDEX datae ON data (R)')
-        self.query(f'CREATE INDEX dataf ON data (F)')
+        self.query(f'CREATE INDEX datas ON data (S)')
         self.query(f'CREATE INDEX datal ON data (l)')
         self.query(f'CREATE INDEX datam ON data (m)')
         self.query(f'CREATE INDEX datak ON data (T)')
@@ -354,7 +355,7 @@ class SQL(Cache):
                     ?,?,
                     ?,?,
                     ?,?,
-                    ?,
+                    ?,?,
                     ?,
                     ?,?,
                     ?,
@@ -368,7 +369,7 @@ class SQL(Cache):
                          data.field_uuid('Z'), data.field_uuid('P'),
                          data.field_uuid('U'), data.field_uuid('V'),
                          data.field_uuid('W'), data.field_uuid('Q'),
-                         data.field_uuid('R'),
+                         data.field_uuid('R'),data.field_uuid('S'),
                          data.field_uuid('l'), data.field_uuid('m'),
                          data.field_uuid('T'),
                          data.field_uuid('C')
@@ -688,7 +689,7 @@ class SQL(Cache):
 
         sql = f'''
                 select 
-                    X,Y,Z,P,U,V,W,Q,R,F,l,m,T,C,cols,des
+                    X,Y,Z,P,U,V,W,Q,R,S,l,m,T,C,cols,des
                 from 
                     data 
                         left join dataset on dataset=dsid 
@@ -751,7 +752,7 @@ class SQL(Cache):
     def get_data_by_uuid_impl(self, datauuid):
         sql = f'''
                 select 
-                    X,Y,Z,P,U,V,W,Q,R,F,l,m,T,C,cols,nested,des
+                    X,Y,Z,P,U,V,W,Q,R,S,l,m,T,C,cols,nested,des
                 from 
                     data 
                         left join dataset on dataset=dsid 

@@ -147,8 +147,9 @@ class RandomAutoML(AutoML):
         pip = Storage(
             config={
                 'configs': [alg],
-                'engine': 'sqlite',
-                'settings': {'db': 'paje'},
+                'engine': 'dump',
+                'settings': {},
+                # 'settings': {'db': 'paje'},
                 'nested': None,
                 'dump': False,
                 'random_state': self.random_state
