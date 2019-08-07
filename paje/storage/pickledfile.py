@@ -21,10 +21,10 @@ class PickledFile(Cache):
         return uuid(str((input_data.name, component.config)).encode())
 
     def store_data_impl(self, data):
-        pickle.dump(data, data.uuid() + '.pickle')
+        pickle.dump(data, data.uuid() + '.dump')
 
     def lock_impl(self, component, input_data):
-        Path(self._outdata_uuid(component, input_data) + '.pickle').touch()
+        Path(self._outdata_uuid(component, input_data) + '.dump').touch()
 
     def get_result_impl(self, component, input_data):
         # Not available from previous attempts?
@@ -39,32 +39,32 @@ class PickledFile(Cache):
 
         # Not started yet?
         if not Path(self._outdata_uuid(component, input_data) +
-                    '.pickle').exists():
+                    '.dump').exists():
             return None, False, False
 
         # Locked?
         if Path(
-                self._outdata_uuid(component, input_data) + '.pickle'
+                self._outdata_uuid(component, input_data) + '.dump'
         ).stat().st_size == 0:
             component.locked_by_others = True
             return None, True, False
 
         # Successful.
         output_data = pickle.load(
-            self._outdata_uuid(component, input_data) + '.pickle'
+            self._outdata_uuid(component, input_data) + '.dump'
         )
         component.time_spent = -1
         component.host = 'unknown'
         return output_data, True, True
 
     def store_result_impl(self, component, input_data, output_data):
-        pickle.dump(output_data, output_data.uuid + '.pickle')
+        pickle.dump(output_data, output_data.uuid + '.dump')
 
         # Store dump if requested.
         dump_uuid = self._dump_uuid(component, input_data)
         if self._dump:
             pickle.dump(
-                component, dump_uuid + '.pickle'
+                component, dump_uuid + '.dump'
             )
 
         # Store a log if apply() failed.

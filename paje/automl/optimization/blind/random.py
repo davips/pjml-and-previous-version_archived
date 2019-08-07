@@ -132,7 +132,6 @@ class RandomAutoML(AutoML):
             random_state=self.random_state
         )
 
-
         alg = Pipeline.cfg(
             configs=[
                 Iterator.cfg(
@@ -160,8 +159,10 @@ class RandomAutoML(AutoML):
             configs=[
                 Storage.cfg(
                     configs=[pip_config],
-                    engine='sqlite',
-                    settings={'db': 'paje'},
+                    engine='dump',
+                    settings={},
+                    # engine='sqlite',
+                    # settings={'db': 'paje'},
                     nested=None,
                     dump=False
                 ),
