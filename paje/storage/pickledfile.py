@@ -15,13 +15,19 @@ class PickledFile(Cache):
         return uuid(str((
             input_data.name, component.config, component.op, input_data.history
         )).encode())
+        # return component.name + component.op + \
+        #        str(input_data.history[0])
 
     @staticmethod
     def _dump_uuid(component, input_data):
         return uuid(str((input_data.name, component.config)).encode())
 
     def store_data_impl(self, data):
-        pickle.dump(data, data.uuid() + '.dump')
+        pickle.dump(
+            data,
+            # open(data.name + str(data.history[0]) + data.uuid() + '.dump', 'wb')
+            open(data.uuid() + '.dump', 'wb')
+        )
 
     def lock_impl(self, component, input_data):
         Path(self._outdata_uuid(component, input_data) + '.dump').touch()
@@ -32,7 +38,7 @@ class PickledFile(Cache):
             return None, True, component.failed is not None
 
         # Failed?
-        if Path(self._outdata_uuid(component, input_data) + '.fail'):
+        if Path(self._outdata_uuid(component, input_data) + '.fail').exists():
             component.failed = True
             ended = component.failed is not None
             return None, True, ended
@@ -53,35 +59,39 @@ class PickledFile(Cache):
         output_data = pickle.load(
             self._outdata_uuid(component, input_data) + '.dump'
         )
+        component.failed = False
         component.time_spent = -1
         component.host = 'unknown'
         return output_data, True, True
 
     def store_result_impl(self, component, input_data, output_data):
-        pickle.dump(output_data, output_data.uuid + '.dump')
+        print('NOT dumping inputdata........................')
+        # pickle.dump(input_data, open(input_data.uuid + '.dump', 'wb'))
 
         # Store dump if requested.
         dump_uuid = self._dump_uuid(component, input_data)
         if self._dump:
             pickle.dump(
-                component, dump_uuid + '.dump'
+                component, open(dump_uuid + '.dump', 'wb')
             )
 
         # Store a log if apply() failed.
-        if component.failure is not None:
-            fw = open(dump_uuid, 'w')
+        if component.failed:
+            print('failing........................')
+            fw = open(dump_uuid + '.log', 'w')
             fw.write(component.failure)
             fw.close()
+            Path(self._outdata_uuid(component, input_data) + '.fail').touch()
 
         # Unlock and save result.
-        if component.failed:
-            Path(self._outdata_uuid(component, input_data) + '.fail').touch()
+        print('storing........................')
         self.store_data_impl(output_data)
 
         print(self.name, 'Stored!\n')
 
     def get_data_by_name_impl(self, name, fields=None, history=None):
         raise NotImplementedError('todo')
+
     #     """
     #     To just recover the original dataset you can pass history=None.
     #     Specify fields if you want to reduce traffic, otherwise all available

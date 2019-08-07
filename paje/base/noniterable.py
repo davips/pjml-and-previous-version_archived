@@ -96,8 +96,8 @@ class NonIterable(Component):
 
     def check_if_applied(self):
         if self._train_data_uuid__mutable is None:
-            raise UseWithoutApply(f'{self.name} should be applied after a '
-                                  f'build!')
+            str = f'{self.name} should be applied after a build!'
+            raise UseWithoutApply(str)
 
     def sid(self):
         """
