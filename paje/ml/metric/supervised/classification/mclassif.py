@@ -8,5 +8,4 @@ class Metrics:
 
     @classmethod
     def accuracy(cls, data):
-        print(22222223333333333,(data.y, data.z), data.C)
         return accuracy_score(data.y, data.z)

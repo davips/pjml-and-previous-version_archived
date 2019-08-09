@@ -49,7 +49,7 @@ class Cache(ABC):
         """
         self.nested_storage = nested_storage
         self.sync = sync
-        self.name = self.__class__.__name__
+        self.name = ' < < < < < < ' + self.__class__.__name__ + ' > > > > > > > '
 
     @profile
     def _nested_first(self, f, *args):
