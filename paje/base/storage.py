@@ -20,7 +20,7 @@ class Storage(Composer):
         elif engine == "dump":
             self._storage = PickledFile(**settings)
         else:
-            raise Exception('Unknown engine:', settings['engine'])
+            raise Exception('Unknown engine:', engine)
         self.component = self.components[0]
 
         self._storage._dump = config['dump']

@@ -21,7 +21,9 @@ class Data:
         'U': 'U',
         'l': 'l',
         'm': 'm',
-        'C': 'C'
+        'C': 'C',
+        'P': 'P',
+        'Q': 'Q'
     })
     to_alias = {v: k for k, v in from_alias.items()}
     from_alias.update({
