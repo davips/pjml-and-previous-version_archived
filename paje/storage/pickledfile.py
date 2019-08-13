@@ -5,17 +5,27 @@ from paje.storage.cache import Cache
 from paje.util.encoders import pack_comp, unpack_comp
 
 
-def load(file):
-    f = open(file, 'rb')
-    return unpack_comp(f.read())
-
-
 class PickledFile(Cache):
-    @staticmethod
-    def dump(obj, file):
-        f = open(file, 'wb')
-        f.write(pack_comp(obj))
-        f.close()
+    def __init__(self, optimize='speed', db='/tmp/', nested_storage=None,
+                 sync=False):
+        super().__init__(nested_storage=nested_storage, sync=sync)
+        self.db = db
+        self.speed = optimize == 'speed' # vs 'space'
+
+    def load(self, file):
+        f = open(self.db + file, 'rb')
+        if self.speed:
+            return pickle.load(f)
+        else:
+            return unpack_comp(f.read())
+
+    def dump(self, obj, file):
+        f = open(self.db + file, 'wb')
+        if self.speed:
+            pickle.dump(obj,f)
+        else:
+            f.write(pack_comp(obj))
+            f.close()
 
     @staticmethod
     def _resfile(component, input_data):
@@ -57,7 +67,7 @@ class PickledFile(Cache):
 
         # Successful.
         print(self.name, 'Successful.', file)
-        output_data = load(file + '.dump')
+        output_data = self.load(file + '.dump')
         component.failed = False
         component.time_spent = -1
         component.host = 'unknown'

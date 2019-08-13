@@ -160,7 +160,7 @@ class RandomAutoML(AutoML):
                 Storage.cfg(
                     configs=[pip_config],
                     engine='dump',
-                    settings={},
+                    settings={'optimize': 'speed'},
                     # engine='mysql',
                     # settings={'db': 'paje'},
                     # engine='sqlite',
