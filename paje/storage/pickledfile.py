@@ -2,16 +2,28 @@ import _pickle as pickle
 from pathlib import Path
 
 from paje.storage.cache import Cache
+from paje.util.encoders import pack_comp, unpack_comp
+
+
+def load(file):
+    f = open(file, 'rb')
+    return unpack_comp(f.read())
 
 
 class PickledFile(Cache):
     @staticmethod
+    def dump(obj, file):
+        f = open(file, 'wb')
+        f.write(pack_comp(obj))
+        f.close()
+
+    @staticmethod
     def _resfile(component, input_data):
         return f'{component.uuid}-{component.train_data_uuid__mutable()}' \
-               f'-{component.op}-{input_data.name_uuid()}'
+               f'-{component.op}-{input_data.uuid()}'
 
     def store_data_impl(self, data, file=None):
-        pickle.dump(data, open((file or data.uuid()) + '.dump', 'wb'))
+        self.dump(data, (file or data.uuid()) + '.dump')
 
     def lock_impl(self, component, input_data):
         print(self.name, 'Locking...\n',
@@ -45,7 +57,7 @@ class PickledFile(Cache):
 
         # Successful.
         print(self.name, 'Successful.', file)
-        output_data = pickle.load(open(file + '.dump', 'rb'))
+        output_data = load(file + '.dump')
         component.failed = False
         component.time_spent = -1
         component.host = 'unknown'
@@ -53,14 +65,12 @@ class PickledFile(Cache):
 
     def store_result_impl(self, component, input_data, output_data):
         print(self.name, 'NOT dumping inputdata..')
-        # pickle.dump(input_data, open(input_data.uuid + '.dump', 'wb'))
+        # pickle.dump(input_data, input_data.uuid + '.dump')
 
         # Store dump if requested.
         if self._dump:
-            pickle.dump(
-                component, open(self._resfile(component, input_data) +
-                                '-comp.dump', 'wb')
-            )
+            self.dump(component,
+                      self._resfile(component, input_data) + '-comp.dump')
 
         # Store a log if apply() failed.
         if component.failed:

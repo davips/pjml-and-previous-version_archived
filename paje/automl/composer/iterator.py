@@ -18,8 +18,9 @@ class Iterator(Composer):
         chain = data.C
         idx = 0
         for split in splits:
-            component.apply(split.apply(data))
-            aux = component.use(split.apply(data))
+            train_data = split.apply(data)
+            component.apply(train_data)
+            aux = component.use(train_data)
             if aux is None:
                 break
             chain = Chain(aux.get(self.field), chain, idx=idx)
@@ -42,7 +43,8 @@ class Iterator(Composer):
         chain = data.C
         idx = 0
         for split, component in self.model:
-            aux = component.use(split.use(data))
+            test_data = split.use(data)
+            aux = component.use(test_data)
             if aux is None:
                 break
 

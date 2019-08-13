@@ -188,10 +188,12 @@ class RandomAutoML(AutoML):
             }
         )
 
+        print('aaaaaaaaaaaaaaaaaaaaaaaaa')
         datapp = pip.apply(data)
         if datapp is None:
             return pip, (None, None)
 
+        print('uuuuuuuuuuuuuuuuuuuuuuuuu')
         datause = pip.use(data)
         if datause is None:
             return pip, (None, None)
