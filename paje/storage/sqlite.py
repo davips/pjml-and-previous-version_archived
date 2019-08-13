@@ -5,13 +5,13 @@ from paje.storage.sql import SQL
 
 
 class SQLite(SQL):
-    def __init__(self, db='/tmp/paje.db', debug=False, read_only=False,
+    def __init__(self, db='/tmp/paje', debug=False, read_only=False,
                  nested_storage=None, sync=False):
         super().__init__(nested_storage=nested_storage, sync=sync)
         self.info = db
         self.read_only = read_only
         self.hostname = socket.gethostname()
-        self.database = db
+        self.database = db + '.db'
         self.debug = debug
         self._open()
 
