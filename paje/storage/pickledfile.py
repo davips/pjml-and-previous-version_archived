@@ -2,13 +2,13 @@ import _pickle as pickle
 from pathlib import Path
 
 from paje.storage.cache import Cache
-from paje.util.encoders import uuid
 
 
 class PickledFile(Cache):
     @staticmethod
     def _resfile(component, input_data):
-        return f'{component.uuid}-{component.op}-{input_data.name_uuid()}'
+        return f'{component.uuid}-{component.train_data_uuid__mutable()}' \
+               f'-{component.op}-{input_data.name_uuid()}'
 
     def store_data_impl(self, data, file=None):
         pickle.dump(data, open((file or data.uuid()) + '.dump', 'wb'))
@@ -155,7 +155,8 @@ class PickledFile(Cache):
     #                                          **json_unpack(result['cfg']))
 
     def get_data_by_uuid_impl(self, datauuid):
-        raise NotImplementedError('todo')
+        raise NotImplementedError('Storage in dump mode (pickledfile) cannot'
+                                  ' recover training data from storage')
 
     #     sql = f'''
     #             select
