@@ -1,55 +1,22 @@
-import warnings
+import _pickle as pickle
 from pathlib import Path
 
-import _pickle as pickle
-
-from paje.base.component import Component
-from paje.base.data import Data
 from paje.storage.cache import Cache
-from paje.util.encoders import uuid, zlibext_pack
+from paje.util.encoders import uuid
 
 
 class PickledFile(Cache):
     @staticmethod
-    def _outdata_uuid(component, input_data):
-        print('11111111111111111', input_data.name_uuid())
-        print('222222222222222222', uuid(zlibext_pack((
-            component.config,
-            component.op,
-            input_data.history
-        ))))
-        print('2222222333333', ((
-            component.config,
-            component.op,
-            input_data.history
-        )))
-        print()
-        return uuid((input_data.name_uuid() + uuid(zlibext_pack((
-            component.config,
-            component.op,
-            input_data.history
-        )))).encode())
-        # return component.name + component.op + \
-        #        str(input_data.history[0])
+    def _resfile(component, input_data):
+        return f'{component.uuid}-{component.op}-{input_data.name_uuid()}'
 
-    @staticmethod
-    def _dump_uuid(component, input_data):
-        return uuid(str((input_data.name, component.config)).encode())
-
-    def store_data_impl(self, data):
-        print(33333333333, data.name_uuid())
-        print(44444444444, data.history_uuid())
-        print(55555555555, data.history)
-        pickle.dump(
-            data,
-            # open(data.name + str(data.history[0]) + data.uuid() + '.dump', 'wb')
-            open(data.uuid() + '.dump', 'wb')
-        )
+    def store_data_impl(self, data, file=None):
+        pickle.dump(data, open((file or data.uuid()) + '.dump', 'wb'))
 
     def lock_impl(self, component, input_data):
         print(self.name, 'Locking...\n',
-              self._outdata_uuid(component, input_data))
-        Path(self._outdata_uuid(component, input_data) + '.dump').touch()
+              self._resfile(component, input_data))
+        Path(self._resfile(component, input_data) + '.dump').touch()
 
     def get_result_impl(self, component, input_data):
         # Not available from previous attempts?
@@ -58,7 +25,7 @@ class PickledFile(Cache):
             return None, True, component.failed is not None
 
         # Failed?
-        file = self._outdata_uuid(component, input_data)
+        file = self._resfile(component, input_data)
         if Path(file + '.fail').exists():
             print(self.name, 'W: Failed.', file)
             component.failed = True
@@ -78,7 +45,7 @@ class PickledFile(Cache):
 
         # Successful.
         print(self.name, 'Successful.', file)
-        output_data = pickle.load(file + '.dump')
+        output_data = pickle.load(open(file + '.dump', 'rb'))
         component.failed = False
         component.time_spent = -1
         component.host = 'unknown'
@@ -89,24 +56,24 @@ class PickledFile(Cache):
         # pickle.dump(input_data, open(input_data.uuid + '.dump', 'wb'))
 
         # Store dump if requested.
-        dump_uuid = self._dump_uuid(component, input_data)
         if self._dump:
             pickle.dump(
-                component, open(dump_uuid + '.dump', 'wb')
+                component, open(self._resfile(component, input_data) +
+                                '-comp.dump', 'wb')
             )
 
         # Store a log if apply() failed.
         if component.failed:
             print('failing........................')
-            fw = open(dump_uuid + '.log', 'w')
+            fw = open(self._resfile(component, input_data) + '.log', 'w')
             fw.write(component.failure)
             fw.close()
-            Path(self._outdata_uuid(component, input_data) + '.fail').touch()
+            Path(self._resfile(component, input_data) + '.fail').touch()
 
         # Unlock and save result.
-        self.store_data_impl(output_data)
+        self.store_data_impl(output_data, self._resfile(component, input_data))
 
-        print(self.name, 'Stored!\n', output_data.uuid())
+        print(self.name, 'Stored!\n', self._resfile(component, input_data))
 
     def get_data_by_name_impl(self, name, fields=None, history=None):
         raise NotImplementedError('todo')
