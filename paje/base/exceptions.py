@@ -13,11 +13,13 @@ msgs = ['All features are either constant or ignored.',  # CB
         'excess of neurons',
         ]
 
+
 def handle_exception(component, e):
     print('Trying to handle: ' + str(e))
     if not any([str(e).__contains__(msg) for msg in msgs]):
         traceback.print_exc()
-        raise ExceptionInApplyOrUse(e)
+        exit(0)
+        # raise ExceptionInApplyOrUse(e)
 
 
 class ExceptionInApplyOrUse(Exception):

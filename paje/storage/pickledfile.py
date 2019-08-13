@@ -76,7 +76,8 @@ class PickledFile(Cache):
         print(self.name, 'Stored!\n', self._resfile(component, input_data))
 
     def get_data_by_name_impl(self, name, fields=None, history=None):
-        raise NotImplementedError('todo')
+        raise NotImplementedError('Storage in dump mode (pickledfile) cannot'
+                                  ' recover data by name')
 
     #     """
     #     To just recover the original dataset you can pass history=None.
@@ -156,7 +157,7 @@ class PickledFile(Cache):
 
     def get_data_by_uuid_impl(self, datauuid):
         raise NotImplementedError('Storage in dump mode (pickledfile) cannot'
-                                  ' recover training data from storage')
+                                  ' recover (training?) data by uuid')
 
     #     sql = f'''
     #             select
@@ -188,7 +189,8 @@ class PickledFile(Cache):
     #     return Data(columns=zlibext_unpack(row['cols']), **dic)
     #
     def get_finished_names_by_mark_impl(self, mark):
-        raise NotImplementedError('todo')
+        raise NotImplementedError('Storage in dump mode (pickledfile) cannot'
+                                  ' recover data by mark')
 
     #     """
     #     Finished means nonfailed and unlocked results.

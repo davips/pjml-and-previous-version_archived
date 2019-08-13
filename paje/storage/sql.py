@@ -575,7 +575,7 @@ class SQL(Cache):
         if result['des'] is not None:
             # sanity check
             if result['des'] != input_data.name:
-                raise Exception('Result name differs from input data',
+                raise Exception('Resulting data name differs from input data',
                                 f"{result['des']}!={input_data.name}")
 
             # Recover relevant matrices/vectors.
