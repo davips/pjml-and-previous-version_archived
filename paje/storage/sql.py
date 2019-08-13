@@ -630,7 +630,6 @@ class SQL(Cache):
         now = self._now_function()
 
         # Store dump if requested.
-        print(2222222222, self._dump)
         dump_uuid = uuid(
             (component.uuid + component.train_data_uuid__mutable()).encode()
         ) if self._dump else None

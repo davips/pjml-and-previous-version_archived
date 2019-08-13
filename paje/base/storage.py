@@ -38,6 +38,8 @@ class Storage(Composer):
         )
 
         if started:
+            self.component._train_data_uuid__mutable = \
+                self.train_data_uuid__mutable()
             if self.component.failed:
                 print(f"Won't apply on data {data.name}"
                       f"\nCurrent {self.component.name} already failed before.")

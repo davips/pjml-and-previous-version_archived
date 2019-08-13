@@ -63,11 +63,12 @@ class NonIterable(Component):
         """Todo the doc string
         """
         self.op = 'u'
-        self.check_if_applied()
 
         if data is None:
             print(f"Using {self.name} on None returns None.")
             return None
+
+        self.check_if_applied()
 
         self.handle_warnings()
         if self.name != 'CV':
