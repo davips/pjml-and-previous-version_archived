@@ -161,7 +161,7 @@ class SQL(Cache):
                 upd timestamp,
 
                 unique(dataset, hist),
-                FOREIGN KEY (dataset) REFERENCES dataset(nid),
+                FOREIGN KEY (dataset) REFERENCES dataset(dsid),
                 FOREIGN KEY (hist) REFERENCES hist(hid),
                 
                 FOREIGN KEY (X) REFERENCES mat(mid),
@@ -630,9 +630,10 @@ class SQL(Cache):
         now = self._now_function()
 
         # Store dump if requested.
-        dump_uuid = self._dump and uuid(
+        print(2222222222, self._dump)
+        dump_uuid = uuid(
             (component.uuid + component.train_data_uuid__mutable()).encode()
-        )
+        ) if self._dump else None
         if self._dump:
             sql = f'insert or ignore into inst values (null, ?, ?)'
             # pack_comp is nondeterministic and its result is big,

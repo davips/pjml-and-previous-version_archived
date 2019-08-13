@@ -161,8 +161,10 @@ class RandomAutoML(AutoML):
                     configs=[pip_config],
                     # engine='dump',
                     # settings={},
-                    engine='sqlite',
+                    engine='mysql',
                     settings={'db': 'paje'},
+                    # engine='sqlite',
+                    # settings={'db': 'paje'},
                     nested=None,
                     dump=False
                 ),
