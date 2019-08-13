@@ -1,3 +1,5 @@
+import traceback
+
 import numpy
 
 from paje.searchspace.hp import CatHP
@@ -21,10 +23,19 @@ class Summ(Element):
 
     def use_impl(self, data):
         chain, values = data.C.pop()
-        return data.updated(
+        try:
+            return data.updated(
             self,
             C=chain,
             **{self.field: self._function(values)})
+        except TypeError as e:
+            if str(e).__contains__('cannot perform reduce with flexible type'):
+                traceback.print_exc()
+                print(values)
+                print('W: TODO: put a correct msg here : You probably have to '
+                      'reset your storage due to '
+                      'incompatible versions of Pajé.')
+                exit(0)
 
     @classmethod
     def cs_impl(cls):

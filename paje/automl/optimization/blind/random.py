@@ -124,15 +124,36 @@ class RandomAutoML(AutoML):
         return self.best_eval
 
     def eval(self, pip_config, data):
-        internal = Pipeline.cfg(
-            configs=[
-                pip_config,
-                Metric.cfg(function='accuracy')  # from Y to r
-            ],
-            random_state=self.random_state
-        )
+        fast = False
 
-        alg = Pipeline.cfg(
+        if fast:
+            internal = Pipeline.cfg(
+                configs=[
+                    pip_config,
+                    Metric.cfg(function='accuracy')  # from Y to r
+                ],
+                random_state=self.random_state
+            )
+        else:
+            internal = Pipeline.cfg(
+                configs=[
+                    Storage.cfg(
+                        configs=[pip_config],
+                        # engine='dump',
+                        # settings={'optimize': 'speed'},
+                        # engine='mysql',
+                        # settings={'db': 'paje'},
+                        engine='sqlite',
+                        settings={'db': 'paje'},
+                        nested=None,
+                        dump=False
+                    ),
+                    Metric.cfg(function='accuracy')  # from Y to r
+                ],
+                random_state=self.random_state
+            )
+
+        iterat = Pipeline.cfg(
             configs=[
                 Iterator.cfg(
                     iterable=CV.cfg(split='cv', steps=10, fields=['X', 'Y']),
@@ -143,50 +164,28 @@ class RandomAutoML(AutoML):
             ]
         )
 
-        pip = Storage(
-            config={
-                'configs': [alg],
-                'engine': 'dump',
-                'settings': {},
-                # 'settings': {'db': 'paje'},
-                'nested': None,
-                'dump': False,
-                'random_state': self.random_state
-            }
-        )
-
-        internal = Pipeline.cfg(
-            configs=[
-                Storage.cfg(
-                    configs=[pip_config],
-                    engine='dump',
-                    settings={'optimize': 'speed'},
-                    # engine='mysql',
-                    # settings={'db': 'paje'},
-                    # engine='sqlite',
-                    # settings={'db': 'paje'},
-                    nested=None,
-                    dump=False
-                ),
-                Metric.cfg(function='accuracy')  # from Y to r
-            ],
-            random_state=self.random_state
-        )
-
-        pip = Pipeline(
-            config={
-                'configs': [
-                    Iterator.cfg(
-                        iterable=CV.cfg(split='cv', steps=10, fields=['X', 'Y'],
-                                        random_state=self.random_state),
-                        configs=[internal],
-                        field='r'
-                    ),
-                    Summ.cfg(field='s', function='mean')
-                ],
-                'random_state': self.random_state
-            }
-        )
+        if fast:
+            pip = Storage(
+                config={
+                    'configs': [iterat],
+                    # engine='dump',
+                    # settings={'optimize': 'speed'},
+                    # 'engine': 'mysql',
+                    # 'settings': {'db': 'paje'},
+                    'engine': 'sqlite',
+                    'settings': {'db': 'paje'},
+                    'nested': None,
+                    'dump': False,
+                    'random_state': self.random_state
+                }
+            )
+        else:
+            pip = Pipeline(
+                config={
+                    'configs': [iterat],
+                    'random_state': self.random_state
+                }
+            )
 
         print('aaaaaaaaaaaaaaaaaaaaaaaaa')
         datapp = pip.apply(data)
