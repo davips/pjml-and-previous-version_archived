@@ -21,7 +21,12 @@ class Cache(ABC):
     def __init__(self, nested_storage=None, sync=False):
         """
         This class stores and recovers results from some place.
-        :param nested_storage: usually the nested storage is local and the
+        :param nested_storage:
+            NOTE: Apparently, this nested implementation is useless,
+            since one can emulate it nesting two Storages manually.
+
+            ORIGINAL TEXT:
+            usually the nested storage is local and the
             other is remote. So, all operations occur locally,
             but failed local look ups are tried again remotely.
             If the look up succeeds, then it inserts a replication locally.
