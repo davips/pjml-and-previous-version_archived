@@ -124,7 +124,7 @@ class RandomAutoML(AutoML):
         return self.best_eval
 
     def eval(self, pip_config, data):
-        fast = True  # TODO: True -> composer line 35, KeyError: 'random_state'
+        fast = False  # TODO: True -> composer line 35, KeyError: 'random_state'
         if fast:
             internal = Seq.cfg(
                 configs=[
