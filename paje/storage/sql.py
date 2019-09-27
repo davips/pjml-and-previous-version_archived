@@ -3,7 +3,7 @@ from abc import abstractmethod
 
 from paje.base.component import Component
 from paje.base.data import Data
-from paje.storage.cache import Cache
+from paje.storage.persistence import Persistence
 from paje.util.encoders import unpack_data, pack_comp, \
     uuid, zlibext_pack, zlibext_unpack, mysql_compress, pack_data
 
@@ -18,7 +18,7 @@ except KeyError:
         return func
 
 
-class SQL(Cache):
+class SQL(Persistence):
     @abstractmethod
     def _on_conflict(self, fields=None):
         pass

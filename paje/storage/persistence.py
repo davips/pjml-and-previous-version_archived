@@ -12,7 +12,7 @@ except KeyError:
         return func
 
 
-class Cache(ABC):
+class Persistence(ABC):
     """
     The children classes are expected to provide storage in e.g.:
      SQLite, remote/local MongoDB, MySQL server or even CSV files.

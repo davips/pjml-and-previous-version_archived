@@ -13,7 +13,7 @@ For more information about the Composer concept see [1].
 from paje.automl.composer.composer import Composer
 
 
-class Pipeline(Composer):
+class Seq(Composer):
     # def build_impl(self, **config):
     #     """
     #     The only parameter is config with the dic of each component.

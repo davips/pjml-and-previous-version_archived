@@ -1,11 +1,11 @@
 import _pickle as pickle
 from pathlib import Path
 
-from paje.storage.cache import Cache
+from paje.storage.persistence import Persistence
 from paje.util.encoders import pack_comp, unpack_comp
 
 
-class PickledFile(Cache):
+class PickledFile(Persistence):
     def __init__(self, optimize='speed', db='/tmp/', nested_storage=None,
                  sync=False):
         super().__init__(nested_storage=nested_storage, sync=sync)

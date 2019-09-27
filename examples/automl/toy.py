@@ -1,9 +1,10 @@
 import sys
 
-from paje.automl.composer.pipeline import Pipeline
-from paje.automl.composer.switch import Switch
+from paje.automl.composer.seq import Seq
+from paje.automl.composer.any import Any
 from paje.automl.optimization.blind.random import RandomAutoML
 from paje.base.data import Data
+from paje.base.cache import Cache
 from paje.ml.element.modelling.supervised.classifier.dt import DT
 from paje.ml.element.modelling.supervised.classifier.nb import NB
 from paje.ml.element.preprocessing.unsupervised.feature.scaler.equalization import \
@@ -14,16 +15,17 @@ from paje.ml.metric.supervised.classification.mclassif import Metrics
 def main():
     if len(sys.argv[1:]) < 1 or any(['=' not in k for k in sys.argv[1:]]):
         print('Usage: \npython toy.py data=/tmp/dataset.arff '
-              '[iter=#] [seed=#] [storage=mysql/sqlite/cached/dump] ['
+              '[iter=#] [seed=#] [storage=mysql/sqlite/cached/file/sync] ['
               'db=dna] ')
     else:
         arg = {tupl.split('=')[0]: tupl.split('=')[1] for tupl in sys.argv[1:]}
+
         dt = DT.cs()
         nb = NB.cs()
         eq = Equalization.cs()
-        pip2 = Pipeline.cs(config_spaces=[eq])
-        pip1 = Pipeline.cs(config_spaces=[dt])
-        sw = Switch.cs(config_spaces=[dt, nb])
+        pip2 = Seq.cs(config_spaces=[eq])
+        pip1 = Seq.cs(config_spaces=[dt])
+        sw = Any.cs(config_spaces=[dt, nb])
         # pip1 = Pipeline.tree(config_spaces=[dt.tree()])
         # pip2 = Pipeline.tree(config_spaces=[pip1])
         print('configspace-----\n', pip1)
@@ -38,27 +40,36 @@ def main():
 
         if 'storage' in arg:
             if arg['storage'] == 'sqlite':
-                from paje.storage.sqlite import SQLite
-                storage = SQLite(debug=not True)
+                storage = {
+                    'engine': 'sqlite',
+                    'settings': {'db': arg['db']},
+                    # 'nested': None,
+                    # 'dump': False
+                }
             elif arg['storage'] == 'mysql':
-                from paje.storage.mysql import MySQL
-                storage = MySQL(db=arg['db'], debug=not True)
-            elif arg['storage'] == 'dump':
-                from paje.storage.pickledfile import PickledFile
-                storage = PickledFile()
+                storage = {
+                    'engine': 'mysql',
+                    'settings': {'db': arg['db']},
+                }
+            elif arg['storage'] == 'file':
+                storage = {
+                    'engine': 'file',
+                    'settings': {'optimize': 'speed', 'db': arg['db']}
+                }
             elif arg['storage'] == 'cached':
-                from paje.storage.mysql import MySQL
-                from paje.storage.sqlite import SQLite
-                storage = MySQL(db=arg['db'], nested=SQLite())
+                storage = {
+                    'engine': 'nested',
+                    'settings': {'sync': False, 'db': arg['db']},
+                }
             elif arg['storage'] == 'sync':
-                from paje.storage.mysql import MySQL
-                from paje.storage.sqlite import SQLite
-                storage = MySQL(db=arg['db'], nested=SQLite(),
-                                sync=True)
+                storage = {
+                    'engine': 'nested',
+                    'settings': {'sync': True, 'db': arg['db']},
+                }
             else:
                 raise Exception('Wrong storage', arg['storage'])
         else:
-            storage = None
+            storage = {'engine': 'amnesia', 'settings': {}}
 
         iterations = int(arg['iter']) if 'iter' in arg else 3
         random_state = int(arg['seed']) if 'seed' in arg else 0
@@ -74,6 +85,7 @@ def main():
             max_iter=iterations,
             pipe_length=2, repetitions=1,
             random_state=random_state,
+            cache_settings_for_components=storage,
             config={}
         )
         automl_rs.apply(trainset)

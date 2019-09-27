@@ -1,8 +1,8 @@
 import numpy as np
 from paje.automl.automl import AutoML
 from paje.automl.composer.iterator import Iterator
-from paje.automl.composer.pipeline import Pipeline
-from paje.base.storage import Storage
+from paje.automl.composer.seq import Seq
+from paje.base.cache import Cache
 from paje.ml.element.posprocessing.metric import Metric
 from paje.ml.element.posprocessing.summ import Summ
 from paje.ml.element.preprocessing.supervised.instance.sampler.cv import CV
@@ -16,7 +16,7 @@ class RandomAutoML(AutoML):
                  pipe_length,
                  repetitions,
                  random_state,
-                 storage_settings_for_components=None,
+                 cache_settings_for_components=None,
                  **kwargs):
         """
         AutoML
@@ -63,7 +63,7 @@ class RandomAutoML(AutoML):
         # Other class attributes.
         # These attributes can be set here or in the build_impl method. They
         # should not influence the AutoML final result.
-        self.storage_settings_for_components = storage_settings_for_components
+        self.storage_settings_for_components = cache_settings_for_components
 
         # Class internal attributes
         # Attributes that were not parameterizable
@@ -79,7 +79,7 @@ class RandomAutoML(AutoML):
         """ TODO the docstring documentation
         """
         components = self.choose_modules()
-        tree = Pipeline.cs(config_spaces=components)
+        tree = Seq.cs(config_spaces=components)
 
         config = tree.sample()
 
@@ -111,7 +111,7 @@ class RandomAutoML(AutoML):
     def get_best_pipeline(self):
         """ TODO the docstring documentation
         """
-        return Pipeline(self.best_pipe)
+        return Seq(self.best_pipe)
 
     def get_current_eval(self):
         """ TODO the docstring documentation
@@ -124,10 +124,9 @@ class RandomAutoML(AutoML):
         return self.best_eval
 
     def eval(self, pip_config, data):
-        fast = False
-
+        fast = True  # TODO: True -> composer line 35, KeyError: 'random_state'
         if fast:
-            internal = Pipeline.cfg(
+            internal = Seq.cfg(
                 configs=[
                     pip_config,
                     Metric.cfg(function='accuracy')  # from Y to r
@@ -135,25 +134,18 @@ class RandomAutoML(AutoML):
                 random_state=self.random_state
             )
         else:
-            internal = Pipeline.cfg(
+            internal = Seq.cfg(
                 configs=[
-                    Storage.cfg(
+                    Cache.cfg(
                         configs=[pip_config],
-                        # engine='dump',
-                        # settings={'optimize': 'speed'},
-                        # engine='mysql',
-                        # settings={'db': 'paje'},
-                        engine='sqlite',
-                        settings={'db': 'paje'},
-                        nested=None,
-                        dump=False
+                        **self.storage_settings_for_components
                     ),
                     Metric.cfg(function='accuracy')  # from Y to r
                 ],
                 random_state=self.random_state
             )
 
-        iterat = Pipeline.cfg(
+        iterat = Seq.cfg(
             configs=[
                 Iterator.cfg(
                     iterable=CV.cfg(split='cv', steps=10, fields=['X', 'Y']),
@@ -165,22 +157,11 @@ class RandomAutoML(AutoML):
         )
 
         if fast:
-            pip = Storage(
-                config={
-                    'configs': [iterat],
-                    # engine='dump',
-                    # settings={'optimize': 'speed'},
-                    # 'engine': 'mysql',
-                    # 'settings': {'db': 'paje'},
-                    'engine': 'sqlite',
-                    'settings': {'db': 'paje'},
-                    'nested': None,
-                    'dump': False,
-                    'random_state': self.random_state
-                }
-            )
+            dic = self.storage_settings_for_components
+            dic['configs'] = [iterat]
+            pip = Cache(config=dic)
         else:
-            pip = Pipeline(
+            pip = Seq(
                 config={
                     'configs': [iterat],
                     'random_state': self.random_state

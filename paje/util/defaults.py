@@ -1,5 +1,5 @@
 from paje.automl.composer.frozen import Frozen
-from paje.automl.composer.pipeline import Pipeline
+from paje.automl.composer.seq import Seq
 from paje.ml.element.modelling.supervised.classifier.dt import DT
 from paje.ml.element.modelling.supervised.classifier.knn import KNN
 from paje.ml.element.modelling.supervised.classifier.mlp import MLP
@@ -39,7 +39,7 @@ ready_classifiers = [DT(), KNN(), MLP(), NB(), RF(), SVM()]
 # TODO: AB is not ready and CB is too heavy
 ready_transformers = [DRPCA(), DRFA(), DRGRP(), DRPCA(), DRSRP()]
 ready_scalers = [Equalization(), Standard()]
-pip_chi_squared = [Pipeline(components=[
+pip_chi_squared = [Seq(components=[
     Frozen(Equalization(), feature_range=(0, 1)),
     FilterChiSquare()
 ])]
@@ -55,10 +55,10 @@ knn = KNN()
 pca = DRPCA()
 std = Standard()
 eq = Equalization()
-pipe_pca = Pipeline(components=[eq, pca])
-pipe2 = Pipeline(components=[pipe_pca, std, pca])
-knn2 = Pipeline(components=[pipe2, knn])
-mlp = Pipeline(components=[pca, MLP()])
+pipe_pca = Seq(components=[eq, pca])
+pipe2 = Seq(components=[pipe_pca, std, pca])
+knn2 = Seq(components=[pipe2, knn])
+mlp = Seq(components=[pca, MLP()])
 
 # def_pipelines = [
 #     pca,

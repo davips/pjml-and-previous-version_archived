@@ -1,29 +1,35 @@
 from paje.automl.composer.composer import Composer
-from paje.storage.mysql import MySQL
+from paje.storage.amnesia import Amnesia
 from paje.storage.pickledfile import PickledFile
-from paje.storage.sqlite import SQLite
 from paje.util.distributions import choice
 
 
-class Storage(Composer):
+class Cache(Composer):
     def __init__(self, config, **kwargs):
         super().__init__(config, **kwargs)
         self.uuid = self.components[0].uuid
         settings = config['settings']
         engine = config['engine']
-        # TODO nested??
-
-        if engine == "mysql":
+        if engine == "amnesia":
+            from paje.storage.mysql import MySQL
+            self._storage = Amnesia(**settings)
+        elif engine == "mysql":
+            from paje.storage.mysql import MySQL
             self._storage = MySQL(**settings)
         elif engine == "sqlite":
+            from paje.storage.sqlite import SQLite
             self._storage = SQLite(**settings)
-        elif engine == "dump":
+        elif engine == "nested":
+            from paje.storage.mysql import MySQL
+            from paje.storage.sqlite import SQLite
+            self._storage = MySQL(db=settings['db'], nested=SQLite())
+        elif engine == "file":
             self._storage = PickledFile(**settings)
         else:
             raise Exception('Unknown engine:', engine)
         self.component = self.components[0]
 
-        self._storage._dump = config['dump']
+        self._storage._dump = 'dump' in config # TODO: not used yet!
 
     @staticmethod
     def sampling_function(config_spaces):
