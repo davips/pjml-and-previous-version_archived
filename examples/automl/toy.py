@@ -15,7 +15,7 @@ from paje.ml.metric.supervised.classification.mclassif import Metrics
 def main():
     if len(sys.argv[1:]) < 1 or any(['=' not in k for k in sys.argv[1:]]):
         print('Usage: \npython toy.py data=/tmp/dataset.arff '
-              '[iter=#] [seed=#] [storage=mysql/sqlite/cached/file/sync] ['
+              '[iter=#] [seed=#] [cache=mysql/sqlite/nested/file/sync] ['
               'db=dna] ')
     else:
         arg = {tupl.split('=')[0]: tupl.split('=')[1] for tupl in sys.argv[1:]}
@@ -38,38 +38,38 @@ def main():
         for k, v in arg.items():
             print(f'{k}={v}')
 
-        if 'storage' in arg:
-            if arg['storage'] == 'sqlite':
-                storage = {
+        if 'cache' in arg:
+            if arg['cache'] == 'sqlite':
+                cache = {
                     'engine': 'sqlite',
                     'settings': {'db': arg['db']},
                     # 'nested': None,
                     # 'dump': False
                 }
-            elif arg['storage'] == 'mysql':
-                storage = {
+            elif arg['cache'] == 'mysql':
+                cache = {
                     'engine': 'mysql',
                     'settings': {'db': arg['db']},
                 }
-            elif arg['storage'] == 'file':
-                storage = {
+            elif arg['cache'] == 'file':
+                cache = {
                     'engine': 'file',
                     'settings': {'optimize': 'speed', 'db': arg['db']}
                 }
-            elif arg['storage'] == 'cached':
-                storage = {
+            elif arg['cache'] == 'nested':
+                cache = {
                     'engine': 'nested',
                     'settings': {'sync': False, 'db': arg['db']},
                 }
-            elif arg['storage'] == 'sync':
-                storage = {
+            elif arg['cache'] == 'sync':
+                cache = {
                     'engine': 'nested',
                     'settings': {'sync': True, 'db': arg['db']},
                 }
             else:
-                raise Exception('Wrong storage', arg['storage'])
+                raise Exception('Wrong cache', arg['cache'])
         else:
-            storage = {'engine': 'amnesia', 'settings': {}}
+            cache = {'engine': 'amnesia', 'settings': {}}
 
         iterations = int(arg['iter']) if 'iter' in arg else 3
         random_state = int(arg['seed']) if 'seed' in arg else 0
@@ -85,7 +85,7 @@ def main():
             max_iter=iterations,
             pipe_length=2, repetitions=1,
             random_state=random_state,
-            cache_settings_for_components=storage,
+            cache_settings_for_components=cache,
             config={}
         )
         automl_rs.apply(trainset)
