@@ -1,3 +1,4 @@
+import json
 import sys
 
 from paje.automl.composer.seq import Seq
@@ -16,7 +17,7 @@ def main():
     if len(sys.argv[1:]) < 1 or any(['=' not in k for k in sys.argv[1:]]):
         print('Usage: \npython toy.py data=/tmp/dataset.arff '
               '[iter=#] [seed=#] [cache=mysql/sqlite/nested/file/sync] ['
-              'db=dna] ')
+              'db=dna] [server=user:pass@ip]')
     else:
         arg = {tupl.split('=')[0]: tupl.split('=')[1] for tupl in sys.argv[1:]}
 
@@ -49,7 +50,7 @@ def main():
             elif arg['cache'] == 'mysql':
                 cache = {
                     'engine': 'mysql',
-                    'settings': {'db': arg['db']},
+                    'settings': {'db': arg['db'], 'server': arg['server']},
                 }
             elif arg['cache'] == 'file':
                 cache = {
