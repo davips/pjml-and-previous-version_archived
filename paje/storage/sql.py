@@ -45,7 +45,7 @@ class SQL(Persistence):
             create table if not exists hist (
                 n integer NOT NULL primary key {self._auto_incr()},
 
-                hid char(19) NOT NULL UNIQUE,
+                hid char(19) NOT NULL UNIQUE, 
 
                 nested LONGBLOB NOT NULL
             )''')
