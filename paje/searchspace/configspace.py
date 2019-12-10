@@ -42,7 +42,7 @@ class ConfigSpace:
             child = choice(node.children)
 
             config = self._elem_hps_to_config(child)
-            args.update(config)
+            args.update(config)  # freeze: hps filhos se sobrepõe ao hps atual!
 
         return args
 
