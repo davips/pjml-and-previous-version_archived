@@ -16,6 +16,8 @@ class HeavyTransformer(Transformer, ABC):
             return EarlyEndedModel(self, data, data)
         if data.allfrozen:
             return EarlyEndedModel(self, data, data.frozen)
+        # TODO: We should check if this 'if' is necessary, because when a model
+        #  fail a FailedModel with frozen data is returned
         if data.failure:
             return FailedModel(self, data, data)
 
