@@ -1,9 +1,9 @@
 from abc import ABC
 
-from pjml.tool.abc.lighttransformer import LightTransformer
+from pjml.tool.abc.transformer import ISTransformer
 
 
-class Invisible(LightTransformer, ABC):
+class Invisible(ISTransformer, ABC):
     """Parent class of all atomic transformers that don't increase history
     of transformations.
 

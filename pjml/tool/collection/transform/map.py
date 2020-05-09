@@ -2,7 +2,7 @@ from pjdata.infinitecollection import InfiniteCollection
 
 from pjml.config.description.cs.containercs import ContainerCS
 from pjml.tool.abc.minimalcontainer import MinimalContainer1
-from pjml.tool.abc.transformer import Transformer
+from pjml.tool.abc.transformer import UTransformer
 from pjml.tool.model.containermodel import ContainerModel
 
 
@@ -13,7 +13,7 @@ class Map(MinimalContainer1):
         """Shortcut to create a ConfigSpace."""
         if transformers is None:
             transformers = args
-        if all([isinstance(t, Transformer) for t in transformers]):
+        if all([isinstance(t, UTransformer) for t in transformers]):
             return object.__new__(cls)
         return ContainerCS(Map.name, Map.path, transformers)
 

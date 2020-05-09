@@ -2,10 +2,10 @@ from abc import ABC
 from functools import lru_cache
 
 from pjdata.aux.decorator import classproperty
-from pjml.tool.abc.heavytransformer import HeavyTransformer
+from pjml.tool.abc.transformer import DTransformer
 
 
-class Container(HeavyTransformer, ABC):
+class Container(DTransformer, ABC):
     """A container modifies 'transformer(s)'."""
 
     def __init__(self, config, seed, transformers, deterministic):

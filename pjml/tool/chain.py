@@ -2,7 +2,7 @@ from itertools import dropwhile
 
 from pjml.config.description.cs.chaincs import ChainCS
 from pjml.tool.abc.minimalcontainer import MinimalContainerN
-from pjml.tool.abc.transformer import Transformer
+from pjml.tool.abc.transformer import UTransformer
 from pjml.tool.model.containermodel import FailedContainerModel, ContainerModel
 from pjml.tool.data.flow.sink import Sink
 from pjml.util import flatten
@@ -18,7 +18,7 @@ class Chain(MinimalContainerN):
         """Shortcut to create a ConfigSpace."""
         if transformers is None:
             transformers = args
-        if all([isinstance(t, Transformer) for t in transformers]):
+        if all([isinstance(t, UTransformer) for t in transformers]):
             return object.__new__(cls)
         return ChainCS(*transformers)
 

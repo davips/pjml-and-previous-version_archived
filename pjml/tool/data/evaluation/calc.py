@@ -4,12 +4,11 @@ from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.distributions import choice
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import CatP
-from pjml.tool.abc.lighttransformer import LightTransformer
 from pjml.tool.abc.mixin.functioninspector import FunctionInspector
-from pjml.tool.model.model import Model
+from pjml.tool.abc.transformer import ISTransformer
 
 
-class Calc(LightTransformer, FunctionInspector):
+class Calc(ISTransformer, FunctionInspector):
     """Calc to evaluate a given Data field.
 
     Developer: new metrics can be added just following the pattern '_fun_xxxxx'
@@ -33,9 +32,9 @@ class Calc(LightTransformer, FunctionInspector):
         self.selected = [self.function_from_name[name] for name in functions]
         self.functions = functions
 
-    def _apply_impl(self, data):
-        applied = self._use_impl(data, step='a')
-        return Model(self, data, applied)
+    # def _apply_impl(self, data):
+    #     applied = self._use_impl(data, step='a')
+    #     return Model(self, data, applied)
 
     def _use_impl(self, data, step='u'):
         if self.input_field not in data.matrices:
@@ -47,7 +46,6 @@ class Calc(LightTransformer, FunctionInspector):
                           for function in self.selected]
         dic = {self.output_field: np.array(result_vectors)}
         return data.updated(self.transformations(step), **dic)
-
 
     @classmethod
     def _cs_impl(cls):

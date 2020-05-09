@@ -707,9 +707,9 @@ class ISTransformer(ITransformer, ABC):
     In this type of transformer, the 'apply' method is not dependent
     of the 'use'. It can run without the preavious use of the 'apply' method.
     """
-    @abstractmethod
     def _apply_impl(self, data):
         # TODO: implement the Container Model Case
+        # I think that a container model came aways from DTransfomer ...
         after_data = self._use_impl(data, step='a')
         return Model(self, data, after_data)
 

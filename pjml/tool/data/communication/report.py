@@ -20,14 +20,17 @@ class Report(Invisible):
         super().__init__({'text': text}, deterministic=True)
         self.text = text
 
-    def _apply_impl(self, data):
-        if data is not None:
+    # def _apply_impl(self, data):
+    #     if data is not None:
+    #         print('[apply] ', self._interpolate(self.text, data))
+    #
+    #     return Model(self, data, data)
+
+    def _use_impl(self, data, step='u'):
+        if step == 'a':
             print('[apply] ', self._interpolate(self.text, data))
-
-        return Model(self, data, data)
-
-    def _use_impl(self, data, *args):
-        print('[use] ', self._interpolate(self.text, data))
+        else:
+            print('[use] ', self._interpolate(self.text, data))
         return data
 
     @classmethod

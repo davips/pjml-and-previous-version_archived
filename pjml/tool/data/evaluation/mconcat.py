@@ -4,17 +4,11 @@ from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.distributions import choice
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import CatP
-from pjml.pipeline import Pipeline
-from pjml.tool.abc.lighttransformer import LightTransformer
 from pjml.tool.abc.mixin.functioninspector import FunctionInspector
-from pjml.tool.data.communication.report import Report
-from pjml.tool.data.flow.applyusing import ApplyUsing
-from pjml.tool.data.flow.file import File
-from pjml.tool.data.modeling.supervised.classifier.nb import NB
-from pjml.tool.model.model import Model
+from pjml.tool.abc.transformer import ISTransformer
 
 
-class MConcat(LightTransformer, FunctionInspector):
+class MConcat(ISTransformer, FunctionInspector):
     """Calc to evaluate a given Data field.
 
     Developer: new metrics can be added just following the pattern '_fun_xxxxx'
@@ -46,9 +40,9 @@ class MConcat(LightTransformer, FunctionInspector):
                 f"direction = {direction}."
             )
 
-    def _apply_impl(self, data):
-        applied = self._use_impl(data, step='a')
-        return Model(self, data, applied)
+    # def _apply_impl(self, data):
+    #     applied = self._use_impl(data, step='a')
+    #     return Model(self, data, applied)
 
     def _use_impl(self, data, step='u'):
         mats = [data.field(f, self) for f in self.fields]
@@ -71,13 +65,3 @@ class MConcat(LightTransformer, FunctionInspector):
             'output_field': CatP(choice, items=['S'])
         }
         return TransformerCS(Node(params=params))
-
-# TODO: create a proper test?
-# p = Pipeline(
-#     File('iris.arff'),
-#     ApplyUsing(NB()),
-#     Report('$X $Y $Z'),
-#     MConcat(fields=['X','Y','Z'], output_field='A'),
-#     Report('$A')
-# )
-# p.apply()

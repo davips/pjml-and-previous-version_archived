@@ -3,16 +3,15 @@ from pjdata.step.transformation import Transformation
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import FixedP
-from pjml.tool.abc.lighttransformer import LightTransformer
 from pjml.tool.abc.mixin.nodatahandler import NoDataHandler
 
 # Precisa herdar de Invisible, pois o mesmo Data pode vir de diferentes
 # caminhos de arquivo (File) ou servidores (Source) e essas informações são
 # irrelevantes para reprodutibilidade. Herdando de Invisible, o histórico é [].
-from pjml.tool.model.model import Model
+from pjml.tool.abc.transformer import ISTransformer
 
 
-class File(LightTransformer, NoDataHandler):
+class File(ISTransformer, NoDataHandler):
     """Source of Data object from CSV, ARFF, file.
 
     TODO: always classification task?
@@ -58,12 +57,12 @@ class File(LightTransformer, NoDataHandler):
         super().__init__(config, deterministic=True)
         self.data = data
 
-    def _apply_impl(self, data):
-        self._enforce_nodata(data, 'a')
-        return Model(self, data, self.data)
+    # def _apply_impl(self, data):
+    #     self._enforce_nodata(data, 'a')
+    #     return Model(self, data, self.data)
 
-    def _use_impl(self, data, **kwargs):
-        self._enforce_nodata(data, 'u')
+    def _use_impl(self, data, step='u'):
+        self._enforce_nodata(data, step)
         return self.data
 
     @classmethod

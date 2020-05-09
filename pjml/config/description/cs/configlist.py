@@ -16,9 +16,9 @@ class ConfigList(ConfigSpace):
             transformers = args
         super().__init__({'transformers': transformers})
 
-        from pjml.tool.abc.transformer import Transformer
+        from pjml.tool.abc.transformer import UTransformer
         for transformer in transformers:
-            if not isinstance(transformer, Transformer):
+            if not isinstance(transformer, UTransformer):
                 raise Exception(f'\nGiven: {type(transformer)}\n{transformer}\n'
                                 f'ConfigList does not accept config spaces, '
                                 f'only transformers!')

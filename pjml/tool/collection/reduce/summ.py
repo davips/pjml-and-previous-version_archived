@@ -28,7 +28,7 @@ class Summ(Reduce):
         super().__init__(self._to_config(locals()), deterministic=True)
         self.field = field
 
-    def _use_impl(self, collection, **kwargs):
+    def _use_impl(self, collection, step='u'):
         if collection.has_nones:
             # collection = Shrink().apply(collection)
             raise Exception(
@@ -44,9 +44,9 @@ class Summ(Reduce):
         res = self.function(collection)
         if isinstance(res, tuple):
             summ = numpy.array(res)
-            return data.updated(self.transformations('u'), S=summ)
+            return data.updated(self.transformations(step), S=summ)
         else:
-            return data.updated(self.transformations('u'), s=res)
+            return data.updated(self.transformations(step), s=res)
 
     @classmethod
     def _cs_impl(cls):

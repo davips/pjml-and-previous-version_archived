@@ -1,11 +1,10 @@
 from abc import ABC
 
 from pjml.config.description.cs.emptycs import EmptyCS
-from pjml.tool.abc.heavytransformer import HeavyTransformer
-from pjml.tool.abc.lighttransformer import LightTransformer
+from pjml.tool.abc.transformer import INSTransformer, DTransformer
 
 
-class HeavyConfigLess(HeavyTransformer, ABC):
+class HeavyConfigLess(DTransformer, ABC):
     """Parent class of all transformers without config."""
 
     def __init__(self):
@@ -16,7 +15,7 @@ class HeavyConfigLess(HeavyTransformer, ABC):
         return EmptyCS()
 
 
-class LightConfigLess(LightTransformer, ABC):
+class LightConfigLess(INSTransformer, ABC):
     """Parent class of all transformers without config. Also, apply==use."""
 
     def __init__(self):

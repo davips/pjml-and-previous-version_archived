@@ -1,10 +1,10 @@
-from pjml.tool.abc.heavytransformer import HeavyTransformer
+from pjml.tool.abc.transformer import DTransformer
 from pjml.tool.chain import Chain
 from pjml.tool.collection.expand.expand import Expand
 from pjml.tool.model.model import Model
 
 
-class Partition(HeavyTransformer):
+class Partition(DTransformer):
     """Class to perform, e.g. Expand+kfoldCV.
 
     This task is already done by function split(),

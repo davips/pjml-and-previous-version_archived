@@ -1,9 +1,8 @@
-from pjml.tool.abc.lighttransformer import LightTransformer
 from pjml.tool.abc.mixin.functioninspector import FunctionInspector
-from pjml.tool.model.model import Model
+from pjml.tool.abc.transformer import ISTransformer
 
 
-class Copy(LightTransformer, FunctionInspector):
+class Copy(ISTransformer, FunctionInspector):
     """Calc to evaluate a given Data field.
 
     Developer: new metrics can be added just following the pattern '_fun_xxxxx'
@@ -27,9 +26,9 @@ class Copy(LightTransformer, FunctionInspector):
         super().__init__(self._to_config(locals()), deterministic=True)
         self.from_field, self.to_field = from_field, to_field
 
-    def _apply_impl(self, data):
-        applied = self._use_impl(data, step='a')
-        return Model(self, data, applied)
+    # def _apply_impl(self, data):
+    #     applied = self._use_impl(data, step='a')
+    #     return Model(self, data, applied)
 
     def _use_impl(self, data, step='u'):
         for field in [self.from_field]:
