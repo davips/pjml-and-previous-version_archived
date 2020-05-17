@@ -26,7 +26,7 @@ class TPCA(TSKLAlgorithm):
         def predict(posterior):  # old use
             return posterior.updated(
                 self.transformations('u'),  # desnecessário?
-                X=self._info(prior)['sklearn_model'].transform(posterior.X)
+                X=info['sklearn_model'].transform(posterior.X)
             )
         return TTransformer(func=predict, **info)
 
