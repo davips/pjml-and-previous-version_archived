@@ -88,15 +88,18 @@ def multobj_automl(arq="abalone3.arff"):
     print('use .................')
     dataout = model.use(data)
 
-    def test_tsvmc(arq="abalone3.arff"):
-        pipe = Pipeline(TFile(), TSVMC())
-        prior, posterior = pipe.dual_transform()
+def test_tsvmc(arq="abalone3.arff"):
+    pipe = Pipeline(TFile(arq), TSVMC())
+    prior, posterior = pipe.dual_transform()
+    print(prior)
+    print(posterior)
 
 
 def main():
     """Main function"""
     printable_test()
     multobj_automl()
+    test_tsvmc()
 
 
 if __name__ == '__main__':
