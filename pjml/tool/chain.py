@@ -106,8 +106,8 @@ class TChain(TMinimalContainerN):
 
         def model_transform(posterior):
             for model in models:
-                posterior_result = model.transform(posterior)
-            return posterior_result
+                posterior = model.transform(posterior)
+            return posterior
         return TTransformer(func=model_transform)
 
     def transformations(self, step, clean=True):

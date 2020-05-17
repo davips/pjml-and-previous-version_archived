@@ -94,8 +94,8 @@ def test_tsvmc(arq="iris.arff"):
         TSVMC()
     )
     prior, posterior = pipe.dual_transform()
-    print("Prior...............\n", prior)
-    print("Posterior...........\n", posterior)
+    print("Prior..............\n", prior)
+    print("Posterior..........\n", posterior)
 
 
 def test_split(arq="iris.arff"):
@@ -106,8 +106,8 @@ def test_split(arq="iris.arff"):
         TSVMC()
     )
     prior, posterior = pipe.dual_transform()
-    print("Prior...............\n", prior)
-    print("Posterior...........\n", posterior)
+    print("Prior..............\n", prior)
+    print("Posterior..........\n", posterior)
 
 
 def test_metric(arq="iris.arff"):
@@ -119,8 +119,8 @@ def test_metric(arq="iris.arff"):
         TMetric(prior=False)
     )
     prior, posterior = pipe.dual_transform()
-    print("Prior...............\n", prior)
-    print("Posterior...........\n", posterior)
+    print("Prior..............\n", prior)
+    print("Posterior..........\n", posterior)
 
 
 def test_pca(arq="iris.arff"):
@@ -133,9 +133,22 @@ def test_pca(arq="iris.arff"):
         TMetric(prior=False)
     )
     prior, posterior = pipe.dual_transform()
-    print("Prior...............\n", prior)
-    print("Posterior...........\n", posterior)
+    print("Prior..............\n", prior)
+    print("Posterior..........\n", posterior)
 
+
+def test_partition(arq="iris.arff"):
+    cs = TFile(arq).cs
+    pipe = TPipeline(
+        TFile(arq),
+        TSplit(),
+        TPCA(),
+        TSVMC(),
+        TMetric(prior=False)
+    )
+    prior, posterior = pipe.dual_transform()
+    print("Prior..............\n", prior)
+    print("Posterior..........\n", posterior)
 
 def main():
     """Main function"""
