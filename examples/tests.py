@@ -13,12 +13,13 @@ from pjml.tool.data.evaluation.calc import Calc
 from pjml.tool.data.evaluation.mconcat import MConcat
 from pjml.tool.data.evaluation.metric import Metric
 from pjml.tool.data.flow.applyusing import ApplyUsing
-from pjml.tool.data.flow.file import File
+from pjml.tool.data.flow.file import File, TFile
 from pjml.tool.data.flow.onlyoperation import OnlyApply, OnlyUse
 from pjml.tool.data.manipulation.copy import Copy
 from pjml.tool.data.modeling.supervised.classifier.dt import DT
 from pjml.tool.data.modeling.supervised.classifier.nb import NB
 from pjml.tool.data.modeling.supervised.classifier.rf import RF
+from pjml.tool.data.modeling.supervised.classifier.svmc import TSVMC
 from pjml.tool.data.processing.feature.binarize import Binarize
 from pjml.tool.data.processing.feature.selector.selectkbest import SelectBest
 from pjml.tool.meta.wrap import Wrap
@@ -86,6 +87,10 @@ def multobj_automl(arq="abalone3.arff"):
     model = best_pipe.apply(data)
     print('use .................')
     dataout = model.use(data)
+
+    def test_tsvmc(arq="abalone3.arff"):
+        pipe = Pipeline(TFile(), TSVMC())
+        prior, posterior = pipe.dual_transform()
 
 
 def main():

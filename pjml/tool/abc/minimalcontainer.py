@@ -1,7 +1,7 @@
 from abc import ABC
 
 from pjml.tool.abc.container1 import Container1
-from pjml.tool.abc.containern import ContainerN
+from pjml.tool.abc.containern import ContainerN, TContainerN
 
 
 # TODO: Until now, every MinimalContainer is deterministic.
@@ -30,3 +30,14 @@ class MinimalContainerN(ContainerN, ABC):
         if transformers is None:
             transformers = args
         super().__init__({}, seed, transformers, deterministic=True)
+
+
+class TMinimalContainerN(TContainerN, ABC):
+    """Container with minimum configuration (seed) for more than one
+    transformer."""
+
+    def __init__(self, *args, seed=0, transformers=None):
+        if transformers is None:
+            transformers = args
+        super().__init__({}, seed, transformers, deterministic=True)
+

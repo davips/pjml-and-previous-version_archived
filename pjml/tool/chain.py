@@ -1,7 +1,8 @@
 from itertools import dropwhile
 
 from pjml.config.description.cs.chaincs import ChainCS
-from pjml.tool.abc.minimalcontainer import MinimalContainerN
+from pjml.tool.abc.minimalcontainer import MinimalContainerN, TMinimalContainerN
+from pjml.tool.abc.mixin.component import TTransformer
 from pjml.tool.abc.transformer import UTransformer
 from pjml.tool.model.containermodel import FailedContainerModel, ContainerModel
 from pjml.tool.data.flow.sink import Sink
@@ -69,3 +70,68 @@ class Chain(MinimalContainerN):
         for t in self.transformers:
             txts.append(t.__str__(depth))
         return '\n'.join(txts)
+
+
+class TChain(TMinimalContainerN):
+    """Chain the execution of the given transformers.
+
+    Each arg is a transformer. Optionally, a list of them can be passed as a
+    named arg called 'transformers'."""
+
+    def __new__(cls, *args, seed=0, transformers=None):
+        """Shortcut to create a ConfigSpace."""
+        if transformers is None:
+            transformers = args
+        if all([isinstance(t, UTransformer) for t in transformers]):
+            return object.__new__(cls)
+        return ChainCS(*transformers)
+
+    def dual_transform(self, prior, posterior):
+        for trf in self.transformers:
+            prior, posterior = trf.dual_transform(prior, posterior)
+        return prior, posterior
+
+    def enhancer(self):
+        enhancers = [trf.enhancer() for trf in self.transformers]
+
+        def enhancer_transform(prior):
+            for enha in enhancers:
+                prior = enha.transform(prior)
+            return prior
+        return TTransformer(func=enhancer_transform)
+
+    def modeler(self, prior):
+        models = [trf.model(prior) for trf in self.transformers]
+
+        def model_transform(posterior):
+            for model in models:
+                posterior_result = model.transform(posterior)
+            return posterior_result
+        return TTransformer(func=model_transform)
+
+    def transformations(self, step, clean=True):
+        lst = []
+        for transformer in self.transformers:
+            transformations = transformer.transformations(step, clean=False)
+            lst.append(transformations)
+        result = flatten(lst)
+        if clean:
+            lst = []
+            previous = None
+            for transformation in result + [None]:
+                if previous and previous.name == "Sink":
+                    lst = []
+                lst.append(transformation)
+                previous = transformation
+            result = lst[:-1]
+        return result
+
+    def __str__(self, depth=''):
+        if not self.pretty_printing:
+            return super().__str__()
+
+        txts = []
+        for t in self.transformers:
+            txts.append(t.__str__(depth))
+        return '\n'.join(txts)
+
