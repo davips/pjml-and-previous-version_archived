@@ -5,7 +5,9 @@ from pjdata.aux.decorator import classproperty
 from pjdata.aux.serialization import serialize, materialize
 from pjdata.mixin.identifyable import Identifyable
 from pjdata.mixin.printable import Printable
+from pjdata.step.transformation import Transformation
 from pjml.config.description.cs.configlist import ConfigList
+from pjml.tool.abc.mixin.exceptionhandler import BadComponent
 
 
 class TComponent(Printable, Identifyable, ABC):
@@ -146,6 +148,20 @@ class TComponent(Printable, Identifyable, ABC):
             config = config.copy()
             config.update(kwargs)
         return materialize(self.name, self.path, config)
+
+    # TODO: Is unbounded lrucache a source of memory leak?
+    @lru_cache()
+    def transformations(self, step, clean=True):
+        """Expected transformation described as a list of Transformation
+        objects.
+
+        Child classes should override this method to perform non-atomic or
+        non-trivial transformations.
+        A missing implementation will be detected during apply/use."""
+        if step in 'au':
+            return [Transformation(self, step)]
+        else:
+            raise BadComponent('Wrong current step:', step)
 
 
 class TTransformer:
