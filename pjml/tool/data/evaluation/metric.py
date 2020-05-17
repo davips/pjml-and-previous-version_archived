@@ -125,7 +125,6 @@ class TMetric(TComponent, FunctionInspector):
             raise Exception(
                 f'Impossible to calculate metric {self.functions}: Field '
                 f'{self.prediction} does not exist!')
-        print(123123123123123123123)
         return data.updated(
             self.transformations(step),
             R=np.array([[f(data, self.target, self.prediction)

@@ -17,7 +17,7 @@ class TPCA(TSKLAlgorithm):
     @lru_cache()
     def _info(self, prior):  # old apply
         sklearn_model = self.algorithm_factory()
-        sklearn_model.fit(*prior.Xy)
+        sklearn_model.fit(prior.X)
         return {'sklearn_model': sklearn_model}
 
     def _modeler_impl(self, prior):
@@ -26,7 +26,7 @@ class TPCA(TSKLAlgorithm):
         def predict(posterior):  # old use
             return posterior.updated(
                 self.transformations('u'),  # desnecessário?
-                z=self._info(prior)['sklearn_model'].transform(posterior.X)
+                X=self._info(prior)['sklearn_model'].transform(posterior.X)
             )
         return TTransformer(func=predict, **info)
 
@@ -35,7 +35,7 @@ class TPCA(TSKLAlgorithm):
             info = self._info(prior)
             return prior.updated(
                 self.transformations('u'),  # desnecessário?
-                z=info['sklearn_model'].transform(prior.X)
+                X=info['sklearn_model'].transform(prior.X)
             )
         return TTransformer(func=predict)
 

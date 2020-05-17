@@ -92,7 +92,7 @@ class TChain(TMinimalContainerN):
             prior, posterior = trf.dual_transform(prior, posterior)
         return prior, posterior
 
-    def enhancer(self):
+    def _enhancer_impl(self):
         enhancers = [trf.enhancer() for trf in self.transformers]
 
         def enhancer_transform(prior):
@@ -101,7 +101,7 @@ class TChain(TMinimalContainerN):
             return prior
         return TTransformer(func=enhancer_transform)
 
-    def modeler(self, prior):
+    def _modeler_impl(self, prior):
         models = [trf.model(prior) for trf in self.transformers]
 
         def model_transform(posterior):
