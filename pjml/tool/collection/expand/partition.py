@@ -1,4 +1,4 @@
-from pjml.tool.abc.mixin.component import TComponent
+from pjml.tool.abc.mixin.component import TComponent, TTransformer
 from pjml.tool.abc.transformer import DTransformer
 from pjml.tool.chain import Chain, TChain
 from pjml.tool.collection.expand.expand import Expand, TExpand
@@ -115,27 +115,28 @@ class TPartition(TComponent):
             raise Exception('Wrong split_type: ', split_type)
 
         super().__init__(config)
-        from pjml.macro import split
+        from pjml.macro import tsplit
         self.transformer = TChain(
             TExpand(),
             tsplit(split_type, partitions, test_size, seed, fields)
         )
 
-    def _apply_impl(self, data):
-        splitter_model = self.transformer.apply(data)
-        applied = splitter_model.data.last_transformations_replaced(
-            drop=self.transformer.size,
-            transformation=self.transformations('a')[0]
-        )
+    def _info(self, prior):
+        splitter_model = self.transformer.model(prior)
+        return {'splitter_model': splitter_model}
 
-        return Model(self, data, applied, splitter_model=splitter_model)
+    def _modeler_impl(self, prior):
+        splitter_model = self._info(prior)['splitter_model']
 
-    def _use_impl(self, data, splitter_model=None):
-        used = splitter_model.use(data)
-        return used.last_transformations_replaced(
-            drop=self.transformer.size,
-            transformation=self.transformations('u')[0]
-        )
+        def func(posterior):
+            return splitter_model(posterior)
+        return TTransformer(func=func, splitter_model=splitter_model)
+
+    def _enhancer_impl(self):
+        def func(prior):
+            splitter_model = self._info(prior)['splitter_model']
+            return splitter_model(prior)
+        return TTransformer(func=func)
 
     @classmethod
     def _cs_impl(cls):

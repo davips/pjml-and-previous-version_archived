@@ -1,6 +1,6 @@
 from abc import ABC
 
-from pjml.tool.abc.container1 import Container1
+from pjml.tool.abc.container1 import Container1, TContainer1
 from pjml.tool.abc.containern import ContainerN, TContainerN
 
 
@@ -12,6 +12,17 @@ from pjml.tool.abc.containern import ContainerN, TContainerN
 
 
 class MinimalContainer1(Container1, ABC):
+    """Container with minimum configuration (seed) for a single transformer.
+
+    If more are given, they will be handled as a single Chain transformer."""
+
+    def __init__(self, *args, seed=0, transformers=None):
+        if transformers is None:
+            transformers = args
+        super().__init__({}, seed, transformers, deterministic=True)
+
+
+class TMinimalContainer1(TContainer1, ABC):
     """Container with minimum configuration (seed) for a single transformer.
 
     If more are given, they will be handled as a single Chain transformer."""

@@ -87,7 +87,6 @@ class TMulti(TMinimalContainerN):
 
     def _modeler_impl(self, prior_collection):
         self._check_collection(prior_collection)
-
         models = self._info(prior_collection)['models']
 
         def model_transform(posterior_collection):

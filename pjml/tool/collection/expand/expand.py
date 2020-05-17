@@ -27,10 +27,6 @@ class TExpand(TLightConfigLess):
     def _enhancer_impl(self):
         return TTransformer(func=self._func)
 
-    def _apply_impl(self, data):
-        applied = self._use_impl(data)
-        return Model(self, data, applied)
-
     def _func(self, data):
         transformation = self.transformations('u')[0]
         return InfiniteCollection(

@@ -4,7 +4,7 @@ Shortcuts of common CS/AutoML expressions or ML pipelines.
 from pjml.tool.collection.expand.partition import Partition
 from pjml.tool.collection.reduce.summ import Summ
 from pjml.tool.collection.transform.map import Map
-from pjml.tool.collection.transform.multi import Multi
+from pjml.tool.collection.transform.multi import Multi, TMulti
 from pjml.tool.chain import Chain
 
 
@@ -44,18 +44,18 @@ def split(split_type='cv', partitions=10, test_size=0.3, seed=0, fields=None):
     return Multi(*transformers)
 
 
-def split(split_type='cv', partitions=10, test_size=0.3, seed=0, fields=None):
+def tsplit(split_type='cv', partitions=10, test_size=0.3, seed=0, fields=None):
     """Make a sequence of Data splitters."""
-    from pjml.tool.data.evaluation.split import Split
+    from pjml.tool.data.evaluation.split import TSplit
     if fields is None:
         fields = ['X', 'Y']
     transformers = []
     for i in range(partitions):
-        s = Split(split_type, partitions, i, test_size, seed, fields)
+        s = TSplit(split_type, partitions, i, test_size, seed, fields)
         transformers.append(s)
     # from pjml.config.description.cs.finitecs import FiniteCS
     # return FiniteCS(trasformers=transformers).sample()
-    return Multi(*transformers)
+    return TMulti(*transformers)
 
 
 # def bag(*transformers):
