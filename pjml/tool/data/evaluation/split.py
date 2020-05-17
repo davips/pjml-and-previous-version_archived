@@ -141,12 +141,12 @@ class TSplit(TComponent, FunctionInspector):
         posterior = self._split(data, partitions[self.partition][1], step='u')
         return {"prior": prior, "posterior": posterior}
 
-    def modeler(self, prior):
+    def _modeler_impl(self, prior):
         def func(data):
             return self._info(data)["prior"]
         return TTransformer(func=func)
 
-    def enhancer(self):
+    def _enhancer_impl(self):
         def func(data):
             return self._info(data)["posterior"]
         return TTransformer(func=func)

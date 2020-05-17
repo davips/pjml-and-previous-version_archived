@@ -135,11 +135,11 @@ class TFile(TComponent, NoDataHandler):
             return self.data
         return TTransformer(func=func, )
 
-    def modeler(self, prior):
+    def _modeler_impl(self, prior):
         self._enforce_nodata(prior, 'a')  # fixei 'a'
         return self._transformer()
 
-    def enhancer(self):
+    def _enhancer_impl(self):
         return self._transformer()
 
     @classmethod

@@ -11,7 +11,8 @@ from pjml.tool.abc.mixin.exceptionhandler import BadComponent
 
 
 class TComponent(Printable, Identifyable, ABC):
-    def __init__(self, config, deterministic=False, nodata_handler=False):
+    def __init__(self, config, deterministic=False, nodata_handler=False,
+                 prior=True, posterior=True):
         jsonable = {'_id': f'{self.name}@{self.path}', 'config': config}
         Printable.__init__(self, jsonable)
 
@@ -22,12 +23,30 @@ class TComponent(Printable, Identifyable, ABC):
         self.nodata_handler = isinstance(self, NoDataHandler) or nodata_handler
 
         self.cs = self.cs1
+        self.prior = prior
+        self.posterior = posterior
+
+        if not self.prior:
+            pass
+
+        if not self.posterior:
+            pass
+
+    def _enhancer_impl(self):
+        return TTransformer()
+
+    def _modeler_impl(self, prior):
+        return TTransformer()
 
     def enhancer(self):
-        return TTransformer()
+        if not self.prior:
+            return TTransformer()
+        return self._enhancer_impl()
 
     def modeler(self, prior):
-        return TTransformer()
+        if not self.posterior:
+            return TTransformer()
+        return self._modeler_impl(prior)
 
     def dual_transform(self, prior, posterior):
         prior_result = self.enhancer().transform(prior)

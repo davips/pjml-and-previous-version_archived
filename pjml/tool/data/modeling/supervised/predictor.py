@@ -44,7 +44,7 @@ class TPredictor(TSKLAlgorithm, ABC):
         sklearn_model.fit(*prior.Xy)
         return {'sklearn_model': sklearn_model}
 
-    def modeler(self, prior):
+    def _modeler_impl(self, prior):
         info = self._info(prior)
 
         def predict(posterior):  # old use
