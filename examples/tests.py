@@ -88,7 +88,10 @@ def multobj_automl(arq="abalone3.arff"):
 
 def test_tsvmc(arq="iris.arff"):
     cs = TFile(arq).cs
-    pipe = TPipeline(TFile(arq), TSVMC())
+    pipe = TPipeline(
+        TFile(arq),
+        TSVMC()
+    )
     prior, posterior = pipe.dual_transform()
     print("Prior...............\n", prior)
     print("Posterior...........\n", posterior)
@@ -96,7 +99,11 @@ def test_tsvmc(arq="iris.arff"):
 
 def test_split(arq="iris.arff"):
     cs = TFile(arq).cs
-    pipe = TPipeline(TFile(arq), TSplit(), TSVMC())
+    pipe = TPipeline(
+        TFile(arq),
+        TSplit(),
+        TSVMC()
+    )
     prior, posterior = pipe.dual_transform()
     print("Prior...............\n", prior)
     print("Posterior...........\n", posterior)
@@ -104,7 +111,26 @@ def test_split(arq="iris.arff"):
 
 def test_metric(arq="iris.arff"):
     cs = TFile(arq).cs
-    pipe = TPipeline(TFile(arq), TSplit(), TSVMC(), TMetric(prior=False))
+    pipe = TPipeline(
+        TFile(arq),
+        TSplit(),
+        TSVMC(),
+        TMetric(prior=False)
+    )
+    prior, posterior = pipe.dual_transform()
+    print("Prior...............\n", prior)
+    print("Posterior...........\n", posterior)
+
+
+def test_pca(arq="iris.arff"):
+    cs = TFile(arq).cs
+    pipe = TPipeline(
+        TFile(arq),
+        TSplit(),
+        TPCA(),
+        TSVMC(),
+        TMetric(prior=False)
+    )
     prior, posterior = pipe.dual_transform()
     print("Prior...............\n", prior)
     print("Posterior...........\n", posterior)
@@ -116,7 +142,8 @@ def main():
     # multobj_automl()
     # test_tsvmc()
     # test_split()
-    test_metric()
+    # test_metric()
+    test_pca()
 
 
 if __name__ == '__main__':

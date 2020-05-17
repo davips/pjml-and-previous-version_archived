@@ -38,11 +38,13 @@ class TComponent(Printable, Identifyable, ABC):
     def _modeler_impl(self, prior):
         return TTransformer()
 
+    @lru_cache()
     def enhancer(self):
         if not self.prior:
             return TTransformer()
         return self._enhancer_impl()
 
+    @lru_cache()
     def modeler(self, prior):
         if not self.posterior:
             return TTransformer()
