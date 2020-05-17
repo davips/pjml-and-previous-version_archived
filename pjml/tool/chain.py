@@ -1,8 +1,9 @@
 from itertools import dropwhile
 
-from pjml.config.description.cs.chaincs import ChainCS
+from pjdata.specialdata import NoData
+from pjml.config.description.cs.chaincs import ChainCS, TChainCS
 from pjml.tool.abc.minimalcontainer import MinimalContainerN, TMinimalContainerN
-from pjml.tool.abc.mixin.component import TTransformer
+from pjml.tool.abc.mixin.component import TTransformer, TComponent
 from pjml.tool.abc.transformer import UTransformer
 from pjml.tool.model.containermodel import FailedContainerModel, ContainerModel
 from pjml.tool.data.flow.sink import Sink
@@ -82,11 +83,11 @@ class TChain(TMinimalContainerN):
         """Shortcut to create a ConfigSpace."""
         if transformers is None:
             transformers = args
-        if all([isinstance(t, UTransformer) for t in transformers]):
+        if all([isinstance(t, TComponent) for t in transformers]):
             return object.__new__(cls)
-        return ChainCS(*transformers)
+        return TChainCS(*transformers)
 
-    def dual_transform(self, prior, posterior):
+    def dual_transform(self, prior=NoData, posterior=NoData):
         for trf in self.transformers:
             prior, posterior = trf.dual_transform(prior, posterior)
         return prior, posterior

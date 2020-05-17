@@ -36,7 +36,7 @@ class HeavyAlgorithm(Algorithm, DTransformer, ABC):
 #         Algorithm.__init__(self, config, func, sklconfig, deterministic)
 
 
-class TSKLAlgorithm(TComponent):
+class TSKLAlgorithm(TComponent, ABC):
     """Base class for scikitlearn algorithms."""
 
     def __init__(self, config, func, sklconfig=None, deterministic=False):

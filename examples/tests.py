@@ -3,7 +3,7 @@ from pjml.config.operator.many import select
 from pjml.config.operator.reduction.full import full
 from pjml.config.operator.reduction.rnd import rnd
 from pjml.config.operator.single import hold
-from pjml.pipeline import Pipeline
+from pjml.pipeline import Pipeline, TPipeline
 from pjml.tool.chain import Chain
 from pjml.tool.collection.expand.partition import Partition
 from pjml.tool.collection.reduce.summ import Summ
@@ -35,10 +35,6 @@ def printable_test():
     print()
     print(repr(dt_tree))
     print(dt_tree)
-
-
-def pipe(args):
-    pass
 
 
 def multobj_automl(arq="abalone3.arff"):
@@ -88,17 +84,19 @@ def multobj_automl(arq="abalone3.arff"):
     print('use .................')
     dataout = model.use(data)
 
-def test_tsvmc(arq="abalone3.arff"):
-    pipe = Pipeline(TFile(arq), TSVMC())
+
+def test_tsvmc(arq="iris.arff"):
+    cs = TFile(arq).cs
+    pipe = TPipeline(TFile(arq), TSVMC())
     prior, posterior = pipe.dual_transform()
-    print(prior)
-    print(posterior)
+    print("Prior...............\n", prior)
+    print("Posterior...........\n", posterior)
 
 
 def main():
     """Main function"""
-    printable_test()
-    multobj_automl()
+    # printable_test()
+    # multobj_automl()
     test_tsvmc()
 
 

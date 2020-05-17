@@ -34,7 +34,7 @@ class Predictor(HeavyAlgorithm, EnforceApply, ABC):
             raise BadComponent('Wrong current step:', step)
 
 
-class TPredictor(TSKLAlgorithm):
+class TPredictor(TSKLAlgorithm, ABC):
     """
     Base class for classifiers, regressors, ... that implement fit/predict.
     """
@@ -42,9 +42,9 @@ class TPredictor(TSKLAlgorithm):
     def _info(self, prior):  # old apply
         sklearn_model = self.algorithm_factory()
         sklearn_model.fit(*prior.Xy)
-        return {'skle_model': sklearn_model}
+        return {'sklearn_model': sklearn_model}
 
-    def model(self, prior):
+    def modeler(self, prior):
         info = self._info(prior)
 
         def predict(posterior):  # old use

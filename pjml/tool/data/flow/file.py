@@ -135,7 +135,7 @@ class TFile(TComponent, NoDataHandler):
             return self.data
         return TTransformer(func=func, )
 
-    def model(self, prior):
+    def modeler(self, prior):
         self._enforce_nodata(prior, 'a')  # fixei 'a'
         return self._transformer()
 
@@ -150,7 +150,12 @@ class TFile(TComponent, NoDataHandler):
             'description': FixedP('No description.'),
             'matrices_hash': FixedP('1234567890123456789')
         }
+
+        # TODO: I think that we should set as follow:
+        # TransformerCS(nodes=[Node(params=params)])
         return TransformerCS(Node(params=params))
+
+
 
     def transformations(self, step, clean=True):
         return [Transformation(self, 'u')]

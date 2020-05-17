@@ -17,6 +17,7 @@ class TransformerCS(ComponentCS):
     """
 
     def __init__(self, name=None, path=None, nodes=None):
+        print(2222222222222222222)
         if nodes is None:
             raise Exception('TransformerCS should have a list of nodes!')
         super().__init__(name, path, None, nodes)

@@ -777,7 +777,7 @@ class DTransformer(UTransformer, ABC):
         self._check_history(data, model.data, self.transformations('a'))
         return model
 
-@dataclass
+
 class NTransformer(Printable, Identifyable, ExceptionHandler, Timers, ABC):
 
     def __init__(self, config,
