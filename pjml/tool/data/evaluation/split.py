@@ -134,11 +134,11 @@ class TSplit(TComponent, FunctionInspector):
         self.fields = fields
 
     @lru_cache()
-    def _info(self, prior):
-        zeros = numpy.zeros(prior.field(self.fields[0], self).shape[0])
+    def _info(self, data):
+        zeros = numpy.zeros(data.field(self.fields[0], self).shape[0])
         partitions = list(self.algorithm.split(X=zeros, y=zeros))
-        prior = self._split(prior, partitions[self.partition][0], step='a')
-        posterior = self._split(prior, partitions[self.partition][1], step='u')
+        prior = self._split(data, partitions[self.partition][0], step='a')
+        posterior = self._split(data, partitions[self.partition][1], step='u')
         return {"prior": prior, "posterior": posterior}
 
     def modeler(self, prior):

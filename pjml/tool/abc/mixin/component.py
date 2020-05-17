@@ -11,7 +11,7 @@ from pjml.tool.abc.mixin.exceptionhandler import BadComponent
 
 
 class TComponent(Printable, Identifyable, ABC):
-    def __init__(self, config, deterministic, nodata_handler=False,):
+    def __init__(self, config, deterministic=False, nodata_handler=False):
         jsonable = {'_id': f'{self.name}@{self.path}', 'config': config}
         Printable.__init__(self, jsonable)
 

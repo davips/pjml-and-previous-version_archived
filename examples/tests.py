@@ -12,7 +12,7 @@ from pjml.tool.data.communication.report import Report
 from pjml.tool.data.evaluation.calc import Calc
 from pjml.tool.data.evaluation.mconcat import MConcat
 from pjml.tool.data.evaluation.metric import Metric
-from pjml.tool.data.evaluation.split import Split
+from pjml.tool.data.evaluation.split import Split, TSplit
 from pjml.tool.data.flow.applyusing import ApplyUsing
 from pjml.tool.data.flow.file import File, TFile
 from pjml.tool.data.flow.onlyoperation import OnlyApply, OnlyUse
@@ -93,10 +93,10 @@ def test_tsvmc(arq="iris.arff"):
     print("Prior...............\n", prior)
     print("Posterior...........\n", posterior)
 
+
 def test_split(arq="iris.arff"):
     cs = TFile(arq).cs
-    pipe = TPipeline(TFile(arq), Split(), TSVMC())
-    print(pipe)
+    pipe = TPipeline(TFile(arq), TSplit(), TSVMC())
     prior, posterior = pipe.dual_transform()
     print("Prior...............\n", prior)
     print("Posterior...........\n", posterior)
@@ -106,7 +106,7 @@ def main():
     """Main function"""
     # printable_test()
     # multobj_automl()
-    test_tsvmc()
+    # test_tsvmc()
     test_split()
 
 
