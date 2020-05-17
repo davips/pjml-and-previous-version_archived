@@ -22,6 +22,7 @@ from pjml.tool.data.modeling.supervised.classifier.nb import NB
 from pjml.tool.data.modeling.supervised.classifier.rf import RF
 from pjml.tool.data.modeling.supervised.classifier.svmc import TSVMC
 from pjml.tool.data.processing.feature.binarize import Binarize
+from pjml.tool.data.processing.feature.reductor.pca import TPCA
 from pjml.tool.data.processing.feature.selector.selectkbest import SelectBest
 from pjml.tool.meta.wrap import Wrap
 
