@@ -83,6 +83,9 @@ class TChain(TMinimalContainerN):
         """Shortcut to create a ConfigSpace."""
         if transformers is None:
             transformers = args
+        for t in transformers:
+            print('AAAAAAAAAAAAAAAAAAAAA ', isinstance(t, TComponent))
+            print('TTTTTTTTTTTTTTTTTTTTT ', t)
         if all([isinstance(t, TComponent) for t in transformers]):
             return object.__new__(cls)
         return TChainCS(*transformers)

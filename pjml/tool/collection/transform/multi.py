@@ -99,14 +99,17 @@ class TMulti(TMinimalContainerN):
 
         return TTransformer(func=model_transform, models=models)
 
+    @lru_cache()
+    def _info2(self):
+        return [trf.enhancer() for trf in self.transformers]
+
     def _enhancer_impl(self):
         def model_transform(prior_collection):
             self._check_collection(prior_collection)
-            models = self._info(prior_collection)['models']
-
             datas = []
-            for model in models:
-                datas.append(model.transform(next(prior_collection)))
+            enhancers = self._info2()
+            for enhance in enhancers:
+                datas.append(enhance.transform(next(prior_collection)))
             return prior_collection.updated(
                 self.transformations('a'), datas=datas
             )

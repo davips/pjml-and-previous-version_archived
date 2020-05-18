@@ -6,8 +6,8 @@ from pjml.config.operator.single import hold
 from pjml.pipeline import Pipeline, TPipeline
 from pjml.tool.chain import Chain
 from pjml.tool.collection.expand.partition import Partition, TPartition
-from pjml.tool.collection.reduce.summ import Summ
-from pjml.tool.collection.transform.map import Map
+from pjml.tool.collection.reduce.summ import Summ, TSumm
+from pjml.tool.collection.transform.map import Map, TMap
 from pjml.tool.data.communication.report import Report
 from pjml.tool.data.evaluation.calc import Calc
 from pjml.tool.data.evaluation.mconcat import MConcat
@@ -142,8 +142,8 @@ def test_partition(arq="iris.arff"):
     pipe = TPipeline(
         TFile(arq),
         TPartition(),
-        Map(TPCA(), TSVMC(), TMetric(prior=False)),
-        Summ(function='mean', prior=False),
+        TMap(TPCA(), TSVMC(), TMetric(prior=False)),
+        TSumm(function='mean', prior=False),
     )
     prior, posterior = pipe.dual_transform()
     print("Prior..............\n", prior)

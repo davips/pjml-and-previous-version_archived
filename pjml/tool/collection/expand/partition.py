@@ -122,7 +122,7 @@ class TPartition(TComponent):
         )
 
     def _info(self, prior):
-        splitter_model = self.transformer.model(prior)
+        splitter_model = self.transformer.modeler(prior)
         return {'splitter_model': splitter_model}
 
     def _modeler_impl(self, prior):
