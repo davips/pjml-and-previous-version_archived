@@ -8,11 +8,11 @@ from pjml.tool.chain import Chain
 from pjml.tool.collection.expand.partition import Partition, TPartition
 from pjml.tool.collection.reduce.summ import Summ, TSumm
 from pjml.tool.collection.transform.map import Map, TMap
-from pjml.tool.data.communication.report import Report
+from pjml.tool.data.communication.report import Report, TReport
 from pjml.tool.data.evaluation.calc import Calc
 from pjml.tool.data.evaluation.mconcat import MConcat
 from pjml.tool.data.evaluation.metric import Metric, TMetric
-from pjml.tool.data.evaluation.split import Split, TSplit
+from pjml.tool.data.evaluation.split import TSplit
 from pjml.tool.data.flow.applyusing import ApplyUsing
 from pjml.tool.data.flow.file import File, TFile
 from pjml.tool.data.flow.onlyoperation import OnlyApply, OnlyUse
@@ -143,6 +143,7 @@ def test_partition(arq="iris.arff"):
         TPartition(),
         TMap(TPCA(), TSVMC(), TMetric(prior=False)),
         TSumm(function='mean', prior=False),
+        TReport('mean ... S: $S', prior=False)
     )
     prior, posterior = pipe.dual_transform()
     print("Prior..............\n", prior)
