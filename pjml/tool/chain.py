@@ -83,9 +83,9 @@ class TChain(TMinimalContainerN):
         """Shortcut to create a ConfigSpace."""
         if transformers is None:
             transformers = args
-        for t in transformers:
-            print('AAAAAAAAAAAAAAAAAAAAA ', isinstance(t, TComponent))
-            print('TTTTTTTTTTTTTTTTTTTTT ', t)
+        # for t in transformers:
+        #     print('AAAAAAAAAAAAAAAAAAAAA ', isinstance(t, TComponent))
+        #     print('TTTTTTTTTTTTTTTTTTTTT ', t)
         if all([isinstance(t, TComponent) for t in transformers]):
             return object.__new__(cls)
         return TChainCS(*transformers)
@@ -96,19 +96,16 @@ class TChain(TMinimalContainerN):
         return prior, posterior
 
     def _enhancer_impl(self):
-        enhancers = [trf.enhancer() for trf in self.transformers]
-
         def enhancer_transform(prior):
-            for enha in enhancers:
-                prior = enha.transform(prior)
+            for trf in self.transformers:
+                prior = trf.enhancer().transform(prior)
             return prior
         return TTransformer(func=enhancer_transform)
 
     def _modeler_impl(self, prior):
-        models = [trf.model(prior) for trf in self.transformers]
-
         def model_transform(posterior):
-            for model in models:
+            for trf in self.transformers:
+                model = trf.modeler(posterior)
                 posterior = model.transform(posterior)
             return posterior
         return TTransformer(func=model_transform)
