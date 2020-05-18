@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 import numpy
 from numpy import mean
 from numpy import std
@@ -95,8 +97,8 @@ class TSumm(TReduce):
                          deterministic=True, **kwargs)
         self.field = field
 
-    def _enhancer_impl(self):
-        def func(collection, step='u'):
+    def _enhancer_impl(self, step='e'):
+        def func(collection):
             if collection.has_nones:
                 raise Exception(
                     "Warning: You shuld use 'Shrink()' to handling collections "
@@ -108,6 +110,12 @@ class TSumm(TReduce):
                 **collection.original_data.matrices
             )
 
+            if not self.prior and step == 'e':
+                return data
+
+            if not self.posterior and step == 'm':
+                return data
+
             res = self.function(collection)
             if isinstance(res, tuple):
                 summ = numpy.array(res)
@@ -116,8 +124,19 @@ class TSumm(TReduce):
                 return data.updated(self.transformations(step), s=res)
         return TTransformer(func=func)
 
-    def _modeler_impl(self, prior):
+    def _modeler_impl(self, prior, step='m'):
+        return self._enhancer_impl(step)
+
+    # TODO: Não parece interessante reescrever o enhancer e o modeler aqui!
+    # Uma solução é o summary detectar se existe ou não o field, se existir ele
+    # faz a operação se não existir ele apenas sumariza.
+    @lru_cache()
+    def enhancer(self):
         return self._enhancer_impl()
+
+    @lru_cache()
+    def modeler(self, prior):
+        return self._modeler_impl(prior)
 
     @classmethod
     def _cs_impl(cls):
