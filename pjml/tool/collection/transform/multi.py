@@ -4,7 +4,7 @@ from pjdata.finitecollection import FiniteCollection
 
 from pjml.config.description.cs.containercs import ContainerCS
 from pjml.tool.abc.minimalcontainer import MinimalContainerN, TMinimalContainerN
-from pjml.tool.abc.mixin.component import TTransformer
+from pjml.tool.abc.mixin.component import TTransformer, TComponent
 from pjml.tool.abc.transformer import UTransformer
 from pjml.tool.model.containermodel import ContainerModel
 
@@ -67,13 +67,13 @@ class TMulti(TMinimalContainerN):
         """Shortcut to create a ConfigSpace."""
         if transformers is None:
             transformers = args
-        if all([isinstance(t, UTransformer) for t in transformers]):
+        if all([isinstance(t, TComponent) for t in transformers]):
             return object.__new__(cls)
         return ContainerCS(Multi.name, Multi.path, transformers)
 
     @lru_cache()
     def _info(self, prior_collection):
-        models = [trf.model(next(prior_collection))
+        models = [trf.modeler(next(prior_collection))
                   for trf in self.transformers]
         return {'models': models}
 

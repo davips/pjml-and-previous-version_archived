@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 from pjml.tool.abc.mixin.component import TComponent, TTransformer
 from pjml.tool.abc.transformer import DTransformer
 from pjml.tool.chain import Chain, TChain
@@ -121,21 +123,24 @@ class TPartition(TComponent):
             tsplit(split_type, partitions, test_size, seed, fields)
         )
 
+    @lru_cache()
     def _info(self, prior):
-        splitter_model = self.transformer.modeler(prior)
-        return {'splitter_model': splitter_model}
+        return self.transformer.modeler(prior)
 
     def _modeler_impl(self, prior):
-        splitter_model = self._info(prior)['splitter_model']
+        splitter_model = self._info(prior)
 
         def func(posterior):
-            return splitter_model(posterior)
+            return splitter_model.transform(posterior)
         return TTransformer(func=func, splitter_model=splitter_model)
+
+    @lru_cache()
+    def _info2(self):
+        return self.transformer.enhancer()
 
     def _enhancer_impl(self):
         def func(prior):
-            splitter_model = self._info(prior)['splitter_model']
-            return splitter_model(prior)
+            return self._info2().transform(prior)
         return TTransformer(func=func)
 
     @classmethod

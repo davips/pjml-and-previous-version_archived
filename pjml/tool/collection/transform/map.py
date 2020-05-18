@@ -4,7 +4,7 @@ from pjdata.infinitecollection import InfiniteCollection
 
 from pjml.config.description.cs.containercs import ContainerCS
 from pjml.tool.abc.minimalcontainer import MinimalContainer1, TMinimalContainer1
-from pjml.tool.abc.mixin.component import TTransformer
+from pjml.tool.abc.mixin.component import TTransformer, TComponent
 from pjml.tool.abc.transformer import UTransformer
 from pjml.tool.model.containermodel import ContainerModel
 
@@ -52,13 +52,13 @@ class TMap(TMinimalContainer1):
         """Shortcut to create a ConfigSpace."""
         if transformers is None:
             transformers = args
-        if all([isinstance(t, UTransformer) for t in transformers]):
+        if all([isinstance(t, TComponent) for t in transformers]):
             return object.__new__(cls)
         return ContainerCS(Map.name, Map.path, transformers)
 
     @lru_cache()
     def _info(self, prior_collection):
-        return [self.transformers.modeler(data) for data in prior_collection]
+        return [self.transformer.modeler(data) for data in prior_collection]
 
     def _modeler_impl(self, prior_collection):
         models = self._info(prior_collection)
@@ -79,16 +79,18 @@ class TMap(TMinimalContainer1):
 
     def _enhancer_impl(self):
         def func(posterior_collection):
-            enhancers = self._info2()
-            size = len(enhancers)
-            if size != posterior_collection.size:
-                raise Exception(
-                    'Collections passed to apply and use should have '
-                    f'the same size a- {size} != u- {posterior_collection.size}'
-                )
+            # enhancers = self._info2()
+            # size = len(enhancers)
+            # print(1111111111111111111111, size)
+            # print(2222222222222222222222, posterior_collection.size)
+            # if size != posterior_collection.size:
+            #     raise Exception(
+            #         'Collections passed to apply and use should have '
+            #         f'the same size a- {size} != u- {posterior_collection.size}'
+            #     )
             datas = []
-            for enhancer in enhancers:
-                datas.append(enhancer.transform(next(posterior_collection)))
+            for data in posterior_collection:
+                datas.append(self.transformer.enhancer().transform(data))
             return posterior_collection.updated(
                 self.transformations(step='u'), datas=datas
             )

@@ -138,7 +138,6 @@ def test_pca(arq="iris.arff"):
 
 
 def test_partition(arq="iris.arff"):
-    cs = TFile(arq).cs
     pipe = TPipeline(
         TFile(arq),
         TPartition(),
@@ -148,6 +147,7 @@ def test_partition(arq="iris.arff"):
     prior, posterior = pipe.dual_transform()
     print("Prior..............\n", prior)
     print("Posterior..........\n", posterior)
+
 
 def main():
     """Main function"""
