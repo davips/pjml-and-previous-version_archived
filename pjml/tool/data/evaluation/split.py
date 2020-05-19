@@ -5,11 +5,13 @@ from numpy.random import uniform
 from sklearn.model_selection import StratifiedShuffleSplit as HO, \
     StratifiedKFold as SKF, LeaveOneOut as LOO
 
+from pjdata.specialdata import NoData
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import IntP
 from pjml.tool.abc.mixin.component import TComponent, TTransformer
 from pjml.tool.abc.mixin.functioninspector import FunctionInspector
+from pjml.tool.abc.mixin.nodatahandler import NoDataHandler
 from pjml.tool.abc.transformer import DTransformer
 from pjml.tool.model.model import Model
 
@@ -86,7 +88,7 @@ class Split(DTransformer, FunctionInspector):
         return TransformerCS(Node(params=params))
 
 
-class TSplit(TComponent, FunctionInspector):
+class TSplit(TComponent, FunctionInspector, NoDataHandler):
     """Split a given Data field into training/apply set and testing/use set.
 
     Developer: new metrics can be added just following the pattern '_fun_xxxxx'
@@ -142,13 +144,15 @@ class TSplit(TComponent, FunctionInspector):
         return {"prior": prior, "posterior": posterior}
 
     def _modeler_impl(self, prior):
-        def func(data):
-            return self._info(data)["posterior"]
+        def func(posterior=NoData):
+            # TODO: colocar na documentação do split que ele verifica
+            self._enforce_nodata(posterior)
+            return self._info(prior)["posterior"]
         return TTransformer(func=func)
 
     def _enhancer_impl(self):
-        def func(data):
-            return self._info(data)["prior"]
+        def func(prior):
+            return self._info(prior)["prior"]
         return TTransformer(func=func)
 
     def _split(self, data, indices=None, step='u'):
