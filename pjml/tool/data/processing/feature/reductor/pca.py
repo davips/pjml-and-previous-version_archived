@@ -20,24 +20,24 @@ class TPCA(TSKLAlgorithm):
         sklearn_model.fit(prior.X)
         return {'sklearn_model': sklearn_model}
 
-    def _modeler_impl(self, prior):
+    def predict(self, prior, posterior):  # old use
         info = self._info(prior)
+        return posterior.updated(
+            self.transformations('u'),  # desnecessário?
+            X=info['sklearn_model'].transform(posterior.X)
+        )
 
-        def predict(posterior):  # old use
-            return posterior.updated(
-                self.transformations('u'),  # desnecessário?
-                X=info['sklearn_model'].transform(posterior.X)
-            )
-        return TTransformer(func=predict, **info)
+    def _modeler_impl(self, prior):
+        return TTransformer(
+            func=lambda posterior: self.predict(prior, posterior),
+            info=self._info(prior)
+        )
 
     def _enhancer_impl(self):
-        def predict(prior):  # old use
-            info = self._info(prior)
-            return prior.updated(
-                self.transformations('u'),  # desnecessário?
-                X=info['sklearn_model'].transform(prior.X)
-            )
-        return TTransformer(func=predict)
+        return TTransformer(
+            func=lambda prior: self.predict(prior, prior),
+            info=self._info
+        )
 
     @classmethod
     def _cs_impl(cls):

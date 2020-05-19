@@ -189,7 +189,7 @@ class TTransformer:
     def __init__(self, func=None, **kwargs):
         self.func = TTransformer.does_nothing if func is None else func
 
-    def transform(self, data):
+    def transform(self, data):  # resolver lista
         return self.func(data)
 
     @staticmethod

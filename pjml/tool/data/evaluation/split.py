@@ -143,12 +143,12 @@ class TSplit(TComponent, FunctionInspector):
 
     def _modeler_impl(self, prior):
         def func(data):
-            return self._info(data)["prior"]
+            return self._info(data)["posterior"]
         return TTransformer(func=func)
 
     def _enhancer_impl(self):
         def func(data):
-            return self._info(data)["posterior"]
+            return self._info(data)["prior"]
         return TTransformer(func=func)
 
     def _split(self, data, indices=None, step='u'):
