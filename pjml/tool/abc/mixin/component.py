@@ -33,21 +33,21 @@ class TComponent(Printable, Identifyable, ABC):
             pass
 
     def _enhancer_impl(self):
-        return TTransformer()
+        return TTransformer(None, None)
 
     def _modeler_impl(self, prior):
-        return TTransformer()
+        return TTransformer(None, None)
 
     @lru_cache()
     def enhancer(self):
         if not self.prior:
-            return TTransformer()
+            return TTransformer(None, None)
         return self._enhancer_impl()
 
     @lru_cache()
     def modeler(self, prior):
         if not self.posterior:
-            return TTransformer()
+            return TTransformer(None, None)
         return self._modeler_impl(prior)
 
     def dual_transform(self, prior, posterior):
@@ -186,13 +186,21 @@ class TComponent(Printable, Identifyable, ABC):
 
 
 class TTransformer:
-    def __init__(self, func=None, **kwargs):
-        self.func = TTransformer.does_nothing if func is None else func
+    def __init__(self, func, info):
+        self.func = func if func else lambda data: data
+        self._info = info
 
-    def transform(self, data):  # resolver lista
-        return self.func(data)
+        # Note:
+        # Callable returns True, if the object appears to be callable
+        # Yes, that appears!
+        if callable(self._info):
+            self.info = lambda data: self._info(data)
+        else:
+            self.info = lambda: self._info
 
-    @staticmethod
-    def does_nothing(data):  # melhorar o nome
-        return data
-
+    def transform(self, datas):  # resolver error
+        if not isinstance(datas, tuple):
+            datas = (datas, )
+        # Todo: We should add some tratment here because self.func can raise
+        #  an error
+        return (self.func(data) for data in datas)

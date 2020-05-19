@@ -146,6 +146,17 @@ def test_partition(arq="iris.arff"):
         TReport('mean ... S: $S', prior=False)
     )
     prior, posterior = pipe.dual_transform()
+
+    # tenho file na frente
+    prior = pipe.enhancer().transform(NoData)
+    posterior = pipe.modeler(NoData).transform(NoData)
+
+    # se não tenho file
+    prior = pipe.enhancer().transform(prior)
+    posterior = pipe.modeler(prior).transform(posterior)
+
+
+
     print("Prior..............\n", prior)
     print("Posterior..........\n", posterior)
 
