@@ -73,6 +73,6 @@ class Chain(MinimalContainerN):
             txts.append(t.__str__(depth))
         return '\n'.join(txts)
 
-    def _uuid_impl00(self):
+    def _uuid_impl(self):
         # TODO: override _uuid for other containerNs (Multi)?
         return reduce(operator.mul, [t.uuid for t in self.transformers])

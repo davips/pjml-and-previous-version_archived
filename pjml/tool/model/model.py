@@ -46,7 +46,7 @@ class Model(Identifyable, NoDataHandler, ExceptionHandler, Timers, ABC):
             _kwargs.update(self._kwargs)
             return _kwargs
 
-    def _uuid_impl00(self):
+    def _uuid_impl(self):
         # Needless to put mark 'm' to differentiate from uuid of applied data,
         # since applied data uuid is merged with transformation uuid, not
         # transformer uuid.
