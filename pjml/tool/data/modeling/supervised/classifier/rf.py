@@ -26,6 +26,6 @@ class RF(Predictor):
             'min_samples_leaf': RealP(uniform, low=1e-6, high=0.3),
             'min_weight_fraction_leaf': RealP(uniform, low=0.0, high=0.3),
             'max_depth': IntP(uniform, low=2, high=1000),
-            'n_estimators':  CatP(choice, items=n_estimators),
+            'n_estimators': CatP(choice, items=n_estimators),
         }
         return TransformerCS(nodes=[Node(params=params)])

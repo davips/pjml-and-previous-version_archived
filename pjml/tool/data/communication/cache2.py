@@ -34,7 +34,7 @@ class Cache2(Container1):
 
         transformations = self.transformer.transformations('a')
         mockup = data.mockup(transformations=transformations)
-        output_data = self.storage.fetch(mockup, self.fields, lock=True)
+        output_data = self.storage.fetch(mockup, [], lock=True)
         # print()
         # print('--------------  ------------------')
         # print(hollow.id)

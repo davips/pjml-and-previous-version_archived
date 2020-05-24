@@ -74,7 +74,7 @@ class File(LightTransformer, NoDataHandler):
             'description': FixedP('No description.'),
             'matrices_hash': FixedP('1234567890123456789')
         }
-        return TransformerCS(Node(params=params))
+        return TransformerCS(nodes=[Node(params)])
 
     def transformations(self, step, clean=True):
         return [Transformation(self, 'u')]

@@ -9,9 +9,11 @@ from pjdata.step.transformation import Transformation
 from pjml.config.description.cs.configlist import ConfigList
 from pjml.tool.abc.mixin.exceptionhandler import BadComponent, ExceptionHandler
 from pjml.tool.abc.mixin.timers import Timers
+from pjml.tool.abc.operand import Operand
 
 
-class Transformer(Printable, Identifyable, ExceptionHandler, Timers, ABC):
+class Transformer(Operand, Printable, Identifyable, ExceptionHandler, Timers,
+                  ABC):
     """Parent of all processors, learners, evaluators, data controlers, ...
 
     Contributors:

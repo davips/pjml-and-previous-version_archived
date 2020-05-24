@@ -53,7 +53,7 @@ class Metric(LightTransformer, FunctionInspector):
             'target': CatP(choice, items=['Y']),
             'prediction': CatP(choice, items=['Z'])
         }
-        return TransformerCS(Node(params=params))
+        return TransformerCS(nodes=[Node(params)])
 
     @staticmethod
     def _fun_error(data, target, prediction):

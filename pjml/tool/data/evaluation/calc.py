@@ -52,7 +52,7 @@ class Calc(LightTransformer, FunctionInspector):
             'input_field': CatP(choice, items=['S']),
             'output_field': CatP(choice, items=['S'])
         }
-        return TransformerCS(Node(params=params))
+        return TransformerCS(nodes=[Node(params)])
 
     @staticmethod
     def _fun_mean(input):

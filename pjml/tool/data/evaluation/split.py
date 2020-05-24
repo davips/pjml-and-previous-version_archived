@@ -80,4 +80,4 @@ class Split(HeavyTransformer, FunctionInspector):
         params = {
             'partitions': IntP(uniform, low=2, high=10)
         }
-        return TransformerCS(Node(params=params))
+        return TransformerCS(nodes=[Node(params)])

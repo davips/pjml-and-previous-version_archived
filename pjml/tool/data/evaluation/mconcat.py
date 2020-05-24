@@ -70,7 +70,7 @@ class MConcat(LightTransformer, FunctionInspector):
             'direction': CatP(choice, items=[0, 1]),
             'output_field': CatP(choice, items=['S'])
         }
-        return TransformerCS(Node(params=params))
+        return TransformerCS(nodes=[Node(params)])
 
 # TODO: create a proper test?
 # p = Pipeline(
