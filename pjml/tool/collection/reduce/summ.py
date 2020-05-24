@@ -110,10 +110,10 @@ class TSumm(TReduce):
                 **collection.original_data.matrices
             )
 
-            if not self.prior and step == 'e':
+            if not self.onenhancer and step == 'e':
                 return data
 
-            if not self.posterior and step == 'm':
+            if not self.onmodel and step == 'm':
                 return data
 
             res = self.function(collection)
@@ -122,21 +122,27 @@ class TSumm(TReduce):
                 return data.updated(self.transformations(step), S=summ)
             else:
                 return data.updated(self.transformations(step), s=res)
-        return TTransformer(func=func)
+        return TTransformer(
+            func=func,
+            info=None
+        )
 
-    def _modeler_impl(self, prior, step='m'):
+    def _model_impl(self, prior, step='m'):
         return self._enhancer_impl(step)
 
     # TODO: Não parece interessante reescrever o enhancer e o modeler aqui!
     # Uma solução é o summary detectar se existe ou não o field, se existir ele
     # faz a operação se não existir ele apenas sumariza.
+    @property
     @lru_cache()
-    def enhancer(self):
+    def enhancer(self):  # clean, cleaup, dumb, dumb_transformer
         return self._enhancer_impl()
 
     @lru_cache()
-    def modeler(self, prior):
-        return self._modeler_impl(prior)
+    def model(self, prior):  # smart, smart_transformer
+        if isinstance(prior, tuple):
+            prior = prior[0]
+        return self._model_impl(prior)
 
     @classmethod
     def _cs_impl(cls):
