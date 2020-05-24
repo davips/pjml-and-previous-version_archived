@@ -12,7 +12,7 @@ from pjml.tool.abc.mixin.exceptionhandler import BadComponent
 
 class TComponent(Printable, Identifyable, ABC):
     def __init__(self, config, deterministic=False, nodata_handler=False,
-                 prior=True, posterior=True):
+                 onenhancer=True, onmodel=True):
         jsonable = {'_id': f'{self.name}@{self.path}', 'config': config}
         Printable.__init__(self, jsonable)
 
@@ -23,37 +23,33 @@ class TComponent(Printable, Identifyable, ABC):
         self.nodata_handler = isinstance(self, NoDataHandler) or nodata_handler
 
         self.cs = self.cs1
-        self.prior = prior
-        self.posterior = posterior
-
-        if not self.prior:
-            pass
-
-        if not self.posterior:
-            pass
+        self.onenhancer = onenhancer
+        self.onmodel = onmodel
 
     def _enhancer_impl(self):
         return TTransformer(None, None)
 
-    def _modeler_impl(self, prior):
+    def _model_impl(self, prior):
         return TTransformer(None, None)
 
+    @property
     @lru_cache()
-    def enhancer(self):
-        if not self.prior:
+    def enhancer(self):  # clean, cleaup, dumb, dumb_transformer
+        if not self.onenhancer:
             return TTransformer(None, None)
         return self._enhancer_impl()
 
     @lru_cache()
-    def modeler(self, prior):
-        if not self.posterior:
+    def model(self, prior):  # smart, smart_transformer
+        if isinstance(prior, tuple):
+            prior = prior[0]
+        if not self.onmodel:
             return TTransformer(None, None)
-        return self._modeler_impl(prior)
+        return self._model_impl(prior)
 
     def dual_transform(self, prior, posterior):
-        prior_result = self.enhancer().transform(prior)
-        posterior_result = self.modeler(prior).transform(posterior)
-
+        prior_result = self.enhancer.transform(prior)
+        posterior_result = self.model(prior).transform(posterior)
         return prior_result, posterior_result
 
     @classmethod
@@ -194,13 +190,18 @@ class TTransformer:
         # Callable returns True, if the object appears to be callable
         # Yes, that appears!
         if callable(self._info):
-            self.info = lambda data: self._info(data)
-        else:
+            self.info = self._info
+        elif isinstance(self._info, dict):
             self.info = lambda: self._info
+        elif self._info is None:
+            self.info = {}
+        else:
+            raise TypeError('Unexpected info type. You should use, callable, '
+                            'dict or None.')
 
-    def transform(self, datas):  # resolver error
-        if not isinstance(datas, tuple):
-            datas = (datas, )
+    def transform(self, data):  # resolver error
+        if isinstance(data, tuple):
+            return tuple((self.func(dt) for dt in data))
         # Todo: We should add some tratment here because self.func can raise
         #  an error
-        return (self.func(data) for data in datas)
+        return self.func(data)
