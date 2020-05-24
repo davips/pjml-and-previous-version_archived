@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 import numpy as np
 from sklearn.metrics import accuracy_score
 
@@ -106,15 +108,8 @@ class TMetric(TComponent, FunctionInspector):
         self.target, self.prediction = target, prediction
         self.selected = [self.function_from_name[name] for name in functions]
 
-    def _modeler_impl(self, prior):
-        return self._enhancer_impl()
-
-    def _enhancer_impl(self):
-        def func(posterior):
-            return self._func(posterior)
-        return TTransformer(func=func)
-
-    def _func(self, data, step='u'):
+    @lru_cache()
+    def _info(self, data):
         if self.target not in data.matrices:
             print(f'Impossible to calculate metric {self.functions}: \n'
                   f'Field {self.target} does not exist!\nAvailable fields:',
@@ -125,10 +120,30 @@ class TMetric(TComponent, FunctionInspector):
             raise Exception(
                 f'Impossible to calculate metric {self.functions}: Field '
                 f'{self.prediction} does not exist!')
+
+        return {
+            'computed_metric': [[f(data, self.target, self.prediction)
+                                 for f in self.selected]]
+        }
+
+    def _model_impl(self, prior):
+        # prior deve ser ignorado
+        return TTransformer(
+            func=lambda posterior: self._func(posterior),
+            info=None
+        )
+
+    def _enhancer_impl(self):
+        return TTransformer(
+            func=lambda posterior: self._func(posterior),
+            info=None
+        )
+
+    def _func(self, data, step='u'):
+        computed_metric = self._info(data)['computed_metric']
         return data.updated(
             self.transformations(step),
-            R=np.array([[f(data, self.target, self.prediction)
-                         for f in self.selected]])
+            R=np.array(computed_metric)
         )
 
     @classmethod
