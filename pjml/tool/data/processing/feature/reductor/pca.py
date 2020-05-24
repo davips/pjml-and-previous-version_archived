@@ -27,7 +27,7 @@ class TPCA(TSKLAlgorithm):
             X=info['sklearn_model'].transform(posterior.X)
         )
 
-    def _modeler_impl(self, prior):
+    def _model_impl(self, prior):
         return TTransformer(
             func=lambda posterior: self.predict(prior, posterior),
             info=self._info(prior)
