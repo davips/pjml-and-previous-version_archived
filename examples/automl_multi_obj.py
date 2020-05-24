@@ -53,7 +53,7 @@ np.random.seed(50)
 
 def cache(*args):
     return Cache(
-        Cache(
+        # Cache(
             *args,
             engine='mysql',
             db='paje:XXXXXX@143.107.183.114/paje',
