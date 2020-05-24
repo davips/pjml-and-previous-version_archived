@@ -87,7 +87,7 @@ class TReport(TInvisible):
         super().__init__({'text': text}, deterministic=True, **kwargs)
         self.text = text
 
-    def _modeler_impl(self, model):
+    def _model_impl(self, model):
         return self._enhancer_impl('[modeler]')
 
     def _enhancer_impl(self, step='[enhancer]'):
@@ -95,7 +95,10 @@ class TReport(TInvisible):
             print(step, self._interpolate(self.text, posterior))
             return posterior
 
-        return TTransformer(func=func)
+        return TTransformer(
+            func=func,
+            info=None
+        )
 
     @classmethod
     def _interpolate(cls, text, data):
