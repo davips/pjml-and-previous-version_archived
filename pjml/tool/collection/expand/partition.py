@@ -125,23 +125,26 @@ class TPartition(TComponent):
 
     @lru_cache()
     def _info(self, prior):
-        return self.transformer.modeler(prior)
+        return {'internal_model': self.transformer.model(prior)}
 
-    def _modeler_impl(self, prior):
-        splitter_model = self._info(prior)
+    def _model_impl(self, prior):
+        info = self._info(prior)
 
-        def func(posterior):
-            return splitter_model.transform(posterior)
-        return TTransformer(func=func, splitter_model=splitter_model)
+        return TTransformer(
+            func=lambda posterior: info['internal_model'].transform(posterior),
+            info=info
+        )
 
     @lru_cache()
     def _info2(self):
-        return self.transformer.enhancer()
+        return {'internal_enhancer': self.transformer.enhancer}
 
     def _enhancer_impl(self):
-        def func(prior):
-            return self._info2().transform(prior)
-        return TTransformer(func=func)
+        info2 = self._info2()
+        return TTransformer(
+            func=lambda prior: info2['internal_enhancer'].transform(prior),
+            info=info2
+        )
 
     @classmethod
     def _cs_impl(cls):
