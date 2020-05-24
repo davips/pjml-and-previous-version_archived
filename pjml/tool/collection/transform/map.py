@@ -58,27 +58,36 @@ class TMap(TMinimalContainer1):
 
     @lru_cache()
     def _info(self, prior_collection):
-        return [self.transformer.modeler(data) for data in prior_collection]
+        return {
+            'models': [self.transformer.model(data)
+                       for data in prior_collection]
+        }
 
-    def _modeler_impl(self, prior_collection):
-        models = self._info(prior_collection)
+    def _model_impl(self, prior_collection):
+        info1 = self._info(prior_collection)
+        models = info1['models']
         datas = []
 
-        def func(posterior_collection):
+        def transform(posterior_collection):
             for model in models:
                 datas.append(model.transform(next(posterior_collection)))
             return posterior_collection.updated(
                 self.transformations(step='a'),
                 datas=datas
             )
-        return TTransformer(func=func, models=models)
+        return TTransformer(
+            func=transform,
+            info=info1
+        )
 
     @lru_cache()
     def _info2(self):
-        return [trf.enhancer() for trf in self.transformers]
+        return {'enhancer': self.transformer.enhancer}
 
     def _enhancer_impl(self):
-        def func(posterior_collection):
+        info2 = self._info2()
+
+        def transform(posterior_collection):
             # enhancers = self._info2()
             # size = len(enhancers)
             # print(1111111111111111111111, size)
@@ -89,9 +98,14 @@ class TMap(TMinimalContainer1):
             #         f'the same size a- {size} != u- {posterior_collection.size}'
             #     )
             datas = []
+            enhancer = info2['enhancer']
             for data in posterior_collection:
-                datas.append(self.transformer.enhancer().transform(data))
+                datas.append(enhancer.transform(data))
             return posterior_collection.updated(
-                self.transformations(step='u'), datas=datas
+                self.transformations(step='u'),
+                datas=datas
             )
-        return TTransformer(func=func)
+        return TTransformer(
+            func=transform,
+            info=info2
+        )
