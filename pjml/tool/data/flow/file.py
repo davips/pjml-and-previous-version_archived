@@ -133,9 +133,9 @@ class TFile(TComponent, NoDataHandler):
         def func(posterior):  # old use/apply
             self._enforce_nodata(posterior, 'u')  # fixei 'u'
             return self.data
-        return TTransformer(func=func, )
+        return TTransformer(func=func, info=None)
 
-    def _modeler_impl(self, prior):
+    def _model_impl(self, prior):
         self._enforce_nodata(prior, 'a')  # fixei 'a'
         return self._transformer()
 
@@ -155,11 +155,8 @@ class TFile(TComponent, NoDataHandler):
         # TransformerCS(nodes=[Node(params=params)])
         return TransformerCS(Node(params=params))
 
-
-
     def transformations(self, step, clean=True):
         return [Transformation(self, 'u')]
 
     # def _uuid_impl00(self):
     #     return UUID(self._digest)
-
