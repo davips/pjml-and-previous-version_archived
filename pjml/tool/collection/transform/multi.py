@@ -72,8 +72,8 @@ class TMulti(TMinimalContainerN):
         return ContainerCS(Multi.name, Multi.path, transformers)
 
     @lru_cache()
-    def _info(self, prior_collection):
-        models = [trf.modeler(next(prior_collection))
+    def _info1(self, prior_collection):
+        models = [trf.model(next(prior_collection))
                   for trf in self.transformers]
         return {'models': models}
 
@@ -85,33 +85,42 @@ class TMulti(TMinimalContainerN):
                 f'{self.size} != collection {prior_collection.size}'
             )
 
-    def _modeler_impl(self, prior_collection):
+    def _model_impl(self, prior_collection):
         self._check_collection(prior_collection)
-        models = self._info(prior_collection)['models']
+        info1 = self._info1(prior_collection)
 
         def model_transform(posterior_collection):
             datas = []
+            models = info1['models']
             for model in models:
                 datas.append(model.transform(next(posterior_collection)))
             return posterior_collection.updated(
                 self.transformations('a'), datas=datas
             )
 
-        return TTransformer(func=model_transform, models=models)
+        return TTransformer(
+            func=model_transform,
+            info=info1
+        )
 
     @lru_cache()
     def _info2(self):
-        return [trf.enhancer() for trf in self.transformers]
+        return {'enhancers': [trf.enhancer for trf in self.transformers]}
 
     def _enhancer_impl(self):
+        info2 = self._info2()
+
         def model_transform(prior_collection):
             self._check_collection(prior_collection)
             datas = []
-            enhancers = self._info2()
+            enhancers = info2['enhancers']
             for enhance in enhancers:
                 datas.append(enhance.transform(next(prior_collection)))
             return prior_collection.updated(
                 self.transformations('a'), datas=datas
             )
 
-        return TTransformer(func=model_transform)
+        return TTransformer(
+            func=model_transform,
+            info=info2,
+        )
