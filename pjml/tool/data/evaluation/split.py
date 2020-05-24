@@ -136,24 +136,25 @@ class TSplit(TComponent, FunctionInspector, NoDataHandler):
         self.fields = fields
 
     @lru_cache()
-    def _info(self, data):
-        zeros = numpy.zeros(data.field(self.fields[0], self).shape[0])
+    def _info(self, prior):
+        zeros = numpy.zeros(prior.field(self.fields[0], self).shape[0])
         partitions = list(self.algorithm.split(X=zeros, y=zeros))
-        prior = self._split(data, partitions[self.partition][0], step='a')
-        posterior = self._split(data, partitions[self.partition][1], step='u')
-        return {"prior": prior, "posterior": posterior}
+        _prior = self._split(prior, partitions[self.partition][0], step='a')
+        _posterior = self._split(prior, partitions[self.partition][1], step='u')
+        return {"prior": _prior, "posterior": _posterior}
 
-    def _modeler_impl(self, prior):
-        def func(posterior=NoData):
-            # TODO: colocar na documentação do split que ele verifica
-            self._enforce_nodata(posterior)
+    def _model_impl(self, prior):
+        def func(posterior=prior):
+            if posterior != prior:
+                raise Exception('Split expects the same Data (posterior should'
+                                'be equal prior).')
             return self._info(prior)["posterior"]
-        return TTransformer(func=func)
+        return TTransformer(func=func, info=self._info(prior))
 
     def _enhancer_impl(self):
         def func(prior):
             return self._info(prior)["prior"]
-        return TTransformer(func=func)
+        return TTransformer(func=func, info=self._info)
 
     def _split(self, data, indices=None, step='u'):
         new_dic = {}
