@@ -21,11 +21,11 @@ class Expand(LightConfigLess):
 
 
 class TExpand(TLightConfigLess):
-    def _modeler_impl(self, prior):
+    def _model_impl(self, prior):
         return self._enhancer_impl()
 
     def _enhancer_impl(self):
-        def func(data):
+        def transform(data):
             transformation = self.transformations('u')[0]
             return InfiniteCollection(
                 data,
@@ -33,5 +33,8 @@ class TExpand(TLightConfigLess):
                 data.failure,
                 data.uuid00 + transformation.uuid00
             )
-        return TTransformer(func=func)
+        return TTransformer(
+            func=transform,
+            info=None
+        )
 
