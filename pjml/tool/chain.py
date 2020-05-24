@@ -1,3 +1,4 @@
+from functools import lru_cache
 from itertools import dropwhile
 
 from pjdata.specialdata import NoData
@@ -83,9 +84,6 @@ class TChain(TMinimalContainerN):
         """Shortcut to create a ConfigSpace."""
         if transformers is None:
             transformers = args
-        # for t in transformers:
-        #     print('AAAAAAAAAAAAAAAAAAAAA ', isinstance(t, TComponent))
-        #     print('TTTTTTTTTTTTTTTTTTTTT ', t)
         if all([isinstance(t, TComponent) for t in transformers]):
             return object.__new__(cls)
         return TChainCS(*transformers)
@@ -95,20 +93,35 @@ class TChain(TMinimalContainerN):
             prior, posterior = trf.dual_transform(prior, posterior)
         return prior, posterior
 
-    def _enhancer_impl(self):
-        def enhancer_transform(prior):
-            for trf in self.transformers:
-                prior = trf.enhancer().transform(prior)
-            return prior
-        return TTransformer(func=enhancer_transform)
+    @lru_cache()
+    def _info_enhancer(self):
+        return {'enhancers': [trf.enhancer for trf in self.transformers]}
 
-    def _modeler_impl(self, prior):
+    def _enhancer_impl(self):
+        enhancers = self._info_enhancer()['enhancers']
+
+        def enhancer_transform(prior):
+            for enhancer in enhancers:
+                prior = enhancer.transform(prior)
+            return prior
+        return TTransformer(func=enhancer_transform, info=self._info_enhancer)
+
+    @lru_cache()
+    def _info_model(self, prior):
+        models = []
+        for trf in self.transformers:
+            models.append(trf.model(prior))
+            prior = trf.enhancer.transform(prior)
+        return {'models': models}
+
+    def _model_impl(self, prior):
+        models = self._info_model(prior)
+
         def model_transform(posterior):
-            for trf in self.transformers:
-                model = trf.modeler(posterior)
+            for model in models['models']:
                 posterior = model.transform(posterior)
             return posterior
-        return TTransformer(func=model_transform)
+        return TTransformer(func=model_transform, info=models)
 
     def transformations(self, step, clean=True):
         lst = []
