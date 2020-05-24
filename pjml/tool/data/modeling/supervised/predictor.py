@@ -44,15 +44,15 @@ class TPredictor(TSKLAlgorithm, ABC):
         sklearn_model.fit(*prior.Xy)
         return {'sklearn_model': sklearn_model}
 
-    def _modeler_impl(self, prior):
+    def _model_impl(self, prior):
         info = self._info(prior)
 
-        def predict(posterior):  # old use
+        def func(posterior):  # old use
             return posterior.updated(
-                self.transformations('u'),  # desnecessário
+                self.transformations('u'),  # desnecessário ?
                 z=self._info(prior)['sklearn_model'].predict(posterior.X)
             )
-        return TTransformer(func=predict, **info)
+        return TTransformer(func=func, info=info)
 
     def transformations(self, step, clean=True):
         if step == 'a':
