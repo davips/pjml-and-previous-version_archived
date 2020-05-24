@@ -1,4 +1,5 @@
 """Test"""
+from pjdata.specialdata import NoData
 from pjml.config.operator.many import select
 from pjml.config.operator.reduction.full import full
 from pjml.config.operator.reduction.rnd import rnd
@@ -99,24 +100,22 @@ def test_tsvmc(arq="iris.arff"):
 
 
 def test_split(arq="iris.arff"):
-    cs = TFile(arq).cs
     pipe = TPipeline(
         TFile(arq),
         TSplit(),
         TSVMC()
     )
     prior, posterior = pipe.dual_transform()
-    print("Prior..............\n", prior)
-    print("Posterior..........\n", posterior)
+    print("Prior..............\n", str(prior))
+    print("Posterior..........\n", str(posterior))
 
 
 def test_metric(arq="iris.arff"):
-    cs = TFile(arq).cs
     pipe = TPipeline(
         TFile(arq),
         TSplit(),
         TSVMC(),
-        TMetric(prior=False)
+        TMetric(onenhancer=False)
     )
     prior, posterior = pipe.dual_transform()
     print("Prior..............\n", prior)
@@ -130,7 +129,7 @@ def test_pca(arq="iris.arff"):
         TSplit(),
         TPCA(),
         TSVMC(),
-        TMetric(prior=False)
+        TMetric(onenhancer=False)
     )
     prior, posterior = pipe.dual_transform()
     print("Prior..............\n", prior)
@@ -141,24 +140,75 @@ def test_partition(arq="iris.arff"):
     pipe = TPipeline(
         TFile(arq),
         TPartition(),
-        TMap(TPCA(), TSVMC(), TMetric(prior=False)),
-        TSumm(function='mean', prior=False),
-        TReport('mean ... S: $S', prior=False)
+        TMap(TPCA(), TSVMC(), TMetric(onenhancer=False)),
+        TSumm(function='mean', onenhancer=False),
+        TReport('mean ... S: $S', onenhancer=False)
     )
     prior, posterior = pipe.dual_transform()
 
-    # tenho file na frente
-    prior = pipe.enhancer().transform(NoData)
-    posterior = pipe.modeler(NoData).transform(NoData)
-
-    # se não tenho file
-    prior = pipe.enhancer().transform(prior)
-    posterior = pipe.modeler(prior).transform(posterior)
-
-
-
     print("Prior..............\n", prior)
     print("Posterior..........\n", posterior)
+
+
+def test_check_architecture(arq='iris.arff'):
+    pipe = TPipeline(
+        TFile(arq),
+        TPartition(),
+        TMap(TPCA(), TSVMC(), TMetric(onenhancer=False)),
+        TSumm(function='mean', onenhancer=False),
+    )
+
+    # tenho file na frente
+    prior_01 = pipe.enhancer.transform(NoData)
+    posterior_01 = pipe.model(NoData).transform(NoData)
+    prior_02, posterior_02 = pipe.dual_transform(NoData, NoData)
+
+    assert prior_01.uuid00 == prior_02.uuid00
+    assert posterior_01.uuid00 == posterior_02.uuid00
+
+
+def test_check_architecture2(arq='iris.arff'):
+    pipe = TPipeline(
+        TFile(arq),
+        TPartition(),
+        TMap(TPCA(), TSVMC(), TMetric(onenhancer=False)),
+        TSumm(function='mean', onenhancer=False),
+        TReport('mean ... S: $S', onenhancer=False)
+    )
+
+    # tenho file na frente
+    prior_ = pipe.enhancer.transform(NoData)
+    posterior_ = pipe.model(NoData).transform(NoData)
+    posterior_ = pipe.model(NoData).transform((NoData, NoData))
+    prior_, posterior_ = pipe.dual_transform(NoData, NoData)
+    prior_, posterior_ = pipe.dual_transform(NoData, (NoData, NoData))
+
+
+    # prior_ = pipe.enhancer().transform()
+    # posterior_ = pipe.model().transform()
+    # posterior_ = pipe.model().transform()
+    # prior_, posterior_ = pipe.dual_transform()
+    # prior_, posterior_ = pipe.dual_transform()
+
+    # se não tenho file (tenho split)
+    # dado = file()
+    # prior = pipe.enhancer().transform(dado)
+    # posterior = pipe.model(dado).transform(NoData)
+
+    # prior = pipe.enhancer().transform(dado)
+    # posterior = pipe.model(dado).transform()
+
+    # se não tenho split
+    # dado = file()
+    # train, test = split(dado)
+    # prior = pipe.enhancer().transform(train)
+    # posterior = pipe.model(train).transform(test)
+
+    # prior_, posterior_ = pipe.dual_transform(train, (train, test))
+
+    # chamando info
+    # info = pipe.enhancer().info(train)
+    # info = pipe.model(train).info()
 
 
 def main():
@@ -170,6 +220,9 @@ def main():
     # test_metric()
     # test_pca()
     test_partition()
+
+    # sanity test
+    test_check_architecture()
 
 
 if __name__ == '__main__':
