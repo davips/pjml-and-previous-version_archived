@@ -14,7 +14,7 @@ from pjml.tool.data.communication.report import Report, TReport
 from pjml.tool.data.evaluation.calc import Calc
 from pjml.tool.data.evaluation.mconcat import MConcat
 from pjml.tool.data.evaluation.metric import Metric, TMetric
-from pjml.tool.data.evaluation.split import TSplit
+from pjml.tool.data.evaluation.split import TSplit, TrainSplit, TestSplit
 from pjml.tool.data.flow.applyusing import ApplyUsing
 from pjml.tool.data.flow.file import File, TFile
 from pjml.tool.data.flow.onlyoperation import OnlyApply, OnlyUse
@@ -166,6 +166,22 @@ def test_with_summ_reduce(arq="iris.arff"):
     print("Posterior..........\n", posterior)
 
 
+def test_split_train_test(arq="iris.arff"):
+    pipe = TPipeline(
+        TFile(arq),
+        TrainSplit(),
+        TestSplit(),
+        TPCA(),
+        TSVMC(),
+        TMetric(onenhancer=False),
+        TReport('metric ... R: $R', onenhancer=False)
+    )
+    prior, posterior = pipe.dual_transform()
+
+    print("Prior..............\n", prior)
+    print("Posterior..........\n", posterior)
+
+
 def test_check_architecture(arq='iris.arff'):
     pipe = TPipeline(
         TFile(arq),
@@ -198,7 +214,6 @@ def test_check_architecture2(arq='iris.arff'):
     posterior_ = pipe.model(NoData).transform((NoData, NoData))
     prior_, posterior_ = pipe.dual_transform(NoData, NoData)
     prior_, posterior_ = pipe.dual_transform(NoData, (NoData, NoData))
-
 
     # prior_ = pipe.enhancer().transform()
     # posterior_ = pipe.model().transform()
@@ -236,7 +251,8 @@ def main():
     # test_metric()
     # test_pca()
     # test_partition()
-    test_with_summ_reduce()
+    # test_with_summ_reduce()
+    test_split_train_test()
 
     # sanity test
     test_check_architecture()
