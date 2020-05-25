@@ -1,6 +1,8 @@
 from abc import ABC
 
-from pjml.tool.abc.mixin.component import TComponent
+from pjdata.specialdata import NoData
+from pjml.tool.abc.invisible import TInvisible
+from pjml.tool.abc.mixin.component import TComponent, TTransformer
 from pjml.tool.abc.mixin.functioninspector import FunctionInspector
 from pjml.tool.abc.transformer import ISTransformer
 
@@ -31,3 +33,37 @@ class TReduce(TComponent, FunctionInspector, ABC):
 
     def transformations(self, step, clean=True):
         return super().transformations('u')
+
+
+class TRReduce(TInvisible):
+    @classmethod
+    def _cs_impl(cls):
+        pass
+
+    def __init__(self, config=None, deterministic=True, **kwargs):
+        config = {} if config is None else config
+        super().__init__(config, deterministic, **kwargs)
+
+    def _enhancer_impl(self, step='e'):
+        def func(collection):
+            if collection.has_nones:
+                raise Exception(
+                    "Warning: You shuld use 'Shrink()' to handling collections "
+                    "with None. ")
+
+            res = collection.original_data.matrices.copy()
+            res.update(collection.fields)
+            data = NoData.updated(
+                collection.history,
+                failure=collection.failure,
+                **res
+            )
+            return data
+
+        return TTransformer(
+            func=func,
+            info=None
+        )
+
+    def _model_impl(self, prior, step='m'):
+        return self._enhancer_impl(step)
