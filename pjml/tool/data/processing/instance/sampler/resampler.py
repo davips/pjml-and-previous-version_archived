@@ -19,6 +19,6 @@ class Resampler(LightAlgorithm, ABC):
 
     def transformations(self, step, clean=True):
         if step == 'a':
-            return [Transformation(self, step)]
+            return (Transformation(self, step),)
         else:
-            return []
+            return tuple()

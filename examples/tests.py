@@ -1,32 +1,17 @@
 """Test"""
 from pjdata.specialdata import NoData
-from pjml.config.operator.many import select
-from pjml.config.operator.reduction.full import full
-from pjml.config.operator.reduction.rnd import rnd
-from pjml.config.operator.single import hold
-from pjml.pipeline import Pipeline, TPipeline
-from pjml.tool.chain import Chain
-from pjml.tool.collection.expand.partition import Partition, TPartition
+from pjml.pipeline import TPipeline
+from pjml.tool.collection.expand.partition import TPartition
 from pjml.tool.collection.reduce.reduce import TRReduce
-from pjml.tool.collection.reduce.summ import Summ, TSumm, TRSumm, RSumm
-from pjml.tool.collection.transform.map import Map, TMap
-from pjml.tool.data.communication.report import Report, TReport
-from pjml.tool.data.evaluation.calc import Calc
-from pjml.tool.data.evaluation.mconcat import MConcat
-from pjml.tool.data.evaluation.metric import Metric, TMetric
+from pjml.tool.collection.reduce.summ import TSumm, TRSumm
+from pjml.tool.collection.transform.map import TMap
+from pjml.tool.data.communication.report import TReport
+from pjml.tool.data.evaluation.metric import TMetric
 from pjml.tool.data.evaluation.split import TSplit, TrainSplit, TestSplit
-from pjml.tool.data.flow.applyusing import ApplyUsing
-from pjml.tool.data.flow.file import File, TFile
-from pjml.tool.data.flow.onlyoperation import OnlyApply, OnlyUse
-from pjml.tool.data.manipulation.copy import Copy
+from pjml.tool.data.flow.file import TFile
 from pjml.tool.data.modeling.supervised.classifier.dt import DT
-from pjml.tool.data.modeling.supervised.classifier.nb import NB
-from pjml.tool.data.modeling.supervised.classifier.rf import RF
 from pjml.tool.data.modeling.supervised.classifier.svmc import TSVMC
-from pjml.tool.data.processing.feature.binarize import Binarize
 from pjml.tool.data.processing.feature.reductor.pca import TPCA
-from pjml.tool.data.processing.feature.selector.selectkbest import SelectBest
-from pjml.tool.meta.wrap import Wrap
 
 
 def printable_test():
@@ -42,6 +27,30 @@ def printable_test():
 
 
 def multobj_automl(arq="abalone3.arff"):
+    from pjml.config.operator.many import select
+    from pjml.config.operator.reduction.full import full
+    from pjml.config.operator.reduction.rnd import rnd
+    from pjml.config.operator.single import hold
+    from pjml.pipeline import Pipeline
+    from pjml.tool.chain import Chain
+    from pjml.tool.collection.expand.partition import Partition
+    from pjml.tool.collection.reduce.summ import Summ
+    from pjml.tool.collection.transform.map import Map
+    from pjml.tool.data.communication.report import Report
+    from pjml.tool.data.evaluation.calc import Calc
+    from pjml.tool.data.evaluation.mconcat import MConcat
+    from pjml.tool.data.evaluation.metric import Metric
+    from pjml.tool.data.flow.applyusing import ApplyUsing
+    from pjml.tool.data.flow.file import File
+    from pjml.tool.data.flow.onlyoperation import OnlyApply, OnlyUse
+    from pjml.tool.data.manipulation.copy import Copy
+    from pjml.tool.data.modeling.supervised.classifier.dt import DT
+    from pjml.tool.data.modeling.supervised.classifier.nb import NB
+    from pjml.tool.data.modeling.supervised.classifier.rf import RF
+    from pjml.tool.data.processing.feature.binarize import Binarize
+    from pjml.tool.data.processing.feature.selector.selectkbest import \
+        SelectBest
+    from pjml.tool.meta.wrap import Wrap
     expr = Pipeline(
         OnlyApply(File(arq), Binarize()),
         Partition(),
@@ -166,20 +175,6 @@ def test_with_summ_reduce(arq="iris.arff"):
     print("Posterior..........\n", posterior)
 
 
-def test_rsum(arq="iris.arff"):
-    pipe = TPipeline(
-        TFile(arq),
-        TPartition(),
-        TMap(TPCA(), TSVMC(), TMetric(onenhancer=False)),
-        RSumm(function='mean', onenhancer=False),
-        TReport('mean ... S: $S', onenhancer=False)
-    )
-    prior, posterior = pipe.dual_transform()
-
-    print("Prior..............\n", prior)
-    print("Posterior..........\n", posterior)
-
-
 def test_split_train_test(arq="iris.arff"):
     pipe = TPipeline(
         TFile(arq),
@@ -209,8 +204,8 @@ def test_check_architecture(arq='iris.arff'):
     posterior_01 = pipe.model(NoData).transform(NoData)
     prior_02, posterior_02 = pipe.dual_transform(NoData, NoData)
 
-    assert prior_01.uuid00 == prior_02.uuid00
-    assert posterior_01.uuid00 == posterior_02.uuid00
+    assert prior_01.uuid == prior_02.uuid
+    assert posterior_01.uuid == posterior_02.uuid
 
 
 def test_check_architecture2(arq='iris.arff'):
@@ -258,16 +253,15 @@ def test_check_architecture2(arq='iris.arff'):
 
 def main():
     """Main function"""
-    # printable_test()
+    printable_test()
     # multobj_automl()
-    # test_tsvmc()
-    # test_split()
-    # test_metric()
-    # test_pca()
-    # test_partition()
-    # test_with_summ_reduce()
-    # test_split_train_test()
-    test_rsum()
+    test_tsvmc()
+    test_split()
+    test_metric()
+    test_pca()
+    test_partition()
+    test_with_summ_reduce()
+    test_split_train_test()
 
     # sanity test
     test_check_architecture()

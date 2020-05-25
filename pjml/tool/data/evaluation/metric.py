@@ -41,16 +41,6 @@ class Metric(ISTransformer, FunctionInspector):
     #     return Model(self, data, applied)
 
     def _use_impl(self, data, step='u'):
-        if self.target not in data.matrices:
-            print(f'Impossible to calculate metric {self.functions}: \n'
-                  f'Field {self.target} does not exist!\nAvailable fields:',
-                  data.field_names)
-            raise Exception('Missing field!')
-
-        if self.prediction not in data.matrices:
-            raise Exception(
-                f'Impossible to calculate metric {self.functions}: Field '
-                f'{self.prediction} does not exist!')
         return data.updated(
             self.transformations(step),
             R=np.array([[f(data, self.target, self.prediction)
@@ -65,18 +55,18 @@ class Metric(ISTransformer, FunctionInspector):
             'target': CatP(choice, items=['Y']),
             'prediction': CatP(choice, items=['Z'])
         }
-        return TransformerCS(Node(params=params))
+        return TransformerCS(nodes=[Node(params)])
 
     @staticmethod
     def _fun_error(data, target, prediction):
         return 1 - accuracy_score(
-            data.matrices[target], data.matrices[prediction]
+            data.field(target, Metric), data.field(prediction, Metric)
         )
 
     @staticmethod
     def _fun_accuracy(data, target, prediction):
         return accuracy_score(
-            data.matrices[target], data.matrices[prediction]
+            data.field(target, Metric), data.field(prediction, Metric)
         )
 
     @staticmethod

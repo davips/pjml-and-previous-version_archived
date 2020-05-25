@@ -38,10 +38,5 @@ class Head(LightTransformer):
     def _use_impl(self, data, step='u'):
         dic = {}
         for field in self.fields:
-            if field not in data.matrices:
-                raise Exception(
-                    f'Impossible to use head '
-                    f'{field} does not exist!')            
-            dic[field] = data.field(field, self)[0:self.nrows]        
-
+            dic[field] = data.field(field, self)[0:self.nrows]
         return data.updated(self.transformations(step), **dic)

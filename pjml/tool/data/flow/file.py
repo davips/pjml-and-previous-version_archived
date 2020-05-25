@@ -36,8 +36,7 @@ class File(ISTransformer, NoDataHandler):
         if not path.endswith('/'):
             raise Exception('Path should end with /', path)
         if name.endswith('arff'):
-            data = read_arff(path + name, description)
-            actual_hashes = data.uuids
+            actual_hashes, data = read_arff(path + name, description)
         else:
             raise Exception('Unrecognized file extension:', name)
         if hashes:
@@ -53,7 +52,6 @@ class File(ISTransformer, NoDataHandler):
             'description': description,
             'hashes': actual_hashes
         }
-        # self._digest = md5digest(serialize(actual_hashes).encode())
 
         super().__init__(config, deterministic=True)
         self.data = data
@@ -74,10 +72,10 @@ class File(ISTransformer, NoDataHandler):
             'description': FixedP('No description.'),
             'matrices_hash': FixedP('1234567890123456789')
         }
-        return TransformerCS(Node(params=params))
+        return TransformerCS(nodes=[Node(params)])
 
     def transformations(self, step, clean=True):
-        return [Transformation(self, 'u')]
+        return (Transformation(self, 'u'),)
 
     # def _uuid_impl00(self):
     #     return UUID(self._digest)
@@ -107,8 +105,7 @@ class TFile(TComponent, NoDataHandler):
         if not path.endswith('/'):
             raise Exception('Path should end with /', path)
         if name.endswith('arff'):
-            data = read_arff(path + name, description)
-            actual_hashes = data.uuids
+            actual_hashes, data = read_arff(path + name, description)
         else:
             raise Exception('Unrecognized file extension:', name)
         if hashes:

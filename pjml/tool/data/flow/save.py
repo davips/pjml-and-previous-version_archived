@@ -56,7 +56,7 @@ class Save(Invisible):
             'path': FixedP('./'),
             'name': FixedP('iris.arff')
         }
-        return TransformerCS(Node(params=params))
+        return TransformerCS(nodes=[Node(params)])
 
 
 def translate_type(name):

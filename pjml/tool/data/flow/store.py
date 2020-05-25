@@ -59,4 +59,4 @@ class Store(Invisible, Storer):
             'engine': CatP(choice, items=['dump', 'mysql', 'sqlite']),
             'settings': FixedP({})
         }
-        return TransformerCS(Node(params=params))
+        return TransformerCS(nodes=[Node(params)])

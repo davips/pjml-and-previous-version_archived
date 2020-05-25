@@ -31,14 +31,5 @@ class Copy(ISTransformer, FunctionInspector):
     #     return Model(self, data, applied)
 
     def _use_impl(self, data, step='u'):
-        for field in [self.from_field]:
-            if field not in data.matrices:
-                raise Exception(
-                    f'Impossible to copy: Field '
-                    f'{field} does not exist!')
-
-        dic = {
-            self.to_field: data.field(self.from_field, self)
-        }
-
+        dic = {self.to_field: data.field(self.from_field, self)}
         return data.updated(self.transformations(step), **dic)

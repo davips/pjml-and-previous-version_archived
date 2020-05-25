@@ -1,3 +1,6 @@
+import operator
+from functools import reduce
+
 from functools import lru_cache
 from itertools import dropwhile
 
@@ -62,7 +65,7 @@ class Chain(MinimalContainerN):
                 lst.append(transformation)
                 previous = transformation
             result = lst[:-1]
-        return result
+        return tuple(result)
 
     def __str__(self, depth=''):
         if not self.pretty_printing:
@@ -72,6 +75,10 @@ class Chain(MinimalContainerN):
         for t in self.transformers:
             txts.append(t.__str__(depth))
         return '\n'.join(txts)
+
+    def _uuid_impl(self):
+        # TODO: override _uuid for other containerNs (Multi)?
+        return reduce(operator.mul, [t.uuid for t in self.transformers])
 
 
 class TChain(TMinimalContainerN):

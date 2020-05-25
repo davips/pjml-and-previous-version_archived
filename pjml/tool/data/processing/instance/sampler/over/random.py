@@ -21,4 +21,4 @@ class OverS(Resampler):
             'sampling_strategy':
                 CatP(choice, items=['not minority', 'not majority', 'all'])
         }
-        return TransformerCS(Node(params=params))
+        return TransformerCS(nodes=[Node(params)])

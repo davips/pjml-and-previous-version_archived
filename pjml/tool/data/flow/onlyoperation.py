@@ -40,7 +40,7 @@ class OnlyApply(MinimalContainer1):
         if step == 'a':
             return self.transformer.transformations(step, clean)
         else:
-            return []
+            return tuple()
 
 
 class OnlyUse(MinimalContainer1):
@@ -59,7 +59,7 @@ class OnlyUse(MinimalContainer1):
         return Model(self, data, data)
 
     def _use_impl(self, data, **kwargs):
-        return self.transformer._use_impl(data, )
+        return self.transformer._use_impl(data)
 
     def apply(self, data: Union[type, Data] = NoData,
               exit_on_error=True):
@@ -71,4 +71,4 @@ class OnlyUse(MinimalContainer1):
         if step == 'u':
             return self.transformer.transformations(step, clean)
         else:
-            return []
+            return tuple()

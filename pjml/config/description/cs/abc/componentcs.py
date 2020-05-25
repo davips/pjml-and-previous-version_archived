@@ -21,7 +21,7 @@ class ComponentCS(ConfigSpace, ABC):
                     f'{self.__class__.__name__} can only have Node as nodes.'
                     f' Not {type(cs)} !'
                 )
-        self.name, self.path, self.nodes = name, path, nodes
+        self._name, self.path, self.nodes = name, path, nodes
         self.components = components
 
     @abstractmethod
