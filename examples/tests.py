@@ -7,7 +7,8 @@ from pjml.config.operator.single import hold
 from pjml.pipeline import Pipeline, TPipeline
 from pjml.tool.chain import Chain
 from pjml.tool.collection.expand.partition import Partition, TPartition
-from pjml.tool.collection.reduce.summ import Summ, TSumm
+from pjml.tool.collection.reduce.reduce import TRReduce
+from pjml.tool.collection.reduce.summ import Summ, TSumm, TRSumm
 from pjml.tool.collection.transform.map import Map, TMap
 from pjml.tool.data.communication.report import Report, TReport
 from pjml.tool.data.evaluation.calc import Calc
@@ -150,6 +151,21 @@ def test_partition(arq="iris.arff"):
     print("Posterior..........\n", posterior)
 
 
+def test_with_summ_reduce(arq="iris.arff"):
+    pipe = TPipeline(
+        TFile(arq),
+        TPartition(),
+        TMap(TPCA(), TSVMC(), TMetric(onenhancer=False)),
+        TRSumm(function='mean', onenhancer=False),
+        TRReduce(),
+        TReport('mean ... S: $S', onenhancer=False)
+    )
+    prior, posterior = pipe.dual_transform()
+
+    print("Prior..............\n", prior)
+    print("Posterior..........\n", posterior)
+
+
 def test_check_architecture(arq='iris.arff'):
     pipe = TPipeline(
         TFile(arq),
@@ -219,7 +235,8 @@ def main():
     # test_split()
     # test_metric()
     # test_pca()
-    test_partition()
+    # test_partition()
+    test_with_summ_reduce()
 
     # sanity test
     test_check_architecture()
