@@ -10,7 +10,6 @@ class ConfigList(ConfigSpace):
     components
         A list of transformers.
     """
-
     def __init__(self, *args, transformers=None):
         if transformers is None:
             transformers = args
@@ -19,12 +18,14 @@ class ConfigList(ConfigSpace):
         from pjml.tool.abc.transformer import Transformer
         for transformer in transformers:
             if not isinstance(transformer, Transformer):
-                raise Exception(f'\nGiven: {type(transformer)}\n{transformer}\n'
-                                f'ConfigList does not accept config spaces, '
-                                f'only transformers!')
+                raise Exception(
+                    f'\nGiven: {type(transformer)}\n{transformer}\n'
+                    f'ConfigList does not accept config spaces, '
+                    f'only transformers!')
         self.current_index = -1
         self.size = len(transformers)
         self.transformers = transformers
+        self._name = 'list'
 
     def sample(self):
         return choice(self.transformers)
