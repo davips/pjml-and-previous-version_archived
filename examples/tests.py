@@ -8,7 +8,7 @@ from pjml.pipeline import Pipeline, TPipeline
 from pjml.tool.chain import Chain
 from pjml.tool.collection.expand.partition import Partition, TPartition
 from pjml.tool.collection.reduce.reduce import TRReduce
-from pjml.tool.collection.reduce.summ import Summ, TSumm, TRSumm
+from pjml.tool.collection.reduce.summ import Summ, TSumm, TRSumm, RSumm
 from pjml.tool.collection.transform.map import Map, TMap
 from pjml.tool.data.communication.report import Report, TReport
 from pjml.tool.data.evaluation.calc import Calc
@@ -166,6 +166,20 @@ def test_with_summ_reduce(arq="iris.arff"):
     print("Posterior..........\n", posterior)
 
 
+def test_rsum(arq="iris.arff"):
+    pipe = TPipeline(
+        TFile(arq),
+        TPartition(),
+        TMap(TPCA(), TSVMC(), TMetric(onenhancer=False)),
+        RSumm(function='mean', onenhancer=False),
+        TReport('mean ... S: $S', onenhancer=False)
+    )
+    prior, posterior = pipe.dual_transform()
+
+    print("Prior..............\n", prior)
+    print("Posterior..........\n", posterior)
+
+
 def test_split_train_test(arq="iris.arff"):
     pipe = TPipeline(
         TFile(arq),
@@ -252,7 +266,8 @@ def main():
     # test_pca()
     # test_partition()
     # test_with_summ_reduce()
-    test_split_train_test()
+    # test_split_train_test()
+    test_rsum()
 
     # sanity test
     test_check_architecture()
