@@ -13,6 +13,7 @@ from pjml.tool.abc.mixin.component import TComponent, TTransformer
 from pjml.tool.abc.mixin.functioninspector import FunctionInspector
 from pjml.tool.abc.mixin.nodatahandler import NoDataHandler
 from pjml.tool.abc.transformer import DTransformer
+from pjml.tool.chain import TChain
 from pjml.tool.model.model import Model
 
 
@@ -135,44 +136,20 @@ class TSplit(TComponent, FunctionInspector, NoDataHandler):
         self.seed = seed
         self.fields = fields
 
-    @lru_cache()
-    def _info(self, prior):
-        zeros = numpy.zeros(prior.field(self.fields[0], self).shape[0])
-        partitions = list(self.algorithm.split(X=zeros, y=zeros))
-        _prior = self._split(prior, partitions[self.partition][0], step='a')
-        _posterior = self._split(prior, partitions[self.partition][1], step='u')
-        return {"prior": _prior, "posterior": _posterior}
+        self.transformer = TChain(
+            TrainSplit(),
+            TestSplit()
+        )
 
     def _model_impl(self, prior):
-        def func(posterior=prior):
-            if posterior != prior:
-                raise Exception('Split expects the same Data (posterior should'
-                                'be equal prior).')
-            return self._info(prior)["posterior"]
-        return TTransformer(func=func, info=self._info(prior))
+        return self.transformer.model(prior)
 
     def _enhancer_impl(self):
-        def func(prior):
-            return self._info(prior)["prior"]
-        return TTransformer(func=func, info=None)
-
-    def _split(self, data, indices=None, step='u'):
-        new_dic = {}
-        for f in self.fields:
-            try:
-                new_dic[f] = data.field(f, self)[indices]
-            except Exception as e:
-                print(f'\nProblems splitting matrix {f}:', e)
-                exit()
-        return data.updated(self.transformations(step), **new_dic)
+        return self.transformer.enhancer
 
     @classmethod
     def _cs_impl(cls):
-        # TODO complete CS for split; useless?
-        params = {
-            'partitions': IntP(uniform, low=2, high=10)
-        }
-        return TransformerCS(Node(params=params))
+        raise NotImplementedError
 
 
 class TestSplit(TComponent, FunctionInspector, NoDataHandler):
