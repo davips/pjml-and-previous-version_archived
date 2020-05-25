@@ -1,5 +1,6 @@
 import traceback
 
+from cururu.storage import Storage
 from cururu.storer import Storer
 from pjml.config.description.cs.containercs import ContainerCS
 from pjml.config.description.node import Node
@@ -10,22 +11,30 @@ from pjml.tool.model.specialmodel import Model, CachedApplyModel
 
 
 class Cache2(Container1):
-    def __new__(cls, *args, storage=None, seed=0, transformers=None):
+    def __new__(cls, *args, storage_alias='default_dump', seed=0,
+                transformers=None):
         """Shortcut to create a ConfigSpace."""
         if transformers is None:
             transformers = args
         if all([isinstance(t, Transformer) for t in transformers]):
             return object.__new__(cls)
         node = Node(params={
+            'storage_alias': FixedP(storage_alias),
             'seed': FixedP(seed),
         })
-        return ContainerCS(Cache2.name, Cache2.path, transformers, nodes=[node])
+        return ContainerCS(Cache2.name, Cache2.path, transformers,
+                           nodes=[node])
 
-    def __init__(self, *args, storage=None, seed=0, transformers=None):
+    def __init__(self, *args, storage_alias='default_dump', seed=0,
+                 transformers=None):
         if transformers is None:
             transformers = args
-        self.storage = storage
-        config = {'seed': seed, 'transformers': transformers}
+        self.storage = Storage(storage_alias)
+        config = {
+            'storage_alias': storage_alias,
+            'seed': seed,
+            'transformers': transformers
+        }
         super().__init__(config, seed, transformers, deterministic=True)
 
     def _apply_impl(self, data):
@@ -64,7 +73,7 @@ class Cache2(Container1):
 
             # TODO: quando grava um frozen, é preciso marcar isso dealguma forma
             #  para que seja devidamente reconhecido como tal na hora do fetch.
-            self.storage.store(applied, self.fields, check_dup=False)
+            self.storage.store(applied, [], check_dup=False)
         else:
             applied = output_data
             # model não usável
@@ -77,7 +86,7 @@ class Cache2(Container1):
         transformations = self.transformer.transformations('u')
         mockup = data.mockup(transformations=transformations)
         output_data = self.storage.fetch(
-            mockup, self.fields,
+            mockup, [],
             training_data_uuid=training_data.uuid, lock=True
         )
 
@@ -107,7 +116,7 @@ class Cache2(Container1):
                 traceback.print_exc()
                 exit(0)
 
-            self.storage.store(used, self.fields,
+            self.storage.store(used, [],
                                training_data_uuid=training_data.uuid,
                                check_dup=False)
         else:

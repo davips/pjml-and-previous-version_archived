@@ -1,10 +1,18 @@
 import json
+import signal
 from abc import abstractmethod
 
 import numpy
 
 from pjdata.aux.decorator import classproperty
 from pjml.tool.abc.mixin.timers import Timers
+
+
+def keyboardInterruptHandler(signal, frame):
+    raise Exception('Interrupted by user!')
+
+
+signal.signal(signal.SIGINT, keyboardInterruptHandler)
 
 
 class ExceptionHandler:

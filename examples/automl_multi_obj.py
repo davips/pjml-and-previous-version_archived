@@ -3,6 +3,7 @@ from functools import partial
 from time import sleep
 
 from cururu.persistence import Persistence
+from cururu.storage import Storage
 from cururu.worker import Worker
 from pjdata.mixin.printable import disable_global_pretty_printing
 from pjml.config.operator.many import select
@@ -18,6 +19,7 @@ from pjml.tool.collection.expand.partition import Partition
 from pjml.tool.collection.reduce.summ import Summ
 from pjml.tool.collection.transform.map import Map
 from pjml.tool.data.communication.cache import Cache
+from pjml.tool.data.communication.cache2 import Cache2
 from pjml.tool.data.communication.report import Report
 from pjml.tool.data.evaluation.calc import Calc
 from pjml.tool.data.evaluation.mconcat import MConcat
@@ -45,26 +47,17 @@ start = Timers._clock()
 disable_global_pretty_printing()
 np.random.seed(50)
 
+
 #
 # s = cs.sample()
 # print(s)
 # exit()
-# cache = partial(Cache, engine='dump', blocking=True)
 
-def cache(*args):
-    return Cache(
-        # Cache(
-            *args,
-            engine='mysql',
-            db='paje:XXXXXX@143.107.183.114/paje',
-            blocking=not True
-        ),
-        engine='dump', blocking=True
-    )
+cache = partial(Cache2, storage_alias='default_sqlite')
+cache = partial(Cache2, storage_alias='mysql')
+# cache = partial(Cache2, storage_alias='default_dump')
+# cache = partial(Cache2, storage_alias='amnesia')
 
-cache = partial(Cache, engine='sqlite', blocking=False)
-
-# cache = partial(Cache, engine='amnesia', blocking=True)
 
 # expr = Pipeline(File(arq), cache(ApplyUsing(NB())))
 # p = expr
