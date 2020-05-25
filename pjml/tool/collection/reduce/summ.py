@@ -12,6 +12,7 @@ from pjml.config.description.node import Node
 from pjml.config.description.parameter import CatP
 from pjml.tool.abc.mixin.component import TTransformer, TComponent
 from pjml.tool.abc.mixin.functioninspector import FunctionInspector
+from pjml.tool.chain import TChain
 from pjml.tool.collection.reduce.reduce import Reduce, TReduce, TRReduce
 
 
@@ -251,3 +252,38 @@ class TRSumm(TComponent, FunctionInspector):
                     f"Shape: {values[0].shape}")
             values = [v[0] for v in values]
         return mean(values, axis=0), std(values, axis=0)
+
+
+class RSumm(TComponent):
+    """Given a field, summarizes a Collection object to a Data object.
+
+    The resulting Data object will have only the 's' field. To keep other
+    fields, consider using a Keep containing all the concurrent part:
+    Keep(Expand -> ... -> Summ).
+
+    The collection history will be exported to the summarized Data object.
+
+    The cells of the given field (matrix) will be averaged across all data
+    objects, resulting in a new matrix with the same dimensions.
+    """
+
+    def __init__(self, field='R', function='mean', **kwargs):
+        config = self._to_config(locals())
+        super().__init__(config, deterministic=True, **kwargs)
+        self.transformer = TChain(
+            TRSumm(field, function, **kwargs),
+            TRReduce()
+        )
+
+    def _enhancer_impl(self):
+        return self.transformer.enhancer
+
+    def _model_impl(self, prior_collection):
+        return self.transformer.model(prior_collection)
+
+    def transformations(self, step, clean=True):
+        return super().transformations('u')
+
+    @classmethod
+    def _cs_impl(cls):
+        return NotImplementedError
