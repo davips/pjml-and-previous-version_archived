@@ -31,7 +31,7 @@ class TExpand(TLightConfigLess):
                 data,
                 data.history + [transformation],
                 data.failure,
-                data.uuid00 + transformation.uuid00
+                data.uuid * transformation.uuid
             )
         return TTransformer(
             func=transform,

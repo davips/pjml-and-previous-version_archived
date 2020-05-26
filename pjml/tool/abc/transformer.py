@@ -594,7 +594,7 @@ class UTransformer(Operand, Printable, Identifyable, ExceptionHandler, Timers,
         del config['__class__']
         return config
 
-    def _uuid_impl00(self):
+    def _uuid_impl(self):
         return self.serialized
 
     @classproperty

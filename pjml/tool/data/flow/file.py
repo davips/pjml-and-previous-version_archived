@@ -105,8 +105,7 @@ class TFile(TComponent, NoDataHandler):
         if not path.endswith('/'):
             raise Exception('Path should end with /', path)
         if name.endswith('arff'):
-            data = read_arff(path + name, description)
-            actual_hashes = data.uuids
+            actual_hashes, data = read_arff(path + name, description)
         else:
             raise Exception('Unrecognized file extension:', name)
         if hashes:
