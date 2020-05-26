@@ -41,8 +41,8 @@ class Cache(Container1):
         #  it is a LOO. Maybe transformers could inform whether they are cheap.
 
         transformations = self.transformer.transformations('a')
-        mockup = data.melting(transformations=transformations)
-        output_data = self.storage.fetch(mockup, [], lock=True)
+        hollow = data.hollow(transformations=transformations)
+        output_data = self.storage.fetch(hollow, [], lock=True)
         # print()
         # print('--------------  ------------------')
         # print(hollow.id)
@@ -66,7 +66,7 @@ class Cache(Container1):
                 sub_model = self.transformer.apply(data, exit_on_error=False)
                 applied = sub_model.data
             except:
-                self.storage.unlock(mockup)
+                self.storage.unlock(hollow)
                 traceback.print_exc()
                 exit(0)
 
@@ -83,9 +83,9 @@ class Cache(Container1):
     def _use_impl(self, data, model=None, **kwargs):
         training_data = model.data_before_apply
         transformations = self.transformer.transformations('u')
-        mockup = data.melting(transformations=transformations)
+        hollow = data.hollow(transformations=transformations)
         output_data = self.storage.fetch(
-            mockup, [],
+            hollow, [],
             training_data_uuid=training_data.uuid, lock=True
         )
 
@@ -110,7 +110,7 @@ class Cache(Container1):
             try:
                 used = model.use(data, exit_on_error=False)
             except:
-                self.storage.unlock(mockup,
+                self.storage.unlock(hollow,
                                     training_data_uuid=training_data.uuid)
                 traceback.print_exc()
                 exit(0)
