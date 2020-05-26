@@ -14,9 +14,9 @@ class Expand(LightConfigLess):
         transformation = self.transformations('u')[0]
         return InfiniteCollection(
             data,
-            data.history + [transformation],
+            tuple(data.history) + tuple([transformation]),
             data.failure,
-            data.uuid00 + transformation.uuid00
+            data.uuid * transformation.uuid
         )
 
 

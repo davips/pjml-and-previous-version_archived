@@ -1,10 +1,18 @@
 import json
+import signal
 from abc import abstractmethod
 
 import numpy
 
 from pjdata.aux.decorator import classproperty
 from pjml.tool.abc.mixin.timers import Timers
+
+
+def keyboardInterruptHandler(signal, frame):
+    raise Exception('Interrupted by user!')
+
+
+signal.signal(signal.SIGINT, keyboardInterruptHandler)
 
 
 class ExceptionHandler:
@@ -82,19 +90,19 @@ class ExceptionHandler:
         """Check consistency between resulting Data object and
         _transformations() implementation provided by the current
         component."""
-        # TODO: global(?) option to disable history checking (takes 0.2ms at most)
+        # TODO: global(?) option to disable history checking (takes << 200us)
         # st = Timers._clock()
         from pjdata.specialdata import NoData
-        if dataout is NoData or dataout.isfrozen or dataout.allfrozen:
+        if dataout is NoData:  # or dataout.isfrozen or dataout.allfrozen:
             return dataout
 
         # Predict output UUID.
-        expected = datain.uuid00
+        expected = datain.uuid
         for trf in transformations:
-            expected += trf.uuid00
+            expected *= trf.uuid
 
         # # Traverse actual history.
-        # actual = datain.uuid00
+        # actual = datain.uuid
         # print('actul', actual)
         # print(33333333333333333333333333333333333333)
         # print(datain.history)
@@ -103,14 +111,14 @@ class ExceptionHandler:
         # print(5555555555555555555555555555)
         # for trf in dataout.history[len(datain.history):]:
         #     print(trf)
-        #     actual += trf.uuid00
+        #     actual += trf.uuid
         #     print(actual)
         # print('-==========================')
 
         # Check if expected uuid is the same as the one from original data.
-        if expected != dataout.uuid00:
+        if expected != dataout.uuid:
             recent = dataout.history[len(datain.history):]
-            print('\nActual history::::::::::::::: data:', dataout.uuid00)
+            print('\nActual history::::::::::::::: data:', dataout.uuid)
             for trf in recent:
                 print(f'{trf}')
 

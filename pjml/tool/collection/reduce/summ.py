@@ -231,7 +231,7 @@ class TRSumm(TComponent, FunctionInspector):
             'function': CatP(choice, items=cls.function_from_name.keys()),
             'field': CatP(choice, items=['z', 'r', 's'])
         }
-        return TransformerCS(Node(params))
+        return TransformerCS(nodes=[Node(params)])
 
     def _fun_mean(self, collection):
         return mean([data.field(self.field, self) for data in collection],

@@ -3,6 +3,7 @@ from functools import partial
 from time import sleep
 
 from cururu.persistence import Persistence
+from cururu.storage import Storage
 from cururu.worker import Worker
 from pjdata.mixin.printable import disable_global_pretty_printing
 from pjml.config.operator.many import select
@@ -17,6 +18,7 @@ from pjml.tool.collection.expand.expand import Expand
 from pjml.tool.collection.expand.partition import Partition
 from pjml.tool.collection.reduce.summ import Summ
 from pjml.tool.collection.transform.map import Map
+from pjml.tool.data.communication.cache import Cache
 from pjml.tool.data.communication.cache import Cache
 from pjml.tool.data.communication.report import Report
 from pjml.tool.data.evaluation.calc import Calc
@@ -45,24 +47,17 @@ start = Timers._clock()
 disable_global_pretty_printing()
 np.random.seed(50)
 
-# print(SelectKB.cs)
-# exit()
-#
-# cs = Pipeline(SelectKB)
-# print(cs)
-# exit()
+
 #
 # s = cs.sample()
 # print(s)
 # exit()
-cache = partial(Cache, engine='dump', blocking=True)
-# cache = partial(Cache, engine='sqlite', blocking=not True)
 
-# cache = partial(Cache,
-#                 engine='mysql', db='paje:@143.107.183.114/paje',
-#                 blocking=not True)
+cache = partial(Cache, storage_alias='default_sqlite')
+# cache = partial(Cache, storage_alias='mysql')
+# cache = partial(Cache, storage_alias='default_dump')
+# cache = partial(Cache, storage_alias='amnesia')
 
-# cache = partial(Cache, engine='amnesia', blocking=True)
 
 # expr = Pipeline(File(arq), cache(ApplyUsing(NB())))
 # p = expr
@@ -87,6 +82,8 @@ expr = Pipeline(
 
     OnlyApply(Copy(from_field="S", to_field="B")),
     OnlyApply(Report('copy S to B ... B: $B')),
+    # OnlyUse(Report('>>>>>>  B: {B.shape}')),
+    # Report('>>>>>>  S: {S.shape}'),
     OnlyUse(MConcat(fields=["B", "S"], output_field="S")),
     OnlyUse(Report('comcat B with S (vertical) ... S: $S')),
     OnlyUse(Calc(functions=['flatten'])),
@@ -102,7 +99,7 @@ expr = Pipeline(
 # Lambda(function='$R[0][0] * $R[0][1]', field='r')
 
 print('sample .................')
-pipe = full(rnd(expr, n=10), field='S', n=1).sample()
+pipe = full(rnd(expr, n=2), field='S', n=1).sample()
 
 #
 # pipes = rnd(expr, n=5)

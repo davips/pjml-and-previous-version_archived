@@ -4,7 +4,14 @@ from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.distributions import choice
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import CatP
+from pjml.pipeline import Pipeline
+from pjml.tool.abc.lighttransformer import LightTransformer
 from pjml.tool.abc.mixin.functioninspector import FunctionInspector
+from pjml.tool.data.communication.report import Report
+from pjml.tool.data.flow.applyusing import ApplyUsing
+from pjml.tool.data.flow.file import File
+from pjml.tool.data.modeling.supervised.classifier.nb import NB
+from pjml.tool.model.model import Model
 from pjml.tool.abc.transformer import ISTransformer
 
 
@@ -64,4 +71,14 @@ class MConcat(ISTransformer, FunctionInspector):
             'direction': CatP(choice, items=[0, 1]),
             'output_field': CatP(choice, items=['S'])
         }
-        return TransformerCS(Node(params=params))
+        return TransformerCS(nodes=[Node(params)])
+
+# TODO: create a proper test?
+# p = Pipeline(
+#     File('iris.arff'),
+#     ApplyUsing(NB()),
+#     Report('$X $Y $Z'),
+#     MConcat(fields=['X','Y','Z'], output_field='A'),
+#     Report('$A')
+# )
+# p.apply()

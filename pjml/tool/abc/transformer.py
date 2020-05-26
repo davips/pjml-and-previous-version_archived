@@ -432,9 +432,11 @@ from pjml.tool.abc.mixin.exceptionhandler import BadComponent, ExceptionHandler
 from pjml.tool.abc.mixin.timers import Timers
 from pjml.tool.model.model import Model
 from pjml.tool.model.specialmodel import FailedModel, EarlyEndedModel
+from pjml.tool.abc.operand import Operand
 
 
-class UTransformer(Printable, Identifyable, ExceptionHandler, Timers, ABC):
+class UTransformer(Operand, Printable, Identifyable, ExceptionHandler, Timers,
+                  ABC):
     """Parent of all processors, learners, evaluators, data controlers, ...
 
     Contributors:
@@ -854,7 +856,7 @@ class NTransformer(Printable, Identifyable, ExceptionHandler, Timers, ABC):
         non-trivial transformations.
         A missing implementation will be detected during apply/use."""
         if step in 'au':
-            return [Transformation(self, step)]
+            return (Transformation(self, step),)
         else:
             raise BadComponent('Wrong current step:', step)
 
@@ -909,7 +911,7 @@ class NTransformer(Printable, Identifyable, ExceptionHandler, Timers, ABC):
         del config['__class__']
         return config
 
-    def _uuid_impl00(self):
+    def _uuid_impl(self):
         return self.serialized
 
     @classproperty

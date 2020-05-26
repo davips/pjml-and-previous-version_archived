@@ -37,11 +37,6 @@ class Calc(ISTransformer, FunctionInspector):
     #     return Model(self, data, applied)
 
     def _use_impl(self, data, step='u'):
-        if self.input_field not in data.matrices:
-            raise Exception(
-                f'Impossible to calculate {self.functions}: Field '
-                f'{self.input_field} does not exist!')
-
         result_vectors = [function(data.field(self.input_field, self))
                           for function in self.selected]
         dic = {self.output_field: np.array(result_vectors)}
@@ -55,7 +50,7 @@ class Calc(ISTransformer, FunctionInspector):
             'input_field': CatP(choice, items=['S']),
             'output_field': CatP(choice, items=['S'])
         }
-        return TransformerCS(Node(params=params))
+        return TransformerCS(nodes=[Node(params)])
 
     @staticmethod
     def _fun_mean(input):

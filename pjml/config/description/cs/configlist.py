@@ -21,12 +21,14 @@ class ConfigList(ConfigSpace):
         for transformer in transformers:
             if not (isinstance(transformer, UTransformer)
                     or isinstance(transformer, TComponent)):
-                raise Exception(f'\nGiven: {type(transformer)}\n{transformer}\n'
-                                f'ConfigList does not accept config spaces, '
-                                f'only transformers!')
+                raise Exception(
+                    f'\nGiven: {type(transformer)}\n{transformer}\n'
+                    f'ConfigList does not accept config spaces, '
+                    f'only transformers!')
         self.current_index = -1
         self.size = len(transformers)
         self.transformers = transformers
+        self._name = 'list'
 
     def sample(self):
         return choice(self.transformers)
