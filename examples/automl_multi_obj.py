@@ -99,7 +99,7 @@ expr = Pipeline(
 # Lambda(function='$R[0][0] * $R[0][1]', field='r')
 
 print('sample .................')
-pipe = full(rnd(expr, n=10), field='S', n=1).sample()
+pipe = full(rnd(expr, n=2), field='S', n=1).sample()
 
 #
 # pipes = rnd(expr, n=5)
