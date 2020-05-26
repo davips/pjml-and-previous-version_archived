@@ -48,4 +48,4 @@ class New(LightTransformer, NoDataHandler):
         raise Exception('I am not sure you should look for a CS here!')
 
     def transformations(self, step, clean=True):
-        return [Transformation(self, 'u')]
+        return (Transformation(self, 'u'),)

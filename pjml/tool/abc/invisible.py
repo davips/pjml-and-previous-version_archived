@@ -12,4 +12,4 @@ class Invisible(LightTransformer, ABC):
     def transformations(self, step, clean=True):
         """Invisible components produce no transformations, so they need to
         override the list of expected transformations with []."""
-        return []
+        return tuple()

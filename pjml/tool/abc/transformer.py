@@ -116,7 +116,7 @@ class Transformer(Operand, Printable, Identifyable, ExceptionHandler, Timers,
         non-trivial transformations.
         A missing implementation will be detected during apply/use."""
         if step in 'au':
-            return [Transformation(self, step)]
+            return (Transformation(self, step),)
         else:
             raise BadComponent('Wrong current step:', step)
 

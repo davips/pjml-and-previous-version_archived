@@ -62,7 +62,7 @@ class Chain(MinimalContainerN):
                 lst.append(transformation)
                 previous = transformation
             result = lst[:-1]
-        return result
+        return tuple(result)
 
     def __str__(self, depth=''):
         if not self.pretty_printing:

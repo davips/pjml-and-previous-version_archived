@@ -41,7 +41,7 @@ class OnlyApply(MinimalContainer1):
         if step == 'a':
             return self.transformer.transformations(step, clean)
         else:
-            return []
+            return tuple()
 
 
 class OnlyUse(MinimalContainer1):
@@ -72,4 +72,4 @@ class OnlyUse(MinimalContainer1):
         if step == 'u':
             return self.transformer.transformations(step, clean)
         else:
-            return []
+            return tuple()

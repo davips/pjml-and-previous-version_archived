@@ -25,8 +25,8 @@ class Predictor(HeavyAlgorithm, EnforceApply, ABC):
 
     def transformations(self, step, clean=True):
         if step == 'a':
-            return []
+            return tuple()
         elif step == 'u':
-            return [Transformation(self, step)]
+            return (Transformation(self, step),)
         else:
             raise BadComponent('Wrong current step:', step)

@@ -19,7 +19,7 @@ from pjml.tool.collection.expand.partition import Partition
 from pjml.tool.collection.reduce.summ import Summ
 from pjml.tool.collection.transform.map import Map
 from pjml.tool.data.communication.cache import Cache
-from pjml.tool.data.communication.cache2 import Cache2
+from pjml.tool.data.communication.cache import Cache
 from pjml.tool.data.communication.report import Report
 from pjml.tool.data.evaluation.calc import Calc
 from pjml.tool.data.evaluation.mconcat import MConcat
@@ -53,10 +53,10 @@ np.random.seed(50)
 # print(s)
 # exit()
 
-cache = partial(Cache2, storage_alias='default_sqlite')
-cache = partial(Cache2, storage_alias='mysql')
-# cache = partial(Cache2, storage_alias='default_dump')
-# cache = partial(Cache2, storage_alias='amnesia')
+cache = partial(Cache, storage_alias='default_sqlite')
+# cache = partial(Cache, storage_alias='mysql')
+# cache = partial(Cache, storage_alias='default_dump')
+# cache = partial(Cache, storage_alias='amnesia')
 
 
 # expr = Pipeline(File(arq), cache(ApplyUsing(NB())))

@@ -1,6 +1,6 @@
 import traceback
 
-from cururu.storer import Storer
+from cururu.storage import Storage
 from pjml.config.description.cs.containercs import ContainerCS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import FixedP
@@ -10,49 +10,39 @@ from pjml.tool.model.specialmodel import Model, CachedApplyModel
 
 
 class Cache(Container1):
-    def __new__(cls, *args, fields=None, engine="dump", db='/tmp/cururu',
-                settings=None, blocking=False, seed=0, transformers=None):
+    def __new__(cls, *args, storage_alias='default_dump', seed=0,
+                transformers=None):
         """Shortcut to create a ConfigSpace."""
         if transformers is None:
             transformers = args
         if all([isinstance(t, Transformer) for t in transformers]):
             return object.__new__(cls)
         node = Node(params={
-            'fields': FixedP(fields),
-            'engine': FixedP(engine),
-            'db': FixedP(db),
-            'settings': FixedP(settings),
-            'blocking': FixedP(blocking),
+            'storage_alias': FixedP(storage_alias),
             'seed': FixedP(seed),
         })
-        return ContainerCS(Cache.name, Cache.path, transformers, nodes=[node])
+        return ContainerCS(Cache.name, Cache.path, transformers,
+                           nodes=[node])
 
-    def __init__(self, *args, fields=None, engine="dump", db='/tmp/cururu',
-                 settings=None, blocking=False, seed=0, transformers=None):
+    def __init__(self, *args, storage_alias='default_dump', seed=0,
+                 transformers=None):
         if transformers is None:
             transformers = args
-        if fields is None:
-            fields = ['X', 'Y', 'Z']
-            # TODO: fields: 'all', 'new', ['X', 'Y', 'Z']
-
-        if settings is None:
-            settings = {}
-        config = self._to_config(locals())
-        del config['args']
+        self.storage = Storage(storage_alias)
+        config = {
+            'storage_alias': storage_alias,
+            'seed': seed,
+            'transformers': transformers
+        }
         super().__init__(config, seed, transformers, deterministic=True)
-
-        self.fields = fields
-        self.storage = Storer.get(
-            engine, db, settings, blocking, multiprocess=False
-        )
 
     def _apply_impl(self, data):
         # TODO: CV() is too cheap to be recovered from storage, specially if
         #  it is a LOO. Maybe transformers could inform whether they are cheap.
 
         transformations = self.transformer.transformations('a')
-        mockup = data.mockup(transformations=transformations)
-        output_data = self.storage.fetch(mockup, self.fields, lock=True)
+        mockup = data.melting(transformations=transformations)
+        output_data = self.storage.fetch(mockup, [], lock=True)
         # print()
         # print('--------------  ------------------')
         # print(hollow.id)
@@ -82,7 +72,7 @@ class Cache(Container1):
 
             # TODO: quando grava um frozen, é preciso marcar isso dealguma forma
             #  para que seja devidamente reconhecido como tal na hora do fetch.
-            self.storage.store(applied, self.fields, check_dup=False)
+            self.storage.store(applied, [], check_dup=False)
         else:
             applied = output_data
             # model não usável
@@ -93,9 +83,9 @@ class Cache(Container1):
     def _use_impl(self, data, model=None, **kwargs):
         training_data = model.data_before_apply
         transformations = self.transformer.transformations('u')
-        mockup = data.mockup(transformations=transformations)
+        mockup = data.melting(transformations=transformations)
         output_data = self.storage.fetch(
-            mockup, self.fields,
+            mockup, [],
             training_data_uuid=training_data.uuid, lock=True
         )
 
@@ -125,7 +115,7 @@ class Cache(Container1):
                 traceback.print_exc()
                 exit(0)
 
-            self.storage.store(used, self.fields,
+            self.storage.store(used, [],
                                training_data_uuid=training_data.uuid,
                                check_dup=False)
         else:
