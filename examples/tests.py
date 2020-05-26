@@ -3,7 +3,7 @@ from pjdata.specialdata import NoData
 from pjml.pipeline import TPipeline
 from pjml.tool.collection.expand.partition import TPartition
 from pjml.tool.collection.reduce.reduce import TRReduce
-from pjml.tool.collection.reduce.summ import TSumm, TRSumm
+from pjml.tool.collection.reduce.summ import TRSumm
 from pjml.tool.collection.transform.map import TMap
 from pjml.tool.data.communication.report import TReport
 from pjml.tool.data.evaluation.metric import TMetric
@@ -146,18 +146,18 @@ def test_pca(arq="iris.arff"):
     print("Posterior..........\n", posterior)
 
 
-def test_partition(arq="iris.arff"):
-    pipe = TPipeline(
-        TFile(arq),
-        TPartition(),
-        TMap(TPCA(), TSVMC(), TMetric(onenhancer=False)),
-        TSumm(function='mean', onenhancer=False),
-        TReport('mean ... S: $S', onenhancer=False)
-    )
-    prior, posterior = pipe.dual_transform()
-
-    print("Prior..............\n", prior)
-    print("Posterior..........\n", posterior)
+# def test_partition(arq="iris.arff"):
+#     pipe = TPipeline(
+#         TFile(arq),
+#         TPartition(),
+#         TMap(TPCA(), TSVMC(), TMetric(onenhancer=False)),
+#         TSumm(function='mean', onenhancer=False),
+#         TReport('mean ... S: $S', onenhancer=False)
+#     )
+#     prior, posterior = pipe.dual_transform()
+#
+#     print("Prior..............\n", prior)
+#     print("Posterior..........\n", posterior)
 
 
 def test_with_summ_reduce(arq="iris.arff"):
@@ -259,7 +259,7 @@ def main():
     test_split()
     test_metric()
     test_pca()
-    test_partition()
+    # test_partition()
     test_with_summ_reduce()
     test_split_train_test()
 
