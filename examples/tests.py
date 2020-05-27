@@ -160,21 +160,6 @@ def test_partition(arq="iris.arff"):
     print("Posterior..........\n", posterior)
 
 
-def test_with_summ_reduce(arq="iris.arff"):
-    pipe = TPipeline(
-        TFile(arq),
-        TPartition(),
-        TMap(TPCA(), TSVMC(), TMetric(onenhancer=False)),
-        TRSumm(function='mean', onenhancer=False),
-        TRReduce(),
-        TReport('mean ... S: $S', onenhancer=False)
-    )
-    prior, posterior = pipe.dual_transform()
-
-    print("Prior..............\n", prior)
-    print("Posterior..........\n", posterior)
-
-
 def test_split_train_test(arq="iris.arff"):
     pipe = TPipeline(
         TFile(arq),
@@ -184,6 +169,21 @@ def test_split_train_test(arq="iris.arff"):
         TSVMC(),
         TMetric(onenhancer=False),
         TReport('metric ... R: $R', onenhancer=False)
+    )
+    prior, posterior = pipe.dual_transform()
+
+    print("Prior..............\n", prior)
+    print("Posterior..........\n", posterior)
+
+
+def test_with_summ_reduce(arq="iris.arff"):
+    pipe = TPipeline(
+        TFile(arq),
+        TPartition(),
+        TMap(TPCA(), TSVMC(), TMetric(onenhancer=False)),
+        TRSumm(function='mean', onenhancer=False),
+        TRReduce(),
+        TReport('mean ... S: $S', onenhancer=False)
     )
     prior, posterior = pipe.dual_transform()
 
@@ -253,15 +253,15 @@ def test_check_architecture2(arq='iris.arff'):
 
 def main():
     """Main function"""
-    printable_test()
+    # printable_test()
     # multobj_automl()
-    test_tsvmc()
-    test_split()
-    test_metric()
-    test_pca()
-    test_partition()
+    # test_tsvmc()
+    # test_split()
+    # test_metric()
+    # test_pca()
+    # test_partition()
+    # test_split_train_test()
     test_with_summ_reduce()
-    test_split_train_test()
 
     # sanity test
     test_check_architecture()
