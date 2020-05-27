@@ -163,13 +163,15 @@ def test_pca(arq="iris.arff"):
 def test_with_summ_reduce(arq="iris.arff"):
     pipe = TPipeline(
         TFile(arq),
-        TPartition(),
+        TPartition(partitions=3),
         TMap(TPCA(), TSVMC(), TMetric(onenhancer=False)),
         TRSumm(function='mean', onenhancer=False),
         TRReduce(),
         TReport('mean ... S: $S', onenhancer=False)
     )
-    prior, posterior = pipe.dual_transform()
+    # prior = pipe.enhancer.transform(NoData)
+    prior = pipe.model(NoData).transform(NoData)
+    # prior, posterior = pipe.dual_transform()
 
     print("Prior..............\n", prior)
     print("Posterior..........\n", posterior)
@@ -253,13 +255,13 @@ def test_check_architecture2(arq='iris.arff'):
 
 def main():
     """Main function"""
-    printable_test()
-    # multobj_automl()
-    test_tsvmc()
-    test_split()
-    test_metric()
-    test_pca()
-    # test_partition()
+    # printable_test()
+    # # multobj_automl()
+    # test_tsvmc()
+    # test_split()
+    # test_metric()
+    # test_pca()
+    # # test_partition()
     test_with_summ_reduce()
     test_split_train_test()
 

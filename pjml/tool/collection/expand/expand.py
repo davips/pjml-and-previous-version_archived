@@ -1,10 +1,8 @@
 from itertools import repeat
 
-from pjdata.infinitecollection import InfiniteCollection
-
-from pjml.tool.abc.configless import LightConfigLess, TLightConfigLess
+from pjdata.collection import Collection
+from pjml.tool.abc.configless import TLightConfigLess
 from pjml.tool.abc.mixin.component import TTransformer
-from pjml.tool.model.model import Model
 
 
 class TExpand(TLightConfigLess):
@@ -13,7 +11,8 @@ class TExpand(TLightConfigLess):
 
     def _enhancer_impl(self):
         def transform(data):
-            return repeat(data)
+            generator = repeat(data)
+            return Collection(generator, lambda: data, finite=False,debug_info='expand')
 
         return TTransformer(
             func=transform,

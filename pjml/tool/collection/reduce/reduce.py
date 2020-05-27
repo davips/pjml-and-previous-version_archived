@@ -22,14 +22,18 @@ class TRReduce(TInvisible):
         super().__init__(config, deterministic, **kwargs)
 
     def _enhancer_impl(self):
-        def func(collection):
-            for data in collection:
-                if data is None:
-                    break
-            return next(collection)
+        def transform(collection):
+            # Exhaust iterator.
+            c = 0
+            print('\nReduce asks to consume item', c)
+            for d in collection:
+                c += 1
+                print('\nReduce asks to consume item', c)
+                pass
+            return collection.data
 
         return TTransformer(
-            func=func,
+            func=transform,
             info=None
         )
 

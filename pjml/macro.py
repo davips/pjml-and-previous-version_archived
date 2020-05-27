@@ -2,7 +2,7 @@
 Shortcuts of common CS/AutoML expressions or ML pipelines.
 """
 from pjml.tool.collection.expand.partition import TPartition
-from pjml.tool.collection.reduce.summ import Summ
+from pjml.tool.collection.reduce.summ import TRSumm
 from pjml.tool.collection.transform.map import Map
 from pjml.tool.collection.transform.multi import TMulti
 from pjml.tool.chain import Chain
@@ -12,7 +12,7 @@ def evaluator(*components, function='mean_std', **validation_args):
     return Chain(
         TPartition(**validation_args),
         Map(transformers=components),
-        Summ(function=function)
+        TRSumm(function=function)
     )
 
 

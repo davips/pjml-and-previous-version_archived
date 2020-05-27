@@ -1,9 +1,9 @@
 from functools import lru_cache
 
-from pjdata.finitecollection import FiniteCollection
-
+from pjdata.collection import Collection
 from pjml.config.description.cs.containercs import ContainerCS
-from pjml.tool.abc.minimalcontainer import MinimalContainerN, TMinimalContainerN
+from pjml.tool.abc.minimalcontainer import MinimalContainerN, \
+    TMinimalContainerN
 from pjml.tool.abc.mixin.component import TTransformer, TComponent
 from pjml.tool.abc.transformer import UTransformer
 from pjml.tool.model.containermodel import ContainerModel
@@ -74,46 +74,30 @@ class TMulti(TMinimalContainerN):
     @lru_cache()
     def _info1(self, prior_collection):
         models = []
-
-        # TODO: Tratar StopException com hint sobre montar better pipeline?
-        for trf in self.transformers:
-            data = next(prior_collection)
-            if data is None:
-                raise Exception('Less Data objects than expected!')
-            yield trf.model(prior_collection).transform(data)
-
-        # Sentinel marking end of transformed stream.
-        yield None
-
-        # Unchanged main data.
-        yield next(prior_collection)
-
-        return {'models': models}
+        raise NotImplementedError
+        # return {'models': models}
 
     def _model_impl(self, prior_collection):
-        info1 = self._info1
+        # info1 = self._info1
         transformers = self.transformers
 
         def transform(posterior_collection):
-            # enhancers = info1['models']
+            # models = info1['models']
+            funcs = [
+                lambda prior, posterior: trf.model(prior).transform(posterior)
+                for trf in transformers
+            ]
+            generator = map(
+                lambda func, prior, posterior: func(prior, posterior),
+                funcs, prior_collection, posterior_collection
+            )
+            return Collection(generator, lambda: posterior_collection.data,debug_info='multi')
 
             # TODO: Tratar StopException com hint sobre montar better pipeline?
-            for trf in transformers:
-                data = next(posterior_collection)
-                if data is None:
-                    raise Exception('Less Data objects than expected!')
-                yield trf.model(next(prior_collection)).transform(data)
-
-            # Sentinel marking end of transformed stream.
-            yield None
-
-            # Unchanged main data.
-            yield next(posterior_collection)
-
 
         return TTransformer(
             func=transform,
-            info=info1
+            info=None  # info1
         )
 
     @lru_cache()
@@ -122,22 +106,20 @@ class TMulti(TMinimalContainerN):
 
     def _enhancer_impl(self):
         info2 = self._info2()
+        enhancers = info2['enhancers']
 
-        def transform(prior_collection):
-            enhancers = info2['enhancers']
+        def transform(posterior_collection):
+            funcs = [
+                lambda posterior: enhancer.transform(posterior)
+                for enhancer in enhancers
+            ]
+            generator = map(
+                lambda func, posterior: func(posterior),
+                funcs, posterior_collection
+            )
+            return Collection(generator, lambda: posterior_collection.data, debug_info='multi')
 
             # TODO: Tratar StopException com hint sobre montar better pipeline?
-            for enhancer in enhancers:
-                data = next(prior_collection)
-                if data is None:
-                    raise Exception('Less Data objects than expected!')
-                yield enhancer.transform(data)
-
-            # Sentinel marking end of transformed stream.
-            yield None
-
-            # Unchanged main data.
-            yield next(prior_collection)
 
         return TTransformer(
             func=transform,
