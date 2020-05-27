@@ -53,12 +53,11 @@ class TRReduce(TInvisible):
 
             res = collection.original_data.matrices.copy()
             res.update(collection.fields)
-            data = NoData.updated(
+            return NoData.updated(
                 collection.history,
                 failure=collection.failure,
                 **res
             )
-            return data
 
         return TTransformer(
             func=func,
