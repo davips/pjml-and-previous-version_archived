@@ -254,6 +254,11 @@ def test_check_architecture2(arq='iris.arff'):
     # info = pipe.model(train).info()
 
 
+# import hunter
+#
+# hunter.trace(module='pjml.tool.abc.mixin.component', action=hunter.CallPrinter)
+
+
 def main():
     """Main function"""
     # printable_test()
