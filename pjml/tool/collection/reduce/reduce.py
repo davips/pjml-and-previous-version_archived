@@ -23,13 +23,15 @@ class TRReduce(TInvisible):
 
     def _enhancer_impl(self):
         def transform(collection):
-            # Exhaust iterator.
+            # Exhaust iterator. TODO: consume(collection)
             c = 0
-            print('\nReduce asks to consume item', c)
+            print('\nReduce starts loop... >>>>>>>>>>>>>>>>>>>>>>>>>>>')
             for d in collection:
+                print('  Reduce consumed item', c, '\n')
                 c += 1
-                print('\nReduce asks to consume item', c)
                 pass
+            print('...Reduce exits loop. <<<<<<<<<<<<<<<<<<<<<<<<<<<\n')
+            print('  Reduce asks for pendurado...')
             return collection.data
 
         return TTransformer(

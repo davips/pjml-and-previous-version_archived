@@ -1,3 +1,6 @@
+from functools import reduce
+from itertools import accumulate, repeat
+
 import numpy
 from numpy import mean
 from numpy import std
@@ -46,7 +49,21 @@ class TRSumm(TComponent, FunctionInspector):
                     yield data, acc
                 print('...Summ finish iterator.\n')
 
-            return Collection(generator(), finalize, debug_info='summ')
+            # Versão obscura:
+            # print('\nSumm start iterator...')
+            # def func(t1, t2):
+            #     _, acc0 = t1
+            #     data, _ = t2
+            #     acc0.append(data.field(field_name, 'Summ'))
+            #     return data, acc0
+            #
+            # generator = accumulate(zip(collection, repeat(None)),
+            #                        func, initial=(None, []))
+            # # Discards initial value.
+            # next(generator)
+            # print('...Summ finish iterator.\n')
+
+            return Collection(generator, finalize, debug_info='summ')
 
         return TTransformer(
             func=transform,

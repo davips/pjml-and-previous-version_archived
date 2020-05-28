@@ -91,7 +91,8 @@ class TMulti(TMinimalContainerN):
                 lambda func, prior, posterior: func(prior, posterior),
                 funcs, prior_collection, posterior_collection
             )
-            return Collection(generator, lambda: posterior_collection.data,debug_info='multi')
+            return Collection(generator, lambda: posterior_collection.data,
+                              debug_info='multi')
 
             # TODO: Tratar StopException com hint sobre montar better pipeline?
 
@@ -110,14 +111,13 @@ class TMulti(TMinimalContainerN):
 
         def transform(posterior_collection):
             funcs = [
-                lambda posterior: enhancer.transform(posterior)
-                for enhancer in enhancers
+                lambda data: enhancer.transform(data) for enhancer in enhancers
             ]
             generator = map(
-                lambda func, posterior: func(posterior),
-                funcs, posterior_collection
+                lambda func, data: func(data), funcs, posterior_collection
             )
-            return Collection(generator, lambda: posterior_collection.data, debug_info='multi')
+            return Collection(generator, lambda: posterior_collection.data,
+                              debug_info='multi')
 
             # TODO: Tratar StopException com hint sobre montar better pipeline?
 
