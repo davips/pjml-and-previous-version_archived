@@ -31,8 +31,14 @@ class TRSumm(TComponent, FunctionInspector):
         config = self._to_config(locals())
         super().__init__(config, deterministic=True, **kwargs)
         self.function = self.function_from_name[config['function']]
-
         self.field = field
+
+    def generator(self, prior_collection, posterior_collection):
+        def func(prior, posterior):
+            return self.model(prior).transform(posterior), \
+                   self.enhancer.transform(posterior)
+
+        return map(func, prior_collection, posterior_collection)
 
     def _enhancer_impl(self):
         field_name = self.field

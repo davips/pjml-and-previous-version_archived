@@ -1,4 +1,5 @@
 from functools import lru_cache
+from itertools import cycle, tee
 
 from pjdata.collection import Collection
 from pjml.config.description.cs.containercs import ContainerCS
@@ -76,6 +77,16 @@ class TMulti(TMinimalContainerN):
         models = []
         raise NotImplementedError
         # return {'models': models}
+
+    def generator(self, prior_collection, posterior_collection):
+        funcs = [
+            lambda prior, posterior: trf.dual_transform(prior, posterior)
+            for trf in self.transformers
+        ]
+        return map(
+            lambda func, prior, posterior: func(prior, posterior),
+            funcs, prior_collection, posterior_collection
+        )
 
     def _model_impl(self, prior_collection):
         # info1 = self._info1

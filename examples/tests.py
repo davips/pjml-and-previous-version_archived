@@ -269,10 +269,10 @@ def main():
     # test_pca()
     # # test_partition()
     test_with_summ_reduce()
-    test_split_train_test()
+    # test_split_train_test()
 
     # sanity test
-    test_check_architecture()
+    # test_check_architecture()
 
 
 if __name__ == '__main__':

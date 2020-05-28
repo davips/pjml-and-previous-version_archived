@@ -1,3 +1,5 @@
+from itertools import tee
+
 from pjml.tool.abc.invisible import TInvisible
 from pjml.tool.abc.mixin.component import TTransformer
 
@@ -21,9 +23,15 @@ class TRReduce(TInvisible):
         config = {} if config is None else config
         super().__init__(config, deterministic, **kwargs)
 
+    def dual_transform(self, prior_collection, posterior_collection):
+        # Exhaust iterator.
+        for _, _ in zip(prior_collection, posterior_collection):
+            pass
+        return prior_collection.data, posterior_collection.data
+
     def _enhancer_impl(self):
         def transform(collection):
-            # Exhaust iterator. TODO: consume(collection)
+            # Exhaust iterator.
             c = 0
             print('\nReduce starts loop... >>>>>>>>>>>>>>>>>>>>>>>>>>>')
             for d in collection:
