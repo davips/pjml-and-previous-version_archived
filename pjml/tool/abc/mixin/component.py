@@ -88,7 +88,7 @@ class TComponent(Printable, Identifyable, ABC):
             Tree representing all the possible parameter spaces.
         """
         cs_ = cls._cs_impl()
-        result= cs_.identified(name=cls.__name__, path=cls.__module__)
+        result = cs_.identified(name=cls.__name__, path=cls.__module__)
         return result
 
     @property
@@ -199,7 +199,9 @@ class TTransformer:
             raise TypeError('Unexpected info type. You should use, callable, '
                             'dict or None.')
 
+    @lru_cache()
     def transform(self, data):  # resolver error
+        print('!!!!!!!!!!!!!!!', type(self).__name__, type(data))
         if isinstance(data, tuple):
             return tuple((self.func(dt) for dt in data))
         # Todo: We should add some tratment here because self.func can raise
