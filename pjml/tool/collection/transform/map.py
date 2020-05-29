@@ -61,15 +61,15 @@ class TMap(TMinimalContainer1):
             return object.__new__(cls)
         return ContainerCS(Map.name, Map.path, transformers)
 
-    def generator(self, prior_collection, posterior_collection):
+    def iterator(self, prior_collection, posterior_collection):
         return map(
             self.transformer.dual_transform,
             prior_collection, posterior_collection
         )
 
-    def generators(self, prior_collection, posterior_collection):
+    def iterators(self, prior_collection, posterior_collection):
         gen0, gen1 = tee(
-            self.generator(prior_collection, posterior_collection))
+            self.iterator(prior_collection, posterior_collection))
         return map(operator.itemgetter(0), gen0), \
                map(operator.itemgetter(1), gen1)
 
@@ -89,8 +89,8 @@ class TMap(TMinimalContainer1):
             def func(prior, posterior):
                 return transformer.model(prior).transform(posterior)
 
-            generator = map(func, prior_collection, posterior_collection)
-            return Collection(generator, lambda: posterior_collection.data,
+            iterator = map(func, prior_collection, posterior_collection)
+            return Collection(iterator, lambda: posterior_collection.data,
                               debug_info='map')
 
         return TTransformer(
@@ -107,8 +107,8 @@ class TMap(TMinimalContainer1):
         enhancer = info2['enhancer']
 
         def transform(posterior_collection):
-            generator = map(enhancer.transform, posterior_collection)
-            return Collection(generator, lambda: posterior_collection.data,
+            iterator = map(enhancer.transform, posterior_collection)
+            return Collection(iterator, lambda: posterior_collection.data,
                               debug_info='map')
 
         return TTransformer(

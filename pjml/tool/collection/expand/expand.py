@@ -19,8 +19,8 @@ class TExpand(TLightConfigLess):
 
     def _enhancer_impl(self):
         def transform(data):
-            generator = repeat(data)
-            return Collection(generator, lambda: data, finite=False,
+            iterator = repeat(data)
+            return Collection(iterator, lambda: data, finite=False,
                               debug_info='expand')
 
         return TTransformer(

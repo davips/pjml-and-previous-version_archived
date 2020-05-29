@@ -34,15 +34,15 @@ class TRSumm(TComponent, FunctionInspector):
         self.function = self.function_from_name[config['function']]
         self.field = field
 
-    def generator(self, prior_collection, posterior_collection):
+    def iterator(self, prior_collection, posterior_collection):
         def func(prior, posterior):
             return self.model(prior).transform(posterior), \
                    self.enhancer.transform(posterior)
         return map(func, prior_collection, posterior_collection)
 
-    def generators(self, prior_collection, posterior_collection):
+    def iterators(self, prior_collection, posterior_collection):
         gen0, gen1 = tee(
-            self.generator(prior_collection, posterior_collection))
+            self.iterator(prior_collection, posterior_collection))
         return map(operator.itemgetter(0), gen0), \
                map(operator.itemgetter(1), gen1)
 
@@ -53,7 +53,7 @@ class TRSumm(TComponent, FunctionInspector):
             def finalize(values):
                 return self.function(collection.data, values)
 
-            def generator():
+            def iterator():
                 acc = []
                 print('\nSumm start iterator...')
                 for data in collection:
@@ -69,13 +69,13 @@ class TRSumm(TComponent, FunctionInspector):
             #     acc0.append(data.field(field_name, 'Summ'))
             #     return data, acc0
             #
-            # generator = accumulate(zip(collection, repeat(None)),
+            # iterator = accumulate(zip(collection, repeat(None)),
             #                        func, initial=(None, []))
             # # Discards initial value.
-            # next(generator)
+            # next(iterator)
             # print('...Summ finish iterator.\n')
 
-            return Collection(generator, finalize, debug_info='summ')
+            return Collection(iterator, finalize, debug_info='summ')
 
         return TTransformer(
             func=transform,

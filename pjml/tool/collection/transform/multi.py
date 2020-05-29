@@ -79,7 +79,7 @@ class TMulti(TMinimalContainerN):
         raise NotImplementedError
         # return {'models': models}
 
-    def generator(self, prior_collection, posterior_collection):
+    def iterator(self, prior_collection, posterior_collection):
         funcs = [
             lambda prior, posterior: trf.dual_transform(prior, posterior)
             for trf in self.transformers
@@ -89,9 +89,9 @@ class TMulti(TMinimalContainerN):
             funcs, prior_collection, posterior_collection
         )
 
-    def generators(self, prior_collection, posterior_collection):
+    def iterators(self, prior_collection, posterior_collection):
         gen0, gen1 = tee(
-            self.generator(prior_collection, posterior_collection))
+            self.iterator(prior_collection, posterior_collection))
         return map(operator.itemgetter(0), gen0), \
                map(operator.itemgetter(1), gen1)
 
@@ -105,11 +105,11 @@ class TMulti(TMinimalContainerN):
                 lambda prior, posterior: trf.model(prior).transform(posterior)
                 for trf in transformers
             ]
-            generator = map(
+            iterator = map(
                 lambda func, prior, posterior: func(prior, posterior),
                 funcs, prior_collection, posterior_collection
             )
-            return Collection(generator, lambda: posterior_collection.data,
+            return Collection(iterator, lambda: posterior_collection.data,
                               debug_info='multi')
 
             # TODO: Tratar StopException com hint sobre montar better pipeline?
@@ -131,10 +131,10 @@ class TMulti(TMinimalContainerN):
             funcs = [
                 lambda data: enhancer.transform(data) for enhancer in enhancers
             ]
-            generator = map(
+            iterator = map(
                 lambda func, data: func(data), funcs, posterior_collection
             )
-            return Collection(generator, lambda: posterior_collection.data,
+            return Collection(iterator, lambda: posterior_collection.data,
                               debug_info='multi')
 
             # TODO: Tratar StopException com hint sobre montar better pipeline?

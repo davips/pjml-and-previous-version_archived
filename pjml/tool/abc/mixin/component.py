@@ -35,8 +35,8 @@ class TComponent(Printable, Identifyable, ABC):
     def _model_impl(self, prior):
         return TTransformer(None, None)
 
-    def generators(self, prior_collection, posterior_collection):
-        raise NotImplementedError('Only concurrent components have generators')
+    def iterators(self, prior_collection, posterior_collection):
+        raise NotImplementedError('Only concurrent components have iterators')
 
     @property
     @lru_cache()
@@ -55,15 +55,15 @@ class TComponent(Printable, Identifyable, ABC):
         return self._model_impl(prior)
 
     # TODO: special sub class for concurrent components containing the content
-    #   of this IF and the parent ABC method generator().
+    #   of this IF and the parent ABC method iterator().
     def dual_transform(self, prior, posterior):
         if isinstance(prior, Collection) or isinstance(posterior, Collection):
             print('          component', self.__class__.__name__,
                   ' dual transf ((((((((((')
-            generator1, generator2 = self.generators(prior, posterior)
-            prior_collection = Collection(generator1, lambda: prior.data,
+            iterator1, iterator2 = self.iterators(prior, posterior)
+            prior_collection = Collection(iterator1, lambda: prior.data,
                                           debug_info='compo')
-            poste_collection = Collection(generator2, lambda: posterior.data,
+            poste_collection = Collection(iterator2, lambda: posterior.data,
                                           debug_info='compo')
             return prior_collection, poste_collection
 
