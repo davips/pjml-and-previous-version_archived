@@ -5,7 +5,7 @@ import numpy
 from numpy import mean
 from numpy import std
 
-from pjdata.collection import Collection
+from pjdata.collection import Collection, AccResult
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.distributions import choice
 from pjml.config.description.node import Node
@@ -45,14 +45,14 @@ class TRSumm(TComponent, FunctionInspector):
 
         def transform(collection):
             def finalize(values):
-                self.function(collection.data, values)
+                return self.function(collection.data, values)
 
             def generator():
                 acc = []
                 print('\nSumm start iterator...')
                 for data in collection:
                     acc.append(data.field(field_name, 'Summ'))
-                    yield data, acc
+                    yield AccResult(data, acc)
                 print('...Summ finish iterator.\n')
 
             # Versão obscura:

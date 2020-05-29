@@ -56,7 +56,8 @@ class TComponent(Printable, Identifyable, ABC):
     # TODO: special sub class for concurrent components containing the content
     #   of this IF and the parent ABC method generator().
     def dual_transform(self, prior, posterior):
-        if isinstance(prior, Collection):
+        if isinstance(prior, Collection) or isinstance(posterior, Collection):
+            print('component dual transf ((((((((((')
             generator1, generator2 = tee(self.generator(prior, posterior))
             prior_collection = Collection(generator1, lambda: prior.data,
                                           debug_info='compo')
@@ -217,7 +218,7 @@ class TTransformer:
 
     @lru_cache()
     def transform(self, data):  # resolver error
-        print('!!!!!!!!!!!!!!!', type(self).__name__, type(data))
+        # print('!!!!!!!!!!!!!!!', type(self).__name__, type(data))
         if isinstance(data, tuple):
             return tuple((self.func(dt) for dt in data))
         # Todo: We should add some tratment here because self.func can raise
