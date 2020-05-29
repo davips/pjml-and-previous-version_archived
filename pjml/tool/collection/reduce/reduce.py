@@ -25,7 +25,7 @@ class TRReduce(TInvisible):
 
     def dual_transform(self, prior_collection, posterior_collection):
         # Exhaust iterator.
-        print('reduce dualtransffffffffff    fffffffffff')
+        print('          reduce dual transf ((((((((((')
         for _, _ in zip(prior_collection, posterior_collection):
             pass
         return prior_collection.data, posterior_collection.data

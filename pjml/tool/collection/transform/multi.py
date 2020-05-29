@@ -1,3 +1,4 @@
+import operator
 from functools import lru_cache
 from itertools import cycle, tee
 
@@ -87,6 +88,12 @@ class TMulti(TMinimalContainerN):
             lambda func, prior, posterior: func(prior, posterior),
             funcs, prior_collection, posterior_collection
         )
+
+    def generators(self, prior_collection, posterior_collection):
+        gen0, gen1 = tee(
+            self.generator(prior_collection, posterior_collection))
+        return map(operator.itemgetter(0), gen0), \
+               map(operator.itemgetter(1), gen1)
 
     def _model_impl(self, prior_collection):
         # info1 = self._info1

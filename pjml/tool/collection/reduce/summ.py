@@ -1,5 +1,6 @@
+import operator
 from functools import reduce
-from itertools import accumulate, repeat
+from itertools import accumulate, repeat, tee
 
 import numpy
 from numpy import mean
@@ -37,8 +38,13 @@ class TRSumm(TComponent, FunctionInspector):
         def func(prior, posterior):
             return self.model(prior).transform(posterior), \
                    self.enhancer.transform(posterior)
-
         return map(func, prior_collection, posterior_collection)
+
+    def generators(self, prior_collection, posterior_collection):
+        gen0, gen1 = tee(
+            self.generator(prior_collection, posterior_collection))
+        return map(operator.itemgetter(0), gen0), \
+               map(operator.itemgetter(1), gen1)
 
     def _enhancer_impl(self):
         field_name = self.field

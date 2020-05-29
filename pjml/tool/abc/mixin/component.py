@@ -1,3 +1,4 @@
+import operator
 from abc import abstractmethod, ABC
 from functools import lru_cache
 from itertools import tee
@@ -34,7 +35,7 @@ class TComponent(Printable, Identifyable, ABC):
     def _model_impl(self, prior):
         return TTransformer(None, None)
 
-    def generator(self, prior_collection, posterior_collection):
+    def generators(self, prior_collection, posterior_collection):
         raise NotImplementedError('Only concurrent components have generators')
 
     @property
@@ -57,8 +58,9 @@ class TComponent(Printable, Identifyable, ABC):
     #   of this IF and the parent ABC method generator().
     def dual_transform(self, prior, posterior):
         if isinstance(prior, Collection) or isinstance(posterior, Collection):
-            print('component dual transf ((((((((((')
-            generator1, generator2 = tee(self.generator(prior, posterior))
+            print('          component', self.__class__.__name__,
+                  ' dual transf ((((((((((')
+            generator1, generator2 = self.generators(prior, posterior)
             prior_collection = Collection(generator1, lambda: prior.data,
                                           debug_info='compo')
             poste_collection = Collection(generator2, lambda: posterior.data,

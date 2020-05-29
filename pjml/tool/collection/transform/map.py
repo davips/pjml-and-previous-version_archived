@@ -1,4 +1,6 @@
+import operator
 from functools import lru_cache
+from itertools import tee
 
 from pjdata.collection import Collection
 from pjml.config.description.cs.containercs import ContainerCS
@@ -64,6 +66,12 @@ class TMap(TMinimalContainer1):
             self.transformer.dual_transform,
             prior_collection, posterior_collection
         )
+
+    def generators(self, prior_collection, posterior_collection):
+        gen0, gen1 = tee(
+            self.generator(prior_collection, posterior_collection))
+        return map(operator.itemgetter(0), gen0), \
+               map(operator.itemgetter(1), gen1)
 
     # @lru_cache()
     # def _info(self, prior_collection):

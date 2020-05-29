@@ -1,10 +1,12 @@
 """Test"""
 from pjdata.specialdata import NoData
 from pjml.pipeline import TPipeline
+from pjml.tool.collection.expand.expand import TExpand
 from pjml.tool.collection.expand.partition import TPartition
 from pjml.tool.collection.reduce.reduce import TRReduce
 from pjml.tool.collection.reduce.summ import TRSumm
 from pjml.tool.collection.transform.map import TMap
+from pjml.tool.collection.transform.multi import TMulti
 from pjml.tool.data.communication.report import TReport
 from pjml.tool.data.evaluation.metric import TMetric
 from pjml.tool.data.evaluation.split import TSplit, TrainSplit, TestSplit
@@ -163,8 +165,10 @@ def test_pca(arq="iris.arff"):
 def test_with_summ_reduce(arq="iris.arff"):
     pipe = TPipeline(
         TFile(arq),
-        TPartition(partitions=2),
-        TMap(TPCA(), TSVMC(), TMetric(onenhancer=False)),
+        # TPartition(partitions=2),
+        TExpand(),
+        TMulti(TPCA(), TSVMC()),
+        # TMap(TPCA(), TSVMC(), TMetric(onenhancer=False)),
         # TMap(TPCA(), TSVMC(), TMetric(onenhancer=False)),
         # TRSumm(function='mean', onenhancer=False),
         TRReduce(),
