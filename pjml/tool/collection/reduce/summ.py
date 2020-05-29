@@ -103,7 +103,7 @@ class TRSumm(TComponent, FunctionInspector):
             # next(iterator)
             # print('...Summ finish iterator.\n')
 
-            return Collection(iterator, finalize, debug_info='summ')
+            return Collection(iterator(), finalize, debug_info='summ')
 
         return TTransformer(
             func=transform,
