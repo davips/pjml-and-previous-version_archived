@@ -7,6 +7,7 @@ from pjml.tool.abc.mixin.component import TTransformer
 
 class TExpand(TLightConfigLess):
     def dual_transform(self, prior, posterior):
+        print(self.__class__.__name__, ' dual transf (((')
         return (
             Collection(repeat(prior), lambda: prior, finite=False,
                        debug_info='expand'),

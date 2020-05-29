@@ -38,6 +38,7 @@ class TRSumm(TComponent, FunctionInspector):
         def func(prior, posterior):
             return self.model(prior).transform(posterior), \
                    self.enhancer.transform(posterior)
+
         return map(func, prior_collection, posterior_collection)
 
     def iterators(self, prior_collection, posterior_collection):
@@ -45,6 +46,33 @@ class TRSumm(TComponent, FunctionInspector):
             self.iterator(prior_collection, posterior_collection))
         return map(operator.itemgetter(0), gen0), \
                map(operator.itemgetter(1), gen1)
+
+    def dual_transform(self, prior_collection, posterior_collection):
+        print(self.__class__.__name__, ' dual transf (((')
+        field_name = self.field
+
+        def finalize(data, values):
+            return self.function(data, values)
+
+        def iterator(collection):
+            acc = []
+            for data in collection:
+                acc.append(data.field(field_name, 'Summ'))
+                yield AccResult(data, acc)
+            print('...Summ finish iterator.\n')
+
+        return (
+            Collection(
+                iterator(prior_collection),
+                lambda values: finalize(prior_collection.data, values),
+                debug_info= self.__class__.__name__ + ' pri'
+            ),
+            Collection(
+                iterator(posterior_collection),
+                lambda values: finalize(posterior_collection.data, values),
+                debug_info= self.__class__.__name__ + ' pos'
+            )
+        )
 
     def _enhancer_impl(self):
         field_name = self.field
@@ -96,13 +124,12 @@ class TRSumm(TComponent, FunctionInspector):
         }
         return TransformerCS(nodes=[Node(params)])
 
-    @classmethod
-    def _fun_mean(cls, data, values):
+    def _fun_mean(self, data, values):
         res = mean([m for m in values], axis=0)
         if isinstance(res, tuple):
-            return data.updated((None,), S=numpy.array(res))
+            return data.updated(self.transformations('u'), S=numpy.array(res))
         else:
-            return data.updated((None,), s=res)
+            return data.updated(self.transformations('u'), s=res)
 
 # def _fun_std(self, collection):
 #     return std([data.field(self.field, self) for data in collection],

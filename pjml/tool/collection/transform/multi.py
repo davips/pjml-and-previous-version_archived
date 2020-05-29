@@ -80,6 +80,7 @@ class TMulti(TMinimalContainerN):
         # return {'models': models}
 
     def iterator(self, prior_collection, posterior_collection):
+        # print('mul',self.transformers)
         funcs = [
             lambda prior, posterior: trf.dual_transform(prior, posterior)
             for trf in self.transformers

@@ -25,9 +25,10 @@ class TRReduce(TInvisible):
 
     def dual_transform(self, prior_collection, posterior_collection):
         # Exhaust iterator.
-        print('          reduce dual transf ((((((((((')
-        for _, _ in zip(prior_collection, posterior_collection):
+        print(self.__class__.__name__, ' dual transf (((')
+        for d in zip(prior_collection, posterior_collection):
             pass
+        # posterior_collection.join()
         return prior_collection.data, posterior_collection.data
 
     def _enhancer_impl(self):

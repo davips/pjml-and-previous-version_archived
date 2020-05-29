@@ -165,14 +165,12 @@ def test_pca(arq="iris.arff"):
 def test_with_summ_reduce(arq="iris.arff"):
     pipe = TPipeline(
         TFile(arq),
-        # TPartition(partitions=2),
-        TExpand(),
-        TMulti(TPCA(), TSVMC()),
-        # TMap(TPCA(), TSVMC(), TMetric(onenhancer=False)),
-        # TMap(TPCA(), TSVMC(), TMetric(onenhancer=False)),
-        # TRSumm(function='mean', onenhancer=False),
+        TPartition(partitions=2),
+        TMulti(TSVMC(), TPCA()),
+        TMap(TPCA(), TSVMC(), TMetric()),
+        TRSumm(function='mean'),
         TRReduce(),
-        # TReport('mean ... S: $S', onenhancer=False)
+        TReport('mean ... S: $S')
     )
     # prior = pipe.enhancer.transform(NoData)
     # prior = pipe.model(NoData).transform(NoData)

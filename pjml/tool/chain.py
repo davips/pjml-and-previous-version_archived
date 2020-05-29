@@ -96,6 +96,7 @@ class TChain(TMinimalContainerN):
         return TChainCS(*transformers)
 
     def dual_transform(self, prior=NoData, posterior=NoData):
+        print(self.__class__.__name__, ' dual transf (((')
         for trf in self.transformers:
             prior, posterior = trf.dual_transform(prior, posterior)
         return prior, posterior

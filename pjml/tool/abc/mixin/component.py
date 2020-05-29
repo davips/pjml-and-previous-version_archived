@@ -58,15 +58,15 @@ class TComponent(Printable, Identifyable, ABC):
     #   of this IF and the parent ABC method iterator().
     def dual_transform(self, prior, posterior):
         if isinstance(prior, Collection) or isinstance(posterior, Collection):
-            print('          component', self.__class__.__name__,
-                  ' dual transf ((((((((((')
+            print('   component', self.__class__.__name__, ' dual transf (((')
             iterator1, iterator2 = self.iterators(prior, posterior)
             prior_collection = Collection(iterator1, lambda: prior.data,
-                                          debug_info='compo')
+                                          debug_info='compo'+self.__class__.__name__+' pri')
             poste_collection = Collection(iterator2, lambda: posterior.data,
-                                          debug_info='compo')
+                                          debug_info='compo'+self.__class__.__name__+' pos')
             return prior_collection, poste_collection
 
+        print('|||||compo não collection', self.__class__.__name__, ' dual transf (((')
         prior_result = self.enhancer.transform(prior)
         posterior_result = self.model(prior).transform(posterior)
         return prior_result, posterior_result
