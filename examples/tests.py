@@ -7,7 +7,7 @@ from pjml.tool.collection.reduce.summ import TRSumm
 from pjml.tool.collection.transform.map import TMap
 from pjml.tool.data.communication.report import TReport
 from pjml.tool.data.evaluation.metric import TMetric
-from pjml.tool.data.evaluation.split import TSplit, SplitTrain, SplitTest
+from pjml.tool.data.evaluation.split import Split, SplitTrain, SplitTest
 from pjml.tool.data.flow.file import File
 from pjml.tool.data.modeling.supervised.classifier.dt import DT
 from pjml.tool.data.modeling.supervised.classifier.svmc import TSVMC
@@ -112,7 +112,7 @@ def test_tsvmc(arq="iris.arff"):
 def test_split(arq="iris.arff"):
     pipe = Pipeline(
         File(arq),
-        TSplit(),
+        Split(),
         TSVMC()
     )
     prior, posterior = pipe.dual_transform()
@@ -123,7 +123,7 @@ def test_split(arq="iris.arff"):
 def test_metric(arq="iris.arff"):
     pipe = Pipeline(
         File(arq),
-        TSplit(),
+        Split(),
         TSVMC(),
         TMetric(onenhancer=False)
     )
@@ -136,7 +136,7 @@ def test_pca(arq="iris.arff"):
     cs = File(arq).cs
     pipe = Pipeline(
         File(arq),
-        TSplit(),
+        Split(),
         TPCA(),
         TSVMC(),
         TMetric(onenhancer=False)

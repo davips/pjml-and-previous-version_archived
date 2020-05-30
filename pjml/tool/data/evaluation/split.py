@@ -15,7 +15,7 @@ from pjml.tool.abc.mixin.nodatahandler import NoDataHandler
 from pjml.tool.chain import Chain
 
 
-class TSplit(TComponent, FunctionInspector, NoDataHandler):
+class Split(TComponent, FunctionInspector, NoDataHandler):
     """Split a given Data field into training/apply set and testing/use set.
 
     Developer: new metrics can be added just following the pattern '_fun_xxxxx'

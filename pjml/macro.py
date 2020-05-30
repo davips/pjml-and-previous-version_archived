@@ -32,12 +32,12 @@ def switch():
 
 def tsplit(split_type='cv', partitions=10, test_size=0.3, seed=0, fields=None):
     """Make a sequence of Data splitters."""
-    from pjml.tool.data.evaluation.split import TSplit
+    from pjml.tool.data.evaluation.split import Split
     if fields is None:
         fields = ['X', 'Y']
     transformers = []
     for i in range(partitions):
-        s = TSplit(split_type, partitions, i, test_size, seed, fields)
+        s = Split(split_type, partitions, i, test_size, seed, fields)
         transformers.append(s)
     # from pjml.config.description.cs.finitecs import FiniteCS
     # return FiniteCS(trasformers=transformers).sample()
