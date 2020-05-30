@@ -80,6 +80,7 @@ def test_partition(arq="iris.arff"):
         Partition(),
         Map(PCA(), SVMC(), Metric(onenhancer=False)),
         RSumm(function='mean', onenhancer=False),
+        Reduce(),
         Report('mean ... S: $S', onenhancer=False)
     )
     prior, posterior = pipe.dual_transform()
@@ -125,7 +126,7 @@ def test_check_architecture(arq='iris.arff'):
         File(arq),
         Partition(partitions=2),
         Map(PCA(), SVMC(), Metric(onenhancer=False)),
-        RSumm(function='mean', onenhancer=False),
+        RSumm(field="Y", function='mean', onenhancer=False),
     )
 
     # tenho file na frente
@@ -147,7 +148,7 @@ def test_check_architecture2(arq='iris.arff'):
         File(arq),
         Partition(),
         Map(PCA(), SVMC(), Metric(onenhancer=False)),
-        RSumm(function='mean', onenhancer=False),
+        RSumm(field="Y", function='mean', onenhancer=False),
         Report('mean ... S: $S', onenhancer=False)
     )
 

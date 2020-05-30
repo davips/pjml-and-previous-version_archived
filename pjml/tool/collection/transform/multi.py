@@ -49,7 +49,7 @@ class Multi(TMinimalContainerN):
         # info1 = self._info1
         transformers = self.transformers
 
-        def transform(posterior_collection):
+        def transform(collection):
             # models = info1['models']
             funcs = [
                 lambda prior, posterior: trf.model(prior).transform(posterior)
@@ -57,9 +57,9 @@ class Multi(TMinimalContainerN):
             ]
             iterator = map(
                 lambda func, prior, posterior: func(prior, posterior),
-                funcs, prior_collection, posterior_collection
+                funcs, prior_collection, collection
             )
-            return Collection(iterator, lambda: posterior_collection.data,
+            return Collection(iterator, lambda: collection.data,
                               debug_info='multi')
 
             # TODO: Tratar StopException com hint sobre montar better pipeline?
@@ -77,14 +77,14 @@ class Multi(TMinimalContainerN):
         info2 = self._info2()
         enhancers = info2['enhancers']
 
-        def transform(posterior_collection):
+        def transform(collection):
             funcs = [
                 lambda data: enhancer.transform(data) for enhancer in enhancers
             ]
             iterator = map(
-                lambda func, data: func(data), funcs, posterior_collection
+                lambda func, data: func(data), funcs, collection
             )
-            return Collection(iterator, lambda: posterior_collection.data,
+            return Collection(iterator, lambda: collection.data,
                               debug_info='multi')
 
             # TODO: Tratar StopException com hint sobre montar better pipeline?

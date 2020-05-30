@@ -45,12 +45,12 @@ class Map(TMinimalContainer1):
         # models = info1['models']
         transformer = self.transformer
 
-        def transform(posterior_collection):
+        def transform(collection):
             def func(prior, posterior):
                 return transformer.model(prior).transform(posterior)
 
-            iterator = map(func, prior_collection, posterior_collection)
-            return Collection(iterator, lambda: posterior_collection.data,
+            iterator = map(func, prior_collection, collection)
+            return Collection(iterator, lambda: collection.data,
                               debug_info='map')
 
         return TTransformer(
@@ -66,9 +66,9 @@ class Map(TMinimalContainer1):
         info2 = self._info2()
         enhancer = info2['enhancer']
 
-        def transform(posterior_collection):
-            iterator = map(enhancer.transform, posterior_collection)
-            return Collection(iterator, lambda: posterior_collection.data,
+        def transform(collection):
+            iterator = map(enhancer.transform, collection)
+            return Collection(iterator, lambda: collection.data,
                               debug_info='map')
 
         return TTransformer(
