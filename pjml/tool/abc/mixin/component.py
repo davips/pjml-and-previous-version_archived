@@ -218,7 +218,6 @@ class TTransformer:
             raise TypeError('Unexpected info type. You should use, callable, '
                             'dict or None.')
 
-    @lru_cache()
     def transform(self, data):  # resolver error
         # print('!!!!!!!!!!!!!!!', type(self).__name__, type(data))
         if isinstance(data, tuple):

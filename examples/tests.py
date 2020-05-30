@@ -172,7 +172,7 @@ def test_with_summ_reduce(arq="iris.arff"):
         TRReduce(),
         TReport('mean ... S: $S')
     )
-    # prior = pipe.enhancer.transform(NoData)
+    prior = pipe.enhancer.transform(NoData)
     prior = pipe.model(NoData).transform(NoData)
     # prior, posterior = pipe.dual_transform()
     exit()
