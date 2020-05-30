@@ -1,10 +1,8 @@
 import operator
-from functools import reduce
-from itertools import accumulate, repeat, tee
+from itertools import tee
 
 import numpy
 from numpy import mean
-from numpy import std
 
 from pjdata.collection import Collection, AccResult
 from pjml.config.description.cs.transformercs import TransformerCS
@@ -12,11 +10,11 @@ from pjml.config.description.distributions import choice
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import CatP
 from pjml.tool.abc.mixin.component import TComponent
-from pjml.tool.abc.mixin.transformer import TTransformer
 from pjml.tool.abc.mixin.functioninspector import FunctionInspector
+from pjml.tool.abc.mixin.transformer import TTransformer
 
 
-class TRSumm(TComponent, FunctionInspector):
+class RSumm(TComponent, FunctionInspector):
     """Given a field, summarizes a Collection object to a Data object.
 
     The resulting Data object will have only the 's' field. To keep other
@@ -51,33 +49,6 @@ class TRSumm(TComponent, FunctionInspector):
         return map(operator.itemgetter(0), gen0), \
                map(operator.itemgetter(1), gen1)
 
-    # def dual_transform(self, prior_collection, posterior_collection):
-    #     print(self.__class__.__name__, ' dual transf (((')
-    #     field_name = self.field
-    #
-    #     def finalize(data, values):
-    #         return self.function(data, values)
-    #
-    #     def iterator(collection):
-    #         acc = []
-    #         for data in collection:
-    #             acc.append(data.field(field_name, 'Summ'))
-    #             yield AccResult(data, acc)
-    #         print('...Summ finish iterator.\n')
-    #
-    #     return (
-    #         Collection(
-    #             iterator(prior_collection),
-    #             lambda values: finalize(prior_collection.data, values),
-    #             debug_info=self.__class__.__name__ + ' pri'
-    #         ),
-    #         Collection(
-    #             iterator(posterior_collection),
-    #             lambda values: finalize(posterior_collection.data, values),
-    #             debug_info=self.__class__.__name__ + ' pos'
-    #         )
-    #     )
-
     def _enhancer_impl(self):
         field_name = self.field
 
@@ -93,21 +64,6 @@ class TRSumm(TComponent, FunctionInspector):
                     acc.append(data.field(field_name, 'Summ'))
                     yield AccResult(data, acc)
                 print('...Summ finish iterator.\n')
-
-            # Versão obscura:
-            # print('\nSumm start iterator...')
-            # def func(t1, t2):
-            #     _, acc0 = t1
-            #     data, _ = t2
-            #     acc0.append(data.field(field_name, 'Summ'))
-            #     return data, acc0
-            #
-            # iterator = accumulate(zip(collection, repeat(None)),
-            #                        func, initial=(None, []))
-            # # Discards initial value.
-            # next(iterator)
-            # print('...Summ finish iterator.\n')
-
             return Collection(iterator(), finalize, debug_info='summ')
 
         return TTransformer(
@@ -135,18 +91,3 @@ class TRSumm(TComponent, FunctionInspector):
             return data.updated(self.transformations('u'), S=numpy.array(res))
         else:
             return data.updated(self.transformations('u'), s=res)
-
-# def _fun_std(self, collection):
-#     return std([data.field(self.field, self) for data in collection],
-#                axis=0)
-#
-# def _fun_mean_std(self, collection):
-#     # TODO?: optimize calculating mean and stdev together
-#     values = [data.field(self.field, self) for data in collection]
-#     if len(values[0].shape) == 2:
-#         if values[0].shape[0] > 1:
-#             raise Exception(
-#                 f"Summ doesn't accept multirow fields: {self.field}\n"
-#                 f"Shape: {values[0].shape}")
-#         values = [v[0] for v in values]
-#     return mean(values, axis=0), std(values, axis=0)

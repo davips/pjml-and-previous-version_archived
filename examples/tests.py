@@ -3,7 +3,7 @@ from pjdata.specialdata import NoData
 from pjml.pipeline import Pipeline
 from pjml.tool.collection.expand.partition import TPartition
 from pjml.tool.collection.reduce.reduce import TRReduce
-from pjml.tool.collection.reduce.summ import TRSumm
+from pjml.tool.collection.reduce.summ import RSumm
 from pjml.tool.collection.transform.map import Map
 from pjml.tool.data.communication.report import Report
 from pjml.tool.data.evaluation.metric import Metric
@@ -79,7 +79,7 @@ def test_partition(arq="iris.arff"):
         File(arq),
         TPartition(),
         Map(PCA(), SVMC(), Metric(onenhancer=False)),
-        TRSumm(function='mean', onenhancer=False),
+        RSumm(function='mean', onenhancer=False),
         Report('mean ... S: $S', onenhancer=False)
     )
     prior, posterior = pipe.dual_transform()
@@ -110,7 +110,7 @@ def test_with_summ_reduce(arq="iris.arff"):
         TPartition(),
         Map(PCA(), SVMC(), Metric(onenhancer=False)),
         Map(Report('<---------------------- etapa'), onenhancer=False),
-        TRSumm(function='mean', onenhancer=False),
+        RSumm(function='mean', onenhancer=False),
         TRReduce(),
         Report('mean ... S: $S', onenhancer=False)
     )
@@ -125,7 +125,7 @@ def test_check_architecture(arq='iris.arff'):
         File(arq),
         TPartition(partitions=2),
         Map(PCA(), SVMC(), Metric(onenhancer=False)),
-        TRSumm(function='mean', onenhancer=False),
+        RSumm(function='mean', onenhancer=False),
     )
 
     # tenho file na frente
@@ -147,7 +147,7 @@ def test_check_architecture2(arq='iris.arff'):
         File(arq),
         TPartition(),
         Map(PCA(), SVMC(), Metric(onenhancer=False)),
-        TRSumm(function='mean', onenhancer=False),
+        RSumm(function='mean', onenhancer=False),
         Report('mean ... S: $S', onenhancer=False)
     )
 
