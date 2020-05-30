@@ -6,7 +6,7 @@ from pjml.tool.chain import Chain
 from pjml.tool.collection.expand.expand import TExpand
 
 
-class TPartition(TComponent):
+class Partition(TComponent):
     """Class to perform, e.g. Expand+kfoldCV.
 
     This task is already done by function split(),
@@ -38,7 +38,7 @@ class TPartition(TComponent):
 
         super().__init__(config, **kwargs)
         from pjml.macro import tsplit
-        self.transformer = TChain(
+        self.transformer = Chain(
             TExpand(),
             tsplit(split_type, partitions, test_size, seed, fields)
         )

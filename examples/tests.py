@@ -1,7 +1,7 @@
 """Test"""
 from pjdata.specialdata import NoData
 from pjml.pipeline import Pipeline
-from pjml.tool.collection.expand.partition import TPartition
+from pjml.tool.collection.expand.partition import Partition
 from pjml.tool.collection.reduce.reduce import Reduce
 from pjml.tool.collection.reduce.summ import RSumm
 from pjml.tool.collection.transform.map import Map
@@ -77,7 +77,7 @@ def test_pca(arq="iris.arff"):
 def test_partition(arq="iris.arff"):
     pipe = Pipeline(
         File(arq),
-        TPartition(),
+        Partition(),
         Map(PCA(), SVMC(), Metric(onenhancer=False)),
         RSumm(function='mean', onenhancer=False),
         Report('mean ... S: $S', onenhancer=False)
@@ -107,7 +107,7 @@ def test_split_train_test(arq="iris.arff"):
 def test_with_summ_reduce(arq="iris.arff"):
     pipe = Pipeline(
         File(arq),
-        TPartition(),
+        Partition(),
         Map(PCA(), SVMC(), Metric(onenhancer=False)),
         Map(Report('<---------------------- etapa'), onenhancer=False),
         RSumm(function='mean', onenhancer=False),
@@ -123,7 +123,7 @@ def test_with_summ_reduce(arq="iris.arff"):
 def test_check_architecture(arq='iris.arff'):
     pipe = Pipeline(
         File(arq),
-        TPartition(partitions=2),
+        Partition(partitions=2),
         Map(PCA(), SVMC(), Metric(onenhancer=False)),
         RSumm(function='mean', onenhancer=False),
     )
@@ -145,7 +145,7 @@ def test_check_architecture(arq='iris.arff'):
 def test_check_architecture2(arq='iris.arff'):
     pipe = Pipeline(
         File(arq),
-        TPartition(),
+        Partition(),
         Map(PCA(), SVMC(), Metric(onenhancer=False)),
         RSumm(function='mean', onenhancer=False),
         Report('mean ... S: $S', onenhancer=False)
