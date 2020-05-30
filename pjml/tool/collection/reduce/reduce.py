@@ -4,17 +4,7 @@ from pjml.tool.abc.invisible import TInvisible
 from pjml.tool.abc.mixin.transformer import TTransformer
 
 
-# class TReduce(TComponent, FunctionInspector, ABC):
-#     def __init__(self, config, deterministic=False, **kwargs):
-#         super().__init__(config, deterministic, **kwargs)
-#         self.function = self.function_from_name[config['function']]
-#
-#
-#     def transformations(self, step, clean=True):
-#         return super().transformations('u')
-
-
-class TRReduce(TInvisible):
+class Reduce(TInvisible):
     @classmethod
     def _cs_impl(cls):
         pass
