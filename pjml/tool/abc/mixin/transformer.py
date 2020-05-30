@@ -10,7 +10,7 @@ class Transformer:
             self,
             func: Callable[[Union[NoData, Data, Collection]],
                            Union[NoData, Data, Collection]],
-            info: Union[dict,
+            info: Union[None, dict,
                         Callable[[], dict],
                         Callable[[Union[NoData, Data, Collection]], dict]]
     ):
