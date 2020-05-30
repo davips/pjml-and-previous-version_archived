@@ -2,7 +2,7 @@ from functools import lru_cache
 
 from pjml.tool.abc.mixin.component import TComponent
 from pjml.tool.abc.mixin.transformer import TTransformer
-from pjml.tool.chain import TChain
+from pjml.tool.chain import Chain
 from pjml.tool.collection.expand.expand import TExpand
 
 

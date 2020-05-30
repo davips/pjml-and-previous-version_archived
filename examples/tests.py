@@ -1,6 +1,6 @@
 """Test"""
 from pjdata.specialdata import NoData
-from pjml.pipeline import TPipeline
+from pjml.pipeline import Pipeline
 from pjml.tool.collection.expand.partition import TPartition
 from pjml.tool.collection.reduce.reduce import TRReduce
 from pjml.tool.collection.reduce.summ import TRSumm
@@ -100,7 +100,7 @@ def multobj_automl(arq="abalone3.arff"):
 
 def test_tsvmc(arq="iris.arff"):
     cs = TFile(arq).cs
-    pipe = TPipeline(
+    pipe = Pipeline(
         TFile(arq),
         TSVMC()
     )
@@ -110,7 +110,7 @@ def test_tsvmc(arq="iris.arff"):
 
 
 def test_split(arq="iris.arff"):
-    pipe = TPipeline(
+    pipe = Pipeline(
         TFile(arq),
         TSplit(),
         TSVMC()
@@ -121,7 +121,7 @@ def test_split(arq="iris.arff"):
 
 
 def test_metric(arq="iris.arff"):
-    pipe = TPipeline(
+    pipe = Pipeline(
         TFile(arq),
         TSplit(),
         TSVMC(),
@@ -134,7 +134,7 @@ def test_metric(arq="iris.arff"):
 
 def test_pca(arq="iris.arff"):
     cs = TFile(arq).cs
-    pipe = TPipeline(
+    pipe = Pipeline(
         TFile(arq),
         TSplit(),
         TPCA(),
@@ -147,7 +147,7 @@ def test_pca(arq="iris.arff"):
 
 
 def test_partition(arq="iris.arff"):
-    pipe = TPipeline(
+    pipe = Pipeline(
         TFile(arq),
         TPartition(),
         TMap(TPCA(), TSVMC(), TMetric(onenhancer=False)),
@@ -161,7 +161,7 @@ def test_partition(arq="iris.arff"):
 
 
 def test_split_train_test(arq="iris.arff"):
-    pipe = TPipeline(
+    pipe = Pipeline(
         TFile(arq),
         TrainSplit(),
         TestSplit(),
@@ -177,7 +177,7 @@ def test_split_train_test(arq="iris.arff"):
 
 
 def test_with_summ_reduce(arq="iris.arff"):
-    pipe = TPipeline(
+    pipe = Pipeline(
         TFile(arq),
         TPartition(),
         TMap(TPCA(), TSVMC(), TMetric(onenhancer=False)),
@@ -193,7 +193,7 @@ def test_with_summ_reduce(arq="iris.arff"):
 
 
 def test_check_architecture(arq='iris.arff'):
-    pipe = TPipeline(
+    pipe = Pipeline(
         TFile(arq),
         TPartition(partitions=2),
         TMap(TPCA(), TSVMC(), TMetric(onenhancer=False)),
@@ -215,7 +215,7 @@ def test_check_architecture(arq='iris.arff'):
 
 
 def test_check_architecture2(arq='iris.arff'):
-    pipe = TPipeline(
+    pipe = Pipeline(
         TFile(arq),
         TPartition(),
         TMap(TPCA(), TSVMC(), TMetric(onenhancer=False)),

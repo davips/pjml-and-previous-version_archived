@@ -1,7 +1,7 @@
 """
 Shortcuts of common CS/AutoML expressions or ML pipelines.
 """
-from pjml.tool.chain import TChain
+from pjml.tool.chain import Chain
 from pjml.tool.collection.expand.partition import TPartition
 from pjml.tool.collection.reduce.summ import TRSumm
 from pjml.tool.collection.transform.map import TMap

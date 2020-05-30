@@ -12,7 +12,7 @@ from pjml.tool.abc.mixin.component import TComponent
 from pjml.tool.abc.mixin.transformer import TTransformer
 from pjml.tool.abc.mixin.functioninspector import FunctionInspector
 from pjml.tool.abc.mixin.nodatahandler import NoDataHandler
-from pjml.tool.chain import TChain
+from pjml.tool.chain import Chain
 
 
 class TSplit(TComponent, FunctionInspector, NoDataHandler):
@@ -62,7 +62,7 @@ class TSplit(TComponent, FunctionInspector, NoDataHandler):
         self.seed = seed
         self.fields = fields
 
-        self.transformer = TChain(
+        self.transformer = Chain(
             TrainSplit(),
             TestSplit()
         )

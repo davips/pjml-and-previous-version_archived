@@ -16,7 +16,7 @@ class TContainer1(TContainer, ABC):
         # Implementation-wise, Container1(Chain(a,b,c)) is needed to make
         # Container1(a,b,c) possible.
         if len(self.transformers) > 1:
-            from pjml.tool.chain import TChain
+            from pjml.tool.chain import Chain
             self.transformer = TChain(transformers=self.transformers)
         else:
             self.transformer = self.transformers[0]

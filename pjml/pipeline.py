@@ -1,4 +1,4 @@
-from pjml.tool.chain import TChain
+from pjml.tool.chain import Chain
 
-class TPipeline(TChain):
+class Pipeline(Chain):
     """Chain the execution of the given transformers."""

@@ -85,8 +85,8 @@ class TContainer(TComponent, ABC):
                 f'transformer!')
 
         # transformers=[Chain(A)] should appear as transformers=[A] in config.
-        from pjml.tool.chain import TChain
-        if len(transformers) == 1 and isinstance(transformers[0], TChain):
+        from pjml.tool.chain import Chain
+        if len(transformers) == 1 and isinstance(transformers[0], Chain):
             transformers = transformers[0].transformers
 
         # Propagate seed.
