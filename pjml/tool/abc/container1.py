@@ -1,9 +1,9 @@
 from abc import ABC
 
-from pjml.tool.abc.container import TContainer
+from pjml.tool.abc.container import Container
 
 
-class TContainer1(TContainer, ABC):
+class Container1(Container, ABC):
     """Configurable container for a single transformer.
 
     If more are given, they will be handled as a single Seq transformer."""

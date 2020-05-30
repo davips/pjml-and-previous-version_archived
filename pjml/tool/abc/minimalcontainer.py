@@ -1,6 +1,6 @@
 from abc import ABC
 
-from pjml.tool.abc.container1 import TContainer1
+from pjml.tool.abc.container1 import Container1
 
 
 # TODO: Until now, every MinimalContainer is deterministic.
@@ -11,7 +11,7 @@ from pjml.tool.abc.container1 import TContainer1
 from pjml.tool.abc.containern import ContainerN
 
 
-class MinimalContainer1(TContainer1, ABC):
+class MinimalContainer1(Container1, ABC):
     """Container with minimum configuration (seed) for a single transformer.
 
     If more are given, they will be handled as a single Chain transformer."""
