@@ -5,7 +5,7 @@ from pjml.tool.abc.configless import TLightConfigLess
 from pjml.tool.abc.mixin.transformer import TTransformer
 
 
-class TExpand(TLightConfigLess):
+class Expand(TLightConfigLess):
     def dual_transform(self, prior, posterior):
         print(self.__class__.__name__, ' dual transf (((')
         if self.onenhancer:

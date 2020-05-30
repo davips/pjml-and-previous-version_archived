@@ -3,7 +3,7 @@ from functools import lru_cache
 from pjml.tool.abc.mixin.component import TComponent
 from pjml.tool.abc.mixin.transformer import TTransformer
 from pjml.tool.chain import Chain
-from pjml.tool.collection.expand.expand import TExpand
+from pjml.tool.collection.expand.expand import Expand
 
 
 class Partition(TComponent):
@@ -39,7 +39,7 @@ class Partition(TComponent):
         super().__init__(config, **kwargs)
         from pjml.macro import tsplit
         self.transformer = Chain(
-            TExpand(),
+            Expand(),
             tsplit(split_type, partitions, test_size, seed, fields)
         )
 
