@@ -12,7 +12,7 @@ from pjml.tool.abc.mixin.transformer import TTransformer
 from pjml.tool.abc.mixin.functioninspector import FunctionInspector
 
 
-class TMetric(TComponent, FunctionInspector):
+class Metric(TComponent, FunctionInspector):
     """Metric to evaluate a given Data field.
 
     Developer: new metrics can be added just following the pattern '_fun_xxxxx'
