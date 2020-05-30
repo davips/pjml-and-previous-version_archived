@@ -1,6 +1,8 @@
 """
 Shortcuts of common CS/AutoML expressions or ML pipelines.
 """
+from typing import List, Optional
+
 from pjml.tool.chain import Chain
 from pjml.tool.collection.expand.partition import Partition
 from pjml.tool.collection.reduce.summ import RSumm
@@ -30,7 +32,13 @@ def switch():
     pass
 
 
-def tsplit(split_type='cv', partitions=10, test_size=0.3, seed=0, fields=None):
+def tsplit(
+        split_type: str = 'cv',
+        partitions: int = 10,
+        test_size: float = 0.3,
+        seed: int = 0,
+        fields: Optional[List[str]] = None
+) -> Multi:
     """Make a sequence of Data splitters."""
     from pjml.tool.data.evaluation.split import Split
     if fields is None:
