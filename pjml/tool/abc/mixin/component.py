@@ -12,8 +12,9 @@ from pjdata.mixin.identifyable import Identifyable
 from pjdata.mixin.printable import Printable
 from pjdata.step.transformation import Transformation
 from pjml.config.description.cs.configlist import ConfigList
+from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.tool.abc.mixin.exceptionhandler import BadComponent
-from pjml.tool.abc.mixin.transformer import TTransformer
+from pjml.tool.abc.mixin.transformer import Transformer
 
 
 class Component(Printable, Identifyable, ABC):
@@ -38,10 +39,10 @@ class Component(Printable, Identifyable, ABC):
         self.onmodel = onmodel
 
     def _enhancer_impl(self):
-        return TTransformer(None, None)
+        return Transformer(None, None)
 
     def _model_impl(self, prior):
-        return TTransformer(None, None)
+        return Transformer(None, None)
 
     def iterators(self, prior_collection, posterior_collection):
         raise NotImplementedError('Only concurrent components have iterators')
@@ -50,7 +51,7 @@ class Component(Printable, Identifyable, ABC):
     @lru_cache()
     def enhancer(self):  # clean, cleaup, dumb, dumb_transformer
         if not self.onenhancer:
-            return TTransformer(None, None)
+            return Transformer(None, None)
         return self._enhancer_impl()
 
     # TODO: verify if Data (/ Collection?) should have a better __hash__
@@ -59,7 +60,7 @@ class Component(Printable, Identifyable, ABC):
         if isinstance(prior, tuple):
             prior = prior[0]
         if not self.onmodel:
-            return TTransformer(None, None)
+            return Transformer(None, None)
         return self._model_impl(prior)
 
     # TODO: special sub class for concurrent components containing the content
@@ -81,7 +82,7 @@ class Component(Printable, Identifyable, ABC):
 
     @classmethod
     @abstractmethod
-    def _cs_impl(cls):
+    def _cs_impl(cls) -> TransformerCS:
         """Each component should implement its own 'cs'. The parent class
         takes care of 'name' and 'path' arguments of ConfigSpace"""
 

@@ -9,7 +9,7 @@ from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import IntP
 from pjml.tool.abc.mixin.component import Component
-from pjml.tool.abc.mixin.transformer import TTransformer
+from pjml.tool.abc.mixin.transformer import Transformer
 from pjml.tool.abc.mixin.functioninspector import FunctionInspector
 from pjml.tool.abc.mixin.nodatahandler import NoDataHandler
 from pjml.tool.chain import Chain
@@ -138,7 +138,7 @@ class SplitTest(Component, FunctionInspector, NoDataHandler):
         def func(posterior):
             return self._info(posterior)["posterior"]
 
-        return TTransformer(func=func, info=None)
+        return Transformer(func=func, info=None)
 
     def _split(self, data, indices=None, step='u'):
         new_dic = {}
@@ -218,7 +218,7 @@ class SplitTrain(Component, FunctionInspector, NoDataHandler):
         def func(prior):
             return self._info(prior)["prior"]
 
-        return TTransformer(func=func, info=None)
+        return Transformer(func=func, info=None)
 
     def _split(self, data, indices=None, step='u'):
         new_dic = {}

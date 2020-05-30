@@ -1,7 +1,7 @@
 from itertools import tee, repeat
 
 from pjml.tool.abc.invisible import Invisible
-from pjml.tool.abc.mixin.transformer import TTransformer
+from pjml.tool.abc.mixin.transformer import Transformer
 
 
 class Reduce(Invisible):
@@ -43,7 +43,7 @@ class Reduce(Invisible):
             print('  Reduce asks for pendurado at...', collection.debug_info)
             return collection.data
 
-        return TTransformer(
+        return Transformer(
             func=transform,
             info=None
         )

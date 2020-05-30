@@ -7,7 +7,7 @@ from pjdata.specialdata import NoData
 from pjml.config.description.cs.chaincs import TChainCS
 from pjml.tool.abc.minimalcontainer import MinimalContainerN
 from pjml.tool.abc.mixin.component import Component
-from pjml.tool.abc.mixin.transformer import TTransformer
+from pjml.tool.abc.mixin.transformer import Transformer
 from pjml.util import flatten
 
 
@@ -43,7 +43,7 @@ class Chain(MinimalContainerN):
                 prior = enhancer.transform(prior)
             return prior
 
-        return TTransformer(func=enhancer_transform, info=self._info_enhancer)
+        return Transformer(func=enhancer_transform, info=self._info_enhancer)
 
     @lru_cache()
     def _info_model(self, prior):
@@ -73,7 +73,7 @@ class Chain(MinimalContainerN):
                 c+=1
             return posterior
 
-        return TTransformer(func=model_transform, info=models)
+        return Transformer(func=model_transform, info=models)
 
     def transformations(self, step, clean=True):
         lst = []

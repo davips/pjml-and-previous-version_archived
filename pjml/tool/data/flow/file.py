@@ -1,10 +1,14 @@
+from functools import lru_cache
+from typing import List
+
 from pjdata.data_creation import read_arff
+from pjdata.specialdata import NoData
 from pjdata.step.transformation import Transformation
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import FixedP
 from pjml.tool.abc.mixin.component import Component
-from pjml.tool.abc.mixin.transformer import TTransformer
+from pjml.tool.abc.mixin.transformer import Transformer
 from pjml.tool.abc.mixin.nodatahandler import NoDataHandler
 
 # Precisa herdar de Invisible, pois o mesmo Data pode vir de diferentes
@@ -27,8 +31,14 @@ class File(Component, NoDataHandler):
     In practice, no more than a dozen are expected.
     """
 
-    def __init__(self, name, path='./', description='No description.',
-                 hashes=None, **kwargs):
+    def __init__(
+            self,
+            name: str,
+            path: str = './',
+            description: str = 'No description.',
+            hashes: str = None,
+            **kwargs
+    ):
 
         # Some checking.
         if not path.endswith('/'):
@@ -60,17 +70,17 @@ class File(Component, NoDataHandler):
             self._enforce_nodata(posterior, 'u')  # fixei 'u'
             return self.data
 
-        return TTransformer(func=func, info=None)
+        return Transformer(func=func, info=None)
 
-    def _model_impl(self, prior):
+    def _model_impl(self, prior: NoData) -> Transformer:
         self._enforce_nodata(prior, 'a')  # fixei 'a'
         return self._transformer()
 
-    def _enhancer_impl(self):
+    def _enhancer_impl(self) -> Transformer:
         return self._transformer()
 
     @classmethod
-    def _cs_impl(cls):
+    def _cs_impl(cls) -> TransformerCS:
         params = {
             'path': FixedP('./'),
             'name': FixedP('iris.arff'),
@@ -82,8 +92,10 @@ class File(Component, NoDataHandler):
         # TransformerCS(nodes=[Node(params=params)])
         return TransformerCS(Node(params=params))
 
-    def transformations(self, step, clean=True):
+    @lru_cache()
+    def transformations(
+            self,
+            step: str,
+            clean: bool = True
+    ) -> List[Transformation]:
         return [Transformation(self, 'u')]
-
-    # def _uuid_impl00(self):
-    #     return UUID(self._digest)

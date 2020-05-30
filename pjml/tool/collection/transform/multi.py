@@ -7,7 +7,7 @@ from pjdata.collection import Collection
 from pjml.config.description.cs.containercs import ContainerCS
 from pjml.tool.abc.minimalcontainer import MinimalContainerN
 from pjml.tool.abc.mixin.component import Component
-from pjml.tool.abc.mixin.transformer import TTransformer
+from pjml.tool.abc.mixin.transformer import Transformer
 
 
 class Multi(MinimalContainerN):
@@ -64,7 +64,7 @@ class Multi(MinimalContainerN):
 
             # TODO: Tratar StopException com hint sobre montar better pipeline?
 
-        return TTransformer(
+        return Transformer(
             func=transform,
             info=None  # info1
         )
@@ -89,7 +89,7 @@ class Multi(MinimalContainerN):
 
             # TODO: Tratar StopException com hint sobre montar better pipeline?
 
-        return TTransformer(
+        return Transformer(
             func=transform,
             info=info2,
         )

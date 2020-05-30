@@ -8,7 +8,7 @@ from pjml.config.description.distributions import choice
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import CatP
 from pjml.tool.abc.mixin.component import Component
-from pjml.tool.abc.mixin.transformer import TTransformer
+from pjml.tool.abc.mixin.transformer import Transformer
 from pjml.tool.abc.mixin.functioninspector import FunctionInspector
 
 
@@ -46,13 +46,13 @@ class Metric(Component, FunctionInspector):
 
     def _model_impl(self, prior):
         # prior deve ser ignorado
-        return TTransformer(
+        return Transformer(
             func=lambda posterior: self._func(posterior),
             info=None
         )
 
     def _enhancer_impl(self):
-        return TTransformer(
+        return Transformer(
             func=lambda posterior: self._func(posterior),
             info=None
         )

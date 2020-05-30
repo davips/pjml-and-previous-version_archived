@@ -2,7 +2,7 @@ from abc import ABC
 from functools import lru_cache
 
 from pjdata.step.transformation import Transformation
-from pjml.tool.abc.mixin.transformer import TTransformer
+from pjml.tool.abc.mixin.transformer import Transformer
 from pjml.tool.abc.mixin.exceptionhandler import BadComponent
 from pjml.tool.data.algorithm import TSKLAlgorithm
 
@@ -28,10 +28,10 @@ class TPredictor(TSKLAlgorithm, ABC):
                 z=self._info(prior)['sklearn_model'].predict(posterior.X)
             )
 
-        return TTransformer(func=transform, info=info)
+        return Transformer(func=transform, info=info)
 
     def _enhancer_impl(self):
-        return TTransformer(func=lambda posterior: posterior.frozen, info={})
+        return Transformer(func=lambda posterior: posterior.frozen, info={})
 
     def transformations(self, step, clean=True):
         if step == 'a':

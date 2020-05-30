@@ -4,7 +4,7 @@ import numpy as np
 
 from pjml.config.description.cs.emptycs import EmptyCS
 from pjml.tool.abc.invisible import Invisible
-from pjml.tool.abc.mixin.transformer import TTransformer
+from pjml.tool.abc.mixin.transformer import Transformer
 from pjml.util import flatten
 
 
@@ -28,7 +28,7 @@ class Report(Invisible):
             print(step, self._interpolate(self.text, posterior))
             return posterior
 
-        return TTransformer(
+        return Transformer(
             func=func,
             info=None
         )

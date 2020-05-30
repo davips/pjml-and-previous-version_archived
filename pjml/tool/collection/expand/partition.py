@@ -1,7 +1,7 @@
 from functools import lru_cache
 
 from pjml.tool.abc.mixin.component import Component
-from pjml.tool.abc.mixin.transformer import TTransformer
+from pjml.tool.abc.mixin.transformer import Transformer
 from pjml.tool.chain import Chain
 from pjml.tool.collection.expand.expand import Expand
 
@@ -50,7 +50,7 @@ class Partition(Component):
     def _model_impl(self, prior):
         info = self._info(prior)
 
-        return TTransformer(
+        return Transformer(
             func=lambda posterior: info['internal_model'].transform(posterior),
             info=info
         )
@@ -61,7 +61,7 @@ class Partition(Component):
 
     def _enhancer_impl(self):
         info2 = self._info2()
-        return TTransformer(
+        return Transformer(
             func=lambda prior: info2['internal_enhancer'].transform(prior),
             info=info2
         )

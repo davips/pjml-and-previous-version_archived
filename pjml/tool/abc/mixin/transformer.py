@@ -1,4 +1,4 @@
-class TTransformer:
+class Transformer:
     def __init__(self, func, info):
         self.func = func if func else lambda data: data
         self._info = info

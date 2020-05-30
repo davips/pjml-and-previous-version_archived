@@ -2,7 +2,7 @@ from itertools import repeat
 
 from pjdata.collection import Collection
 from pjml.tool.abc.configless import ConfigLess
-from pjml.tool.abc.mixin.transformer import TTransformer
+from pjml.tool.abc.mixin.transformer import Transformer
 
 
 class Expand(ConfigLess):
@@ -25,7 +25,7 @@ class Expand(ConfigLess):
             return Collection(iterator, lambda: data, finite=False,
                               debug_info='expand')
 
-        return TTransformer(
+        return Transformer(
             func=transform,
             info=None
         )

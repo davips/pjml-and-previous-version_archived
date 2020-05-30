@@ -7,7 +7,7 @@ from pjdata.collection import Collection
 from pjml.config.description.cs.containercs import ContainerCS
 from pjml.tool.abc.minimalcontainer import MinimalContainer1
 from pjml.tool.abc.mixin.component import Component
-from pjml.tool.abc.mixin.transformer import TTransformer
+from pjml.tool.abc.mixin.transformer import Transformer
 
 
 class Map(MinimalContainer1):
@@ -53,7 +53,7 @@ class Map(MinimalContainer1):
             return Collection(iterator, lambda: collection.data,
                               debug_info='map')
 
-        return TTransformer(
+        return Transformer(
             func=transform,
             info=None  # info1
         )
@@ -71,7 +71,7 @@ class Map(MinimalContainer1):
             return Collection(iterator, lambda: collection.data,
                               debug_info='map')
 
-        return TTransformer(
+        return Transformer(
             func=transform,
             info=info2
         )

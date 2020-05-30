@@ -11,7 +11,7 @@ from pjml.config.description.node import Node
 from pjml.config.description.parameter import CatP
 from pjml.tool.abc.mixin.component import Component
 from pjml.tool.abc.mixin.functioninspector import FunctionInspector
-from pjml.tool.abc.mixin.transformer import TTransformer
+from pjml.tool.abc.mixin.transformer import Transformer
 
 
 class RSumm(Component, FunctionInspector):
@@ -66,7 +66,7 @@ class RSumm(Component, FunctionInspector):
                 print('...Summ finish iterator.\n')
             return Collection(iterator(), finalize, debug_info='summ')
 
-        return TTransformer(
+        return Transformer(
             func=transform,
             info=None
         )
