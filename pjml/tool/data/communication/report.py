@@ -3,12 +3,12 @@ import re
 import numpy as np
 
 from pjml.config.description.cs.emptycs import EmptyCS
-from pjml.tool.abc.invisible import TInvisible
+from pjml.tool.abc.invisible import Invisible
 from pjml.tool.abc.mixin.transformer import TTransformer
 from pjml.util import flatten
 
 
-class Report(TInvisible):
+class Report(Invisible):
     """Report printer.
 
     $r prints 'r'

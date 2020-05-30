@@ -1,10 +1,10 @@
 from itertools import tee, repeat
 
-from pjml.tool.abc.invisible import TInvisible
+from pjml.tool.abc.invisible import Invisible
 from pjml.tool.abc.mixin.transformer import TTransformer
 
 
-class Reduce(TInvisible):
+class Reduce(Invisible):
     @classmethod
     def _cs_impl(cls):
         pass
