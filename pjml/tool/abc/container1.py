@@ -17,6 +17,6 @@ class TContainer1(TContainer, ABC):
         # Container1(a,b,c) possible.
         if len(self.transformers) > 1:
             from pjml.tool.chain import Chain
-            self.transformer = TChain(transformers=self.transformers)
+            self.transformer = Chain(transformers=self.transformers)
         else:
             self.transformer = self.transformers[0]

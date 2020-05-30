@@ -9,9 +9,9 @@ from pjml.tool.collection.transform.multi import Multi
 
 
 def evaluator(*components, function='mean_std', **validation_args):
-    return TChain(
+    return Chain(
         Partition(**validation_args),
-        TMap(transformers=components),
+        Map(transformers=components),
         RSumm(function=function)
     )
 
@@ -41,11 +41,4 @@ def tsplit(split_type='cv', partitions=10, test_size=0.3, seed=0, fields=None):
         transformers.append(s)
     # from pjml.config.description.cs.finitecs import FiniteCS
     # return FiniteCS(trasformers=transformers).sample()
-    return TMulti(*transformers)
-
-
-# def bag(*transformers):
-#     """Make a FiniteConfigSpace from a sequence of transformers."""
-#     # from pjml.config.description.cs.finitecs import FiniteCS
-#     # return FiniteCS(trasformers=transformers)
-#     return transformers
+    return Multi(*transformers)

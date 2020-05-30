@@ -187,13 +187,12 @@ def test_check_architecture2(arq='iris.arff'):
 
 def main():
     """Main function"""
-    # printable_test()
-    # multobj_automl()
-    # test_tsvmc()
-    # test_split()
-    # test_metric()
+    printable_test()
+    test_tsvmc()
+    test_split()
+    test_metric()
     test_pca()
-    # test_partition()
+    test_partition()
     # test_split_train_test()
     # test_with_summ_reduce()
 
