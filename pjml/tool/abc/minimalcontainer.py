@@ -11,7 +11,7 @@ from pjml.tool.abc.container1 import TContainer1
 from pjml.tool.abc.containern import TContainerN
 
 
-class TMinimalContainer1(TContainer1, ABC):
+class MinimalContainer1(TContainer1, ABC):
     """Container with minimum configuration (seed) for a single transformer.
 
     If more are given, they will be handled as a single Chain transformer."""

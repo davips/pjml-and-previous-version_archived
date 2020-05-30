@@ -5,12 +5,12 @@ from itertools import tee
 
 from pjdata.collection import Collection
 from pjml.config.description.cs.containercs import ContainerCS
-from pjml.tool.abc.minimalcontainer import TMinimalContainer1
+from pjml.tool.abc.minimalcontainer import MinimalContainer1
 from pjml.tool.abc.mixin.component import TComponent
 from pjml.tool.abc.mixin.transformer import TTransformer
 
 
-class Map(TMinimalContainer1):
+class Map(MinimalContainer1):
     """Execute the same transformer for the entire collection."""
 
     def __new__(cls, *args, seed=0, transformers=None, **kwargs):
