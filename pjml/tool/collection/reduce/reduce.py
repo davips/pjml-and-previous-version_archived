@@ -1,7 +1,7 @@
 from itertools import tee, repeat
 
 from pjml.tool.abc.invisible import TInvisible
-from pjml.tool.abc.mixin.component import TTransformer
+from pjml.tool.abc.mixin.transformer import TTransformer
 
 
 # class TReduce(TComponent, FunctionInspector, ABC):

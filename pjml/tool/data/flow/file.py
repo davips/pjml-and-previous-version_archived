@@ -3,7 +3,8 @@ from pjdata.step.transformation import Transformation
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import FixedP
-from pjml.tool.abc.mixin.component import TComponent, TTransformer
+from pjml.tool.abc.mixin.component import TComponent
+from pjml.tool.abc.mixin.transformer import TTransformer
 from pjml.tool.abc.mixin.nodatahandler import NoDataHandler
 
 # Precisa herdar de Invisible, pois o mesmo Data pode vir de diferentes

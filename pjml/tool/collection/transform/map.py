@@ -6,7 +6,8 @@ from itertools import tee
 from pjdata.collection import Collection
 from pjml.config.description.cs.containercs import ContainerCS
 from pjml.tool.abc.minimalcontainer import TMinimalContainer1
-from pjml.tool.abc.mixin.component import TTransformer, TComponent
+from pjml.tool.abc.mixin.component import TComponent
+from pjml.tool.abc.mixin.transformer import TTransformer
 
 
 class TMap(TMinimalContainer1):

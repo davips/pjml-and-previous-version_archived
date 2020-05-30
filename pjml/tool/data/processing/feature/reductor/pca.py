@@ -6,7 +6,7 @@ from sklearn.decomposition import PCA
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import RealP, FixedP
-from pjml.tool.abc.mixin.component import TTransformer
+from pjml.tool.abc.mixin.transformer import TTransformer
 from pjml.tool.data.algorithm import TSKLAlgorithm
 
 

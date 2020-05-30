@@ -2,7 +2,7 @@ from abc import ABC
 from functools import lru_cache
 
 from pjdata.step.transformation import Transformation
-from pjml.tool.abc.mixin.component import TTransformer
+from pjml.tool.abc.mixin.transformer import TTransformer
 from pjml.tool.abc.mixin.exceptionhandler import BadComponent
 from pjml.tool.data.algorithm import TSKLAlgorithm
 
