@@ -2,6 +2,7 @@ import operator
 from functools import lru_cache
 
 from itertools import tee
+from typing import Optional, List, Tuple, Dict, Iterator
 
 from pjdata.collection import Collection
 from pjml.config.description.cs.containercs import ContainerCS
@@ -14,7 +15,13 @@ class Multi(MinimalContainerN):
     """Process each Data object from a collection with its respective
     transformer."""
 
-    def __new__(cls, *args, seed=0, transformers=None, **kwargs):
+    def __new__(
+            cls,
+            *args: Component,
+            seed: int = 0,
+            transformers: Optional[Tuple[Component, ...]] = None,
+            **kwargs
+    ):
         """Shortcut to create a ConfigSpace."""
         if transformers is None:
             transformers = args
@@ -28,8 +35,11 @@ class Multi(MinimalContainerN):
         raise NotImplementedError
         # return {'models': models}
 
-    def iterator(self, prior_collection, posterior_collection):
-        # print('mul',self.transformers)
+    def iterator(
+            self,
+            prior_collection: Collection,
+            posterior_collection: Collection
+    ) -> Iterator:
         funcs = [
             lambda prior, posterior: trf.dual_transform(prior, posterior)
             for trf in self.transformers
@@ -39,13 +49,17 @@ class Multi(MinimalContainerN):
             funcs, prior_collection, posterior_collection
         )
 
-    def iterators(self, prior_collection, posterior_collection):
+    def iterators(
+            self,
+            prior_collection: Collection,
+            posterior_collection: Collection
+    ) -> Tuple[Iterator, Iterator]:
         gen0, gen1 = tee(
             self.iterator(prior_collection, posterior_collection))
-        return map(operator.itemgetter(0), gen0), \
-               map(operator.itemgetter(1), gen1)
 
-    def _model_impl(self, prior_collection):
+        return map(operator.itemgetter(0), gen0), map(operator.itemgetter(1), gen1)
+
+    def _model_impl(self, prior_collection: Collection) -> Transformer:
         # info1 = self._info1
         transformers = self.transformers
 
@@ -70,10 +84,10 @@ class Multi(MinimalContainerN):
         )
 
     @lru_cache()
-    def _info2(self):
+    def _info2(self) -> Dict[str, List[Transformer]]:
         return {'enhancers': [trf.enhancer for trf in self.transformers]}
 
-    def _enhancer_impl(self):
+    def _enhancer_impl(self) -> Transformer:
         info2 = self._info2()
         enhancers = info2['enhancers']
 
