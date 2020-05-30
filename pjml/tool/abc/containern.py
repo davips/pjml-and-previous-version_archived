@@ -3,7 +3,7 @@ from abc import ABC
 from pjml.tool.abc.container import TContainer
 
 
-class TContainerN(TContainer, ABC):
+class ContainerN(TContainer, ABC):
     """Container for more than one transformer."""
 
     def __init__(self, config, seed, transformers,

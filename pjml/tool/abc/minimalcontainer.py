@@ -8,7 +8,7 @@ from pjml.tool.abc.container1 import TContainer1
 #  transformers. So, it is determinist per se. However,
 #  a MinimalContainer that is randomized in some way may appear in
 #  the future.
-from pjml.tool.abc.containern import TContainerN
+from pjml.tool.abc.containern import ContainerN
 
 
 class MinimalContainer1(TContainer1, ABC):
@@ -24,7 +24,7 @@ class MinimalContainer1(TContainer1, ABC):
                          deterministic=True)
 
 
-class MinimalContainerN(TContainerN, ABC):
+class MinimalContainerN(ContainerN, ABC):
     """Container with minimum configuration (seed) for more than one
     transformer."""
 
