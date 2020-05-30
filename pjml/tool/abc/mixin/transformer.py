@@ -1,18 +1,16 @@
-from typing import Union, Tuple, Callable
+from typing import Union, Callable, Optional
 
-from pjdata.collection import Collection
-from pjdata.data import Data
-from pjdata.specialdata import NoData
+from pjml.util import TDatas, TDatasTuple
 
 
 class Transformer:
     def __init__(
             self,
-            func: Callable[[Union[NoData, Data, Collection]],
-                           Union[NoData, Data, Collection]],
-            info: Union[None, dict,
-                        Callable[[], dict],
-                        Callable[[Union[NoData, Data, Collection]], dict]]
+            func: Optional[TDatas],
+            info: Optional[
+                Union[dict,
+                      Callable[[], dict],
+                      Callable[[TDatas], dict]]]
     ):
         self.func = func if func else lambda data: data
 
@@ -31,10 +29,8 @@ class Transformer:
 
     def transform(
             self,
-            data: Union[Tuple[NoData, ...], Tuple[Data, ...],
-                        Tuple[Collection, ...], NoData, Data, Collection]
-    ) -> Union[Tuple[NoData, ...], Tuple[Data, ...],
-               Tuple[Collection, ...], NoData, Data, Collection]:
+            data: TDatasTuple
+    ) -> TDatasTuple:
         if isinstance(data, tuple):
             return tuple((self.safe_func(dt) for dt in data))
         # Todo: We should add exception handling here because self.func can
@@ -42,8 +38,8 @@ class Transformer:
         return self.safe_func(data)
 
     def safe_func(
-            self, data: Union[NoData, Data, Collection]
-    ) -> Union[NoData, Data, Collection]:
+            self, data: TDatas
+    ) -> TDatas:
         if data.isfrozen:
             return data
         return self.func(data)
