@@ -8,7 +8,7 @@ from pjml.tool.abc.mixin.transformer import TTransformer
 from pjml.util import flatten
 
 
-class TReport(TInvisible):
+class Report(TInvisible):
     """Report printer.
 
     $r prints 'r'

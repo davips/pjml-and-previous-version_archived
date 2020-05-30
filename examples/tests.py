@@ -5,7 +5,7 @@ from pjml.tool.collection.expand.partition import TPartition
 from pjml.tool.collection.reduce.reduce import TRReduce
 from pjml.tool.collection.reduce.summ import TRSumm
 from pjml.tool.collection.transform.map import TMap
-from pjml.tool.data.communication.report import TReport
+from pjml.tool.data.communication.report import Report
 from pjml.tool.data.evaluation.metric import Metric
 from pjml.tool.data.evaluation.split import Split, SplitTrain, SplitTest
 from pjml.tool.data.flow.file import File
@@ -152,7 +152,7 @@ def test_partition(arq="iris.arff"):
         TPartition(),
         TMap(PCA(), SVMC(), Metric(onenhancer=False)),
         TRSumm(function='mean', onenhancer=False),
-        TReport('mean ... S: $S', onenhancer=False)
+        Report('mean ... S: $S', onenhancer=False)
     )
     prior, posterior = pipe.dual_transform()
 
@@ -168,7 +168,7 @@ def test_split_train_test(arq="iris.arff"):
         PCA(),
         SVMC(),
         Metric(onenhancer=False),
-        TReport('metric ... R: $R', onenhancer=False)
+        Report('metric ... R: $R', onenhancer=False)
     )
     prior, posterior = pipe.dual_transform()
 
@@ -181,10 +181,10 @@ def test_with_summ_reduce(arq="iris.arff"):
         File(arq),
         TPartition(),
         TMap(PCA(), SVMC(), Metric(onenhancer=False)),
-        TMap(TReport('<---------------------- etapa'), onenhancer=False),
+        TMap(Report('<---------------------- etapa'), onenhancer=False),
         TRSumm(function='mean', onenhancer=False),
         TRReduce(),
-        TReport('mean ... S: $S', onenhancer=False)
+        Report('mean ... S: $S', onenhancer=False)
     )
     prior, posterior = pipe.dual_transform()
 
@@ -220,7 +220,7 @@ def test_check_architecture2(arq='iris.arff'):
         TPartition(),
         TMap(PCA(), SVMC(), Metric(onenhancer=False)),
         TRSumm(function='mean', onenhancer=False),
-        TReport('mean ... S: $S', onenhancer=False)
+        Report('mean ... S: $S', onenhancer=False)
     )
 
     # tenho file na frente
