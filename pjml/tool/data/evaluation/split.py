@@ -8,14 +8,14 @@ from sklearn.model_selection import StratifiedShuffleSplit as HO, \
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import IntP
-from pjml.tool.abc.mixin.component import TComponent
+from pjml.tool.abc.mixin.component import Component
 from pjml.tool.abc.mixin.transformer import TTransformer
 from pjml.tool.abc.mixin.functioninspector import FunctionInspector
 from pjml.tool.abc.mixin.nodatahandler import NoDataHandler
 from pjml.tool.chain import Chain
 
 
-class Split(TComponent, FunctionInspector, NoDataHandler):
+class Split(Component, FunctionInspector, NoDataHandler):
     """Split a given Data field into training/apply set and testing/use set.
 
     Developer: new metrics can be added just following the pattern '_fun_xxxxx'
@@ -78,7 +78,7 @@ class Split(TComponent, FunctionInspector, NoDataHandler):
         raise NotImplementedError
 
 
-class SplitTest(TComponent, FunctionInspector, NoDataHandler):
+class SplitTest(Component, FunctionInspector, NoDataHandler):
     """Split a given Data field into training/apply set and testing/use set.
 
     Developer: new metrics can be added just following the pattern '_fun_xxxxx'
@@ -159,7 +159,7 @@ class SplitTest(TComponent, FunctionInspector, NoDataHandler):
         return TransformerCS(Node(params=params))
 
 
-class SplitTrain(TComponent, FunctionInspector, NoDataHandler):
+class SplitTrain(Component, FunctionInspector, NoDataHandler):
     """Split a given Data field into training/apply set and testing/use set.
 
     Developer: new metrics can be added just following the pattern '_fun_xxxxx'

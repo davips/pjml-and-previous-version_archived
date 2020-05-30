@@ -1,10 +1,10 @@
 from abc import ABC
 
 from pjml.config.description.cs.emptycs import EmptyCS
-from pjml.tool.abc.mixin.component import TComponent
+from pjml.tool.abc.mixin.component import Component
 
 
-class TLightConfigLess(TComponent, ABC):
+class TLightConfigLess(Component, ABC):
     """Parent class of all transformers without config. Also, apply==use."""
 
     def __init__(self, onenhancer=True, onmodel=True):

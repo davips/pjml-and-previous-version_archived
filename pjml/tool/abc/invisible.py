@@ -1,9 +1,9 @@
 from abc import ABC
 
-from pjml.tool.abc.mixin.component import TComponent
+from pjml.tool.abc.mixin.component import Component
 
 
-class TInvisible(TComponent, ABC):
+class TInvisible(Component, ABC):
     """Parent class of all atomic transformers that don't increase history
     of transformations.
 

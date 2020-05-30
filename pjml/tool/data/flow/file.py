@@ -3,7 +3,7 @@ from pjdata.step.transformation import Transformation
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import FixedP
-from pjml.tool.abc.mixin.component import TComponent
+from pjml.tool.abc.mixin.component import Component
 from pjml.tool.abc.mixin.transformer import TTransformer
 from pjml.tool.abc.mixin.nodatahandler import NoDataHandler
 
@@ -12,7 +12,7 @@ from pjml.tool.abc.mixin.nodatahandler import NoDataHandler
 # irrelevantes para reprodutibilidade. Herdando de Invisible, o histórico é [].
 
 
-class File(TComponent, NoDataHandler):
+class File(Component, NoDataHandler):
     """Source of Data object from CSV, ARFF, file.
 
     TODO: always classification task?

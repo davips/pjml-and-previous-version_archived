@@ -6,7 +6,7 @@ from pjdata.collection import Collection
 from pjdata.specialdata import NoData
 from pjml.config.description.cs.chaincs import TChainCS
 from pjml.tool.abc.minimalcontainer import MinimalContainerN
-from pjml.tool.abc.mixin.component import TComponent
+from pjml.tool.abc.mixin.component import Component
 from pjml.tool.abc.mixin.transformer import TTransformer
 from pjml.util import flatten
 
@@ -21,7 +21,7 @@ class Chain(MinimalContainerN):
         """Shortcut to create a ConfigSpace."""
         if transformers is None:
             transformers = args
-        if all([isinstance(t, TComponent) for t in transformers]):
+        if all([isinstance(t, Component) for t in transformers]):
             return object.__new__(cls)
         return TChainCS(*transformers)
 

@@ -1,12 +1,12 @@
 from functools import lru_cache
 
-from pjml.tool.abc.mixin.component import TComponent
+from pjml.tool.abc.mixin.component import Component
 from pjml.tool.abc.mixin.transformer import TTransformer
 from pjml.tool.chain import Chain
 from pjml.tool.collection.expand.expand import Expand
 
 
-class Partition(TComponent):
+class Partition(Component):
     """Class to perform, e.g. Expand+kfoldCV.
 
     This task is already done by function split(),

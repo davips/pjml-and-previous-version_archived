@@ -16,9 +16,9 @@ class ConfigList(ConfigSpace):
             transformers = args
         super().__init__({'transformers': transformers})
 
-        from pjml.tool.abc.mixin.component import TComponent
+        from pjml.tool.abc.mixin.component import Component
         for transformer in transformers:
-            if not (isinstance(transformer, TComponent)):
+            if not (isinstance(transformer, Component)):
                 raise Exception(
                     f'\nGiven: {type(transformer)}\n{transformer}\n'
                     f'ConfigList does not accept config spaces, '

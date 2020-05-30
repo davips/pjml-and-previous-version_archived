@@ -16,7 +16,7 @@ from pjml.tool.abc.mixin.exceptionhandler import BadComponent
 from pjml.tool.abc.mixin.transformer import TTransformer
 
 
-class TComponent(Printable, Identifyable, ABC):
+class Component(Printable, Identifyable, ABC):
     def __init__(self,
                  config: dict,
                  onenhancer: bool = True,

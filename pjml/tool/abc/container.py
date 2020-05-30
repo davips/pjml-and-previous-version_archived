@@ -2,10 +2,10 @@ from abc import ABC
 from functools import lru_cache
 
 from pjdata.aux.decorator import classproperty
-from pjml.tool.abc.mixin.component import TComponent
+from pjml.tool.abc.mixin.component import Component
 
 
-class Container(TComponent, ABC):
+class Container(Component, ABC):
     """A container modifies 'transformer(s)'."""
 
     def __init__(self, config, seed, transformers, onenhancer, onmodel,

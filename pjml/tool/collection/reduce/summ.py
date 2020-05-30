@@ -9,12 +9,12 @@ from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.distributions import choice
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import CatP
-from pjml.tool.abc.mixin.component import TComponent
+from pjml.tool.abc.mixin.component import Component
 from pjml.tool.abc.mixin.functioninspector import FunctionInspector
 from pjml.tool.abc.mixin.transformer import TTransformer
 
 
-class RSumm(TComponent, FunctionInspector):
+class RSumm(Component, FunctionInspector):
     """Given a field, summarizes a Collection object to a Data object.
 
     The resulting Data object will have only the 's' field. To keep other
