@@ -64,7 +64,7 @@ class TSplit(TComponent, FunctionInspector, NoDataHandler):
 
         self.transformer = Chain(
             TrainSplit(),
-            TestSplit()
+            SplitTest()
         )
 
     def _model_impl(self, prior):
@@ -78,7 +78,7 @@ class TSplit(TComponent, FunctionInspector, NoDataHandler):
         raise NotImplementedError
 
 
-class TestSplit(TComponent, FunctionInspector, NoDataHandler):
+class SplitTest(TComponent, FunctionInspector, NoDataHandler):
     """Split a given Data field into training/apply set and testing/use set.
 
     Developer: new metrics can be added just following the pattern '_fun_xxxxx'
