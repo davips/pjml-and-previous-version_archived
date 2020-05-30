@@ -1,14 +1,16 @@
 from functools import lru_cache
 
 from itertools import tee
+from typing import Optional, Tuple, Dict, List
 
 from pjdata.collection import Collection
 from pjdata.specialdata import NoData
+from pjdata.step.transformation import Transformation
 from pjml.config.description.cs.chaincs import TChainCS
 from pjml.tool.abc.minimalcontainer import MinimalContainerN
 from pjml.tool.abc.mixin.component import Component
 from pjml.tool.abc.mixin.transformer import Transformer
-from pjml.util import flatten
+from pjml.util import flatten, TDatasTuple, TDatas
 
 
 class Chain(MinimalContainerN):
@@ -17,7 +19,13 @@ class Chain(MinimalContainerN):
     Each arg is a transformer. Optionally, a list of them can be passed as a
     named arg called 'transformers'."""
 
-    def __new__(cls, *args, seed=0, transformers=None,**kwargs):
+    def __new__(
+            cls,
+            *args: Component,
+            seed: int = 0,
+            transformers: Optional[Tuple[Component, ...]] = None,
+            **kwargs
+    ):
         """Shortcut to create a ConfigSpace."""
         if transformers is None:
             transformers = args
@@ -25,17 +33,21 @@ class Chain(MinimalContainerN):
             return object.__new__(cls)
         return TChainCS(*transformers)
 
-    def dual_transform(self, prior=NoData, posterior=NoData):
+    def dual_transform(
+            self,
+            prior: TDatasTuple = NoData,
+            posterior: TDatasTuple = NoData
+    ) -> Tuple[TDatasTuple, TDatasTuple]:
         print(self.__class__.__name__, ' dual transf (((')
         for trf in self.transformers:
             prior, posterior = trf.dual_transform(prior, posterior)
         return prior, posterior
 
     @lru_cache()
-    def _info_enhancer(self):
+    def _info_enhancer(self) -> Dict[str, List[Transformer]]:
         return {'enhancers': [trf.enhancer for trf in self.transformers]}
 
-    def _enhancer_impl(self):
+    def _enhancer_impl(self) -> Transformer:
         enhancers = self._info_enhancer()['enhancers']
 
         def enhancer_transform(prior):
@@ -46,13 +58,17 @@ class Chain(MinimalContainerN):
         return Transformer(func=enhancer_transform, info=self._info_enhancer)
 
     @lru_cache()
-    def _info_model(self, prior):
+    def _info_model(self, prior: TDatas) -> Dict[str, List[Transformer]]:
         models = []
         for trf in self.transformers:
             if isinstance(prior, Collection):
                 iter0, iter1 = tee(prior.iterator)
-                prior0, prior1 = Collection(iter0, prior.finalizer, debug_info='compo'+self.__class__.__name__+' pri'), \
-                                 Collection(iter1, prior.finalizer,debug_info='compo'+self.__class__.__name__+' pos')
+                prior0 = Collection(
+                    iter0, prior.finalizer,
+                    debug_info='compo'+self.__class__.__name__+' pri')
+                prior1 = Collection(
+                    iter1, prior.finalizer,
+                    debug_info='compo'+self.__class__.__name__+' pos')
             else:
                 prior0 = prior1 = prior
             print('                   gera modelo', trf.name)
@@ -62,20 +78,25 @@ class Chain(MinimalContainerN):
             prior = trf.enhancer.transform(prior1)
         return {'models': models}
 
-    def _model_impl(self, prior):
+    def _model_impl(self, prior: TDatas) -> Transformer:
         models = self._info_model(prior)
 
-        def model_transform(posterior):
-            c=0
+        def model_transform(posterior: TDatas):
+            c = 0
             for model in models['models']:
                 print('                 USA modelo', c, model)
                 posterior = model.transform(posterior)
-                c+=1
+                c += 1
             return posterior
 
         return Transformer(func=model_transform, info=models)
 
-    def transformations(self, step, clean=True):
+    @lru_cache()
+    def transformations(
+            self,
+            step: str,
+            clean: bool = True
+    ) -> List[Transformation]:
         lst = []
         for transformer in self.transformers:
             transformations = transformer.transformations(step, clean=False)
