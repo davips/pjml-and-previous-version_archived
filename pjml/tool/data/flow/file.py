@@ -12,7 +12,7 @@ from pjml.tool.abc.mixin.nodatahandler import NoDataHandler
 # irrelevantes para reprodutibilidade. Herdando de Invisible, o histórico é [].
 
 
-class TFile(TComponent, NoDataHandler):
+class File(TComponent, NoDataHandler):
     """Source of Data object from CSV, ARFF, file.
 
     TODO: always classification task?
