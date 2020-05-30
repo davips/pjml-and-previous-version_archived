@@ -10,7 +10,7 @@ from pjml.tool.abc.mixin.component import TComponent
 from pjml.tool.abc.mixin.transformer import TTransformer
 
 
-class TMap(TMinimalContainer1):
+class Map(TMinimalContainer1):
     """Execute the same transformer for the entire collection."""
 
     def __new__(cls, *args, seed=0, transformers=None, **kwargs):
@@ -19,7 +19,7 @@ class TMap(TMinimalContainer1):
             transformers = args
         if all([isinstance(t, TComponent) for t in transformers]):
             return object.__new__(cls)
-        return ContainerCS(TMap.name, TMap.path, transformers)
+        return ContainerCS(Map.name, Map.path, transformers)
 
     def iterator(self, prior_collection, posterior_collection):
         return map(

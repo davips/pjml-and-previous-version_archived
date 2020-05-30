@@ -4,7 +4,7 @@ from pjml.pipeline import Pipeline
 from pjml.tool.collection.expand.partition import TPartition
 from pjml.tool.collection.reduce.reduce import TRReduce
 from pjml.tool.collection.reduce.summ import TRSumm
-from pjml.tool.collection.transform.map import TMap
+from pjml.tool.collection.transform.map import Map
 from pjml.tool.data.communication.report import Report
 from pjml.tool.data.evaluation.metric import Metric
 from pjml.tool.data.evaluation.split import Split, SplitTrain, SplitTest
@@ -78,7 +78,7 @@ def test_partition(arq="iris.arff"):
     pipe = Pipeline(
         File(arq),
         TPartition(),
-        TMap(PCA(), SVMC(), Metric(onenhancer=False)),
+        Map(PCA(), SVMC(), Metric(onenhancer=False)),
         TRSumm(function='mean', onenhancer=False),
         Report('mean ... S: $S', onenhancer=False)
     )
@@ -108,8 +108,8 @@ def test_with_summ_reduce(arq="iris.arff"):
     pipe = Pipeline(
         File(arq),
         TPartition(),
-        TMap(PCA(), SVMC(), Metric(onenhancer=False)),
-        TMap(Report('<---------------------- etapa'), onenhancer=False),
+        Map(PCA(), SVMC(), Metric(onenhancer=False)),
+        Map(Report('<---------------------- etapa'), onenhancer=False),
         TRSumm(function='mean', onenhancer=False),
         TRReduce(),
         Report('mean ... S: $S', onenhancer=False)
@@ -124,7 +124,7 @@ def test_check_architecture(arq='iris.arff'):
     pipe = Pipeline(
         File(arq),
         TPartition(partitions=2),
-        TMap(PCA(), SVMC(), Metric(onenhancer=False)),
+        Map(PCA(), SVMC(), Metric(onenhancer=False)),
         TRSumm(function='mean', onenhancer=False),
     )
 
@@ -146,7 +146,7 @@ def test_check_architecture2(arq='iris.arff'):
     pipe = Pipeline(
         File(arq),
         TPartition(),
-        TMap(PCA(), SVMC(), Metric(onenhancer=False)),
+        Map(PCA(), SVMC(), Metric(onenhancer=False)),
         TRSumm(function='mean', onenhancer=False),
         Report('mean ... S: $S', onenhancer=False)
     )
