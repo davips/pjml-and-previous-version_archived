@@ -5,12 +5,12 @@ from itertools import tee
 
 from pjdata.collection import Collection
 from pjml.config.description.cs.containercs import ContainerCS
-from pjml.tool.abc.minimalcontainer import TMinimalContainerN
+from pjml.tool.abc.minimalcontainer import MinimalContainerN
 from pjml.tool.abc.mixin.component import TComponent
 from pjml.tool.abc.mixin.transformer import TTransformer
 
 
-class Multi(TMinimalContainerN):
+class Multi(MinimalContainerN):
     """Process each Data object from a collection with its respective
     transformer."""
 

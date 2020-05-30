@@ -5,13 +5,13 @@ from itertools import tee
 from pjdata.collection import Collection
 from pjdata.specialdata import NoData
 from pjml.config.description.cs.chaincs import TChainCS
-from pjml.tool.abc.minimalcontainer import TMinimalContainerN
+from pjml.tool.abc.minimalcontainer import MinimalContainerN
 from pjml.tool.abc.mixin.component import TComponent
 from pjml.tool.abc.mixin.transformer import TTransformer
 from pjml.util import flatten
 
 
-class Chain(TMinimalContainerN):
+class Chain(MinimalContainerN):
     """Chain the execution of the given transformers.
 
     Each arg is a transformer. Optionally, a list of them can be passed as a

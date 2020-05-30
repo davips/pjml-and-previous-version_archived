@@ -24,7 +24,7 @@ class TMinimalContainer1(TContainer1, ABC):
                          deterministic=True)
 
 
-class TMinimalContainerN(TContainerN, ABC):
+class MinimalContainerN(TContainerN, ABC):
     """Container with minimum configuration (seed) for more than one
     transformer."""
 
