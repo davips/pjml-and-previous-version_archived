@@ -65,7 +65,7 @@ class File(Component, NoDataHandler):
         super().__init__(config, deterministic=True, **kwargs)
         self.data = data
 
-    def _transformer(self):
+    def _transformer(self) -> Transformer:
         def func(posterior):  # old use/apply
             self._enforce_nodata(posterior, 'u')  # fixei 'u'
             return self.data
