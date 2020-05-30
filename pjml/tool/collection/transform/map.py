@@ -1,9 +1,11 @@
+import operator
 from functools import lru_cache
+from itertools import tee
 
-from pjdata.infinitecollection import InfiniteCollection
-
+from pjdata.collection import Collection
 from pjml.config.description.cs.containercs import ContainerCS
-from pjml.tool.abc.minimalcontainer import MinimalContainer1, TMinimalContainer1
+from pjml.tool.abc.minimalcontainer import MinimalContainer1, \
+    TMinimalContainer1
 from pjml.tool.abc.mixin.component import TTransformer, TComponent
 from pjml.tool.abc.transformer import UTransformer
 from pjml.tool.model.containermodel import ContainerModel
@@ -26,10 +28,12 @@ class Map(MinimalContainer1):
         models = []
         datas = []
         for data in collection:
-            model = self.transformer.apply(data, exit_on_error=self._exit_on_error)
+            model = self.transformer.apply(data,
+                                           exit_on_error=self._exit_on_error)
             datas.append(model.data)
             models.append(model)
-        applied = collection.updated(self.transformations(step='a'), datas=datas)
+        applied = collection.updated(self.transformations(step='a'),
+                                     datas=datas)
         # TODO: which containers should pass self._exit_on_error to transformer?
         return ContainerModel(self, collection, applied, models)
 
@@ -40,7 +44,8 @@ class Map(MinimalContainer1):
                             f'the same size a- {size} != u- {collection.size}')
         datas = []
         for model in models:
-            data = model.use(next(collection), exit_on_error=self._exit_on_error)
+            data = model.use(next(collection),
+                             exit_on_error=self._exit_on_error)
             datas.append(data)
         return collection.updated(self.transformations(step='u'), datas=datas)
 
@@ -56,28 +61,41 @@ class TMap(TMinimalContainer1):
             return object.__new__(cls)
         return ContainerCS(Map.name, Map.path, transformers)
 
-    @lru_cache()
-    def _info(self, prior_collection):
-        return {
-            'models': [self.transformer.model(data)
-                       for data in prior_collection]
-        }
+    def iterator(self, prior_collection, posterior_collection):
+        return map(
+            self.transformer.dual_transform,
+            prior_collection, posterior_collection
+        )
+
+    def iterators(self, prior_collection, posterior_collection):
+        gen0, gen1 = tee(
+            self.iterator(prior_collection, posterior_collection))
+        return map(operator.itemgetter(0), gen0), \
+               map(operator.itemgetter(1), gen1)
+
+    # @lru_cache()
+    # def _info(self, prior_collection):
+    #     return {
+    #         'models': [self.transformer.model(data)
+    #                    for data in prior_collection]
+    #     }
 
     def _model_impl(self, prior_collection):
-        info1 = self._info(prior_collection)
-        models = info1['models']
-        datas = []
+        # info1 = self._info(prior_collection)
+        # models = info1['models']
+        transformer = self.transformer
 
         def transform(posterior_collection):
-            for model in models:
-                datas.append(model.transform(next(posterior_collection)))
-            return posterior_collection.updated(
-                self.transformations(step='a'),
-                datas=datas
-            )
+            def func(prior, posterior):
+                return transformer.model(prior).transform(posterior)
+
+            iterator = map(func, prior_collection, posterior_collection)
+            return Collection(iterator, lambda: posterior_collection.data,
+                              debug_info='map')
+
         return TTransformer(
             func=transform,
-            info=info1
+            info=None  # info1
         )
 
     @lru_cache()
@@ -86,25 +104,13 @@ class TMap(TMinimalContainer1):
 
     def _enhancer_impl(self):
         info2 = self._info2()
+        enhancer = info2['enhancer']
 
         def transform(posterior_collection):
-            # enhancers = self._info2()
-            # size = len(enhancers)
-            # print(1111111111111111111111, size)
-            # print(2222222222222222222222, posterior_collection.size)
-            # if size != posterior_collection.size:
-            #     raise Exception(
-            #         'Collections passed to apply and use should have '
-            #         f'the same size a- {size} != u- {posterior_collection.size}'
-            #     )
-            datas = []
-            enhancer = info2['enhancer']
-            for data in posterior_collection:
-                datas.append(enhancer.transform(data))
-            return posterior_collection.updated(
-                self.transformations(step='u'),
-                datas=datas
-            )
+            iterator = map(enhancer.transform, posterior_collection)
+            return Collection(iterator, lambda: posterior_collection.data,
+                              debug_info='map')
+
         return TTransformer(
             func=transform,
             info=info2

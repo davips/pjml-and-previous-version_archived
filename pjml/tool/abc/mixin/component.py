@@ -1,8 +1,11 @@
+import operator
 from abc import abstractmethod, ABC
 from functools import lru_cache
+from itertools import tee
 
 from pjdata.aux.decorator import classproperty
 from pjdata.aux.serialization import serialize, materialize
+from pjdata.collection import Collection
 from pjdata.mixin.identifyable import Identifyable
 from pjdata.mixin.printable import Printable
 from pjdata.step.transformation import Transformation
@@ -32,6 +35,9 @@ class TComponent(Printable, Identifyable, ABC):
     def _model_impl(self, prior):
         return TTransformer(None, None)
 
+    def iterators(self, prior_collection, posterior_collection):
+        raise NotImplementedError('Only concurrent components have iterators')
+
     @property
     @lru_cache()
     def enhancer(self):  # clean, cleaup, dumb, dumb_transformer
@@ -39,6 +45,7 @@ class TComponent(Printable, Identifyable, ABC):
             return TTransformer(None, None)
         return self._enhancer_impl()
 
+    # TODO: verify if Data (/ Collection?) should have a better __hash__
     @lru_cache()
     def model(self, prior):  # smart, smart_transformer
         if isinstance(prior, tuple):
@@ -47,7 +54,19 @@ class TComponent(Printable, Identifyable, ABC):
             return TTransformer(None, None)
         return self._model_impl(prior)
 
+    # TODO: special sub class for concurrent components containing the content
+    #   of this IF and the parent ABC method iterator().
     def dual_transform(self, prior, posterior):
+        if isinstance(prior, Collection) or isinstance(posterior, Collection):
+            print('   component', self.__class__.__name__, ' dual transf (((')
+            iterator1, iterator2 = self.iterators(prior, posterior)
+            prior_collection = Collection(iterator1, lambda: prior.data,
+                                          debug_info='compo'+self.__class__.__name__+' pri')
+            poste_collection = Collection(iterator2, lambda: posterior.data,
+                                          debug_info='compo'+self.__class__.__name__+' pos')
+            return prior_collection, poste_collection
+
+        print('|||||compo não collection', self.__class__.__name__, ' dual transf (((')
         prior_result = self.enhancer.transform(prior)
         posterior_result = self.model(prior).transform(posterior)
         return prior_result, posterior_result
@@ -88,7 +107,7 @@ class TComponent(Printable, Identifyable, ABC):
             Tree representing all the possible parameter spaces.
         """
         cs_ = cls._cs_impl()
-        result= cs_.identified(name=cls.__name__, path=cls.__module__)
+        result = cs_.identified(name=cls.__name__, path=cls.__module__)
         return result
 
     @property
@@ -200,6 +219,7 @@ class TTransformer:
                             'dict or None.')
 
     def transform(self, data):  # resolver error
+        # print('!!!!!!!!!!!!!!!', type(self).__name__, type(data))
         if isinstance(data, tuple):
             return tuple((self.func(dt) for dt in data))
         # Todo: We should add some tratment here because self.func can raise

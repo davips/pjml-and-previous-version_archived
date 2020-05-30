@@ -2,8 +2,6 @@ from abc import ABC
 from functools import lru_cache
 from typing import Union
 
-from pjdata.abc.abstractdata import AbstractData
-from pjdata.collection import Collection
 from pjdata.data import Data
 from pjdata.mixin.identifyable import Identifyable
 from pjml.tool.abc.mixin.exceptionhandler import ExceptionHandler

@@ -1,38 +1,17 @@
-from abc import ABC
+from itertools import tee
 
-from pjdata.specialdata import NoData
 from pjml.tool.abc.invisible import TInvisible
-from pjml.tool.abc.mixin.component import TComponent, TTransformer
-from pjml.tool.abc.mixin.functioninspector import FunctionInspector
-from pjml.tool.abc.transformer import ISTransformer
+from pjml.tool.abc.mixin.component import TTransformer
 
 
-class Reduce(ISTransformer, FunctionInspector, ABC):
-    def __init__(self, config, deterministic=False):
-        super().__init__(config, deterministic)
-        self.function = self.function_from_name[config['function']]
-
-    # This is not necessary because it is done in the father class
-    # def _apply_impl(self, collection):
-    #     applied = self._use_impl(collection)
-    #     return Model(self, collection, applied)
-
-    def transformations(self, step, clean=True):
-        return super().transformations('u')
-
-
-class TReduce(TComponent, FunctionInspector, ABC):
-    def __init__(self, config, deterministic=False, **kwargs):
-        super().__init__(config, deterministic, **kwargs)
-        self.function = self.function_from_name[config['function']]
-
-    # This is not necessary because it is done in the father class
-    # def _apply_impl(self, collection):
-    #     applied = self._use_impl(collection)
-    #     return Model(self, collection, applied)
-
-    def transformations(self, step, clean=True):
-        return super().transformations('u')
+# class TReduce(TComponent, FunctionInspector, ABC):
+#     def __init__(self, config, deterministic=False, **kwargs):
+#         super().__init__(config, deterministic, **kwargs)
+#         self.function = self.function_from_name[config['function']]
+#
+#
+#     def transformations(self, step, clean=True):
+#         return super().transformations('u')
 
 
 class TRReduce(TInvisible):
@@ -44,25 +23,31 @@ class TRReduce(TInvisible):
         config = {} if config is None else config
         super().__init__(config, deterministic, **kwargs)
 
-    def _enhancer_impl(self, step='e'):
-        def func(collection):
-            if collection.has_nones:
-                raise Exception(
-                    "Warning: You shuld use 'Shrink()' to handling collections "
-                    "with None. ")
+    def dual_transform(self, prior_collection, posterior_collection):
+        # Exhaust iterator.
+        print(self.__class__.__name__, ' dual transf (((')
+        for d in zip(prior_collection, posterior_collection):
+            pass
+        # posterior_collection.join()
+        return prior_collection.data, posterior_collection.data
 
-            res = collection.original_data.matrices.copy()
-            res.update(collection.fields)
-            return NoData.updated(
-                collection.history,
-                failure=collection.failure,
-                **res
-            )
+    def _enhancer_impl(self):
+        def transform(collection):
+            # Exhaust iterator.
+            c = 0
+            print('\nReduce starts loop... >>>>>>>>>>>>>>>>>>>>>>>>>>>')
+            for d in collection:
+                print('  Reduce consumed item', c, '\n')
+                c += 1
+                pass
+            print('...Reduce exits loop. <<<<<<<<<<<<<<<<<<<<<<<<<<<\n')
+            print('  Reduce asks for pendurado at...', collection.debug_info)
+            return collection.data
 
         return TTransformer(
-            func=func,
+            func=transform,
             info=None
         )
 
-    def _model_impl(self, prior, step='m'):
-        return self._enhancer_impl(step)
+    def _model_impl(self, prior):
+        return self._enhancer_impl()

@@ -38,6 +38,7 @@ class TPredictor(TSKLAlgorithm, ABC):
     """
     Base class for classifiers, regressors, ... that implement fit/predict.
     """
+
     @lru_cache()
     def _info(self, prior):  # old apply
         sklearn_model = self.algorithm_factory()
@@ -49,10 +50,22 @@ class TPredictor(TSKLAlgorithm, ABC):
 
         def func(posterior):  # old use
             return posterior.updated(
-                self.transformations('u'),  # desnecessário ?
+                self.transformations('u'),  # desnecessário ? #TODO: memory leak?
                 z=self._info(prior)['sklearn_model'].predict(posterior.X)
             )
+
         return TTransformer(func=func, info=info)
+
+    def _enhancer_impl(self):
+        # TODO: remove this method
+
+        def func(posterior):  # old use
+            return posterior.updated(
+                self.transformations('u'),  # desnecessário ?
+                z=self._info(posterior)['sklearn_model'].predict(posterior.X)
+            )
+
+        return TTransformer(func=func, info={})
 
     def transformations(self, step, clean=True):
         if step == 'a':
@@ -61,4 +74,3 @@ class TPredictor(TSKLAlgorithm, ABC):
             return [Transformation(self, step)]
         else:
             raise BadComponent('Wrong current step:', step)
-

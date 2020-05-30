@@ -2,6 +2,8 @@ from functools import lru_cache
 
 from itertools import repeat
 
+from pjdata.collection import Collection
+
 
 def pca(d):
     return d * 2
@@ -19,29 +21,6 @@ def knn(d):
     return d * 3333
 
 
-class Collection:
-
-    def __init__(self, generator, finalizer):
-        self.generator = generator
-        self.finalizer = finalizer
-        self._data = None
-        self._last_args = None
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        data = next(self.generator)
-        if type(data) == tuple:
-            data, *self._last_args = data
-        return data
-
-    @property
-    @lru_cache()
-    def data(self):
-        if self._last_args is None:
-            raise Exception('Data object not ready!')
-        return self.finalizer(*self._last_args)
 
 
 def expand(data):
