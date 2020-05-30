@@ -1,8 +1,8 @@
-from pjml.tool.abc.configless import LightConfigLess
+from pjml.tool.abc.configless import ConfigLess
 from pjml.tool.model.model import Model
 
 
-class Sink(LightConfigLess):
+class Sink(ConfigLess):
     """End of Data object."""
 
     def __init__(self):

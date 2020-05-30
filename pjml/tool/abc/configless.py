@@ -4,7 +4,7 @@ from pjml.config.description.cs.emptycs import EmptyCS
 from pjml.tool.abc.mixin.component import Component
 
 
-class TLightConfigLess(Component, ABC):
+class ConfigLess(Component, ABC):
     """Parent class of all transformers without config. Also, apply==use."""
 
     def __init__(self, onenhancer=True, onmodel=True):

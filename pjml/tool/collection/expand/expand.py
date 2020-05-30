@@ -1,11 +1,11 @@
 from itertools import repeat
 
 from pjdata.collection import Collection
-from pjml.tool.abc.configless import TLightConfigLess
+from pjml.tool.abc.configless import ConfigLess
 from pjml.tool.abc.mixin.transformer import TTransformer
 
 
-class Expand(TLightConfigLess):
+class Expand(ConfigLess):
     def dual_transform(self, prior, posterior):
         print(self.__class__.__name__, ' dual transf (((')
         if self.onenhancer:
