@@ -63,7 +63,7 @@ class TSplit(TComponent, FunctionInspector, NoDataHandler):
         self.fields = fields
 
         self.transformer = Chain(
-            TrainSplit(),
+            SplitTrain(),
             SplitTest()
         )
 
@@ -159,7 +159,7 @@ class SplitTest(TComponent, FunctionInspector, NoDataHandler):
         return TransformerCS(Node(params=params))
 
 
-class TrainSplit(TComponent, FunctionInspector, NoDataHandler):
+class SplitTrain(TComponent, FunctionInspector, NoDataHandler):
     """Split a given Data field into training/apply set and testing/use set.
 
     Developer: new metrics can be added just following the pattern '_fun_xxxxx'
