@@ -10,7 +10,7 @@ from pjml.tool.abc.mixin.transformer import TTransformer
 from pjml.tool.data.algorithm import TSKLAlgorithm
 
 
-class TPCA(TSKLAlgorithm):
+class PCA(TSKLAlgorithm):
     def __init__(self, onenhancer=True, onmodel=True, **sklconfig):
         super().__init__(sklconfig, PCA, onenhancer=onenhancer, onmodel=onmodel)
 

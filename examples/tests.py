@@ -11,7 +11,7 @@ from pjml.tool.data.evaluation.split import Split, SplitTrain, SplitTest
 from pjml.tool.data.flow.file import File
 from pjml.tool.data.modeling.supervised.classifier.dt import DT
 from pjml.tool.data.modeling.supervised.classifier.svmc import TSVMC
-from pjml.tool.data.processing.feature.reductor.pca import TPCA
+from pjml.tool.data.processing.feature.reductor.pca import PCA
 
 
 def printable_test():
@@ -137,7 +137,7 @@ def test_pca(arq="iris.arff"):
     pipe = Pipeline(
         File(arq),
         Split(),
-        TPCA(),
+        PCA(),
         TSVMC(),
         TMetric(onenhancer=False)
     )
@@ -150,7 +150,7 @@ def test_partition(arq="iris.arff"):
     pipe = Pipeline(
         File(arq),
         TPartition(),
-        TMap(TPCA(), TSVMC(), TMetric(onenhancer=False)),
+        TMap(PCA(), TSVMC(), TMetric(onenhancer=False)),
         TRSumm(function='mean', onenhancer=False),
         TReport('mean ... S: $S', onenhancer=False)
     )
@@ -165,7 +165,7 @@ def test_split_train_test(arq="iris.arff"):
         File(arq),
         SplitTrain(),
         SplitTest(),
-        TPCA(),
+        PCA(),
         TSVMC(),
         TMetric(onenhancer=False),
         TReport('metric ... R: $R', onenhancer=False)
@@ -180,7 +180,7 @@ def test_with_summ_reduce(arq="iris.arff"):
     pipe = Pipeline(
         File(arq),
         TPartition(),
-        TMap(TPCA(), TSVMC(), TMetric(onenhancer=False)),
+        TMap(PCA(), TSVMC(), TMetric(onenhancer=False)),
         TMap(TReport('<---------------------- etapa'), onenhancer=False),
         TRSumm(function='mean', onenhancer=False),
         TRReduce(),
@@ -196,7 +196,7 @@ def test_check_architecture(arq='iris.arff'):
     pipe = Pipeline(
         File(arq),
         TPartition(partitions=2),
-        TMap(TPCA(), TSVMC(), TMetric(onenhancer=False)),
+        TMap(PCA(), TSVMC(), TMetric(onenhancer=False)),
         TRSumm(function='mean', onenhancer=False),
     )
 
@@ -218,7 +218,7 @@ def test_check_architecture2(arq='iris.arff'):
     pipe = Pipeline(
         File(arq),
         TPartition(),
-        TMap(TPCA(), TSVMC(), TMetric(onenhancer=False)),
+        TMap(PCA(), TSVMC(), TMetric(onenhancer=False)),
         TRSumm(function='mean', onenhancer=False),
         TReport('mean ... S: $S', onenhancer=False)
     )
