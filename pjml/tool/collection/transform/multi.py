@@ -29,12 +29,6 @@ class Multi(MinimalContainerN):
             return object.__new__(cls)
         return ContainerCS(Multi.name, Multi.path, transformers)
 
-    @lru_cache()
-    def _info1(self, prior_collection):
-        models = []
-        raise NotImplementedError
-        # return {'models': models}
-
     def iterator(
             self,
             prior_collection: Collection,
