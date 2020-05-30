@@ -30,49 +30,52 @@ class TRSumm(TComponent, FunctionInspector):
 
     def __init__(self, field='R', function='mean', **kwargs):
         config = self._to_config(locals())
-        super().__init__(config, deterministic=True, **kwargs)
+        super().__init__(config, **kwargs, deterministic=True)
         self.function = self.function_from_name[config['function']]
         self.field = field
 
-    def iterator(self, prior_collection, posterior_collection):
+    def make_iterator(self, prior_collection, posterior_collection):
         def func(prior, posterior):
-            return self.model(prior).transform(posterior), \
-                   self.enhancer.transform(posterior)
+            if self.onenhancer:
+                prior = self.enhancer.transform(prior)
+            if self.onmodel:
+                posterior = self.model(prior).transform(posterior)
+            return prior, posterior
 
         return map(func, prior_collection, posterior_collection)
 
     def iterators(self, prior_collection, posterior_collection):
         gen0, gen1 = tee(
-            self.iterator(prior_collection, posterior_collection))
+            self.make_iterator(prior_collection, posterior_collection))
         return map(operator.itemgetter(0), gen0), \
                map(operator.itemgetter(1), gen1)
 
-    def dual_transform(self, prior_collection, posterior_collection):
-        print(self.__class__.__name__, ' dual transf (((')
-        field_name = self.field
-
-        def finalize(data, values):
-            return self.function(data, values)
-
-        def iterator(collection):
-            acc = []
-            for data in collection:
-                acc.append(data.field(field_name, 'Summ'))
-                yield AccResult(data, acc)
-            print('...Summ finish iterator.\n')
-
-        return (
-            Collection(
-                iterator(prior_collection),
-                lambda values: finalize(prior_collection.data, values),
-                debug_info= self.__class__.__name__ + ' pri'
-            ),
-            Collection(
-                iterator(posterior_collection),
-                lambda values: finalize(posterior_collection.data, values),
-                debug_info= self.__class__.__name__ + ' pos'
-            )
-        )
+    # def dual_transform(self, prior_collection, posterior_collection):
+    #     print(self.__class__.__name__, ' dual transf (((')
+    #     field_name = self.field
+    #
+    #     def finalize(data, values):
+    #         return self.function(data, values)
+    #
+    #     def iterator(collection):
+    #         acc = []
+    #         for data in collection:
+    #             acc.append(data.field(field_name, 'Summ'))
+    #             yield AccResult(data, acc)
+    #         print('...Summ finish iterator.\n')
+    #
+    #     return (
+    #         Collection(
+    #             iterator(prior_collection),
+    #             lambda values: finalize(prior_collection.data, values),
+    #             debug_info=self.__class__.__name__ + ' pri'
+    #         ),
+    #         Collection(
+    #             iterator(posterior_collection),
+    #             lambda values: finalize(posterior_collection.data, values),
+    #             debug_info=self.__class__.__name__ + ' pos'
+    #         )
+    #     )
 
     def _enhancer_impl(self):
         field_name = self.field

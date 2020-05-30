@@ -3,35 +3,8 @@ from functools import lru_cache
 
 from pjdata.step.transformation import Transformation
 from pjml.tool.abc.mixin.component import TTransformer
-from pjml.tool.abc.mixin.enforceapply import EnforceApply
 from pjml.tool.abc.mixin.exceptionhandler import BadComponent
-from pjml.tool.data.algorithm import HeavyAlgorithm, TSKLAlgorithm
-from pjml.tool.model.model import Model
-
-
-class Predictor(HeavyAlgorithm, EnforceApply, ABC):
-    """
-    Base class for classifiers, regressors, ... that implement fit/predict.
-    """
-
-    def _apply_impl(self, data):
-        sklearn_model = self.algorithm_factory()
-        sklearn_model.fit(*data.Xy)
-        return Model(self, data, data.frozen, sklearn_model=sklearn_model)
-
-    def _use_impl(self, data, sklearn_model=None):
-        return data.updated(
-            self.transformations('u'),
-            z=sklearn_model.predict(data.X)
-        )
-
-    def transformations(self, step, clean=True):
-        if step == 'a':
-            return tuple()
-        elif step == 'u':
-            return (Transformation(self, step),)
-        else:
-            raise BadComponent('Wrong current step:', step)
+from pjml.tool.data.algorithm import TSKLAlgorithm
 
 
 class TPredictor(TSKLAlgorithm, ABC):
@@ -48,24 +21,17 @@ class TPredictor(TSKLAlgorithm, ABC):
     def _model_impl(self, prior):
         info = self._info(prior)
 
-        def func(posterior):  # old use
+        def transform(posterior):  # old use
             return posterior.updated(
-                self.transformations('u'),  # desnecessário ? #TODO: memory leak?
+                self.transformations('u'),
+                # desnecessário ? #TODO: memory leak?
                 z=self._info(prior)['sklearn_model'].predict(posterior.X)
             )
 
-        return TTransformer(func=func, info=info)
+        return TTransformer(func=transform, info=info)
 
     def _enhancer_impl(self):
-        # TODO: remove this method
-
-        def func(posterior):  # old use
-            return posterior.updated(
-                self.transformations('u'),  # desnecessário ?
-                z=self._info(posterior)['sklearn_model'].predict(posterior.X)
-            )
-
-        return TTransformer(func=func, info={})
+        return TTransformer(func=lambda posterior: posterior.frozen, info={})
 
     def transformations(self, step, clean=True):
         if step == 'a':

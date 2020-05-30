@@ -11,7 +11,7 @@ from pjml.tool.model.specialmodel import Model, CachedApplyModel
 
 class Cache(Container1):
     def __new__(cls, *args, storage_alias='default_dump', seed=0,
-                transformers=None):
+                transformers=None, **kwargs):
         """Shortcut to create a ConfigSpace."""
         if transformers is None:
             transformers = args
@@ -25,7 +25,7 @@ class Cache(Container1):
                            nodes=[node])
 
     def __init__(self, *args, storage_alias='default_dump', seed=0,
-                 transformers=None):
+                 transformers=None, **kwargs):
         if transformers is None:
             transformers = args
         self.storage = Storage(storage_alias)
@@ -34,7 +34,8 @@ class Cache(Container1):
             'seed': seed,
             'transformers': transformers
         }
-        super().__init__(config, seed, transformers, deterministic=True)
+        super().__init__(config, seed, transformers, **kwargs,
+                         deterministic=True)
 
     def _apply_impl(self, data):
         # TODO: CV() is too cheap to be recovered from storage, specially if

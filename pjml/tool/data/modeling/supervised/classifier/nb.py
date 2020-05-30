@@ -13,7 +13,7 @@ from pjml.tool.data.modeling.supervised.predictor import Predictor
 class NB(Predictor):
     """Naive Bayes implementations: gaussian, bernoulli."""
 
-    def __init__(self, distribution="gaussian"):
+    def __init__(self, distribution="gaussian", **kwargs):
         if distribution == "gaussian":
             func = GaussianNB
         elif distribution == "bernoulli":
@@ -21,7 +21,7 @@ class NB(Predictor):
         else:
             raise Exception('Wrong distribution:', distribution)
         config = {'distribution': distribution}
-        super().__init__(config, func, {}, deterministic=True)
+        super().__init__(config, func, {}, **kwargs, deterministic=True)
         self.distribution = distribution
 
     @classmethod

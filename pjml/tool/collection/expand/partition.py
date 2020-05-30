@@ -17,7 +17,7 @@ class TPartition(TComponent):
     """
 
     def __init__(self, split_type='cv', partitions=10, test_size=0.3, seed=0,
-                 fields=None):
+                 fields=None, **kwargs):
         if fields is None:
             fields = ['X', 'Y']
         config = self._to_config(locals())
@@ -35,7 +35,7 @@ class TPartition(TComponent):
         else:
             raise Exception('Wrong split_type: ', split_type)
 
-        super().__init__(config)
+        super().__init__(config, **kwargs)
         from pjml.macro import tsplit
         self.transformer = TChain(
             TExpand(),

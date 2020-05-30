@@ -11,8 +11,8 @@ from pjml.tool.data.algorithm import TSKLAlgorithm
 
 
 class TPCA(TSKLAlgorithm):
-    def __init__(self, **sklconfig):
-        super().__init__(sklconfig, PCA)
+    def __init__(self, onenhancer=True, onmodel=True, **sklconfig):
+        super().__init__(sklconfig, PCA, onenhancer=onenhancer, onmodel=onmodel)
 
     @lru_cache()
     def _info(self, prior):  # old apply

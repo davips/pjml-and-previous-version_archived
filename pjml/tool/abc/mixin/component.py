@@ -14,8 +14,8 @@ from pjml.tool.abc.mixin.exceptionhandler import BadComponent
 
 
 class TComponent(Printable, Identifyable, ABC):
-    def __init__(self, config, deterministic=False, nodata_handler=False,
-                 onenhancer=True, onmodel=True):
+    def __init__(self, config, onenhancer=True, onmodel=True,
+                 deterministic=False, nodata_handler=False):
         jsonable = {'_id': f'{self.name}@{self.path}', 'config': config}
         Printable.__init__(self, jsonable)
 
@@ -58,15 +58,15 @@ class TComponent(Printable, Identifyable, ABC):
     #   of this IF and the parent ABC method iterator().
     def dual_transform(self, prior, posterior):
         if isinstance(prior, Collection) or isinstance(posterior, Collection):
-            print('   component', self.__class__.__name__, ' dual transf (((')
             iterator1, iterator2 = self.iterators(prior, posterior)
-            prior_collection = Collection(iterator1, lambda: prior.data,
-                                          debug_info='compo'+self.__class__.__name__+' pri')
-            poste_collection = Collection(iterator2, lambda: posterior.data,
-                                          debug_info='compo'+self.__class__.__name__+' pos')
-            return prior_collection, poste_collection
+            if self.onenhancer:
+                prior = Collection(iterator1, lambda: prior.data,
+                                   debug_info='compo' + self.__class__.__name__ + ' pri')
+            if self.onmodel:
+                posterior = Collection(iterator2, lambda: posterior.data,
+                                       debug_info='compo' + self.__class__.__name__ + ' pos')
+            return prior, posterior
 
-        print('|||||compo não collection', self.__class__.__name__, ' dual transf (((')
         prior_result = self.enhancer.transform(prior)
         posterior_result = self.model(prior).transform(posterior)
         return prior_result, posterior_result
@@ -128,6 +128,11 @@ class TComponent(Printable, Identifyable, ABC):
         config = locals_.copy()
         del config['self']
         del config['__class__']
+        if 'kwargs' in config:
+            del config['kwargs']
+        if 'onenhancer' in config:
+            del config['onenhancer']
+            del config['onmodel']
         return config
 
     def _uuid_impl(self):
@@ -221,7 +226,12 @@ class TTransformer:
     def transform(self, data):  # resolver error
         # print('!!!!!!!!!!!!!!!', type(self).__name__, type(data))
         if isinstance(data, tuple):
-            return tuple((self.func(dt) for dt in data))
-        # Todo: We should add some tratment here because self.func can raise
-        #  an error
+            return tuple((self.safe_func(dt) for dt in data))
+        # Todo: We should add exception handling here because self.func can
+        #  raise an error
+        return self.safe_func(data)
+
+    def safe_func(self, data):
+        if data.isfrozen:
+            return data
         return self.func(data)

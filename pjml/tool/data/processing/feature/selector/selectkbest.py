@@ -21,7 +21,7 @@ class SelectBest(HeavyAlgorithm):
         "mutual_info_classif": mutual_info_classif
     }
 
-    def __init__(self, score_func, k_perc, seed=0):
+    def __init__(self, score_func, k_perc, seed=0, **kwargs):
         sklearn_score = self.SCORE_FUNCTIONS[score_func]
 
         def algorithm_factory(nfeatures, random_state):
@@ -36,7 +36,7 @@ class SelectBest(HeavyAlgorithm):
         config = {'score_func': score_func, 'k_perc': k_perc, 'seed': seed}
         if score_func != 'mutual_info_classif':
             del config['seed']
-        super().__init__(config, algorithm_factory, {})
+        super().__init__(config, algorithm_factory, {}, **kwargs)
 
     @classmethod
     def _cs_impl(cls):
