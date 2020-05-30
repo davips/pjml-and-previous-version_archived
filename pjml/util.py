@@ -1,4 +1,4 @@
-from typing import NewType, Union, Tuple
+from typing import Union, Tuple
 
 from pjdata.collection import Collection
 from pjdata.data import Data
