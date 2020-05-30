@@ -1,7 +1,7 @@
 from functools import lru_cache
 
 from numpy.random.mtrand import uniform
-from sklearn.decomposition import PCA
+from sklearn.decomposition import PCA as SKLPCA
 
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.node import Node
@@ -12,7 +12,8 @@ from pjml.tool.data.algorithm import TSKLAlgorithm
 
 class PCA(TSKLAlgorithm):
     def __init__(self, onenhancer=True, onmodel=True, **sklconfig):
-        super().__init__(sklconfig, PCA, onenhancer=onenhancer, onmodel=onmodel)
+        super().__init__(sklconfig, SKLPCA, onenhancer=onenhancer,
+                         onmodel=onmodel)
 
     @lru_cache()
     def _info(self, prior):  # old apply
