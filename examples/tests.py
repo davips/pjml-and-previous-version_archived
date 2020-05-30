@@ -10,7 +10,7 @@ from pjml.tool.data.evaluation.metric import TMetric
 from pjml.tool.data.evaluation.split import Split, SplitTrain, SplitTest
 from pjml.tool.data.flow.file import File
 from pjml.tool.data.modeling.supervised.classifier.dt import DT
-from pjml.tool.data.modeling.supervised.classifier.svmc import TSVMC
+from pjml.tool.data.modeling.supervised.classifier.svmc import SVMC
 from pjml.tool.data.processing.feature.reductor.pca import PCA
 
 
@@ -102,7 +102,7 @@ def test_tsvmc(arq="iris.arff"):
     cs = File(arq).cs
     pipe = Pipeline(
         File(arq),
-        TSVMC()
+        SVMC()
     )
     prior, posterior = pipe.dual_transform()
     print("Prior..............\n", prior)
@@ -113,7 +113,7 @@ def test_split(arq="iris.arff"):
     pipe = Pipeline(
         File(arq),
         Split(),
-        TSVMC()
+        SVMC()
     )
     prior, posterior = pipe.dual_transform()
     print("Prior..............\n", str(prior))
@@ -124,7 +124,7 @@ def test_metric(arq="iris.arff"):
     pipe = Pipeline(
         File(arq),
         Split(),
-        TSVMC(),
+        SVMC(),
         TMetric(onenhancer=False)
     )
     prior, posterior = pipe.dual_transform()
@@ -138,7 +138,7 @@ def test_pca(arq="iris.arff"):
         File(arq),
         Split(),
         PCA(),
-        TSVMC(),
+        SVMC(),
         TMetric(onenhancer=False)
     )
     prior, posterior = pipe.dual_transform()
@@ -150,7 +150,7 @@ def test_partition(arq="iris.arff"):
     pipe = Pipeline(
         File(arq),
         TPartition(),
-        TMap(PCA(), TSVMC(), TMetric(onenhancer=False)),
+        TMap(PCA(), SVMC(), TMetric(onenhancer=False)),
         TRSumm(function='mean', onenhancer=False),
         TReport('mean ... S: $S', onenhancer=False)
     )
@@ -166,7 +166,7 @@ def test_split_train_test(arq="iris.arff"):
         SplitTrain(),
         SplitTest(),
         PCA(),
-        TSVMC(),
+        SVMC(),
         TMetric(onenhancer=False),
         TReport('metric ... R: $R', onenhancer=False)
     )
@@ -180,7 +180,7 @@ def test_with_summ_reduce(arq="iris.arff"):
     pipe = Pipeline(
         File(arq),
         TPartition(),
-        TMap(PCA(), TSVMC(), TMetric(onenhancer=False)),
+        TMap(PCA(), SVMC(), TMetric(onenhancer=False)),
         TMap(TReport('<---------------------- etapa'), onenhancer=False),
         TRSumm(function='mean', onenhancer=False),
         TRReduce(),
@@ -196,7 +196,7 @@ def test_check_architecture(arq='iris.arff'):
     pipe = Pipeline(
         File(arq),
         TPartition(partitions=2),
-        TMap(PCA(), TSVMC(), TMetric(onenhancer=False)),
+        TMap(PCA(), SVMC(), TMetric(onenhancer=False)),
         TRSumm(function='mean', onenhancer=False),
     )
 
@@ -218,7 +218,7 @@ def test_check_architecture2(arq='iris.arff'):
     pipe = Pipeline(
         File(arq),
         TPartition(),
-        TMap(PCA(), TSVMC(), TMetric(onenhancer=False)),
+        TMap(PCA(), SVMC(), TMetric(onenhancer=False)),
         TRSumm(function='mean', onenhancer=False),
         TReport('mean ... S: $S', onenhancer=False)
     )
