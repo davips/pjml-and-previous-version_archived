@@ -174,7 +174,7 @@ def test_with_summ_reduce(arq="iris.arff"):
     )
     prior = pipe.enhancer.transform(NoData)
     prior = pipe.model(NoData).transform(NoData)
-    # prior, posterior = pipe.dual_transform()
+    prior, posterior = pipe.dual_transform()
     exit()
     print("Prior..............\n", prior)
     print("Posterior..........\n", posterior)
