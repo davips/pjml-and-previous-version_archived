@@ -262,15 +262,15 @@ def main():
     # printable_test()
     # multobj_automl()
     # test_tsvmc()
-    # test_split()
+    test_split()
     # test_metric()
     # test_pca()
     # test_partition()
     # test_split_train_test()
-    test_with_summ_reduce()
+    # test_with_summ_reduce()
 
     # sanity test
-    test_check_architecture()
+    # test_check_architecture()
 
 
 if __name__ == '__main__':
