@@ -6,7 +6,7 @@ from pjml.util import TDatas, TDatasTuple
 class Transformer:
     def __init__(
             self,
-            func: Optional[TDatas],
+            func: Optional[Callable[[TDatas], TDatas]],
             info: Optional[
                 Union[dict,
                       Callable[[], dict],
