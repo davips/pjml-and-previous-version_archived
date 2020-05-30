@@ -10,7 +10,7 @@ from pjml.tool.abc.mixin.component import TComponent
 from pjml.tool.abc.mixin.transformer import TTransformer
 
 
-class TMulti(TMinimalContainerN):
+class Multi(TMinimalContainerN):
     """Process each Data object from a collection with its respective
     transformer."""
 
@@ -20,7 +20,7 @@ class TMulti(TMinimalContainerN):
             transformers = args
         if all([isinstance(t, TComponent) for t in transformers]):
             return object.__new__(cls)
-        return ContainerCS(TMulti.name, TMulti.path, transformers)
+        return ContainerCS(Multi.name, Multi.path, transformers)
 
     @lru_cache()
     def _info1(self, prior_collection):

@@ -5,7 +5,7 @@ from pjml.tool.chain import Chain
 from pjml.tool.collection.expand.partition import Partition
 from pjml.tool.collection.reduce.summ import RSumm
 from pjml.tool.collection.transform.map import Map
-from pjml.tool.collection.transform.multi import TMulti
+from pjml.tool.collection.transform.multi import Multi
 
 
 def evaluator(*components, function='mean_std', **validation_args):
