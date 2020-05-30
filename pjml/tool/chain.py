@@ -2,11 +2,13 @@ import operator
 from functools import reduce
 
 from functools import lru_cache
-from itertools import dropwhile
+from itertools import dropwhile, tee
 
+from pjdata.collection import Collection
 from pjdata.specialdata import NoData
 from pjml.config.description.cs.chaincs import ChainCS, TChainCS
-from pjml.tool.abc.minimalcontainer import MinimalContainerN, TMinimalContainerN
+from pjml.tool.abc.minimalcontainer import MinimalContainerN, \
+    TMinimalContainerN
 from pjml.tool.abc.mixin.component import TTransformer, TComponent
 from pjml.tool.abc.transformer import UTransformer
 from pjml.tool.model.containermodel import FailedContainerModel, ContainerModel
@@ -112,23 +114,37 @@ class TChain(TMinimalContainerN):
             for enhancer in enhancers:
                 prior = enhancer.transform(prior)
             return prior
+
         return TTransformer(func=enhancer_transform, info=self._info_enhancer)
 
     @lru_cache()
     def _info_model(self, prior):
         models = []
         for trf in self.transformers:
-            models.append(trf.model(prior))
-            prior = trf.enhancer.transform(prior)
+            if isinstance(prior, Collection):
+                iter0, iter1 = tee(prior.iterator)
+                prior0, prior1 = Collection(iter0, prior.finalizer, debug_info='compo'+self.__class__.__name__+' pri'), \
+                                 Collection(iter1, prior.finalizer,debug_info='compo'+self.__class__.__name__+' pos')
+            else:
+                prior0 = prior1 = prior
+            print('                   gera modelo', trf.name)
+            models.append(trf.model(prior0))
+
+            print('      melhora dado pro próximo modelo', trf.name)
+            prior = trf.enhancer.transform(prior1)
         return {'models': models}
 
     def _model_impl(self, prior):
         models = self._info_model(prior)
 
         def model_transform(posterior):
+            c=0
             for model in models['models']:
+                print('                 USA modelo', c, model)
                 posterior = model.transform(posterior)
+                c+=1
             return posterior
+
         return TTransformer(func=model_transform, info=models)
 
     def transformations(self, step, clean=True):
@@ -156,4 +172,3 @@ class TChain(TMinimalContainerN):
         for t in self.transformers:
             txts.append(t.__str__(depth))
         return '\n'.join(txts)
-

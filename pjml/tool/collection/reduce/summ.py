@@ -79,6 +79,7 @@ class TRSumm(TComponent, FunctionInspector):
 
         def transform(collection):
             def finalize(values):
+                print('finalizing summmmmmmmmmmmmmmmm')
                 return self.function(collection.data, values)
 
             def iterator():

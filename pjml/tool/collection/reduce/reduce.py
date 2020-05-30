@@ -41,7 +41,7 @@ class TRReduce(TInvisible):
                 c += 1
                 pass
             print('...Reduce exits loop. <<<<<<<<<<<<<<<<<<<<<<<<<<<\n')
-            print('  Reduce asks for pendurado...')
+            print('  Reduce asks for pendurado at...', collection.debug_info)
             return collection.data
 
         return TTransformer(
