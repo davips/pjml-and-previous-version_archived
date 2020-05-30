@@ -1,5 +1,7 @@
 from functools import lru_cache
+from typing import Optional, List, Dict, Any
 
+from pjdata.data import Data
 from pjml.tool.abc.mixin.component import Component
 from pjml.tool.abc.mixin.transformer import Transformer
 from pjml.tool.chain import Chain
@@ -17,8 +19,15 @@ class Partition(Component):
         previous solution.
     """
 
-    def __init__(self, split_type='cv', partitions=10, test_size=0.3, seed=0,
-                 fields=None, **kwargs):
+    def __init__(
+            self,
+            split_type: str = 'cv',
+            partitions: int = 10,
+            test_size: float = 0.3,
+            seed: int = 0,
+            fields: Optional[List[str]] = None,
+            **kwargs
+    ):
         if fields is None:
             fields = ['X', 'Y']
         config = self._to_config(locals())
@@ -44,10 +53,10 @@ class Partition(Component):
         )
 
     @lru_cache()
-    def _info(self, prior):
+    def _info(self, prior: Data) -> Dict[str, Any]:
         return {'internal_model': self.transformer.model(prior)}
 
-    def _model_impl(self, prior):
+    def _model_impl(self, prior: Data) -> Transformer:
         info = self._info(prior)
 
         return Transformer(
@@ -56,10 +65,10 @@ class Partition(Component):
         )
 
     @lru_cache()
-    def _info2(self):
+    def _info2(self) -> Dict[str, Any]:
         return {'internal_enhancer': self.transformer.enhancer}
 
-    def _enhancer_impl(self):
+    def _enhancer_impl(self) -> Transformer:
         info2 = self._info2()
         return Transformer(
             func=lambda prior: info2['internal_enhancer'].transform(prior),
@@ -69,24 +78,3 @@ class Partition(Component):
     @classmethod
     def _cs_impl(cls):
         raise NotImplementedError
-
-    # TODO: draft of optimized solution:
-    # def __init__(self, train_indexes, test_indexes, fields=None):
-    #     if fields is None:
-    #         fields = ['X', 'Y']
-    #     self.config = locals()
-    #     self.isdeterministic = True
-    #     self.algorithm = fields
-    #     self.train_indexes = train_indexes
-    #     self.test_indexes = test_indexes
-    #
-    # def _core(self, data, idxs):
-    #     new_dic = {f: data.get_matrix(f)[idxs] for f in self.algorithm}
-    #     return data.updated(self._transformation(), **new_dic)
-    #
-    # def _apply_impl(self, data):
-    #     self.model = self.algorithm
-    #     return self._core(data, self.train_indexes)
-    #
-    # def _use_impl(self, data):
-    #     return self._core(data, self.test_indexes)
