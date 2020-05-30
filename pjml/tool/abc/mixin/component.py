@@ -2,7 +2,7 @@
 
 from abc import abstractmethod, ABC
 from functools import lru_cache
-from typing import List
+from typing import List, Union, Tuple, Iterator
 
 from pjdata.aux.decorator import classproperty
 from pjdata.aux.serialization import serialize, materialize
@@ -10,11 +10,13 @@ from pjdata.collection import Collection
 from pjdata.data import Data
 from pjdata.mixin.identifyable import Identifyable
 from pjdata.mixin.printable import Printable
+from pjdata.specialdata import NoData
 from pjdata.step.transformation import Transformation
 from pjml.config.description.cs.configlist import ConfigList
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.tool.abc.mixin.exceptionhandler import BadComponent
 from pjml.tool.abc.mixin.transformer import Transformer
+from pjml.util import TDatasTuple, TDatas
 
 
 class Component(Printable, Identifyable, ABC):
@@ -38,25 +40,36 @@ class Component(Printable, Identifyable, ABC):
         self.onenhancer = onenhancer
         self.onmodel = onmodel
 
-    def _enhancer_impl(self):
+    def _enhancer_impl(self) -> Transformer:
         return Transformer(None, None)
 
-    def _model_impl(self, prior):
+    def _model_impl(
+            self,
+            prior: TDatasTuple
+    ) -> Transformer:
         return Transformer(None, None)
 
-    def iterators(self, prior_collection, posterior_collection):
-        raise NotImplementedError('Only concurrent components have iterators')
+    def iterators(
+            self,
+            prior_collection: Collection,
+            posterior_collection: Collection
+    ) -> Tuple[Iterator, Iterator]:
+        raise Exception('NotImplementedError: Only concurrent components have '
+                        'iterators')
 
     @property  # type: ignore
     @lru_cache()
-    def enhancer(self):  # clean, cleaup, dumb, dumb_transformer
+    def enhancer(self) -> Transformer:  # clean, cleaup, dumb, dumb_transformer
         if not self.onenhancer:
             return Transformer(None, None)
         return self._enhancer_impl()
 
     # TODO: verify if Data (/ Collection?) should have a better __hash__
-    @lru_cache()
-    def model(self, prior):  # smart, smart_transformer
+    @lru_cache()  # type: ignore
+    def model(
+            self,
+            prior: TDatas
+    ) -> Transformer:  # smart, smart_transformer
         if isinstance(prior, tuple):
             prior = prior[0]
         if not self.onmodel:
@@ -65,18 +78,28 @@ class Component(Printable, Identifyable, ABC):
 
     # TODO: special sub class for concurrent components containing the content
     #   of this IF and the parent ABC method iterator().
-    def dual_transform(self, prior, posterior):
+    def dual_transform(
+            self,
+            prior: TDatasTuple,
+            posterior: TDatasTuple
+    ) -> Tuple[TDatasTuple, TDatasTuple]:
         if isinstance(prior, Collection) or isinstance(posterior, Collection):
             iterator1, iterator2 = self.iterators(prior, posterior)
             if self.onenhancer:
-                prior = Collection(iterator1, lambda: prior.data,
-                                   debug_info='compo' + self.__class__.__name__ + ' pri')
+                prior = Collection(
+                    iterator1, lambda: prior.data,
+                    debug_info='compo' + self.__class__.__name__ + ' pri')
             if self.onmodel:
-                posterior = Collection(iterator2, lambda: posterior.data,
-                                       debug_info='compo' + self.__class__.__name__ + ' pos')
+                posterior = Collection(
+                    iterator2, lambda: posterior.data,
+                    debug_info='compo' + self.__class__.__name__ + ' pos')
             return prior, posterior
 
-        prior_result = self.enhancer.transform(prior)
+        # We need to put the ignore here because @porperty has not annotations.
+        # Another alternative is creating our own @property decorator and
+        # putting Any as a return. More information can be found on mypy's
+        # Github, issue #1362
+        prior_result = self.enhancer.transform(prior)  # type: ignore
         posterior_result = self.model(prior).transform(posterior)
         return prior_result, posterior_result
 
@@ -85,20 +108,6 @@ class Component(Printable, Identifyable, ABC):
     def _cs_impl(cls) -> TransformerCS:
         """Each component should implement its own 'cs'. The parent class
         takes care of 'name' and 'path' arguments of ConfigSpace"""
-
-    # # TODO: Is unbounded lrucache a source of memory leak?
-    # @lru_cache()
-    # def transformations(self, step, clean=True):
-    #     """Expected transformation described as a list of Transformation
-    #     objects.
-    #
-    #     Child classes should override this method to perform non-atomic or
-    #     non-trivial transformations.
-    #     A missing implementation will be detected during apply/use."""
-    #     if step in 'au':
-    #         return [Transformation(self, step)]
-    #     else:
-    #         raise BadComponent('Wrong current step:', step)
 
     @classproperty
     @lru_cache()
