@@ -1,7 +1,8 @@
-import operator
+""" Component module. """
+
 from abc import abstractmethod, ABC
 from functools import lru_cache
-from itertools import tee
+from typing import List
 
 from pjdata.aux.decorator import classproperty
 from pjdata.aux.serialization import serialize, materialize
@@ -11,11 +12,17 @@ from pjdata.mixin.printable import Printable
 from pjdata.step.transformation import Transformation
 from pjml.config.description.cs.configlist import ConfigList
 from pjml.tool.abc.mixin.exceptionhandler import BadComponent
+from pjml.tool.abc.mixin.transformer import TTransformer
 
 
 class TComponent(Printable, Identifyable, ABC):
-    def __init__(self, config, onenhancer=True, onmodel=True,
-                 deterministic=False, nodata_handler=False):
+    def __init__(self,
+                 config: dict,
+                 onenhancer: bool = True,
+                 onmodel: bool = True,
+                 deterministic: bool = False,
+                 nodata_handler: bool = False
+                 ):
         jsonable = {'_id': f'{self.name}@{self.path}', 'config': config}
         Printable.__init__(self, jsonable)
 
@@ -38,7 +45,7 @@ class TComponent(Printable, Identifyable, ABC):
     def iterators(self, prior_collection, posterior_collection):
         raise NotImplementedError('Only concurrent components have iterators')
 
-    @property
+    @property  # type: ignore
     @lru_cache()
     def enhancer(self):  # clean, cleaup, dumb, dumb_transformer
         if not self.onenhancer:
@@ -110,14 +117,14 @@ class TComponent(Printable, Identifyable, ABC):
         result = cs_.identified(name=cls.__name__, path=cls.__module__)
         return result
 
-    @property
+    @property  # type: ignore
     @lru_cache()
     def cs1(self=None):
         """Convert transformer into a config space with a single transformer
         inside it."""
         return ConfigList(self)
 
-    @property
+    @property  # type: ignore
     @lru_cache()
     def serialized(self):
         return serialize(self)
@@ -143,7 +150,7 @@ class TComponent(Printable, Identifyable, ABC):
     def name(cls):
         return cls.__name__
 
-    @property
+    @property  # type: ignore
     @lru_cache()
     def longname(self):
         return self.name
@@ -153,13 +160,13 @@ class TComponent(Printable, Identifyable, ABC):
     def path(cls):
         return cls.__module__
 
-    @property
+    @property  # type: ignore
     @lru_cache()
     def wrapped(self):
         """Same as unwrap(), but with the external container Wrap."""
         return None
 
-    @property
+    @property  # type: ignore
     @lru_cache()
     def unwrap(self):
         """Subpipeline inside the first Wrap().
@@ -192,46 +199,30 @@ class TComponent(Printable, Identifyable, ABC):
 
     # TODO: Is unbounded lrucache a source of memory leak?
     @lru_cache()
-    def transformations(self, step, clean=True):
+    def transformations(
+            self,
+            step: str,
+            clean: bool = True
+    ) -> List[Transformation]:
         """Expected transformation described as a list of Transformation
         objects.
 
         Child classes should override this method to perform non-atomic or
         non-trivial transformations.
-        A missing implementation will be detected during apply/use."""
+        A missing implementation will be detected during apply/use.
+
+        Parameters
+        ----------
+        step: str
+            TODO
+        clean: bool
+            TODO
+
+        Returns
+        -------
+            list of Transformation
+        """
         if step in 'au':
             return [Transformation(self, step)]
         else:
             raise BadComponent('Wrong current step:', step)
-
-
-class TTransformer:
-    def __init__(self, func, info):
-        self.func = func if func else lambda data: data
-        self._info = info
-
-        # Note:
-        # Callable returns True, if the object appears to be callable
-        # Yes, that appears!
-        if callable(self._info):
-            self.info = self._info
-        elif isinstance(self._info, dict):
-            self.info = lambda: self._info
-        elif self._info is None:
-            self.info = {}
-        else:
-            raise TypeError('Unexpected info type. You should use, callable, '
-                            'dict or None.')
-
-    def transform(self, data):  # resolver error
-        # print('!!!!!!!!!!!!!!!', type(self).__name__, type(data))
-        if isinstance(data, tuple):
-            return tuple((self.safe_func(dt) for dt in data))
-        # Todo: We should add exception handling here because self.func can
-        #  raise an error
-        return self.safe_func(data)
-
-    def safe_func(self, data):
-        if data.isfrozen:
-            return data
-        return self.func(data)
