@@ -5,6 +5,8 @@ from typing import Tuple, Iterator
 from itertools import tee
 
 from pjdata.collection import Collection
+from pjdata.data import Data
+from pjml.tool.abc.mixin.transformer import Transformer
 
 
 def unzip_iterator(iterator):
@@ -35,9 +37,9 @@ class Batch:
 
     # TODO: isso parece geral o bastante pra ir direto no enhancer() no Component.
     def _enhancer_impl(self):
-        info = self.enhancer_info()
+        info = self.enhancer_info
         transform = self.enhancer_func()
-        return TTransformer(
+        return Transformer(
             func=transform,
             info=info
         )
@@ -45,7 +47,7 @@ class Batch:
     def _model_impl(self, prior):
         info = self.model_info(prior)
         transform = self.model_func(prior)
-        return TTransformer(
+        return Transformer(
             func=transform,
             info=info
         )
@@ -57,9 +59,9 @@ class Batch:
     def finite(self):
         pass
 
-    # @abstractmethod
-    # def iterators(self, train, test) -> Tuple[Iterator]:
-    #     pass
+    def iterator(self, train: Collection, test: Collection) -> Iterator[Data]:
+        for dtr, dts in zip(train, test):
+            yield self.enhancer_func()(dtr), self.model_func(dtr)(dts)
 
     def dual_transform(self, train, test):
         if not self.onenhancer:
@@ -67,11 +69,7 @@ class Batch:
         if not self.onmodel:
             return self.enhancer_func()(train), test
 
-        def iterator():
-            for dtr, dts in zip(train, test):
-                yield self.model_func(dtr)(dts), self.enhancer_func()(dtr)
-
-        iterator1, iterator2 = unzip_iterator(iterator())
+        iterator1, iterator2 = unzip_iterator(self.iterator(train, test))
         coll1 = Collection(iterator1, lambda: train.data, finite=self.finite,
                            debug_info='compo' + self.__class__.__name__ + ' pos')
         coll2 = Collection(iterator2, lambda: test.data, finite=self.finite,

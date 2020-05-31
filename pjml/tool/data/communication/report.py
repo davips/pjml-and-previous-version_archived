@@ -5,13 +5,14 @@ import numpy as np
 from pjdata.data import Data
 from pjml.config.description.cs.emptycs import EmptyCS
 from pjml.tool.abc.invisible import Invisible
+from pjml.tool.abc.mixin.component import Component
 from pjml.tool.transformer import TTransformer
 from pjml.tool.abc.invisible import Invisible
 from pjml.tool.abc.mixin.transformer import Transformer
 from pjml.util import flatten
 
 
-class Report(Invisible):
+class Report(Invisible, Component):
     """Report printer.
 
     $r prints 'r'

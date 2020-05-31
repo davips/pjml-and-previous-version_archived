@@ -1,6 +1,9 @@
+from typing import Tuple, Iterator
+
 from itertools import repeat
 
 from pjdata.collection import Collection
+from pjdata.data import Data
 from pjml.config.description.cs.emptycs import EmptyCS
 from pjml.tool.abc.nonfinalizer import NonFinalizer
 from pjml.tool.abc.mixin.component import Component
@@ -8,6 +11,9 @@ from pjml.tool.abc.mixin.component import Component
 
 class Repeat(NonFinalizer, Component):
     """Data -> Collection"""
+
+    def __init__(self, **kwargs):
+        super().__init__({}, deterministic=True, **kwargs)
 
     @property
     def finite(self):
@@ -26,8 +32,8 @@ class Repeat(NonFinalizer, Component):
     def model_func(self, data):
         return self.enhancer_func()
 
-    # def iterators(self, train, test):
-    #     return repeat(train), repeat(test)
+    def iterator(self, train: Data, test: Data) -> Iterator[Tuple[Data, Data]]:
+        return zip(repeat(train), repeat(test))
 
     @classmethod
     def _cs_impl(cls):

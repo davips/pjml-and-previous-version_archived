@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Tuple, Iterator
 
 from pjml.tool.abc.nonfinalizer import NonFinalizer
 from pjml.tool.collection.expand.repeat import Repeat
@@ -31,7 +31,8 @@ class Partition(NonFinalizer, Component):
     ):
         if fields is None:
             fields = ['X', 'Y']
-        config = self._to_config(locals())
+        config = self._to_config(
+            locals())  # todo: kwargs is going to locals, em outros comp tb!!!
 
         # config cleaning.
         if split_type == "cv":
@@ -57,8 +58,10 @@ class Partition(NonFinalizer, Component):
     def finite(self):
         return True
 
-    # def iterators(self, train_collection, test_collection):
-    #     return self.transformer.iterator()
+    def iterator(self, train: Data, test: Data) -> Iterator[Tuple[Data, Data]]:
+        # TODO: not barely optimized.
+        return zip(self.enhancer.transform(train),
+                   self.model(train).transform(test))
 
     @lru_cache()
     def enhancer_info(self):

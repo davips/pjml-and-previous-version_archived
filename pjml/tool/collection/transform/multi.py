@@ -39,6 +39,7 @@ class Multi(NonFinalizer, MinimalContainerN):
     #     )
     #     return unzip_iterator(iterator)
 
+    @property
     @lru_cache()
     def enhancer_info(self):
         return {'enhancers': [trf.enhancer for trf in self.transformers]}

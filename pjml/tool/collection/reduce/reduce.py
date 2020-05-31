@@ -3,6 +3,7 @@ from typing import Tuple, Iterator
 from itertools import repeat
 
 from pjml.tool.abc.invisible import Invisible
+from pjml.tool.abc.mixin.component import Component
 from pjml.tool.abc.nonfinalizer import NonFinalizer
 from itertools import tee, repeat
 from typing import Union, Tuple, Optional
@@ -14,7 +15,7 @@ from pjml.tool.abc.mixin.transformer import Transformer
 from pjml.util import TDatas, TDatasTuple
 
 
-class Reduce(Invisible, NonFinalizer):
+class Reduce(Invisible, NonFinalizer, Component):
     def __init__(self, config: Optional[dict]=None, **kwargs):
         # TODO: delete onenhance/onmodel? se não consumir pode explodir
         config = {} if config is None else config
