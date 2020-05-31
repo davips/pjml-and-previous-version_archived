@@ -1,11 +1,10 @@
-import operator
 from abc import abstractmethod, ABC
 from functools import lru_cache
-from itertools import tee
 
 from pjdata.aux.decorator import classproperty
 from pjdata.aux.serialization import serialize, materialize
 from pjdata.collection import Collection
+from pjdata.data import Data
 from pjdata.mixin.identifyable import Identifyable
 from pjdata.mixin.printable import Printable
 from pjdata.step.transformation import Transformation
@@ -223,15 +222,10 @@ class TTransformer:
             raise TypeError('Unexpected info type. You should use, callable, '
                             'dict or None.')
 
-    def transform(self, data):  # resolver error
+    def transform(self, data: Data):  # resolver error
         # print('!!!!!!!!!!!!!!!', type(self).__name__, type(data))
         if isinstance(data, tuple):
-            return tuple((self.safe_func(dt) for dt in data))
+            return tuple((dt.transformed(self.func) for dt in data))
         # Todo: We should add exception handling here because self.func can
         #  raise an error
-        return self.safe_func(data)
-
-    def safe_func(self, data):
-        if data.isfrozen:
-            return data
-        return self.func(data)
+        return data.transformed(self.func)

@@ -152,6 +152,7 @@ def test_partition(arq="iris.arff"):
         TPartition(),
         TMap(TPCA(), TSVMC(), TMetric(onenhancer=False)),
         TRSumm(function='mean', onenhancer=False),
+        TRReduce(),
         TReport('mean ... S: $S', onenhancer=False)
     )
     prior, posterior = pipe.dual_transform()
@@ -197,7 +198,7 @@ def test_check_architecture(arq='iris.arff'):
         TFile(arq),
         TPartition(partitions=2),
         TMap(TPCA(), TSVMC(), TMetric(onenhancer=False)),
-        TRSumm(function='mean', onenhancer=False),
+        TRSumm(field="Y", function='mean', onenhancer=False),
     )
 
     # tenho file na frente
@@ -219,7 +220,7 @@ def test_check_architecture2(arq='iris.arff'):
         TFile(arq),
         TPartition(),
         TMap(TPCA(), TSVMC(), TMetric(onenhancer=False)),
-        TRSumm(function='mean', onenhancer=False),
+        TRSumm(field="Y", function='mean', onenhancer=False),
         TReport('mean ... S: $S', onenhancer=False)
     )
 
@@ -259,15 +260,15 @@ def test_check_architecture2(arq='iris.arff'):
 
 def main():
     """Main function"""
-    # printable_test()
+    printable_test()
     # multobj_automl()
-    # test_tsvmc()
-    # test_split()
-    # test_metric()
-    # test_pca()
+    test_tsvmc()
+    test_split()
+    test_metric()
+    test_pca()
     # test_partition()
     # test_split_train_test()
-    test_with_summ_reduce()
+    # test_with_summ_reduce()
 
     # sanity test
     test_check_architecture()
