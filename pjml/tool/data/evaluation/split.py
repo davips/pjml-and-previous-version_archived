@@ -12,6 +12,7 @@ from pjml.tool.abc.mixin.component import TComponent
 from pjml.tool.abc.mixin.functioninspector import FunctionInspector
 from pjml.tool.abc.mixin.nodatahandler import NoDataHandler
 from pjml.tool.chain import TChain
+from pjml.tool.transformer import TTransformer
 
 
 class TSplit(TComponent, FunctionInspector, NoDataHandler):
@@ -133,6 +134,9 @@ class TestSplit(TComponent, FunctionInspector, NoDataHandler):
                                  step='u')
         return {"posterior": _posterior}
 
+    def _enhancer_impl(self):
+        return TTransformer(None, None)
+
     def _model_impl(self, prior):
         def func(posterior):
             return self._info(posterior)["posterior"]
@@ -218,6 +222,9 @@ class TrainSplit(TComponent, FunctionInspector, NoDataHandler):
             return self._info(prior)["prior"]
 
         return TTransformer(func=func, info=None)
+
+    def _model_impl(self, data):
+        return TTransformer(None, None)
 
     def _split(self, data, indices=None, step='u'):
         new_dic = {}

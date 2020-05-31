@@ -10,6 +10,7 @@ from pjdata.mixin.printable import Printable
 from pjdata.step.transformation import Transformation
 from pjml.config.description.cs.configlist import ConfigList
 from pjml.tool.abc.mixin.exceptionhandler import BadComponent
+from pjml.tool.transformer import TTransformer
 
 
 class TComponent(Printable, Identifyable, ABC):
@@ -28,14 +29,15 @@ class TComponent(Printable, Identifyable, ABC):
         self.onenhancer = onenhancer
         self.onmodel = onmodel
 
+    @abstractmethod
     def _enhancer_impl(self):
-        return TTransformer(None, None)
+        # return TTransformer(None, None)
+        pass
 
-    def _model_impl(self, prior):
-        return TTransformer(None, None)
-
-    def iterators(self, prior_collection, posterior_collection):
-        raise NotImplementedError('Only concurrent components have iterators')
+    @abstractmethod
+    def _model_impl(self, data):
+        # return TTransformer(None, None)
+        pass
 
     @property
     @lru_cache()
@@ -56,18 +58,10 @@ class TComponent(Printable, Identifyable, ABC):
     # TODO: special sub class for concurrent components containing the content
     #   of this IF and the parent ABC method iterator().
     def dual_transform(self, prior, posterior):
-        if isinstance(prior, Collection) or isinstance(posterior, Collection):
-            iterator1, iterator2 = self.iterators(prior, posterior)
-            if self.onenhancer:
-                prior = Collection(iterator1, lambda: prior.data,
-                                   debug_info='compo' + self.__class__.__name__ + ' pri')
-            if self.onmodel:
-                posterior = Collection(iterator2, lambda: posterior.data,
-                                       debug_info='compo' + self.__class__.__name__ + ' pos')
-            return prior, posterior
-
         prior_result = self.enhancer.transform(prior)
         posterior_result = self.model(prior).transform(posterior)
+        print(prior)
+        print(posterior)
         return prior_result, posterior_result
 
     @classmethod
@@ -202,5 +196,3 @@ class TComponent(Printable, Identifyable, ABC):
             return [Transformation(self, step)]
         else:
             raise BadComponent('Wrong current step:', step)
-
-

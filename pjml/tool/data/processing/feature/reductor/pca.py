@@ -7,6 +7,7 @@ from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import RealP, FixedP
 from pjml.tool.data.algorithm import TSKLAlgorithm
+from pjml.tool.transformer import TTransformer
 
 
 class TPCA(TSKLAlgorithm):

@@ -1,11 +1,12 @@
 from functools import lru_cache
 
+from pjml.tool.abc.nonfinalizer import NonFinalizer
 from pjml.tool.abc.mixin.component import TComponent
 from pjml.tool.chain import TChain
-from pjml.tool.collection.expand.expand import TExpand
+from pjml.tool.collection.expand.repeat import Repeat
 
 
-class TPartition(TComponent):
+class TPartition(NonFinalizer, TComponent):
     """Class to perform, e.g. Expand+kfoldCV.
 
     This task is already done by function split(),
@@ -38,54 +39,31 @@ class TPartition(TComponent):
         super().__init__(config, **kwargs)
         from pjml.macro import tsplit
         self.transformer = TChain(
-            TExpand(),
+            Repeat(),
             tsplit(split_type, partitions, test_size, seed, fields)
         )
 
-    @lru_cache()
-    def _info(self, prior):
-        return {'internal_model': self.transformer.model(prior)}
+    @property
+    def finite(self):
+        return True
 
-    def _model_impl(self, prior):
-        info = self._info(prior)
-
-        return TTransformer(
-            func=lambda posterior: info['internal_model'].transform(posterior),
-            info=info
-        )
+    # def iterators(self, train_collection, test_collection):
+    #     return self.transformer.iterator()
 
     @lru_cache()
-    def _info2(self):
-        return {'internal_enhancer': self.transformer.enhancer}
+    def enhancer_info(self):
+        return self.transformer.enhancer.info
 
-    def _enhancer_impl(self):
-        info2 = self._info2()
-        return TTransformer(
-            func=lambda prior: info2['internal_enhancer'].transform(prior),
-            info=info2
-        )
+    @lru_cache()
+    def model_info(self, data):
+        return self.transformer.model(data).info
+
+    def enhancer_func(self):
+        return self.transformer.enhancer.transform
+
+    def model_func(self, data):
+        return self.transformer.model(data).transform
 
     @classmethod
     def _cs_impl(cls):
         raise NotImplementedError
-
-    # TODO: draft of optimized solution:
-    # def __init__(self, train_indexes, test_indexes, fields=None):
-    #     if fields is None:
-    #         fields = ['X', 'Y']
-    #     self.config = locals()
-    #     self.isdeterministic = True
-    #     self.algorithm = fields
-    #     self.train_indexes = train_indexes
-    #     self.test_indexes = test_indexes
-    #
-    # def _core(self, data, idxs):
-    #     new_dic = {f: data.get_matrix(f)[idxs] for f in self.algorithm}
-    #     return data.updated(self._transformation(), **new_dic)
-    #
-    # def _apply_impl(self, data):
-    #     self.model = self.algorithm
-    #     return self._core(data, self.train_indexes)
-    #
-    # def _use_impl(self, data):
-    #     return self._core(data, self.test_indexes)

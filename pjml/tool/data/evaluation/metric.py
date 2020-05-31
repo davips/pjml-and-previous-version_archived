@@ -9,6 +9,7 @@ from pjml.config.description.node import Node
 from pjml.config.description.parameter import CatP
 from pjml.tool.abc.mixin.component import TComponent
 from pjml.tool.abc.mixin.functioninspector import FunctionInspector
+from pjml.tool.transformer import TTransformer
 
 
 class TMetric(TComponent, FunctionInspector):

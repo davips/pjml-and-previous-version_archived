@@ -16,13 +16,13 @@ class TTransformer:
         elif self._info is None:
             self.info = {}
         else:
-            raise TypeError('Unexpected info type. You should use, callable, '
+            raise TypeError('Unexpected info type. You should use callable, '
                             'dict or None.')
 
     def transform(self, data: Data):  # resolver error
-        # print('!!!!!!!!!!!!!!!', type(self).__name__, type(data))
+        print('!!!!!!!!!!!!!!!', data, type(self).__name__, type(data))
         if isinstance(data, tuple):
-            return tuple((dt.transformed(self.func) for dt in data))
+            return tuple((dt.transformedby(self.func) for dt in data))
         # Todo: We should add exception handling here because self.func can
         #  raise an error
-        return data.transformed(self.func)
+        return data.transformedby(self.func)

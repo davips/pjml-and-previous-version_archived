@@ -1,21 +1,18 @@
-import operator
-from functools import reduce
-from itertools import accumulate, repeat, tee
+from typing import Tuple, Iterator
 
 import numpy
 from numpy import mean
-from numpy import std
 
 from pjdata.collection import Collection, AccResult
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.distributions import choice
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import CatP
-from pjml.tool.abc.mixin.component import TComponent
+from pjml.tool.abc.finalizer import Finalizer
 from pjml.tool.abc.mixin.functioninspector import FunctionInspector
 
 
-class TRSumm(TComponent, FunctionInspector):
+class TRSumm(Finalizer, FunctionInspector):
     """Given a field, summarizes a Collection object to a Data object.
 
     The resulting Data object will have only the 's' field. To keep other
@@ -34,91 +31,12 @@ class TRSumm(TComponent, FunctionInspector):
         self.function = self.function_from_name[config['function']]
         self.field = field
 
-    def make_iterator(self, prior_collection, posterior_collection):
-        def func(prior, posterior):
-            if self.onenhancer:
-                prior = self.enhancer.transform(prior)
-            if self.onmodel:
-                posterior = self.model(prior).transform(posterior)
-            return prior, posterior
+    def partial_result(self, data):
+        return data.field(self.field, 'Summ')
 
-        return map(func, prior_collection, posterior_collection)
-
-    def iterators(self, prior_collection, posterior_collection):
-        gen0, gen1 = tee(
-            self.make_iterator(prior_collection, posterior_collection))
-        return map(operator.itemgetter(0), gen0), \
-               map(operator.itemgetter(1), gen1)
-
-    # def dual_transform(self, prior_collection, posterior_collection):
-    #     print(self.__class__.__name__, ' dual transf (((')
-    #     field_name = self.field
-    #
-    #     def finalize(data, values):
-    #         return self.function(data, values)
-    #
-    #     def iterator(collection):
-    #         acc = []
-    #         for data in collection:
-    #             acc.append(data.field(field_name, 'Summ'))
-    #             yield AccResult(data, acc)
-    #         print('...Summ finish iterator.\n')
-    #
-    #     return (
-    #         Collection(
-    #             iterator(prior_collection),
-    #             lambda values: finalize(prior_collection.data, values),
-    #             debug_info=self.__class__.__name__ + ' pri'
-    #         ),
-    #         Collection(
-    #             iterator(posterior_collection),
-    #             lambda values: finalize(posterior_collection.data, values),
-    #             debug_info=self.__class__.__name__ + ' pos'
-    #         )
-    #     )
-
-    def _enhancer_impl(self):
-        field_name = self.field
-
-        def transform(collection):
-            def finalize(values):
-                print('finalizing summmmmmmmmmmmmmmmm')
-                return self.function(collection.data, values)
-
-            def iterator():
-                acc = []
-                print('\nSumm start iterator...')
-                for data in collection:
-                    acc.append(data.field(field_name, 'Summ'))
-                    yield AccResult(data, acc)
-                print('...Summ finish iterator.\n')
-
-            # Versão obscura:
-            # print('\nSumm start iterator...')
-            # def func(t1, t2):
-            #     _, acc0 = t1
-            #     data, _ = t2
-            #     acc0.append(data.field(field_name, 'Summ'))
-            #     return data, acc0
-            #
-            # iterator = accumulate(zip(collection, repeat(None)),
-            #                        func, initial=(None, []))
-            # # Discards initial value.
-            # next(iterator)
-            # print('...Summ finish iterator.\n')
-
-            return Collection(iterator(), finalize, debug_info='summ')
-
-        return TTransformer(
-            func=transform,
-            info=None
-        )
-
-    def _model_impl(self, prior):
-        return self._enhancer_impl()
-
-    def transformations(self, step, clean=True):
-        return super().transformations('u')
+    def final_result_func(self, collection):
+        summarize = self.function
+        return lambda values: summarize(collection.data, values)
 
     @classmethod
     def _cs_impl(cls):

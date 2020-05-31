@@ -3,7 +3,7 @@ from abc import ABC
 from pjml.tool.abc.mixin.component import TComponent
 
 
-class TInvisible(TComponent, ABC):
+class TInvisible:
     """Parent class of all atomic transformers that don't increase history
     of transformations.
 
@@ -13,4 +13,3 @@ class TInvisible(TComponent, ABC):
         """Invisible components produce no transformations, so they need to
         override the list of expected transformations with []."""
         return tuple()
-

@@ -56,11 +56,11 @@ class TFile(TComponent, NoDataHandler):
         self.data = data
 
     def _transformer(self):
-        def func(posterior):  # old use/apply
+        def transform(posterior):  # old use/apply
             self._enforce_nodata(posterior, 'u')  # fixei 'u'
             return self.data
 
-        return TTransformer(func=func, info=None)
+        return TTransformer(func=transform, info=None)
 
     def _model_impl(self, prior):
         self._enforce_nodata(prior, 'a')  # fixei 'a'

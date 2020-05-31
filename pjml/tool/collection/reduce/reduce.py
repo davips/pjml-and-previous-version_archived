@@ -1,45 +1,24 @@
-from itertools import tee, repeat
+from typing import Tuple, Iterator
+
+from itertools import repeat
 
 from pjml.tool.abc.invisible import TInvisible
+from pjml.tool.abc.nonfinalizer import NonFinalizer
 
 
-# class TReduce(TComponent, FunctionInspector, ABC):
-#     def __init__(self, config, deterministic=False, **kwargs):
-#         super().__init__(config, deterministic, **kwargs)
-#         self.function = self.function_from_name[config['function']]
-#
-#
-#     def transformations(self, step, clean=True):
-#         return super().transformations('u')
-
-
-class TRReduce(TInvisible):
-    @classmethod
-    def _cs_impl(cls):
-        pass
-
+class TRReduce(TInvisible, NonFinalizer):
     def __init__(self, config=None, **kwargs):
+        # TODO: delete onenhance/onmodel? se não consumir pode explodir
         config = {} if config is None else config
         super().__init__(config, **kwargs, deterministic=True)
 
-    def dual_transform(self, prior_collection, posterior_collection):
-        print(self.__class__.__name__, ' dual transf (((')
+    def enhancer_info(self):
+        pass
 
-        # Handle non collection cases.
-        if not self.onenhancer and not self.onmodel:
-            return prior_collection, posterior_collection
-        if not self.onenhancer:
-            prior_collection = repeat(None)
-        if not self.onmodel:
-            posterior_collection = repeat(None)
+    def model_info(self, data):
+        pass
 
-        # Consume iterators.
-        for _ in zip(prior_collection, posterior_collection):
-            pass
-
-        return prior_collection.data, posterior_collection.data
-
-    def _enhancer_impl(self):
+    def enhancer_func(self):
         def transform(collection):
             # Exhaust iterator.
             c = 0
@@ -52,10 +31,31 @@ class TRReduce(TInvisible):
             print('  Reduce asks for pendurado at...', collection.debug_info)
             return collection.data
 
-        return TTransformer(
-            func=transform,
-            info=None
-        )
+        return transform
 
-    def _model_impl(self, prior):
-        return self._enhancer_impl()
+    def model_func(self, data):
+        return self.enhancer_func()
+
+    @property
+    def finite(self):
+        return False
+
+    # def iterators(self, train, test) -> Tuple[Iterator]:
+    #     pass
+
+    @classmethod
+    def _cs_impl(cls):
+        raise NotImplementedError
+
+    def dual_transform(self, train_collection, test_collection):
+        # # Handle non-collection cases.  <- makes no sense
+        # if not self.onenhancer and not self.onmodel:
+        #     return train_collection, test_collection
+        # train_iterator = train_collection if self.onenhancer else repeat(None)
+        # train_iterator = train_collection if self.onenhancer else repeat(None)
+
+        # Consume iterators.
+        for _ in zip(train_collection, test_collection):
+            pass
+
+        return train_collection.data, test_collection.data
