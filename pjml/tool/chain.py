@@ -6,7 +6,8 @@ from pjdata.collection import Collection
 from pjdata.specialdata import NoData
 from pjml.config.description.cs.chaincs import TChainCS
 from pjml.tool.abc.minimalcontainer import TMinimalContainerN
-from pjml.tool.abc.mixin.component import TTransformer, TComponent
+from pjml.tool.abc.mixin.component import TComponent
+from pjml.tool.transformer import TTransformer
 from pjml.util import flatten
 
 

@@ -3,12 +3,13 @@ from pjdata.step.transformation import Transformation
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import FixedP
-from pjml.tool.abc.mixin.component import TComponent, TTransformer
+from pjml.tool.abc.mixin.component import TComponent
 from pjml.tool.abc.mixin.nodatahandler import NoDataHandler
 
 # Precisa herdar de Invisible, pois o mesmo Data pode vir de diferentes
 # caminhos de arquivo (File) ou servidores (Source) e essas informações são
 # irrelevantes para reprodutibilidade. Herdando de Invisible, o histórico é [].
+from pjml.tool.transformer import TTransformer
 
 
 class TFile(TComponent, NoDataHandler):

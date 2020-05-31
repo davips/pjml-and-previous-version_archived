@@ -2,7 +2,6 @@ from itertools import repeat
 
 from pjdata.collection import Collection
 from pjml.tool.abc.configless import TLightConfigLess
-from pjml.tool.abc.mixin.component import TTransformer
 
 
 class TExpand(TLightConfigLess):
