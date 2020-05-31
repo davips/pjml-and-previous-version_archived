@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Tuple,Iterator
+from typing import Tuple, Iterator
 
 from itertools import tee
 from typing import Optional, List, Tuple, Dict, Iterator
@@ -45,8 +45,10 @@ class Multi(NonFinalizer, MinimalContainerN):
         return {'enhancers': [trf.enhancer for trf in self.transformers]}
 
     @lru_cache()
-    def model_info(self, data):
-        return {'models': [trf.model(data) for trf in self.transformers]}
+    def model_info(self, collection):
+        models = [trf.model(data) for trf, data in
+                  zip(self.transformers, collection)]  # TODO: aqui trfs acaba antes de coll, então data fica inacessível?
+        return {'models': models}
 
     def enhancer_func(self):
         enhancers = self.enhancer_info['enhancers']
