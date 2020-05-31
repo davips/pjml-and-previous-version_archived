@@ -2,22 +2,18 @@
 
 from abc import abstractmethod, ABC
 from functools import lru_cache
-from typing import List, Union, Tuple, Iterator
+from typing import List, Tuple
 
 from pjdata.aux.decorator import classproperty
 from pjdata.aux.serialization import serialize, materialize
-from pjdata.collection import Collection
-from pjdata.data import Data
 from pjdata.mixin.identifyable import Identifyable
 from pjdata.mixin.printable import Printable
-from pjdata.specialdata import NoData
 from pjdata.step.transformation import Transformation
 from pjml.config.description.cs.configlist import ConfigList
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.tool.abc.mixin.exceptionhandler import BadComponent
 from pjml.tool.abc.mixin.transformer import Transformer
-from pjml.util import TDatasTuple, TDatas
-from pjml.tool.transformer import TTransformer
+from pjml.util import TDatasTuple, TDatas, Property
 
 
 class Component(Printable, Identifyable, ABC):
@@ -61,7 +57,7 @@ class Component(Printable, Identifyable, ABC):
     #     raise Exception('NotImplementedError: Only concurrent components have '
     #                     'iterators')
 
-    @property  # type: ignore
+    @Property
     @lru_cache()
     def enhancer(self) -> Transformer:  # clean, cleaup, dumb, dumb_transformer
         if not self.onenhancer:
@@ -69,7 +65,7 @@ class Component(Printable, Identifyable, ABC):
         return self._enhancer_impl()
 
     # TODO: verify if Data (/ Collection?) should have a better __hash__
-    @lru_cache()  # type: ignore
+    @lru_cache()
     def model(
             self,
             prior: TDatas
@@ -87,7 +83,8 @@ class Component(Printable, Identifyable, ABC):
             prior: TDatasTuple,
             posterior: TDatasTuple
     ) -> Tuple[TDatasTuple, TDatasTuple]:
-              # We need to put the ignore here because @porperty has not annotations.
+
+        # We need to put the ignore here because @porperty has not annotations.
         # Another alternative is creating our own @property decorator and
         # putting Any as a return. More information can be found on mypy's
         # Github, issue #1362
@@ -120,14 +117,14 @@ class Component(Printable, Identifyable, ABC):
         result = cs_.identified(name=cls.__name__, path=cls.__module__)
         return result
 
-    @property  # type: ignore
+    @Property
     @lru_cache()
     def cs1(self=None):
         """Convert transformer into a config space with a single transformer
         inside it."""
         return ConfigList(self)
 
-    @property  # type: ignore
+    @Property
     @lru_cache()
     def serialized(self):
         return serialize(self)
@@ -153,7 +150,7 @@ class Component(Printable, Identifyable, ABC):
     def name(cls):
         return cls.__name__
 
-    @property  # type: ignore
+    @Property
     @lru_cache()
     def longname(self):
         return self.name
@@ -163,13 +160,13 @@ class Component(Printable, Identifyable, ABC):
     def path(cls):
         return cls.__module__
 
-    @property  # type: ignore
+    @Property
     @lru_cache()
     def wrapped(self):
         """Same as unwrap(), but with the external container Wrap."""
         return None
 
-    @property  # type: ignore
+    @Property
     @lru_cache()
     def unwrap(self):
         """Subpipeline inside the first Wrap().
