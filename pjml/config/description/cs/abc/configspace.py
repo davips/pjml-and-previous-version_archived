@@ -2,6 +2,7 @@ from abc import abstractmethod
 from functools import lru_cache
 
 from pjdata.mixin.printable import Printable
+from pjml.util import Property
 
 
 class ConfigSpace(Printable):
@@ -17,21 +18,21 @@ class ConfigSpace(Printable):
     def sample(self):
         pass
 
-    @property
+    @Property
     def cs(self):
         """Shortcut to ease retrieving a CS from a Transformer class without
         having to check that it is not already a CS."""
         return self
 
     # Amenities.
-    @property
+    @Property
     @lru_cache()
     def name(self):
         if self._name is None:
             self._name = self.__class__.__name__[0:-2].lower()
         return self._name
 
-    @property
+    @Property
     @lru_cache()
     def longname(self):
         long = ''
