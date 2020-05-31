@@ -1,18 +1,20 @@
 from functools import lru_cache
 
 from numpy.random.mtrand import uniform
-from sklearn.decomposition import PCA
+from sklearn.decomposition import PCA as SKLPCA
 
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import RealP, FixedP
+from pjml.tool.abc.mixin.transformer import Transformer
 from pjml.tool.data.algorithm import TSKLAlgorithm
 from pjml.tool.transformer import TTransformer
 
 
-class TPCA(TSKLAlgorithm):
+class PCA(TSKLAlgorithm):
     def __init__(self, onenhancer=True, onmodel=True, **sklconfig):
-        super().__init__(sklconfig, PCA, onenhancer=onenhancer, onmodel=onmodel)
+        super().__init__(sklconfig, SKLPCA, onenhancer=onenhancer,
+                         onmodel=onmodel)
 
     @lru_cache()
     def _info(self, prior):  # old apply
@@ -28,13 +30,13 @@ class TPCA(TSKLAlgorithm):
         )
 
     def _model_impl(self, prior):
-        return TTransformer(
+        return Transformer(
             func=lambda posterior: self.predict(prior, posterior),
             info=self._info(prior)
         )
 
     def _enhancer_impl(self):
-        return TTransformer(
+        return Transformer(
             func=lambda prior: self.predict(prior, prior),
             info=self._info
         )

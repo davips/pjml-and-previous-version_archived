@@ -1,16 +1,16 @@
 from abc import ABC
 from functools import partial
 
-from pjml.tool.abc.mixin.component import TComponent
+from pjml.tool.abc.mixin.component import Component
 
 
-class TSKLAlgorithm(TComponent, ABC):
+class TSKLAlgorithm(Component, ABC):
     """Base class for scikitlearn algorithms."""
 
     def __init__(self, config, func, sklconfig=None, deterministic=False,
                  **kwargs):
-        TComponent.__init__(self, config, **kwargs,
-                            deterministic=deterministic)
+        Component.__init__(self, config, **kwargs,
+                           deterministic=deterministic)
 
         sklconfig = config if sklconfig is None else sklconfig
 

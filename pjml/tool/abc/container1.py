@@ -1,9 +1,9 @@
 from abc import ABC
 
-from pjml.tool.abc.container import TContainer
+from pjml.tool.abc.container import Container
 
 
-class TContainer1(TContainer, ABC):
+class Container1(Container, ABC):
     """Configurable container for a single transformer.
 
     If more are given, they will be handled as a single Seq transformer."""
@@ -16,7 +16,7 @@ class TContainer1(TContainer, ABC):
         # Implementation-wise, Container1(Chain(a,b,c)) is needed to make
         # Container1(a,b,c) possible.
         if len(self.transformers) > 1:
-            from pjml.tool.chain import TChain
-            self.transformer = TChain(transformers=self.transformers)
+            from pjml.tool.chain import Chain
+            self.transformer = Chain(transformers=self.transformers)
         else:
             self.transformer = self.transformers[0]

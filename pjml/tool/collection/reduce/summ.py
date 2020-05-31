@@ -1,4 +1,6 @@
 from typing import Tuple, Iterator
+import operator
+from itertools import tee
 
 import numpy
 from numpy import mean
@@ -9,10 +11,12 @@ from pjml.config.description.distributions import choice
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import CatP
 from pjml.tool.abc.finalizer import Finalizer
+from pjml.tool.abc.mixin.component import Component
 from pjml.tool.abc.mixin.functioninspector import FunctionInspector
+from pjml.tool.abc.mixin.transformer import Transformer
 
 
-class TRSumm(Finalizer, FunctionInspector):
+class RSumm(Finalizer, FunctionInspector):
     """Given a field, summarizes a Collection object to a Data object.
 
     The resulting Data object will have only the 's' field. To keep other
@@ -52,18 +56,3 @@ class TRSumm(Finalizer, FunctionInspector):
             return data.updated(self.transformations('u'), S=numpy.array(res))
         else:
             return data.updated(self.transformations('u'), s=res)
-
-# def _fun_std(self, collection):
-#     return std([data.field(self.field, self) for data in collection],
-#                axis=0)
-#
-# def _fun_mean_std(self, collection):
-#     # TODO?: optimize calculating mean and stdev together
-#     values = [data.field(self.field, self) for data in collection]
-#     if len(values[0].shape) == 2:
-#         if values[0].shape[0] > 1:
-#             raise Exception(
-#                 f"Summ doesn't accept multirow fields: {self.field}\n"
-#                 f"Shape: {values[0].shape}")
-#         values = [v[0] for v in values]
-#     return mean(values, axis=0), std(values, axis=0)

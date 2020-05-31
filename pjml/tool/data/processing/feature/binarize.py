@@ -2,11 +2,11 @@ import numpy as np
 from sklearn.preprocessing import OneHotEncoder
 
 from pjdata.data_creation import nominal_idxs
-from pjml.tool.abc.configless import LightConfigLess
+from pjml.tool.abc.configless import ConfigLess
 from pjml.tool.model.model import Model
 
 
-class Binarize(LightConfigLess):
+class Binarize(ConfigLess):
     def _apply_impl(self, data):
         applied = self._use_impl(data)
         return Model(self, data, applied)

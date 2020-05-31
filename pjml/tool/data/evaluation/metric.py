@@ -8,11 +8,13 @@ from pjml.config.description.distributions import choice
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import CatP
 from pjml.tool.abc.mixin.component import TComponent
+from pjml.tool.abc.mixin.component import Component
+from pjml.tool.abc.mixin.transformer import Transformer
 from pjml.tool.abc.mixin.functioninspector import FunctionInspector
 from pjml.tool.transformer import TTransformer
 
 
-class TMetric(TComponent, FunctionInspector):
+class Metric(Component, FunctionInspector):
     """Metric to evaluate a given Data field.
 
     Developer: new metrics can be added just following the pattern '_fun_xxxxx'
@@ -46,13 +48,13 @@ class TMetric(TComponent, FunctionInspector):
 
     def _model_impl(self, prior):
         # prior deve ser ignorado
-        return TTransformer(
+        return Transformer(
             func=lambda posterior: self._func(posterior),
             info=None
         )
 
     def _enhancer_impl(self):
-        return TTransformer(
+        return Transformer(
             func=lambda posterior: self._func(posterior),
             info=None
         )

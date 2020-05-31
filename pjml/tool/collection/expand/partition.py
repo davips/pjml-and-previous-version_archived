@@ -1,12 +1,18 @@
 from functools import lru_cache
+from typing import Optional, List, Dict, Any
 
 from pjml.tool.abc.nonfinalizer import NonFinalizer
 from pjml.tool.abc.mixin.component import TComponent
 from pjml.tool.chain import TChain
 from pjml.tool.collection.expand.repeat import Repeat
+from pjdata.data import Data
+from pjml.tool.abc.mixin.component import Component
+from pjml.tool.abc.mixin.transformer import Transformer
+from pjml.tool.chain import Chain
+from pjml.tool.collection.expand.expand import Expand
 
 
-class TPartition(NonFinalizer, TComponent):
+class Partition(NonFinalizer, TComponent):
     """Class to perform, e.g. Expand+kfoldCV.
 
     This task is already done by function split(),
@@ -17,8 +23,15 @@ class TPartition(NonFinalizer, TComponent):
         previous solution.
     """
 
-    def __init__(self, split_type='cv', partitions=10, test_size=0.3, seed=0,
-                 fields=None, **kwargs):
+    def __init__(
+            self,
+            split_type: str = 'cv',
+            partitions: int = 10,
+            test_size: float = 0.3,
+            seed: int = 0,
+            fields: Optional[List[str]] = None,
+            **kwargs
+    ):
         if fields is None:
             fields = ['X', 'Y']
         config = self._to_config(locals())
@@ -38,7 +51,7 @@ class TPartition(NonFinalizer, TComponent):
 
         super().__init__(config, **kwargs)
         from pjml.macro import tsplit
-        self.transformer = TChain(
+        self.transformer = Chain(
             Repeat(),
             tsplit(split_type, partitions, test_size, seed, fields)
         )

@@ -9,18 +9,21 @@ from pjml.tool.abc.minimalcontainer import TMinimalContainer1
 from pjml.tool.abc.mixin.batch import unzip_iterator
 from pjml.tool.abc.mixin.component import TComponent
 from pjml.tool.abc.nonfinalizer import NonFinalizer
+from pjml.tool.abc.minimalcontainer import MinimalContainer1
+from pjml.tool.abc.mixin.component import Component
+from pjml.tool.abc.mixin.transformer import Transformer
 
 
-class TMap(NonFinalizer, TMinimalContainer1):
+class MMap(NonFinalizer, TMinimalContainer1):
     """Execute the same transformer for the entire collection."""
 
     def __new__(cls, *args, seed=0, transformers=None, **kwargs):
         """Shortcut to create a ConfigSpace."""
         if transformers is None:
             transformers = args
-        if all([isinstance(t, TComponent) for t in transformers]):
+        if all([isinstance(t, Component) for t in transformers]):
             return object.__new__(cls)
-        return ContainerCS(TMap.name, TMap.path, transformers)
+        return ContainerCS(Map.name, Map.path, transformers)
 
     def enhancer_info(self):
         return {'enhancer': self.transformer.enhancer}

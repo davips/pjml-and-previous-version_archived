@@ -15,5 +15,5 @@ class TChainCS(OperatorCS):
 
     def sample(self):
         transformers = [cs.sample() for cs in self.components]
-        from pjml.tool.chain import TChain
+        from pjml.tool.chain import Chain
         return TChain(transformers=transformers)

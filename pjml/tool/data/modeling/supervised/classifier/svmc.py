@@ -8,7 +8,7 @@ from pjml.config.description.parameter import FixedP, IntP, RealP, CatP, OrdP
 from pjml.tool.data.modeling.supervised.predictor import TPredictor
 
 
-class TSVMC(TPredictor):
+class SVMC(TPredictor):
     def __init__(self, onenhancer=True, onmodel=True, **sklconfig):
         super().__init__(sklconfig, SVC,
                          onenhancer=onenhancer, onmodel=onmodel)

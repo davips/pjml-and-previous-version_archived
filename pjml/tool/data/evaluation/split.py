@@ -1,21 +1,27 @@
 from functools import lru_cache
+from typing import Optional, List, Dict, Any
 
 import numpy
 from numpy.random import uniform
 from sklearn.model_selection import StratifiedShuffleSplit as HO, \
     StratifiedKFold as SKF, LeaveOneOut as LOO
 
+from pjdata.data import Data
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import IntP
 from pjml.tool.abc.mixin.component import TComponent
+from pjml.tool.abc.mixin.component import Component
+from pjml.tool.abc.mixin.transformer import Transformer
 from pjml.tool.abc.mixin.functioninspector import FunctionInspector
 from pjml.tool.abc.mixin.nodatahandler import NoDataHandler
 from pjml.tool.chain import TChain
 from pjml.tool.transformer import TTransformer
+from pjml.tool.chain import Chain
+from pjml.util import TDatas
 
 
-class TSplit(TComponent, FunctionInspector, NoDataHandler):
+class Split(Component, FunctionInspector, NoDataHandler):
     """Split a given Data field into training/apply set and testing/use set.
 
     Developer: new metrics can be added just following the pattern '_fun_xxxxx'
@@ -31,8 +37,16 @@ class TSplit(TComponent, FunctionInspector, NoDataHandler):
         Name of the matrices to be modified.
     """
 
-    def __init__(self, split_type='holdout', partitions=2, partition=0,
-                 test_size=0.3, seed=0, fields=None, **kwargs):
+    def __init__(
+            self,
+            split_type: str = 'holdout',
+            partitions: int = 2,
+            partition: int = 0,
+            test_size: float = 0.3,
+            seed: int = 0,
+            fields: Optional[List[str]] = None,
+            **kwargs
+    ):
         if fields is None:
             fields = ['X', 'Y']
         config = self._to_config(locals())
@@ -62,23 +76,23 @@ class TSplit(TComponent, FunctionInspector, NoDataHandler):
         self.seed = seed
         self.fields = fields
 
-        self.transformer = TChain(
-            TrainSplit(),
-            TestSplit()
+        self.transformer = Chain(
+            SplitTrain(),
+            SplitTest()
         )
 
-    def _model_impl(self, prior):
+    def _model_impl(self, prior: TDatas) -> Transformer:
         return self.transformer.model(prior)
 
-    def _enhancer_impl(self):
-        return self.transformer.enhancer
+    def _enhancer_impl(self) -> Transformer:
+        return self.transformer.enhancer   # type: ignore
 
     @classmethod
     def _cs_impl(cls):
         raise NotImplementedError
 
 
-class TestSplit(TComponent, FunctionInspector, NoDataHandler):
+class SplitTest(Component, FunctionInspector, NoDataHandler):
     """Split a given Data field into training/apply set and testing/use set.
 
     Developer: new metrics can be added just following the pattern '_fun_xxxxx'
@@ -94,9 +108,17 @@ class TestSplit(TComponent, FunctionInspector, NoDataHandler):
         Name of the matrices to be modified.
     """
 
-    def __init__(self, split_type='holdout', partitions=2, partition=0,
-                 test_size=0.3, seed=0, fields=None,
-                 onenhancer=True, onmodel=True):
+    def __init__(
+            self,
+            split_type: str = 'holdout',
+            partitions: int = 2,
+            partition: int = 0,
+            test_size: float = 0.3,
+            seed: int = 0,
+            fields: Optional[List[str]] = None,
+            onenhancer: bool = True,
+            onmodel: bool = True
+    ):
         if fields is None:
             fields = ['X', 'Y']
         config = self._to_config(locals())
@@ -127,7 +149,7 @@ class TestSplit(TComponent, FunctionInspector, NoDataHandler):
         self.fields = fields
 
     @lru_cache()
-    def _info(self, prior):
+    def _info(self, prior: Data) -> Dict[str, Any]:
         zeros = numpy.zeros(prior.field(self.fields[0], self).shape[0])
         partitions = list(self.algorithm.split(X=zeros, y=zeros))
         _posterior = self._split(prior, partitions[self.partition][1],
@@ -137,13 +159,18 @@ class TestSplit(TComponent, FunctionInspector, NoDataHandler):
     def _enhancer_impl(self):
         return TTransformer(None, None)
 
-    def _model_impl(self, prior):
+    def _model_impl(self, prior: Data) -> Transformer:
         def func(posterior):
             return self._info(posterior)["posterior"]
 
-        return TTransformer(func=func, info=None)
+        return Transformer(func=func, info=None)
 
-    def _split(self, data, indices=None, step='u'):
+    def _split(
+            self,
+            data: Data,
+            indices: List[numpy.ndarray],
+            step: str = 'u'
+    ) -> Data:
         new_dic = {}
         for f in self.fields:
             try:
@@ -154,7 +181,7 @@ class TestSplit(TComponent, FunctionInspector, NoDataHandler):
         return data.updated(self.transformations(step), **new_dic)
 
     @classmethod
-    def _cs_impl(cls):
+    def _cs_impl(cls) -> TransformerCS:
         # TODO complete CS for split; useless?
         params = {
             'partitions': IntP(uniform, low=2, high=10)
@@ -162,7 +189,7 @@ class TestSplit(TComponent, FunctionInspector, NoDataHandler):
         return TransformerCS(Node(params=params))
 
 
-class TrainSplit(TComponent, FunctionInspector, NoDataHandler):
+class SplitTrain(Component, FunctionInspector, NoDataHandler):
     """Split a given Data field into training/apply set and testing/use set.
 
     Developer: new metrics can be added just following the pattern '_fun_xxxxx'
@@ -178,9 +205,17 @@ class TrainSplit(TComponent, FunctionInspector, NoDataHandler):
         Name of the matrices to be modified.
     """
 
-    def __init__(self, split_type='holdout', partitions=2, partition=0,
-                 test_size=0.3, seed=0, fields=None,
-                 onenhancer=True, onmodel=True):
+    def __init__(
+            self,
+            split_type: str = 'holdout',
+            partitions: int = 2,
+            partition: int = 0,
+            test_size: float = 0.3,
+            seed: int = 0,
+            fields: Optional[List[str]] = None,
+            onenhancer: bool = True,
+            onmodel: bool = True
+    ):
         if fields is None:
             fields = ['X', 'Y']
         config = self._to_config(locals())
@@ -211,22 +246,27 @@ class TrainSplit(TComponent, FunctionInspector, NoDataHandler):
         self.fields = fields
 
     @lru_cache()
-    def _info(self, prior):
+    def _info(self, prior: Data) -> Dict[str, Any]:
         zeros = numpy.zeros(prior.field(self.fields[0], self).shape[0])
         partitions = list(self.algorithm.split(X=zeros, y=zeros))
         _prior = self._split(prior, partitions[self.partition][0], step='a')
         return {"prior": _prior}
 
-    def _enhancer_impl(self):
-        def func(prior):
+    def _enhancer_impl(self) -> Transformer:
+        def func(prior: Data):
             return self._info(prior)["prior"]
 
-        return TTransformer(func=func, info=None)
+        return Transformer(func=func, info=None)
 
     def _model_impl(self, data):
         return TTransformer(None, None)
 
-    def _split(self, data, indices=None, step='u'):
+    def _split(
+            self,
+            data: Data,
+            indices: List[numpy.ndarray],
+            step: str = 'u'
+    ) -> Data:
         new_dic = {}
         for f in self.fields:
             try:
@@ -237,7 +277,7 @@ class TrainSplit(TComponent, FunctionInspector, NoDataHandler):
         return data.updated(self.transformations(step), **new_dic)
 
     @classmethod
-    def _cs_impl(cls):
+    def _cs_impl(cls) -> TransformerCS:
         # TODO complete CS for split; useless?
         params = {
             'partitions': IntP(uniform, low=2, high=10)

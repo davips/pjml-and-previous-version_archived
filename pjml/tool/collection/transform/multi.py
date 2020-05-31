@@ -1,25 +1,37 @@
 from functools import lru_cache
 from typing import Tuple,Iterator
 
+from itertools import tee
+from typing import Optional, List, Tuple, Dict, Iterator
+
 from pjdata.collection import Collection
 from pjml.config.description.cs.containercs import ContainerCS
 from pjml.tool.abc.nonfinalizer import NonFinalizer
 from pjml.tool.abc.minimalcontainer import TMinimalContainerN
 from pjml.tool.abc.mixin.batch import unzip_iterator
 from pjml.tool.abc.mixin.component import TComponent
+from pjml.tool.abc.minimalcontainer import MinimalContainerN
+from pjml.tool.abc.mixin.component import Component
+from pjml.tool.abc.mixin.transformer import Transformer
 
 
-class TMulti(NonFinalizer, TMinimalContainerN):
+class Multi(NonFinalizer, MinimalContainerN):
     """Process each Data object from a collection with its respective
     transformer."""
 
-    def __new__(cls, *args, seed=0, transformers=None, **kwargs):
+    def __new__(
+            cls,
+            *args: Component,
+            seed: int = 0,
+            transformers: Optional[Tuple[Component, ...]] = None,
+            **kwargs
+    ):
         """Shortcut to create a ConfigSpace."""
         if transformers is None:
             transformers = args
-        if all([isinstance(t, TComponent) for t in transformers]):
+        if all([isinstance(t, Component) for t in transformers]):
             return object.__new__(cls)
-        return ContainerCS(TMulti.name, TMulti.path, transformers)
+        return ContainerCS(Multi.name, Multi.path, transformers)
 
     # def iterators(self, train_collection, test_collection) -> Tuple[Iterator]:
     #     funcs = [trf.dual_transform for trf in self.transformers]

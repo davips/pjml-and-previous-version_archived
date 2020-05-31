@@ -1,6 +1,6 @@
 from abc import ABC
 
-from pjml.tool.abc.mixin.component import TComponent
+from pjml.tool.abc.mixin.component import Component
 
 
 class TInvisible:
@@ -13,3 +13,4 @@ class TInvisible:
         """Invisible components produce no transformations, so they need to
         override the list of expected transformations with []."""
         return tuple()
+

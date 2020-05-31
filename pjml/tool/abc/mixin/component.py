@@ -1,5 +1,8 @@
+""" Component module. """
+
 from abc import abstractmethod, ABC
 from functools import lru_cache
+from typing import List, Union, Tuple, Iterator
 
 from pjdata.aux.decorator import classproperty
 from pjdata.aux.serialization import serialize, materialize
@@ -7,15 +10,24 @@ from pjdata.collection import Collection
 from pjdata.data import Data
 from pjdata.mixin.identifyable import Identifyable
 from pjdata.mixin.printable import Printable
+from pjdata.specialdata import NoData
 from pjdata.step.transformation import Transformation
 from pjml.config.description.cs.configlist import ConfigList
+from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.tool.abc.mixin.exceptionhandler import BadComponent
+from pjml.tool.abc.mixin.transformer import Transformer
+from pjml.util import TDatasTuple, TDatas
 from pjml.tool.transformer import TTransformer
 
 
-class TComponent(Printable, Identifyable, ABC):
-    def __init__(self, config, onenhancer=True, onmodel=True,
-                 deterministic=False, nodata_handler=False):
+class Component(Printable, Identifyable, ABC):
+    def __init__(self,
+                 config: dict,
+                 onenhancer: bool = True,
+                 onmodel: bool = True,
+                 deterministic: bool = False,
+                 nodata_handler: bool = False
+                 ):
         jsonable = {'_id': f'{self.name}@{self.path}', 'config': config}
         Printable.__init__(self, jsonable)
 
@@ -30,59 +42,64 @@ class TComponent(Printable, Identifyable, ABC):
         self.onmodel = onmodel
 
     @abstractmethod
-    def _enhancer_impl(self):
-        # return TTransformer(None, None)
+    def _enhancer_impl(self) -> Transformer:
+        # return Transformer(None, None)
         pass
 
     @abstractmethod
-    def _model_impl(self, data):
-        # return TTransformer(None, None)
-        pass
+    def _model_impl(
+            self,
+            prior: TDatasTuple
+    ) -> Transformer:
+        return Transformer(None, None)
 
-    @property
+    # def iterators(
+    #         self,
+    #         prior_collection: Collection,
+    #         posterior_collection: Collection
+    # ) -> Tuple[Iterator, Iterator]:
+    #     raise Exception('NotImplementedError: Only concurrent components have '
+    #                     'iterators')
+
+    @property  # type: ignore
     @lru_cache()
-    def enhancer(self):  # clean, cleaup, dumb, dumb_transformer
+    def enhancer(self) -> Transformer:  # clean, cleaup, dumb, dumb_transformer
         if not self.onenhancer:
-            return TTransformer(None, None)
+            return Transformer(None, None)
         return self._enhancer_impl()
 
     # TODO: verify if Data (/ Collection?) should have a better __hash__
-    @lru_cache()
-    def model(self, prior):  # smart, smart_transformer
+    @lru_cache()  # type: ignore
+    def model(
+            self,
+            prior: TDatas
+    ) -> Transformer:  # smart, smart_transformer
         if isinstance(prior, tuple):
             prior = prior[0]
         if not self.onmodel:
-            return TTransformer(None, None)
+            return Transformer(None, None)
         return self._model_impl(prior)
 
     # TODO: special sub class for concurrent components containing the content
     #   of this IF and the parent ABC method iterator().
-    def dual_transform(self, prior, posterior):
+    def dual_transform(
+            self,
+            prior: TDatasTuple,
+            posterior: TDatasTuple
+    ) -> Tuple[TDatasTuple, TDatasTuple]:        prior_result = self.enhancer.transform(prior)
+              # We need to put the ignore here because @porperty has not annotations.
+        # Another alternative is creating our own @property decorator and
+        # putting Any as a return. More information can be found on mypy's
+        # Github, issue #1362
         prior_result = self.enhancer.transform(prior)
         posterior_result = self.model(prior).transform(posterior)
-        print(prior)
-        print(posterior)
         return prior_result, posterior_result
 
     @classmethod
     @abstractmethod
-    def _cs_impl(cls):
+    def _cs_impl(cls) -> TransformerCS:
         """Each component should implement its own 'cs'. The parent class
         takes care of 'name' and 'path' arguments of ConfigSpace"""
-
-    # # TODO: Is unbounded lrucache a source of memory leak?
-    # @lru_cache()
-    # def transformations(self, step, clean=True):
-    #     """Expected transformation described as a list of Transformation
-    #     objects.
-    #
-    #     Child classes should override this method to perform non-atomic or
-    #     non-trivial transformations.
-    #     A missing implementation will be detected during apply/use."""
-    #     if step in 'au':
-    #         return [Transformation(self, step)]
-    #     else:
-    #         raise BadComponent('Wrong current step:', step)
 
     @classproperty
     @lru_cache()
@@ -103,14 +120,14 @@ class TComponent(Printable, Identifyable, ABC):
         result = cs_.identified(name=cls.__name__, path=cls.__module__)
         return result
 
-    @property
+    @property  # type: ignore
     @lru_cache()
     def cs1(self=None):
         """Convert transformer into a config space with a single transformer
         inside it."""
         return ConfigList(self)
 
-    @property
+    @property  # type: ignore
     @lru_cache()
     def serialized(self):
         return serialize(self)
@@ -136,7 +153,7 @@ class TComponent(Printable, Identifyable, ABC):
     def name(cls):
         return cls.__name__
 
-    @property
+    @property  # type: ignore
     @lru_cache()
     def longname(self):
         return self.name
@@ -146,13 +163,13 @@ class TComponent(Printable, Identifyable, ABC):
     def path(cls):
         return cls.__module__
 
-    @property
+    @property  # type: ignore
     @lru_cache()
     def wrapped(self):
         """Same as unwrap(), but with the external container Wrap."""
         return None
 
-    @property
+    @property  # type: ignore
     @lru_cache()
     def unwrap(self):
         """Subpipeline inside the first Wrap().
@@ -185,13 +202,29 @@ class TComponent(Printable, Identifyable, ABC):
 
     # TODO: Is unbounded lrucache a source of memory leak?
     @lru_cache()
-    def transformations(self, step, clean=True):
+    def transformations(
+            self,
+            step: str,
+            clean: bool = True
+    ) -> List[Transformation]:
         """Expected transformation described as a list of Transformation
         objects.
 
         Child classes should override this method to perform non-atomic or
         non-trivial transformations.
-        A missing implementation will be detected during apply/use."""
+        A missing implementation will be detected during apply/use.
+
+        Parameters
+        ----------
+        step: str
+            TODO
+        clean: bool
+            TODO
+
+        Returns
+        -------
+            list of Transformation
+        """
         if step in 'au':
             return [Transformation(self, step)]
         else:

@@ -2,13 +2,16 @@ import re
 
 import numpy as np
 
+from pjdata.data import Data
 from pjml.config.description.cs.emptycs import EmptyCS
 from pjml.tool.abc.invisible import TInvisible
 from pjml.tool.transformer import TTransformer
+from pjml.tool.abc.invisible import Invisible
+from pjml.tool.abc.mixin.transformer import Transformer
 from pjml.util import flatten
 
 
-class TReport(TInvisible):
+class Report(Invisible):
     """Report printer.
 
     $r prints 'r'
@@ -16,25 +19,32 @@ class TReport(TInvisible):
     {dataset.failure} prints the failure
     """
 
-    def __init__(self, text='Default report r=$R', **kwargs):
+    def __init__(
+            self,
+            text: str = 'Default report r=$R',
+            **kwargs
+    ):
         super().__init__({'text': text}, deterministic=True, **kwargs)
         self.text = text
 
-    def _model_impl(self, model):
+    def _model_impl(self, data: Data) -> Transformer:
         return self._enhancer_impl('[modeler]')
 
-    def _enhancer_impl(self, step='[enhancer]'):
-        def func(posterior):
+    def _enhancer_impl(
+            self,
+            step: str = '[enhancer]'
+    ) -> Transformer:
+        def func(posterior: Data) -> Data:
             print(step, self._interpolate(self.text, posterior))
             return posterior
 
-        return TTransformer(
+        return Transformer(
             func=func,
             info=None
         )
 
     @classmethod
-    def _interpolate(cls, text, data):
+    def _interpolate(cls, text: str, data: Data) -> str:
         # TODO: global(?) option to reprettify line breaks from numpy arrays
         def samerow(M):
             return np.array_repr(M).replace('\n      ', '').replace('  ', '')
@@ -52,7 +62,7 @@ class TReport(TInvisible):
         return cls._eval(p.sub(f, text), data)
 
     @classmethod
-    def _eval(cls, text, data):
+    def _eval(cls, text: str, data: Data) -> str:
         txt = ''
         run = False
         expanded = [w.split('}') for w in ('_' + text + '_').split('{')]
@@ -71,5 +81,5 @@ class TReport(TInvisible):
         return txt[1:][:-1]
 
     @classmethod
-    def _cs_impl(cls):
+    def _cs_impl(cls) -> EmptyCS:
         return EmptyCS()
