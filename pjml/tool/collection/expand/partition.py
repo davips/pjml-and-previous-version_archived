@@ -2,17 +2,14 @@ from functools import lru_cache
 from typing import Optional, List, Dict, Any
 
 from pjml.tool.abc.nonfinalizer import NonFinalizer
-from pjml.tool.abc.mixin.component import TComponent
-from pjml.tool.chain import TChain
 from pjml.tool.collection.expand.repeat import Repeat
 from pjdata.data import Data
 from pjml.tool.abc.mixin.component import Component
 from pjml.tool.abc.mixin.transformer import Transformer
 from pjml.tool.chain import Chain
-from pjml.tool.collection.expand.expand import Expand
 
 
-class Partition(NonFinalizer, TComponent):
+class Partition(NonFinalizer, Component):
     """Class to perform, e.g. Expand+kfoldCV.
 
     This task is already done by function split(),

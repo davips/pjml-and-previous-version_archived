@@ -5,8 +5,6 @@ from typing import Tuple, Iterator
 from itertools import tee
 
 from pjdata.collection import Collection
-from pjml.tool.abc.mixin.component import TComponent
-from pjml.tool.transformer import TTransformer
 
 
 def unzip_iterator(iterator):

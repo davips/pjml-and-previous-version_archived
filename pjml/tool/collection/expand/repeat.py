@@ -3,10 +3,10 @@ from itertools import repeat
 from pjdata.collection import Collection
 from pjml.config.description.cs.emptycs import EmptyCS
 from pjml.tool.abc.nonfinalizer import NonFinalizer
-from pjml.tool.abc.mixin.component import TComponent
+from pjml.tool.abc.mixin.component import Component
 
 
-class Repeat(NonFinalizer, TComponent):
+class Repeat(NonFinalizer, Component):
     """Data -> Collection"""
 
     @property

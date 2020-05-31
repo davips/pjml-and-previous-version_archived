@@ -86,7 +86,7 @@ class Component(Printable, Identifyable, ABC):
             self,
             prior: TDatasTuple,
             posterior: TDatasTuple
-    ) -> Tuple[TDatasTuple, TDatasTuple]:        prior_result = self.enhancer.transform(prior)
+    ) -> Tuple[TDatasTuple, TDatasTuple]:
               # We need to put the ignore here because @porperty has not annotations.
         # Another alternative is creating our own @property decorator and
         # putting Any as a return. More information can be found on mypy's

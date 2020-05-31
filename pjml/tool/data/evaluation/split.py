@@ -10,12 +10,10 @@ from pjdata.data import Data
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import IntP
-from pjml.tool.abc.mixin.component import TComponent
 from pjml.tool.abc.mixin.component import Component
 from pjml.tool.abc.mixin.transformer import Transformer
 from pjml.tool.abc.mixin.functioninspector import FunctionInspector
 from pjml.tool.abc.mixin.nodatahandler import NoDataHandler
-from pjml.tool.chain import TChain
 from pjml.tool.transformer import TTransformer
 from pjml.tool.chain import Chain
 from pjml.util import TDatas

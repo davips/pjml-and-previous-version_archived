@@ -3,7 +3,7 @@ from abc import ABC
 from pjml.tool.abc.mixin.component import Component
 
 
-class TInvisible:
+class Invisible:
     """Parent class of all atomic transformers that don't increase history
     of transformations.
 

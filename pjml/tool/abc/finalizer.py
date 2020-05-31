@@ -3,10 +3,10 @@ from typing import Tuple, Iterator
 
 from pjdata.collection import Collection, AccResult
 from pjml.tool.abc.mixin.batch import Batch
-from pjml.tool.abc.mixin.component import TComponent
+from pjml.tool.abc.mixin.component import Component
 
 
-class Finalizer(Batch, TComponent):
+class Finalizer(Batch, Component):
     def enhancer_info(self):
         pass
 

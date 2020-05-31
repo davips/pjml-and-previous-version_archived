@@ -7,7 +7,6 @@ from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.distributions import choice
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import CatP
-from pjml.tool.abc.mixin.component import TComponent
 from pjml.tool.abc.mixin.component import Component
 from pjml.tool.abc.mixin.transformer import Transformer
 from pjml.tool.abc.mixin.functioninspector import FunctionInspector

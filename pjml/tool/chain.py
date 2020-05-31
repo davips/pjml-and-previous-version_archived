@@ -1,7 +1,7 @@
 from functools import lru_cache
+from typing import Optional, Tuple, Dict, List
 
 from itertools import tee
-from typing import Optional, Tuple, Dict, List
 
 from pjdata.collection import Collection
 from pjdata.specialdata import NoData
@@ -10,12 +10,8 @@ from pjml.config.description.cs.chaincs import TChainCS
 from pjml.tool.abc.minimalcontainer import MinimalContainerN
 from pjml.tool.abc.mixin.component import Component
 from pjml.tool.abc.mixin.transformer import Transformer
-from pjml.util import flatten, TDatasTuple, TDatas
-from pjml.tool.abc.minimalcontainer import TMinimalContainerN
-from pjml.tool.abc.mixin.component import TComponent
-from pjml.tool.transformer import TTransformer
+from pjml.util import TDatasTuple, TDatas
 from pjml.util import flatten
-
 
 
 class Chain(MinimalContainerN):
@@ -70,10 +66,10 @@ class Chain(MinimalContainerN):
                 iter0, iter1 = tee(prior.iterator)
                 prior0 = Collection(
                     iter0, prior.finalizer,
-                    debug_info='compo'+self.__class__.__name__+' pri')
+                    debug_info='compo' + self.__class__.__name__ + ' pri')
                 prior1 = Collection(
                     iter1, prior.finalizer,
-                    debug_info='compo'+self.__class__.__name__+' pos')
+                    debug_info='compo' + self.__class__.__name__ + ' pos')
             else:
                 prior0 = prior1 = prior
             print('                   gera modelo', trf.name)

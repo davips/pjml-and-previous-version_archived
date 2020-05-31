@@ -2,7 +2,7 @@ from typing import Tuple, Iterator
 
 from itertools import repeat
 
-from pjml.tool.abc.invisible import TInvisible
+from pjml.tool.abc.invisible import Invisible
 from pjml.tool.abc.nonfinalizer import NonFinalizer
 from itertools import tee, repeat
 from typing import Union, Tuple, Optional

@@ -4,7 +4,7 @@ import numpy as np
 
 from pjdata.data import Data
 from pjml.config.description.cs.emptycs import EmptyCS
-from pjml.tool.abc.invisible import TInvisible
+from pjml.tool.abc.invisible import Invisible
 from pjml.tool.transformer import TTransformer
 from pjml.tool.abc.invisible import Invisible
 from pjml.tool.abc.mixin.transformer import Transformer

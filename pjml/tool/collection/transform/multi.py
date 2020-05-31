@@ -7,9 +7,7 @@ from typing import Optional, List, Tuple, Dict, Iterator
 from pjdata.collection import Collection
 from pjml.config.description.cs.containercs import ContainerCS
 from pjml.tool.abc.nonfinalizer import NonFinalizer
-from pjml.tool.abc.minimalcontainer import TMinimalContainerN
 from pjml.tool.abc.mixin.batch import unzip_iterator
-from pjml.tool.abc.mixin.component import TComponent
 from pjml.tool.abc.minimalcontainer import MinimalContainerN
 from pjml.tool.abc.mixin.component import Component
 from pjml.tool.abc.mixin.transformer import Transformer
