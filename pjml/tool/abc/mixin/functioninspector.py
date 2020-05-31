@@ -1,8 +1,10 @@
 from functools import lru_cache
 
+from pjml.util import Property
+
 
 class FunctionInspector:
-    @property
+    @Property
     @lru_cache()
     def function_from_name(self):
         """Map each function name to its corresponding class method."""

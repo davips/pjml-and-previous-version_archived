@@ -11,6 +11,7 @@ from pjml.tool.abc.mixin.batch import unzip_iterator
 from pjml.tool.abc.minimalcontainer import MinimalContainerN
 from pjml.tool.abc.mixin.component import Component
 from pjml.tool.abc.mixin.transformer import Transformer
+from pjml.util import Property
 
 
 class Multi(NonFinalizer, MinimalContainerN):
@@ -39,7 +40,7 @@ class Multi(NonFinalizer, MinimalContainerN):
     #     )
     #     return unzip_iterator(iterator)
 
-    @property
+    @Property
     @lru_cache()
     def enhancer_info(self):
         return {'enhancers': [trf.enhancer for trf in self.transformers]}
@@ -87,6 +88,6 @@ class Multi(NonFinalizer, MinimalContainerN):
 
         return transform
 
-    @property
+    @Property
     def finite(self):
         return True

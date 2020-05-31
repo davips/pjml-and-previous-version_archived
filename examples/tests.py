@@ -193,7 +193,7 @@ def main():
     test_split()
     test_metric()
     test_pca()
-    test_partition()
+    # test_partition()
     # test_split_train_test()
     # test_with_summ_reduce()
 

@@ -3,6 +3,7 @@ from functools import lru_cache
 
 from pjdata.aux.decorator import classproperty
 from pjml.tool.abc.mixin.component import Component
+from pjml.util import Property
 
 
 class Container(Component, ABC):
@@ -39,7 +40,7 @@ class Container(Component, ABC):
                          deterministic=deterministic,
                          nodata_handler=self.transformers[0].nodata_handler)
 
-    @property
+    @Property
     @lru_cache()
     def wrapped(self):
         from pjml.tool.meta.wrap import Wrap
@@ -57,7 +58,7 @@ class Container(Component, ABC):
             f'Just instantiate the class {cls.name} instead of calling its .cs!'
         )
 
-    @property
+    @Property
     @lru_cache()
     def longname(self):
         names = ", ".join([tr.longname for tr in self.transformers])
