@@ -1,6 +1,7 @@
-from abc import ABC
+from functools import lru_cache
+from typing import List
 
-from pjml.tool.abc.mixin.component import Component
+from pjdata.step.transformation import Transformation
 
 
 class Invisible:
@@ -9,8 +10,13 @@ class Invisible:
 
     They are useful, but sometimes do not transform Data objects."""
 
-    def transformations(self, step, clean=True):
+    @lru_cache()
+    def transformations(
+            self,
+            step: str,
+            clean: bool = True
+    ) -> List[Transformation]:
+
         """Invisible components produce no transformations, so they need to
         override the list of expected transformations with []."""
-        return tuple()
-
+        return []
