@@ -17,13 +17,14 @@ from pjml.util import TDatasTuple, TDatas, Property
 
 
 class Component(Printable, Identifyable, ABC):
-    def __init__(self,
-                 config: dict,
-                 onenhancer: bool = True,
-                 onmodel: bool = True,
-                 deterministic: bool = False,
-                 nodata_handler: bool = False
-                 ):
+    def __init__(
+            self,
+            config: dict,
+            onenhancer: bool = True,
+            onmodel: bool = True,
+            deterministic: bool = False,
+            nodata_handler: bool = False
+    ):
         jsonable = {'_id': f'{self.name}@{self.path}', 'config': config}
         Printable.__init__(self, jsonable)
 
