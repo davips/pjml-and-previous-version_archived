@@ -7,16 +7,17 @@ from itertools import tee
 from pjdata.collection import Collection
 from pjdata.data import Data
 from pjml.tool.abc.mixin.transformer import Transformer
+from pjml.util import Property
 
 
-def unzip_iterator(iterator):
+def unzip_iterator(iterator: Iterator) -> Tuple[Iterator, Iterator]:
     i1, i2 = tee(iterator)
     return map(operator.itemgetter(0), i1), map(operator.itemgetter(1), i2)
 
 
 class Batch:
     """Parent mixin for all classes that manipulate collections."""
-    onenhancer = onmodel = None  # Come from Component to children classes.
+    onenhancer = onmodel = True  # Come from Component to children classes.
 
     # TODO: esses métodos parecem gerais o bastante pra ir direto no Component.
     @abstractmethod
@@ -36,7 +37,7 @@ class Batch:
         pass
 
     # TODO: isso parece geral o bastante pra ir direto no enhancer() no Component.
-    def _enhancer_impl(self):
+    def _enhancer_impl(self) -> Transformer:
         info = self.enhancer_info
         transform = self.enhancer_func()
         return Transformer(
@@ -44,7 +45,7 @@ class Batch:
             info=info
         )
 
-    def _model_impl(self, prior):
+    def _model_impl(self, prior) -> Transformer:
         info = self.model_info(prior)
         transform = self.model_func(prior)
         return Transformer(
@@ -54,7 +55,7 @@ class Batch:
 
     #######################################################################
 
-    @property
+    @Property
     @abstractmethod
     def finite(self):
         pass
