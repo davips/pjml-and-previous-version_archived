@@ -2,10 +2,11 @@
 
 from abc import abstractmethod, ABC
 from functools import lru_cache
-from typing import List, Tuple
+from typing import List, Tuple, Iterator, Union
 
 from pjdata.aux.decorator import classproperty
 from pjdata.aux.serialization import serialize, materialize
+from pjdata.collection import Collection
 from pjdata.mixin.identifyable import Identifyable
 from pjdata.mixin.printable import Printable
 from pjdata.step.transformation import Transformation
@@ -50,13 +51,13 @@ class Component(Printable, Identifyable, ABC):
     ) -> Transformer:
         return Transformer(None, None)
 
-    # def iterators(
-    #         self,
-    #         prior_collection: Collection,
-    #         posterior_collection: Collection
-    # ) -> Tuple[Iterator, Iterator]:
-    #     raise Exception('NotImplementedError: Only concurrent components have '
-    #                     'iterators')
+    def iterators(
+            self,
+            prior_collection: Collection,
+            posterior_collection: Collection
+    ) -> Tuple[Iterator, Iterator]:
+        raise Exception('NotImplementedError: Only concurrent components have '
+                        'iterators')
 
     @Property
     @lru_cache()
