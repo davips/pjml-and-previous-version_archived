@@ -1,15 +1,10 @@
-import operator
-from functools import lru_cache
-
-from itertools import tee
+from typing import Callable
 
 from pjdata.collection import Collection
 from pjml.config.description.cs.containercs import ContainerCS
-from pjml.tool.abc.mixin.batch import unzip_iterator
-from pjml.tool.abc.nonfinalizer import NonFinalizer
 from pjml.tool.abc.minimalcontainer import MinimalContainer1
 from pjml.tool.abc.mixin.component import Component
-from pjml.tool.abc.mixin.transformer import Transformer
+from pjml.tool.abc.nonfinalizer import NonFinalizer
 
 
 class Map(NonFinalizer, MinimalContainer1):
@@ -26,12 +21,12 @@ class Map(NonFinalizer, MinimalContainer1):
     def enhancer_info(self):
         return {'enhancer': self.transformer.enhancer}
 
-    def model_info(self, collection):
+    def model_info(self, collection) -> dict:
         return {
             'models': [self.transformer.model(data) for data in collection]
         }
 
-    def enhancer_func(self):
+    def enhancer_func(self) -> Callable[[], Collection]:
         enhancer = self.transformer.enhancer
 
         def transform(collection):
@@ -41,7 +36,8 @@ class Map(NonFinalizer, MinimalContainer1):
 
         return transform
 
-    def model_func(self, train_collection):
+    def model_func(self, train_collection) \
+            -> Callable[[Collection], Callable[[Collection], Collection]]:
         transformer = self.transformer
 
         def transform(collection):
