@@ -26,7 +26,7 @@ class Map(NonFinalizer, MinimalContainer1):
             'models': [self.transformer.model(data) for data in collection]
         }
 
-    def enhancer_func(self) -> Callable[[], Collection]:
+    def enhancer_func(self) -> Callable[[Collection], Collection]:
         enhancer = self.transformer.enhancer
 
         def transform(collection):
