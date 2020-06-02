@@ -59,7 +59,7 @@ class Partition(NonFinalizer, Component):
         return True
 
     def iterator(self, train: Data, test: Data) -> Iterator[Tuple[Data, Data]]:
-        # TODO: not barely optimized.
+        # TODO: parece que já é feito no Batch.
         return zip(self.enhancer.transform(train),
                    self.model(train).transform(test))
 

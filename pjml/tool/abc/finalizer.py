@@ -7,11 +7,6 @@ from pjml.tool.abc.mixin.component import Component
 
 
 class Finalizer(Batch, Component):
-    def enhancer_info(self):
-        pass
-
-    def model_info(self, data):
-        pass
 
     def enhancer_func(self):
         def transform(collection):
