@@ -21,36 +21,32 @@ class Batch:
 
     # TODO: esses métodos parecem gerais o bastante pra ir direto no Component.
     @abstractmethod
-    def enhancer_info(self):
+    def _enhancer_info(self, data):
         pass
 
     @abstractmethod
-    def model_info(self, data):
+    def _model_info(self, data):
         pass
 
     @abstractmethod
-    def enhancer_func(self):
+    def _enhancer_func(self):
         pass
 
     @abstractmethod
-    def model_func(self, data):
+    def _model_func(self, data):
         pass
 
     # TODO: isso parece geral o bastante pra ir direto no enhancer() no Component.
     def _enhancer_impl(self) -> Transformer:
-        info = self.enhancer_info
-        transform = self.enhancer_func()
         return Transformer(
-            func=transform,
-            info=info
+            func=self.enhancer_func(),
+            info=self.enhancer_info
         )
 
     def _model_impl(self, prior) -> Transformer:
-        info = self.model_info(prior)
-        transform = self.model_func(prior)
         return Transformer(
-            func=transform,
-            info=info
+            func=self.model_func(prior),
+            info=self.model_info(prior)
         )
 
     #######################################################################
