@@ -29,10 +29,9 @@ class Map(NonFinalizer, MinimalContainer1):
     def enhancer_func(self) -> Callable[[Collection], Collection]:
         enhancer = self.transformer.enhancer
 
-        def transform(collection):
+        def transform(collection: Collection):
             iterator = map(enhancer.transform, collection)
-            return Collection(iterator, lambda: collection.data,
-                              debug_info='map')
+            return Collection(iterator, lambda: collection.data, debug_info='map')
 
         return transform
 

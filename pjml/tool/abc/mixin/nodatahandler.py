@@ -1,12 +1,16 @@
 from abc import ABC
+from typing import Union
+
+from pjdata.data import Data
+from pjdata.specialdata import NoData
 
 
 class NoDataHandler(ABC):
     """All components that accept NoData should derive this class after
     deriving Transformer or descendants."""
+    name = 'NoDataHandler'
 
-    def _enforce_nodata(self, data, step):
-        from pjdata.specialdata import NoData
+    def _enforce_nodata(self, data: Union[NoData, Data], step) -> None:
         if step == 'a':
             step = 'applied'
         elif step == 'u':
