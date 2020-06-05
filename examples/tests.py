@@ -58,8 +58,8 @@ def test_metric(arq="iris.arff"):
         Metric(onenhancer=False)
     )
     prior, posterior = pipe.dual_transform()
-    print("Prior..............\n", prior)
-    print("Posterior..........\n", posterior)
+    print("Train..............\n", prior)
+    print("Test...............\n", posterior)
 
 
 def test_pca(arq="iris.arff"):

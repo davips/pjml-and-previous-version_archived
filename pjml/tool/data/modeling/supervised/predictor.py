@@ -1,42 +1,39 @@
 from abc import ABC
 from functools import lru_cache
+from typing import Callable, Dict, Any, List
 
+from pjdata.data import Data
 from pjdata.step.transformation import Transformation
-from pjdata.step.transformer import Transformer
+from pjml.tool.abc.mixin.DefaultEnhancer import DefaultEnhancer
 from pjml.tool.abc.mixin.exceptionhandler import BadComponent
 from pjml.tool.data.algorithm import TSKLAlgorithm
 
 
-class TPredictor(TSKLAlgorithm, ABC):
+class TPredictor(DefaultEnhancer, TSKLAlgorithm, ABC):
     """
     Base class for classifiers, regressors, ... that implement fit/predict.
     """
 
-    @lru_cache()
-    def _info(self, prior):  # old apply
+    def _model_info(self, train: Data) -> Dict[str, Any]:
         sklearn_model = self.algorithm_factory()
-        sklearn_model.fit(*prior.Xy)
-        return {'sklearn_model': sklearn_model}
+        sklearn_model.fit(*train.Xy)
+        return {"sklearn_model": sklearn_model}
 
-    def _model_impl(self, prior):
-        info = self._info(prior)
+    def _model_func(self, train: Data) -> Callable[[Data], Data]:
+        info = self._model_info(train)
 
         def transform(posterior):  # old use
             return posterior.updated(
-                self.transformations('u'),
-                # desnecessário ? #TODO: memory leak?
-                z=self._info(prior)['sklearn_model'].predict(posterior.X)
+                self.transformations("u"), z=info["sklearn_model"].predict(posterior.X)
             )
 
-        return Transformer(func=transform, info=info)
+        return transform
 
-    def _enhancer_impl(self):
-        return Transformer(func=lambda posterior: posterior.frozen, info={})
-
-    def transformations(self, step, clean=True):
-        if step == 'a':
+    @lru_cache()
+    def transformations(self, step: str, clean: bool = True) -> List[Transformation]:
+        if step == "a":
             return []
-        elif step == 'u':
+        elif step == "u":
             return [Transformation(self, step)]
         else:
-            raise BadComponent('Wrong current step:', step)
+            raise BadComponent("Wrong current step:", step)

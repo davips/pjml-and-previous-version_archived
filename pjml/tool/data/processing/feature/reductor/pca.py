@@ -1,8 +1,11 @@
 from functools import lru_cache
+from typing import Callable, Dict, Any
 
 from numpy.random.mtrand import uniform
 from sklearn.decomposition import PCA as SKLPCA
 
+from pjdata.aux.util import DataT
+from pjdata.data import Data
 from pjdata.step.transformer import Transformer
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.node import Node
@@ -15,29 +18,28 @@ class PCA(TSKLAlgorithm):
         super().__init__(sklconfig, SKLPCA, onenhancer=onenhancer,
                          onmodel=onmodel)
 
-    @lru_cache()
-    def _info(self, prior):  # old apply
+    def _enhancer_info(self, data: Data) -> Dict[str, Any]:
+        return self._info(data)
+
+    def _enhancer_func(self) -> Callable[[Data], Data]:
+        return lambda train: self.predict(train, train)
+
+    def _model_info(self, train: Data) -> Dict[str, Any]:
+        return self._info(train)
+
+    def _model_func(self, train: Data) -> Callable[[Data], Data]:
+        return lambda test: self.predict(train, test)
+
+    def _info(self, data: Data) -> Dict[str, Any]:
         sklearn_model = self.algorithm_factory()
-        sklearn_model.fit(prior.X)
+        sklearn_model.fit(data.X)
         return {'sklearn_model': sklearn_model}
 
-    def predict(self, prior, posterior):  # old use
-        info = self._info(prior)
-        return posterior.updated(
+    def predict(self, train: Data, test: Data) -> Data:
+        info = self._info(train)
+        return test.updated(
             self.transformations('u'),  # desnecessário?
-            X=info['sklearn_model'].transform(posterior.X)
-        )
-
-    def _model_impl(self, prior):
-        return Transformer(
-            func=lambda posterior: self.predict(prior, posterior),
-            info=self._info(prior)
-        )
-
-    def _enhancer_impl(self):
-        return Transformer(
-            func=lambda prior: self.predict(prior, prior),
-            info=self._info
+            X=info['sklearn_model'].transform(test.X)
         )
 
     @classmethod
