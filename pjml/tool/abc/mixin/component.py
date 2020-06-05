@@ -18,20 +18,21 @@ from pjml.tool.abc.mixin.exceptionhandler import BadComponent
 
 class Component(Printable, Identifyable, ABC):
     def __init__(
-            self,
-            config: dict,
-            onenhancer: bool = True,
-            onmodel: bool = True,
-            deterministic: bool = False,
-            nodata_handler: bool = False
+        self,
+        config: dict,
+        onenhancer: bool = True,
+        onmodel: bool = True,
+        deterministic: bool = False,
+        nodata_handler: bool = False,
     ):
-        jsonable = {'_id': f'{self.name}@{self.path}', 'config': config}
+        jsonable = {"_id": f"{self.name}@{self.path}", "config": config}
         Printable.__init__(self, jsonable)
 
         self.config = config
         self.deterministic = deterministic
 
         from pjml.tool.abc.mixin.nodatahandler import NoDataHandler
+
         self.nodata_handler = isinstance(self, NoDataHandler) or nodata_handler
 
         self.cs = self.cs1
@@ -43,11 +44,11 @@ class Component(Printable, Identifyable, ABC):
         pass
 
     @abstractmethod
-    def _model_info(self, data: DataT) -> Dict[str, Any]:
+    def _enhancer_func(self) -> Callable[[DataT], DataT]:
         pass
 
     @abstractmethod
-    def _enhancer_func(self) -> Callable[[DataT], DataT]:
+    def _model_info(self, data: DataT) -> Dict[str, Any]:
         pass
 
     @abstractmethod
@@ -55,38 +56,29 @@ class Component(Printable, Identifyable, ABC):
         pass
 
     def _enhancer_impl(self) -> Transformer:
-        return Transformer(
-            func=self._enhancer_func(),
-            info=self._enhancer_info
-        )
+        return Transformer(func=self._enhancer_func(), info=self._enhancer_info)
 
     def _model_impl(self, prior) -> Transformer:
-        return Transformer(
-            func=self._model_func(prior),
-            info=self._model_info(prior)
-        )
+        return Transformer(func=self._model_func(prior), info=self._model_info(prior))
 
     def iterators(
-            self,
-            prior_collection: Collection,
-            posterior_collection: Collection
+        self, prior_collection: Collection, posterior_collection: Collection
     ) -> Tuple[Iterator, Iterator]:
-        raise Exception('NotImplementedError: Only concurrent components have '
-                        'iterators')
+        raise Exception(
+            "NotImplementedError: Only concurrent components have " "iterators"
+        )
 
     @Property
     @lru_cache()
     def enhancer(self) -> Transformer:  # clean, cleaup, dumb, dumb_transformer
+        self.disable_pretty_printing()
         if not self.onenhancer:
             return Transformer(None, None)
         return self._enhancer_impl()
 
     # TODO: verify if Data (/ Collection?) should have a better __hash__
     @lru_cache()
-    def model(
-            self,
-            prior: DataCollT
-    ) -> Transformer:  # smart, smart_transformer
+    def model(self, prior: DataCollT) -> Transformer:  # smart, smart_transformer
         if isinstance(prior, tuple):
             prior = prior[0]
         if not self.onmodel:
@@ -96,9 +88,7 @@ class Component(Printable, Identifyable, ABC):
     # TODO: special sub class for concurrent components containing the content
     #   of this IF and the parent ABC method iterator().
     def dual_transform(
-            self,
-            prior: DataCollT,
-            posterior: DataCollT
+        self, prior: DataCollT, posterior: DataCollT
     ) -> Tuple[DataCollT, DataCollT]:
 
         # We need to put the ignore here because @porperty has not annotations.
@@ -150,13 +140,13 @@ class Component(Printable, Identifyable, ABC):
     def _to_config(locals_):
         """Convert a dict coming from locals() to config."""
         config = locals_.copy()
-        del config['self']
-        del config['__class__']
-        if 'kwargs' in config:
-            del config['kwargs']
-        if 'onenhancer' in config:
-            del config['onenhancer']
-            del config['onmodel']
+        del config["self"]
+        del config["__class__"]
+        if "kwargs" in config:
+            del config["kwargs"]
+        if "onenhancer" in config:
+            del config["onenhancer"]
+            del config["onmodel"]
         return config
 
     def _uuid_impl(self):
@@ -209,6 +199,12 @@ class Component(Printable, Identifyable, ABC):
         A ready to use transformer.
         """
         config = self.config
+        if 'onmodel' not in self.config:
+            config.update({'onmodel': self.onmodel})
+
+        if 'onenhancer' not in self.config:
+            config.update({'onenhancer': self.onenhancer})
+
         if kwargs:
             config = config.copy()
             config.update(kwargs)
@@ -216,11 +212,7 @@ class Component(Printable, Identifyable, ABC):
 
     # TODO: Is unbounded lrucache a source of memory leak?
     @lru_cache()
-    def transformations(
-            self,
-            step: str,
-            clean: bool = True
-    ) -> List[Transformation]:
+    def transformations(self, step: str, clean: bool = True) -> List[Transformation]:
         """Expected transformation described as a list of Transformation
         objects.
 
@@ -239,7 +231,7 @@ class Component(Printable, Identifyable, ABC):
         -------
             list of Transformation
         """
-        if step in 'au':
+        if step in "au":
             return [Transformation(self, step)]
         else:
-            raise BadComponent('Wrong current step:', step)
+            raise BadComponent("Wrong current step:", step)
