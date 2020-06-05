@@ -4,8 +4,8 @@ from itertools import tee
 from typing import Tuple, Iterator, Callable
 
 from pjdata.aux.util import Property
-from pjdata.collection import Collection
-from pjdata.data import Data
+from pjdata.content.collection import Collection
+from pjdata.content.data import Data
 
 
 def unzip_iterator(iterator: Iterator) -> Tuple[Iterator, Iterator]:
@@ -13,10 +13,10 @@ def unzip_iterator(iterator: Iterator) -> Tuple[Iterator, Iterator]:
     return map(operator.itemgetter(0), i1), map(operator.itemgetter(1), i2)
 
 
-class Batch(ABC):
+class Streamer(ABC):
     """Parent mixin for all classes that manipulate collections."""
-
-    onenhancer = onmodel = True  # Come from Component to children classes.
+    enhance = model = True  # Come from Component to children classes.
+    #TODO: i'm not sure this affects parent class' flags
 
     @abstractmethod
     def _enhancer_func(self) -> Callable[[Collection], Collection]:
@@ -36,10 +36,10 @@ class Batch(ABC):
             yield self._enhancer_func()(dtr), self._model_func(dtr)(dts)
 
     def dual_transform(self, train, test):
-        if not self.onenhancer:
-            return train, self._model_func(train)(test)
-        if not self.onmodel:
-            return self._enhancer_func()(train), test
+        if not self._enhance:
+            return train, self.model_func(train)(test)
+        if not self._model:
+            return self.enhancer_func()(train), test
 
         iterator1, iterator2 = unzip_iterator(self.iterator(train, test))
         coll1 = Collection(

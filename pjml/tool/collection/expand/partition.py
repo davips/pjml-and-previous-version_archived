@@ -1,7 +1,7 @@
 from functools import lru_cache
 from typing import Optional, List, Tuple, Iterator
 
-from pjdata.data import Data
+from pjdata.content.data import Data
 from pjml.tool.abc.mixin.component import Component
 from pjml.tool.abc.nonfinalizer import NonFinalizer
 from pjml.tool.chain import Chain
@@ -58,7 +58,7 @@ class Partition(NonFinalizer, Component):
         return True
 
     def iterator(self, train: Data, test: Data) -> Iterator[Tuple[Data, Data]]:
-        # TODO: parece que já é feito no Batch.
+        # TODO: parece que já é feito no Streamer.
         return zip(self.enhancer.transform(train),
                    self.model(train).transform(test))
 

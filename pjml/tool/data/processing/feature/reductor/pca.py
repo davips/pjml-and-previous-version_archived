@@ -1,9 +1,9 @@
-from typing import Callable, Dict, Any
+from typing import Dict, Any, Callable
 
 from numpy.random.mtrand import uniform
 from sklearn.decomposition import PCA as SKLPCA
 
-from pjdata.data import Data
+from pjdata.types import Data
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import RealP, FixedP
@@ -11,8 +11,11 @@ from pjml.tool.data.algorithm import TSKLAlgorithm
 
 
 class PCA(TSKLAlgorithm):
-    def __init__(self, onenhancer: bool = True, onmodel: bool = True, **kwargs):
-        super().__init__(kwargs, SKLPCA, onenhancer=onenhancer, onmodel=onmodel)
+    def __init__(self, enhance=True, model=True, **sklconfig):
+        super().__init__(sklconfig, SKLPCA, enhance=enhance,
+                         model=model)
+    def __init__(self, enhancer: bool = True, model: bool = True, **kwargs):
+        super().__init__(kwargs, SKLPCA, enhancer=enhancer, model=model)
 
     def _enhancer_info(self, data: Data) -> Dict[str, Any]:
         return self._info(data)

@@ -9,9 +9,9 @@ from pjml.tool.data.modeling.supervised.predictor import TPredictor
 
 
 class SVMC(TPredictor):
-    def __init__(self, onenhancer=True, onmodel=True, **sklconfig):
+    def __init__(self, enhance=True, model=True, **sklconfig):
         super().__init__(sklconfig, SVC,
-                         onenhancer=onenhancer, onmodel=onmodel)
+                         enhance=enhance, model=model)
 
     @classmethod
     def _cs_impl(cls):

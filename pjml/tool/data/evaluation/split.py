@@ -9,8 +9,9 @@ from sklearn.model_selection import (
     LeaveOneOut as LOO,
 )
 
-from pjdata.aux.util import DataT
-from pjdata.data import Data
+import pjdata.types as t
+from pjdata.content.data import Data
+from pjdata.transformer import Transformer
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import IntP
@@ -71,7 +72,7 @@ class AbstractSplit(Component, FunctionInspector, NoDataHandler, ABC):
             except Exception as e:
                 print(f"\nProblems splitting matrix {f}:", e)
                 exit()
-        return data.updated(self.transformations(step), **new_dic)
+        return data.updated((), **new_dic)
 
     @classmethod
     def _cs_impl(cls) -> TransformerCS:
@@ -127,7 +128,7 @@ class Split(AbstractSplit):
     def _model_info(self, data: Data) -> Dict[str, Any]:
         return self.transformer._model_info(data)
 
-    def _model_func(self, prior: DataT) -> Callable[[Data], Data]:
+    def _model_func(self, prior: Data) -> Callable[[Data], Data]:
         return self.transformer._model_func(prior)
 
 

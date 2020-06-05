@@ -1,6 +1,5 @@
 """Test"""
-from pjdata.specialdata import NoData
-
+import pjdata.content.specialdata as s
 from pjml.pipeline import Pipeline
 from pjml.tool.collection.expand.partition import Partition
 from pjml.tool.collection.reduce.reduce import Reduce
@@ -43,15 +42,26 @@ def test_split(arq="iris.arff"):
 
 
 def test_metric(arq="iris.arff"):
-    pipe = Pipeline(File(arq), Split(), SVMC(), Metric(onenhancer=False))
+    pipe = Pipeline(
+        File(arq),
+        Split(),
+        SVMC(),
+        Metric(enhance=False)
+    )
     prior, posterior = pipe.dual_transform()
-    print("Train..............\n", prior)
-    print("Test...............\n", posterior)
+    print("Prior..............\n", prior)
+    print("Posterior..........\n", posterior)
 
 
 def test_pca(arq="iris.arff"):
     cs = File(arq).cs
-    pipe = Pipeline(File(arq), Split(), PCA(), SVMC(), Metric(onenhancer=False))
+    pipe = Pipeline(
+        File(arq),
+        Split(),
+        PCA(),
+        SVMC(),
+        Metric(enhance=False)
+    )
     prior, posterior = pipe.dual_transform()
     print("Prior..............\n", prior)
     print("Posterior..........\n", posterior)
@@ -61,10 +71,10 @@ def test_partition(arq="iris.arff"):
     pipe = Pipeline(
         File(arq),
         Partition(),
-        Map(PCA(), SVMC(), Metric(onenhancer=False)),
-        RSumm(function="mean", onenhancer=False),
+        Map(PCA(), SVMC(), Metric(enhance=False)),
+        RSumm(function='mean', enhance=False),
         Reduce(),
-        Report("mean ... S: $S", onenhancer=False),
+        Report('mean ... S: $S', enhance=False)
     )
     prior, posterior = pipe.dual_transform()
 
@@ -79,8 +89,8 @@ def test_split_train_test(arq="iris.arff"):
         SplitTest(),
         PCA(),
         SVMC(),
-        Metric(onenhancer=False),
-        Report("metric ... R: $R", onenhancer=False),
+        Metric(enhance=False),
+        Report('metric ... R: $R', enhance=False)
     )
     prior, posterior = pipe.dual_transform()
 
@@ -92,11 +102,11 @@ def test_with_summ_reduce(arq="iris.arff"):
     pipe = Pipeline(
         File(arq),
         Partition(),
-        Map(PCA(), SVMC(), Metric(onenhancer=False)),
-        Map(Report("<---------------------- etapa"), onenhancer=False),
-        RSumm(function="mean", onenhancer=False),
+        Map(PCA(), SVMC(), Metric(enhance=False)),
+        Map(Report('<---------------------- etapa'), enhance=False),
+        RSumm(function='mean', enhance=False),
         Reduce(),
-        Report("mean ... S: $S", onenhancer=False),
+        Report('mean ... S: $S', enhance=False)
     )
     prior, posterior = pipe.dual_transform()
 
@@ -108,14 +118,14 @@ def test_check_architecture(arq="iris.arff"):
     pipe = Pipeline(
         File(arq),
         Partition(partitions=2),
-        Map(PCA(), SVMC(), Metric(onenhancer=False)),
-        RSumm(field="Y", function="mean", onenhancer=False),
+        Map(PCA(), SVMC(), Metric(enhance=False)),
+        RSumm(field="Y", function='mean', enhance=False),
     )
 
     # tenho file na frente
-    prior_01 = pipe.enhancer.transform(NoData)
-    posterior_01 = pipe.model(NoData).transform(NoData)
-    prior_02, posterior_02 = pipe.dual_transform(NoData, NoData)
+    prior_01 = pipe.enhancer.transform(s.NoData)
+    posterior_01 = pipe.model(s.NoData).transform(s.NoData)
+    prior_02, posterior_02 = pipe.dual_transform(s.NoData, s.NoData)
 
     # Collection uuid depends on data, which depends on consumption.
     for t, *_ in prior_01, prior_02, posterior_01, posterior_02:
@@ -130,17 +140,17 @@ def test_check_architecture2(arq="iris.arff"):
     pipe = Pipeline(
         File(arq),
         Partition(),
-        Map(PCA(), SVMC(), Metric(onenhancer=False)),
-        RSumm(field="Y", function="mean", onenhancer=False),
-        Report("mean ... S: $S", onenhancer=False),
+        Map(PCA(), SVMC(), Metric(enhance=False)),
+        RSumm(field="Y", function='mean', enhance=False),
+        Report('mean ... S: $S', enhance=False)
     )
 
     # tenho file na frente
-    prior_ = pipe.enhancer.transform(NoData)
-    posterior_ = pipe.model(NoData).transform(NoData)
-    posterior_ = pipe.model(NoData).transform((NoData, NoData))
-    prior_, posterior_ = pipe.dual_transform(NoData, NoData)
-    prior_, posterior_ = pipe.dual_transform(NoData, (NoData, NoData))
+    prior_ = pipe.enhancer.transform(s.NoData)
+    posterior_ = pipe.model(s.NoData).transform(s.NoData)
+    posterior_ = pipe.model(s.NoData).transform((s.NoData, s.NoData))
+    prior_, posterior_ = pipe.dual_transform(s.NoData, s.NoData)
+    prior_, posterior_ = pipe.dual_transform(s.NoData, (s.NoData, s.NoData))
 
     # prior_ = pipe.enhancer().transform()
     # posterior_ = pipe.model().transform()
@@ -176,7 +186,7 @@ def main():
     test_split()
     test_metric()
     test_pca()
-    test_partition()
+    # test_partition()
     # test_split_train_test()
     # test_with_summ_reduce()
 

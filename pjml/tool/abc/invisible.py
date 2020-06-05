@@ -1,7 +1,7 @@
 from functools import lru_cache
 from typing import List
 
-from pjdata.step.transformation import Transformation
+from pjdata.transformer import Transformer
 
 
 class Invisible:
@@ -15,7 +15,7 @@ class Invisible:
             self,
             step: str,
             clean: bool = True
-    ) -> List[Transformation]:
+    ) -> List[Transformer]:
 
         """Invisible components produce no transformations, so they need to
         override the list of expected transformations with []."""

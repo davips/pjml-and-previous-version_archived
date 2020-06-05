@@ -3,12 +3,12 @@ from typing import Callable, Dict, Any
 
 import numpy as np
 
-from pjdata.aux.util import flatten, DataT
-from pjdata.data import Data
-from pjdata.step.transformer import Transformer
+import pjdata.types as t
+from pjdata.aux.util import flatten
+from pjdata.content.data import Data
 from pjml.config.description.cs.emptycs import EmptyCS
-from pjml.tool.abc.mixin.component import Component
 from pjml.tool.abc.invisible import Invisible
+from pjml.tool.abc.mixin.component import Component
 
 
 class Report(Invisible, Component):
@@ -27,17 +27,17 @@ class Report(Invisible, Component):
         super().__init__({'text': text}, deterministic=True, **kwargs)
         self.text = text
 
-    def _enhancer_info(self, data: DataT) -> Dict[str, Any]:
+    def _enhancer_info(self, data: t.Data) -> Dict[str, Any]:
         return {}
 
     def _enhancer_func(self) -> Callable[[Data], Data]:
         step = '[model] '
         return lambda train: self._transform(train, step)
 
-    def _model_info(self, data: DataT) -> Dict[str, Any]:
+    def _model_info(self, data: Data) -> Dict[str, Any]:
         return {}
 
-    def _model_func(self, train: DataT) -> Callable[[DataT], DataT]:
+    def _model_func(self, train: t.Data) -> Callable[[t.Data], t.Data]:
         step = '[enhancer] '
         return lambda test: self._transform(test, step)
 

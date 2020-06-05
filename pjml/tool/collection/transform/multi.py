@@ -1,8 +1,8 @@
 from functools import lru_cache
-from typing import Optional, Tuple, Any, Dict, Callable
+from typing import Optional, Tuple, Dict, Callable, Any
 
 from pjdata.aux.util import Property
-from pjdata.collection import Collection
+from pjdata.content.collection import Collection
 from pjml.config.description.cs.containercs import ContainerCS
 from pjml.tool.abc.minimalcontainer import MinimalContainerN
 from pjml.tool.abc.mixin.component import Component

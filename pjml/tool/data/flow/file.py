@@ -1,11 +1,10 @@
+import pjdata.types as t
 from functools import lru_cache
-from typing import List, Callable, Dict, Any
+from typing import List, Callable, Dict, Any, Tuple
 
-from pjdata.aux.util import DataT
-from pjdata.data import Data
 from pjdata.data_creation import read_arff
-from pjdata.specialdata import NoData
-from pjdata.step.transformation import Transformation
+from pjdata.content.specialdata import NoData
+from pjdata.transformer import Transformer
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import FixedP
@@ -16,6 +15,10 @@ from pjml.tool.abc.mixin.nodatahandler import NoDataHandler
 # Precisa herdar de Invisible, pois o mesmo Data pode vir de diferentes
 # caminhos de arquivo (File) ou servidores (Source) e essas informações são
 # irrelevantes para reprodutibilidade. Herdando de Invisible, o histórico é [].
+
+
+class DataT(object):
+    pass
 
 
 class File(Component, NoDataHandler):
@@ -71,17 +74,17 @@ class File(Component, NoDataHandler):
     def _enhancer_info(self, train: NoData) -> Dict[str, Any]:
         return {}
 
-    def _enhancer_func(self) -> Callable[[DataT], DataT]:
+    def _enhancer_func(self) -> Callable[[t.Data], t.Data]:
         return self._transform()
 
     def _model_info(self, test: NoData) -> Dict[str, Any]:
         return {}
 
-    def _model_func(self, train: DataT) -> Callable[[DataT], DataT]:
+    def _model_func(self, train: t.Data) -> Callable[[t.Data], t.Data]:
         self._enforce_nodata(train, "a")  # fixei 'a'
         return self._transform()
 
-    def _transform(self) -> Callable[[NoData], Data]:
+    def _transform(self) -> Callable[[NoData], t.Data]:
         def transform(test):  # old use/apply
             self._enforce_nodata(test, "u")  # fixei 'u'
             return self.data
@@ -102,5 +105,9 @@ class File(Component, NoDataHandler):
         return TransformerCS(Node(params=params))
 
     @lru_cache()
-    def transformations(self, step: str, clean: bool = True) -> List[Transformation]:
-        return [Transformation(self, "u")]
+    def transformations(
+            self,
+            step: str,
+            clean: bool = True
+    ) -> Tuple[Transformer]:
+        return ()

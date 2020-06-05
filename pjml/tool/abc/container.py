@@ -9,7 +9,7 @@ from pjml.tool.abc.mixin.component import Component
 class Container(Component, ABC):
     """A container modifies 'transformer(s)'."""
 
-    def __init__(self, config, seed, transformers, onenhancer, onmodel,
+    def __init__(self, config, seed, transformers, enhance, model,
                  deterministic):
         if not transformers:
             raise Exception(
@@ -27,20 +27,16 @@ class Container(Component, ABC):
             kwargs = {}
             if 'seed' not in transformer.config and not transformer.deterministic:
                 kwargs['seed'] = seed
-
-            if not onmodel:
-                kwargs['onmodel'] = onmodel
-
-            if not onenhancer:
-                kwargs['onenhancer'] = onenhancer
-
+            for arg in ['enhance', 'model']:
+                if arg not in transformer.config:
+                    kwargs[arg] = locals()[arg]
             transformer = transformer.updated(**kwargs)
             self.transformers.append(transformer)
 
         complete_config = {'transformers': self.transformers}
         complete_config.update(config)
         super().__init__(complete_config,
-                         onenhancer=onenhancer, onmodel=onmodel,
+                         enhance=enhance, model=model,
                          deterministic=deterministic,
                          nodata_handler=self.transformers[0].nodata_handler)
 

@@ -2,10 +2,11 @@ from functools import lru_cache
 from itertools import tee
 from typing import Optional, Tuple, Dict, List, Callable, Any
 
-from pjdata.aux.util import DataCollTupleT, DataT, flatten
-from pjdata.collection import Collection
-from pjdata.specialdata import NoData
-from pjdata.step.transformation import Transformation
+import pjdata.types as t
+from pjdata.aux.util import flatten
+from pjdata.content.collection import Collection
+from pjdata.content.specialdata import NoData
+from pjdata.transformer import Transformer
 from pjml.config.description.cs.chaincs import TChainCS
 from pjml.tool.abc.minimalcontainer import MinimalContainerN
 from pjml.tool.abc.mixin.component import Component
@@ -32,19 +33,22 @@ class Chain(MinimalContainerN):
             return object.__new__(cls)
         return TChainCS(*transformers)
 
-    def dual_transform(
-        self, prior: DataCollTupleT = NoData, posterior: DataCollTupleT = NoData
-    ) -> Tuple[DataCollTupleT, DataCollTupleT]:
-        print(self.__class__.__name__, " dual transf (((")
+    def dual_transform( # TODO: type overload
+            self,
+            prior: t.DataOrCollOrTup = NoData,
+            posterior: t.DataOrCollOrTup = NoData
+    ) -> Tuple[t.DataOrCollOrTup, t.DataOrCollOrTup]:
+        print(self.__class__.__name__, ' dual transf (((')
         for trf in self.transformers:
             prior, posterior = trf.dual_transform(prior, posterior)
         return prior, posterior
 
-    def _enhancer_info(self, data: DataT = None) -> Dict[str, Any]:
-        return {"enhancers": [trf.enhancer for trf in self.transformers]}
+    @lru_cache()
+    def _enhancer_info(self, data: Optional[t.Data]=None) -> Dict[str, Any]:
+        return {'enhancers': [trf.enhancer for trf in self.transformers]}
 
-    def _enhancer_func(self) -> Callable[[DataT], DataT]:
-        enhancers = self._enhancer_info()["enhancers"]
+    def _enhancer_func(self) -> Callable[[t.Data], t.Data]:
+        enhancers = self._enhancer_info()['enhancers']
 
         def transform(prior):
             for enhancer in enhancers:
@@ -53,45 +57,46 @@ class Chain(MinimalContainerN):
 
         return transform
 
-    def _model_info(self, train: DataT) -> Dict[str, Any]:
+    @lru_cache()
+    def _model_info(self, train: t.Data) -> Dict[str, Any]:
         models = []
         for trf in self.transformers:
             if isinstance(train, Collection):
                 iter0, iter1 = tee(train.iterator)
                 prior0 = Collection(
-                    iter0,
-                    train.finalizer,
-                    debug_info="compo" + self.__class__.__name__ + " pri",
-                )
+                    iter0, train.finalizer,
+                    debug_info='compo' + self.__class__.__name__ + ' pri')
                 prior1 = Collection(
-                    iter1,
-                    train.finalizer,
-                    debug_info="compo" + self.__class__.__name__ + " pos",
-                )
+                    iter1, train.finalizer,
+                    debug_info='compo' + self.__class__.__name__ + ' pos')
             else:
                 prior0 = prior1 = train
-            print("                   gera modelo", trf.name)
+            print('                   gera modelo', trf.name)
             models.append(trf.model(prior0))
 
-            print("      melhora dado pro próximo modelo", trf.name)
+            print('      melhora dado pro próximo modelo', trf.name)
             train = trf.enhancer.transform(prior1)
-        return {"models": models}
+        return {'models': models}
 
-    def _model_func(self, train: DataT) -> Callable[[DataT], DataT]:
-        models = self._model_info(train)
+    def _model_func(self, data: t.Data) -> Callable[[t.Data], t.Data]:
+        models = self._model_info(data)
 
-        def transform(test: DataT):
+        def transform(posterior: t.Data):
             c = 0
-            for model in models["models"]:
-                print("                 USA modelo", c, model)
-                test = model.transform(test)
+            for model in models['models']:
+                print('                 USA modelo', c, model)
+                posterior = model.transform(posterior)
                 c += 1
-            return test
+            return posterior
 
         return transform
 
     @lru_cache()
-    def transformations(self, step: str, clean: bool = True) -> List[Transformation]:
+    def transformations(
+            self,
+            step: str,
+            clean: bool = True
+    ) -> List[Transformer]:
         lst = []
         for transformer in self.transformers:
             transformations = transformer.transformations(step, clean=False)
@@ -108,11 +113,11 @@ class Chain(MinimalContainerN):
             result = lst[:-1]
         return result
 
-    def __str__(self, depth=""):
+    def __str__(self, depth=''):
         if not self.pretty_printing:
             return super().__str__()
 
         txts = []
         for t in self.transformers:
             txts.append(t.__str__(depth))
-        return "\n".join(txts)
+        return '\n'.join(txts)

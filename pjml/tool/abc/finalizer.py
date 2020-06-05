@@ -1,12 +1,12 @@
 from abc import abstractmethod
 from typing import Tuple, Iterator, Callable
 
-from pjdata.collection import Collection, AccResult
-from pjml.tool.abc.mixin.batch import Batch
+from pjdata.content.collection import Collection, AccResult
+from pjml.tool.abc.mixin.streamer import Streamer
 from pjml.tool.abc.mixin.component import Component
 
 
-class Finalizer(Batch, Component):
+class Finalizer(Streamer, Component):
 
     def _enhancer_func(self) -> Callable[[Collection], Collection]:
         def transform(train_coll: Collection) -> Collection:

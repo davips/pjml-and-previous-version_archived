@@ -1,8 +1,8 @@
 from typing import Union, Tuple, Optional, Any, Dict, Callable
 
 from pjdata.aux.util import Property
-from pjdata.collection import Collection
-from pjdata.data import Data
+from pjdata.content.collection import Collection
+from pjdata.content.data import Data
 from pjml.tool.abc.invisible import Invisible
 from pjml.tool.abc.mixin.component import Component
 from pjml.tool.abc.nonfinalizer import NonFinalizer
@@ -52,10 +52,10 @@ class Reduce(Invisible, NonFinalizer, Component):
             test_collection: Collection
     ) -> Union[Tuple[Data, Data], Tuple[Data, Tuple[Data, ...]]]:
         # # Handle non-collection cases.  <- makes no sense
-        # if not self.onenhancer and not self.onmodel:
+        # if not self.enhance and not self.onmodel:
         #     return train_collection, test_collection
-        # train_iterator = train_collection if self.onenhancer else repeat(None)
-        # train_iterator = train_collection if self.onenhancer else repeat(None)
+        # train_iterator = train_collection if self.enhance else repeat(None)
+        # train_iterator = train_collection if self.enhance else repeat(None)
 
         # Consume iterators.
         for _ in zip(train_collection, test_collection):
