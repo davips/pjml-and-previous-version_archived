@@ -3,7 +3,7 @@ from typing import Callable, Any, Dict
 
 import pjdata.types as t
 from pjdata.transformer import Transformer
-from pjml.tool.abc.mixin.DefaultEnhancer import DefaultEnhancer
+from pjml.tool.abc.mixin.defaultenhancer import DefaultEnhancer
 from pjml.tool.data.algorithm import TSKLAlgorithm
 
 

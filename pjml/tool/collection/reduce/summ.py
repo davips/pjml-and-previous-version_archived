@@ -3,8 +3,8 @@ from typing import Callable, Iterable, Dict, Any
 import numpy
 from numpy import mean
 
-from pjdata.collection import Collection
-from pjdata.data import Data
+from pjdata.content.collection import Collection
+from pjdata.content.data import Data
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.distributions import choice
 from pjml.config.description.node import Node

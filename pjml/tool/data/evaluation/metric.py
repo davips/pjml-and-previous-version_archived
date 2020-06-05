@@ -30,6 +30,7 @@ class Metric(Component, FunctionInspector):
     """
 
     def __init__(self, functions=None, target="Y", prediction="Z", **kwargs):
+        print('KWARGS --> ', kwargs)
         if functions is None:
             functions = ["accuracy"]
         super().__init__(self._to_config(locals()), deterministic=True, **kwargs)
@@ -37,12 +38,17 @@ class Metric(Component, FunctionInspector):
         self.target, self.prediction = target, prediction
         self.selected = [self.function_from_name[name] for name in functions]
 
+        print('MeTRICCCCCCCCCCCCCCCCCCCCCCCC')
+        print(self._enhance)
+
+    @lru_cache()
     def _enhancer_info(self, train: t.Data) -> Dict[str, Any]:
         return {}
 
     def _enhancer_func(self) -> Callable[[t.Data], t.Data]:
         return lambda train: self._transform(train)
 
+    @lru_cache()
     def _model_info(self, test: t.Data) -> Dict[str, Any]:
         return {}
 
@@ -54,7 +60,7 @@ class Metric(Component, FunctionInspector):
         measures = [[f(data, self.target, self.prediction) for f in self.selected]]
         return {"computed_metric": measures}
 
-    def _transform(self, data, step="u") -> t.Data:
+    def _transform(self, data) -> t.Data:
         computed_metric = self._info(data)["computed_metric"]
         return data.updated((), R=np.array(computed_metric))
 

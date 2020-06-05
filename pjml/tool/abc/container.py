@@ -9,15 +9,15 @@ from pjml.tool.abc.mixin.component import Component
 class Container(Component, ABC):
     """A container modifies 'transformer(s)'."""
 
-    def __init__(self, config, seed, transformers, enhance, model,
-                 deterministic):
+    def __init__(self, config, seed, transformers, enhance, model, deterministic):
         if not transformers:
             raise Exception(
-                f'A container ({self.name}) should have at least one '
-                f'transformer!')
+                f"A container ({self.name}) should have at least one " f"transformer!"
+            )
 
         # transformers=[Chain(A)] should appear as transformers=[A] in config.
         from pjml.tool.chain import Chain
+
         if len(transformers) == 1 and isinstance(transformers[0], Chain):
             transformers = transformers[0].transformers
 
@@ -25,25 +25,35 @@ class Container(Component, ABC):
         self.transformers = []
         for transformer in transformers:
             kwargs = {}
-            if 'seed' not in transformer.config and not transformer.deterministic:
-                kwargs['seed'] = seed
-            for arg in ['enhance', 'model']:
-                if arg not in transformer.config:
-                    kwargs[arg] = locals()[arg]
+            if "seed" not in transformer.config and not transformer.deterministic:
+                kwargs["seed"] = seed
+
+            # if the user sets a Container attribute, this state value is passed
+            # forward to the internal Components.
+            if not model:
+                kwargs["model"] = model
+
+            if not enhance:
+                kwargs["enhance"] = enhance
+
             transformer = transformer.updated(**kwargs)
             self.transformers.append(transformer)
 
-        complete_config = {'transformers': self.transformers}
+        complete_config = {"transformers": self.transformers}
         complete_config.update(config)
-        super().__init__(complete_config,
-                         enhance=enhance, model=model,
-                         deterministic=deterministic,
-                         nodata_handler=self.transformers[0].nodata_handler)
+        super().__init__(
+            complete_config,
+            enhance=enhance,
+            model=model,
+            deterministic=deterministic,
+            nodata_handler=self.transformers[0].nodata_handler,
+        )
 
     @Property
     @lru_cache()
     def wrapped(self):
         from pjml.tool.meta.wrap import Wrap
+
         for transformer in self.transformers:
             transformer = transformer.wrapped
             if isinstance(transformer, Wrap):
@@ -54,29 +64,26 @@ class Container(Component, ABC):
     @classproperty
     def cs(cls):
         raise Exception(
-            f'{cls.name} depends on transformers to build a CS.\n'
-            f'Just instantiate the class {cls.name} instead of calling its .cs!'
+            f"{cls.name} depends on transformers to build a CS.\n"
+            f"Just instantiate the class {cls.name} instead of calling its .cs!"
         )
 
     @Property
     @lru_cache()
     def longname(self):
         names = ", ".join([tr.longname for tr in self.transformers])
-        return self.name + f'[{names}]'
+        return self.name + f"[{names}]"
 
     @classmethod
     def _cs_impl(cls):
-        raise Exception(f'Wrong calling of {cls.name}._cs_impl!')
+        raise Exception(f"Wrong calling of {cls.name}._cs_impl!")
 
-    def __str__(self, depth=''):
+    def __str__(self, depth=""):
         if not self.pretty_printing:
             return super().__str__()
 
         inner = []
         for t in self.transformers:
-            inner.append(
-                '    ' + t.__str__(depth).replace('\n', '\n' + '    '))
+            inner.append("    " + t.__str__(depth).replace("\n", "\n" + "    "))
 
-        return f'{depth}{self.name}>>\n' + \
-               '\n'.join(inner) + \
-               f'\n{depth}<<{self.name}'
+        return f"{depth}{self.name}>>\n" + "\n".join(inner) + f"\n{depth}<<{self.name}"

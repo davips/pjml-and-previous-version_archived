@@ -44,19 +44,21 @@ class Component(Printable, Identifiable, ABC):
         return self._jsonable
 
     @abstractmethod
-    def _enhancer_info(self, data: Optional[t.Data] = None) -> Dict[str, Any]:  # <-- TODO: check this optional
+    @lru_cache()
+    def _enhancer_info(self, train: t.DataOrColl) -> Dict[str, Any]:  # <-- TODO: check this optional
         pass
 
     @abstractmethod
-    def _model_info(self, data: t.Data) -> Dict[str, Any]:
+    @lru_cache()
+    def _model_info(self, train: t.DataOrColl) -> Dict[str, Any]:
         pass
 
     @abstractmethod
-    def _enhancer_func(self) -> Callable[[t.Data], t.Data]:
+    def _enhancer_func(self) -> Callable[[t.DataOrColl], t.DataOrColl]:
         pass
 
     @abstractmethod
-    def _model_func(self, data: t.Data) -> Callable[[t.Data], t.Data]:
+    def _model_func(self, train: t.DataOrColl) -> Callable[[t.DataOrColl], t.DataOrColl]:
         pass
 
     def _enhancer_impl(self) -> Transformer:
@@ -217,15 +219,20 @@ class Component(Printable, Identifiable, ABC):
         A ready to use transformer.
         """
         config = self.config
-        # if 'model' not in self.config:
-        #     config.update({'onmodel': self.model})
-        #
-        # if 'enhancer' not in self.config:
-        #     config.update({'onenhancer': self.enhancer})
+        if 'model' not in self.config:
+            config.update({'model': self._model})
+
+        if 'enhancer' not in self.config:
+            config.update({'enhance': self._enhance})
 
         if kwargs:
             config = config.copy()
             config.update(kwargs)
+
+        self.disable_pretty_printing()
+        print('OBJ: ', self)
+        print('CONFIG: ', config)
+
         return materialize(self.name, self.path, config)
 
     # # TODO: Is unbounded lrucache a source of memory leak?
