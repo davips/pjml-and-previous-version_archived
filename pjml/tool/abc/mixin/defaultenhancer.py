@@ -1,11 +1,11 @@
 from typing import Any, Dict, Callable
 
-from pjdata.content.data import Data
+from pjdata.types import DataOrColl
 
 
 class DefaultEnhancer:
-    def _enhancer_info(self, data: Data) -> Dict[str, Any]:
+    def _enhancer_info(self, data: DataOrColl) -> Dict[str, Any]:
         return {}
 
-    def _enhancer_func(self) -> Callable[[Data], Data]:
+    def _enhancer_func(self) -> Callable[[DataOrColl], DataOrColl]:
         return lambda data: data

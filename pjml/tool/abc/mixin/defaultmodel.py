@@ -1,11 +1,13 @@
+from functools import lru_cache
 from typing import Any, Dict, Callable
 
-from pjdata.types import Data
+from pjdata.types import DataOrColl
 
 
 class DefaultModel:
-    def _model_info(self, data: Data) -> Dict[str, Any]:
+    @lru_cache()
+    def _model_info(self, data: DataOrColl) -> Dict[str, Any]:
         return {}
 
-    def _model_func(self, data: Data) -> Callable[[Data], Data]:
+    def _model_func(self, data: DataOrColl) -> Callable[[DataOrColl], DataOrColl]:
         return lambda x: x
