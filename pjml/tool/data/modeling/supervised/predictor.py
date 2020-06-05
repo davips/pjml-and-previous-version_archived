@@ -2,10 +2,9 @@ from abc import ABC
 from functools import lru_cache
 
 from pjdata.step.transformation import Transformation
-from pjml.tool.abc.mixin.transformer import Transformer
+from pjdata.step.transformer import Transformer
 from pjml.tool.abc.mixin.exceptionhandler import BadComponent
 from pjml.tool.data.algorithm import TSKLAlgorithm
-from pjml.tool.transformer import TTransformer
 
 
 class TPredictor(TSKLAlgorithm, ABC):

@@ -1,5 +1,7 @@
 """Test"""
 from pjdata.specialdata import NoData
+import pjdata.specialdata
+
 from pjml.pipeline import Pipeline
 from pjml.tool.collection.expand.partition import Partition
 from pjml.tool.collection.reduce.reduce import Reduce
@@ -193,8 +195,8 @@ def main():
     test_split()
     test_metric()
     test_pca()
-    test_partition()
-    test_split_train_test()
+    # test_partition()
+    # test_split_train_test()
     # test_with_summ_reduce()
 
     # sanity test

@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from pjml.util import Property
+from pjdata.aux.util import Property
 
 
 class FunctionInspector:

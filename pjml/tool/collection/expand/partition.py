@@ -1,12 +1,11 @@
 from functools import lru_cache
-from typing import Optional, List, Dict, Any, Tuple, Iterator
+from typing import Optional, List, Tuple, Iterator
 
-from pjml.tool.abc.nonfinalizer import NonFinalizer
-from pjml.tool.collection.expand.repeat import Repeat
 from pjdata.data import Data
 from pjml.tool.abc.mixin.component import Component
-from pjml.tool.abc.mixin.transformer import Transformer
+from pjml.tool.abc.nonfinalizer import NonFinalizer
 from pjml.tool.chain import Chain
+from pjml.tool.collection.expand.repeat import Repeat
 
 
 class Partition(NonFinalizer, Component):

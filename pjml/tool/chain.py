@@ -3,15 +3,14 @@ from typing import Optional, Tuple, Dict, List
 
 from itertools import tee
 
+from pjdata.aux.util import DataCollTupleT, DataT, flatten
 from pjdata.collection import Collection
 from pjdata.specialdata import NoData
 from pjdata.step.transformation import Transformation
+from pjdata.step.transformer import Transformer
 from pjml.config.description.cs.chaincs import TChainCS
 from pjml.tool.abc.minimalcontainer import MinimalContainerN
 from pjml.tool.abc.mixin.component import Component
-from pjml.tool.abc.mixin.transformer import Transformer
-from pjml.util import TDatasTuple, TDatas
-from pjml.util import flatten
 
 
 class Chain(MinimalContainerN):
@@ -36,9 +35,9 @@ class Chain(MinimalContainerN):
 
     def dual_transform(
             self,
-            prior: TDatasTuple = NoData,
-            posterior: TDatasTuple = NoData
-    ) -> Tuple[TDatasTuple, TDatasTuple]:
+            prior: DataCollTupleT = NoData,
+            posterior: DataCollTupleT = NoData
+    ) -> Tuple[DataCollTupleT, DataCollTupleT]:
         print(self.__class__.__name__, ' dual transf (((')
         for trf in self.transformers:
             prior, posterior = trf.dual_transform(prior, posterior)
@@ -59,7 +58,7 @@ class Chain(MinimalContainerN):
         return Transformer(func=enhancer_transform, info=self._info_enhancer)
 
     @lru_cache()
-    def _info_model(self, prior: TDatas) -> Dict[str, List[Transformer]]:
+    def _info_model(self, prior: DataT) -> Dict[str, List[Transformer]]:
         models = []
         for trf in self.transformers:
             if isinstance(prior, Collection):
@@ -79,10 +78,10 @@ class Chain(MinimalContainerN):
             prior = trf.enhancer.transform(prior1)
         return {'models': models}
 
-    def _model_impl(self, prior: TDatas) -> Transformer:
+    def _model_impl(self, prior: DataT) -> Transformer:
         models = self._info_model(prior)
 
-        def model_transform(posterior: TDatas):
+        def model_transform(posterior: DataT):
             c = 0
             for model in models['models']:
                 print('                 USA modelo', c, model)
