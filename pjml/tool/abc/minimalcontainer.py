@@ -16,21 +16,21 @@ class MinimalContainer1(Container1, ABC):
 
     If more are given, they will be handled as a single Chain transformer."""
 
-    def __init__(self, *args, seed=0, transformers=None,
-                 onenhancer=True, onmodel=True):
+    def __init__(self, *args, seed=0, transformers=None, onenhancer=True, onmodel=True):
         if transformers is None:
             transformers = args
-        super().__init__({}, seed, transformers, onenhancer, onmodel,
-                         deterministic=True)
+        super().__init__(
+            {}, seed, transformers, onenhancer, onmodel, deterministic=True
+        )
 
 
 class MinimalContainerN(ContainerN, ABC):
     """Container with minimum configuration (seed) for more than one
     transformer."""
 
-    def __init__(self, *args, seed=0, transformers=None,
-                 onenhancer=True, onmodel=True):
+    def __init__(self, *args, seed=0, transformers=None, onenhancer=True, onmodel=True):
         if transformers is None:
             transformers = args
-        super().__init__({}, seed, transformers, onenhancer, onmodel,
-                         deterministic=True)
+        super().__init__(
+            {}, seed, transformers, onenhancer, onmodel, deterministic=True
+        )
