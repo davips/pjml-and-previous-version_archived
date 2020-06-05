@@ -3,12 +3,13 @@ from typing import Tuple, Iterator, Dict, Any, Callable
 
 from pjdata.content.collection import Collection
 from pjdata.content.data import Data
+from pjdata.mixin.noinfo import NoInfo
 from pjml.config.description.cs.emptycs import EmptyCS
 from pjml.tool.abc.mixin.component import Component
 from pjml.tool.abc.nonfinalizer import NonFinalizer
 
 
-class Repeat(NonFinalizer, Component):
+class Repeat(NoInfo, NonFinalizer, Component):
     """Data -> Collection"""
 
     def __init__(self, **kwargs):
@@ -17,12 +18,6 @@ class Repeat(NonFinalizer, Component):
     @property
     def finite(self):
         return False
-
-    def _enhancer_info(self, data: Data) -> Dict[str, Any]:
-        return {}
-
-    def _model_info(self, data: Data) -> Dict[str, Any]:
-        return {}
 
     def _enhancer_func(self) -> Callable[[Data], Collection]:
         return lambda d: Collection(
