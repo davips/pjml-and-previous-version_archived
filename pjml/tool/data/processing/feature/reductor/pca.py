@@ -12,10 +12,10 @@ from pjml.tool.data.algorithm import TSKLAlgorithm
 
 class PCA(TSKLAlgorithm):
     def __init__(self, enhance=True, model=True, **sklconfig):
-        super().__init__(sklconfig, SKLPCA, enhance=enhance,
-                         model=model)
-    def __init__(self, enhancer: bool = True, model: bool = True, **kwargs):
-        super().__init__(kwargs, SKLPCA, enhancer=enhancer, model=model)
+        super().__init__(sklconfig, SKLPCA, enhance=enhance, model=model)
+
+    def __init__(self, enhance: bool = True, model: bool = True, **kwargs):
+        super().__init__(kwargs, SKLPCA, enhance=enhance, model=model)
 
     def _enhancer_info(self, data: Data) -> Dict[str, Any]:
         return self._info(data)
@@ -36,10 +36,7 @@ class PCA(TSKLAlgorithm):
 
     def predict(self, train: Data, test: Data) -> Data:
         info = self._info(train)
-        return test.updated(
-            self.transformations("u"),  # desnecessário?
-            X=info["sklearn_model"].transform(test.X),
-        )
+        return test.updated((), X=info["sklearn_model"].transform(test.X))
 
     @classmethod
     def _cs_impl(cls) -> TransformerCS:

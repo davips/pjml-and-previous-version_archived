@@ -62,10 +62,10 @@ class Component(Printable, Identifiable, ABC):
         pass
 
     def _enhancer_impl(self) -> Transformer:
-        return Transformer(func=self._enhancer_func(), info=self._enhancer_info)
+        return Transformer(self, func=self._enhancer_func(), info=self._enhancer_info)
 
     def _model_impl(self, prior) -> Transformer:
-        return Transformer(func=self._model_func(prior), info=self._model_info(prior))
+        return Transformer(self, func=self._model_func(prior), info=self._model_info(prior))
 
     def iterators(
         self, prior_collection: Collection, posterior_collection: Collection
@@ -78,7 +78,7 @@ class Component(Printable, Identifiable, ABC):
     @lru_cache()
     def enhancer(self) -> Transformer:  # clean, cleaup, dumb, dumb_transformer
         if not self._enhance:
-            return Transformer(self.uuid, None, None)
+            return Transformer(self, None, None)
         return Transformer(self, func=self._enhancer_func(), info=self._enhancer_info)
 
     # TODO: verify if Data (/ Collection?) should have a better __hash__
@@ -87,7 +87,7 @@ class Component(Printable, Identifiable, ABC):
         if isinstance(prior, tuple): # <-- Pq??
             prior = prior[0]
         if not self._model:
-            return Transformer(self.uuid, None, None)
+            return Transformer(self, None, None)
         # Assumes all components are symmetric. I.e. we can use the same self for both enhance and model.
         return Transformer(self, func=self._model_func(prior), info=self._model_info(prior))
 
