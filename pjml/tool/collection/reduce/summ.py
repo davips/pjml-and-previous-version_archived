@@ -1,6 +1,10 @@
+from typing import Callable, Iterable, Dict, Any
+
 import numpy
 from numpy import mean
 
+from pjdata.collection import Collection
+from pjdata.data import Data
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.distributions import choice
 from pjml.config.description.node import Node
@@ -22,30 +26,36 @@ class RSumm(Finalizer, FunctionInspector):
     objects, resulting in a new matrix with the same dimensions.
     """
 
-    def __init__(self, field='R', function='mean', **kwargs):
+    def __init__(self, field: str = "R", function: str = "mean", **kwargs):
         config = self._to_config(locals())
-        super().__init__(config, **kwargs, deterministic=True)
-        self.function = self.function_from_name[config['function']]
+        super().__init__(config, deterministic=True, **kwargs)
+        self.function = self.function_from_name[config["function"]]
         self.field = field
 
-    def partial_result(self, data):
-        return data.field(self.field, 'Summ')
+    def _enhancer_info(self, data: Collection) -> Dict[str, Any]:
+        return {}
 
-    def final_result_func(self, collection):
+    def _model_info(self, data: Collection) -> Dict[str, Any]:
+        return {}
+
+    def partial_result(self, data: Data) -> Data:
+        return data.field(self.field, "Summ")
+
+    def final_result_func(self, collection: Collection) -> Callable[[Iterable], Data]:
         summarize = self.function
         return lambda values: summarize(collection.data, values)
 
     @classmethod
-    def _cs_impl(cls):
+    def _cs_impl(cls) -> TransformerCS:
         params = {
-            'function': CatP(choice, items=cls.function_from_name.keys()),
-            'field': CatP(choice, items=['z', 'r', 's'])
+            "function": CatP(choice, items=cls.function_from_name.keys()),
+            "field": CatP(choice, items=["z", "r", "s"]),
         }
         return TransformerCS(nodes=[Node(params)])
 
-    def _fun_mean(self, data, values):
+    def _fun_mean(self, data: Data, values: Iterable) -> Data:
         res = mean([m for m in values], axis=0)
         if isinstance(res, tuple):
-            return data.updated(self.transformations('u'), S=numpy.array(res))
+            return data.updated(self.transformations("u"), S=numpy.array(res))
         else:
-            return data.updated(self.transformations('u'), s=res)
+            return data.updated(self.transformations("u"), s=res)

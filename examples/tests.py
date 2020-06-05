@@ -1,6 +1,5 @@
 """Test"""
 from pjdata.specialdata import NoData
-import pjdata.specialdata
 
 from pjml.pipeline import Pipeline
 from pjml.tool.collection.expand.partition import Partition
@@ -30,33 +29,21 @@ def printable_test():
 
 def test_tsvmc(arq="iris.arff"):
     cs = File(arq).cs
-    pipe = Pipeline(
-        File(arq),
-        SVMC()
-    )
+    pipe = Pipeline(File(arq), SVMC())
     prior, posterior = pipe.dual_transform()
     print("Prior..............\n", prior)
     print("Posterior..........\n", posterior)
 
 
 def test_split(arq="iris.arff"):
-    pipe = Pipeline(
-        File(arq),
-        Split(),
-        SVMC()
-    )
+    pipe = Pipeline(File(arq), Split(), SVMC())
     prior, posterior = pipe.dual_transform()
     print("Prior..............\n", str(prior))
     print("Posterior..........\n", str(posterior))
 
 
 def test_metric(arq="iris.arff"):
-    pipe = Pipeline(
-        File(arq),
-        Split(),
-        SVMC(),
-        Metric(onenhancer=False)
-    )
+    pipe = Pipeline(File(arq), Split(), SVMC(), Metric(onenhancer=False))
     prior, posterior = pipe.dual_transform()
     print("Train..............\n", prior)
     print("Test...............\n", posterior)
@@ -64,13 +51,7 @@ def test_metric(arq="iris.arff"):
 
 def test_pca(arq="iris.arff"):
     cs = File(arq).cs
-    pipe = Pipeline(
-        File(arq),
-        Split(),
-        PCA(),
-        SVMC(),
-        Metric(onenhancer=False)
-    )
+    pipe = Pipeline(File(arq), Split(), PCA(), SVMC(), Metric(onenhancer=False))
     prior, posterior = pipe.dual_transform()
     print("Prior..............\n", prior)
     print("Posterior..........\n", posterior)
@@ -81,9 +62,9 @@ def test_partition(arq="iris.arff"):
         File(arq),
         Partition(),
         Map(PCA(), SVMC(), Metric(onenhancer=False)),
-        RSumm(function='mean', onenhancer=False),
+        RSumm(function="mean", onenhancer=False),
         Reduce(),
-        Report('mean ... S: $S', onenhancer=False)
+        Report("mean ... S: $S", onenhancer=False),
     )
     prior, posterior = pipe.dual_transform()
 
@@ -99,7 +80,7 @@ def test_split_train_test(arq="iris.arff"):
         PCA(),
         SVMC(),
         Metric(onenhancer=False),
-        Report('metric ... R: $R', onenhancer=False)
+        Report("metric ... R: $R", onenhancer=False),
     )
     prior, posterior = pipe.dual_transform()
 
@@ -112,10 +93,10 @@ def test_with_summ_reduce(arq="iris.arff"):
         File(arq),
         Partition(),
         Map(PCA(), SVMC(), Metric(onenhancer=False)),
-        Map(Report('<---------------------- etapa'), onenhancer=False),
-        RSumm(function='mean', onenhancer=False),
+        Map(Report("<---------------------- etapa"), onenhancer=False),
+        RSumm(function="mean", onenhancer=False),
         Reduce(),
-        Report('mean ... S: $S', onenhancer=False)
+        Report("mean ... S: $S", onenhancer=False),
     )
     prior, posterior = pipe.dual_transform()
 
@@ -123,12 +104,12 @@ def test_with_summ_reduce(arq="iris.arff"):
     print("Posterior..........\n", posterior)
 
 
-def test_check_architecture(arq='iris.arff'):
+def test_check_architecture(arq="iris.arff"):
     pipe = Pipeline(
         File(arq),
         Partition(partitions=2),
         Map(PCA(), SVMC(), Metric(onenhancer=False)),
-        RSumm(field="Y", function='mean', onenhancer=False),
+        RSumm(field="Y", function="mean", onenhancer=False),
     )
 
     # tenho file na frente
@@ -145,13 +126,13 @@ def test_check_architecture(arq='iris.arff'):
     assert posterior_01.uuid == posterior_02.uuid
 
 
-def test_check_architecture2(arq='iris.arff'):
+def test_check_architecture2(arq="iris.arff"):
     pipe = Pipeline(
         File(arq),
         Partition(),
         Map(PCA(), SVMC(), Metric(onenhancer=False)),
-        RSumm(field="Y", function='mean', onenhancer=False),
-        Report('mean ... S: $S', onenhancer=False)
+        RSumm(field="Y", function="mean", onenhancer=False),
+        Report("mean ... S: $S", onenhancer=False),
     )
 
     # tenho file na frente
@@ -203,5 +184,5 @@ def main():
     # test_check_architecture()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

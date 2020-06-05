@@ -1,8 +1,9 @@
 import re
+from typing import Callable, Dict, Any
 
 import numpy as np
 
-from pjdata.aux.util import flatten
+from pjdata.aux.util import flatten, DataT
 from pjdata.data import Data
 from pjdata.step.transformer import Transformer
 from pjml.config.description.cs.emptycs import EmptyCS
@@ -26,21 +27,23 @@ class Report(Invisible, Component):
         super().__init__({'text': text}, deterministic=True, **kwargs)
         self.text = text
 
-    def _model_impl(self, data: Data) -> Transformer:
-        return self._enhancer_impl('[modeler]')
+    def _enhancer_info(self, data: DataT) -> Dict[str, Any]:
+        return {}
 
-    def _enhancer_impl(
-            self,
-            step: str = '[enhancer]'
-    ) -> Transformer:
-        def func(posterior: Data) -> Data:
-            print(step, self._interpolate(self.text, posterior))
-            return posterior
+    def _enhancer_func(self) -> Callable[[Data], Data]:
+        step = '[model] '
+        return lambda train: self._transform(train, step)
 
-        return Transformer(
-            func=func,
-            info=None
-        )
+    def _model_info(self, data: DataT) -> Dict[str, Any]:
+        return {}
+
+    def _model_func(self, train: DataT) -> Callable[[DataT], DataT]:
+        step = '[enhancer] '
+        return lambda test: self._transform(test, step)
+
+    def _transform(self, data: Data, step) -> Data:
+        print(step, self._interpolate(self.text, data))
+        return data
 
     @classmethod
     def _interpolate(cls, text: str, data: Data) -> str:

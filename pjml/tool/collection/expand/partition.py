@@ -63,18 +63,18 @@ class Partition(NonFinalizer, Component):
                    self.model(train).transform(test))
 
     @lru_cache()
-    def enhancer_info(self):
+    def _enhancer_info(self, train: Data):
         return self.transformer.enhancer.info
 
     @lru_cache()
-    def model_info(self, data):
-        return self.transformer.model(data).info
+    def _model_info(self, train: Data):
+        return self.transformer.model(train).info
 
-    def enhancer_func(self):
+    def _enhancer_func(self):
         return self.transformer.enhancer.transform
 
-    def model_func(self, data):
-        return self.transformer.model(data).transform
+    def _model_func(self, train: Data):
+        return self.transformer.model(train).transform
 
     @classmethod
     def _cs_impl(cls):

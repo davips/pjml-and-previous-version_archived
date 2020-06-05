@@ -1,12 +1,11 @@
-from typing import Tuple, Iterator
-
 from itertools import repeat
+from typing import Tuple, Iterator, Dict, Any, Callable
 
 from pjdata.collection import Collection
 from pjdata.data import Data
 from pjml.config.description.cs.emptycs import EmptyCS
-from pjml.tool.abc.nonfinalizer import NonFinalizer
 from pjml.tool.abc.mixin.component import Component
+from pjml.tool.abc.nonfinalizer import NonFinalizer
 
 
 class Repeat(NonFinalizer, Component):
@@ -19,18 +18,19 @@ class Repeat(NonFinalizer, Component):
     def finite(self):
         return False
 
-    def enhancer_info(self):
+    def _enhancer_info(self, data: Data) -> Dict[str, Any]:
         return {}
 
-    def model_info(self, data):
+    def _model_info(self, data: Data) -> Dict[str, Any]:
         return {}
 
-    def enhancer_func(self):
-        return lambda d: Collection(repeat(d), lambda: d, finite=False,
-                                    debug_info='expand')
+    def _enhancer_func(self) -> Callable[[Data], Collection]:
+        return lambda d: Collection(
+            repeat(d), lambda: d, finite=False, debug_info="expand"
+        )
 
-    def model_func(self, data):
-        return self.enhancer_func()
+    def _model_func(self, data: Data) -> Callable[[Data], Collection]:
+        return self._enhancer_func()
 
     def iterator(self, train: Data, test: Data) -> Iterator[Tuple[Data, Data]]:
         return zip(repeat(train), repeat(test))

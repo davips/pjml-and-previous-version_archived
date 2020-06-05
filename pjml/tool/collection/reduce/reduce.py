@@ -1,5 +1,6 @@
-from typing import Union, Tuple, Optional
+from typing import Union, Tuple, Optional, Any, Dict, Callable
 
+from pjdata.aux.util import Property
 from pjdata.collection import Collection
 from pjdata.data import Data
 from pjml.tool.abc.invisible import Invisible
@@ -13,36 +14,33 @@ class Reduce(Invisible, NonFinalizer, Component):
         config = {} if config is None else config
         super().__init__(config, deterministic=True, **kwargs)
 
-    def enhancer_info(self):
-        pass
+    def _enhancer_info(self, train_coll: Collection) -> Dict[str, Any]:
+        return {}
 
-    def model_info(self, data):
-        pass
+    def _model_info(self, train_coll) -> Dict[str, Any]:
+        return {}
 
-    def enhancer_func(self):
-        def transform(collection: Collection) -> Data:
+    def _enhancer_func(self) -> Callable[[Collection], Data]:
+        def transform(test_coll: Collection) -> Data:
             # Exhaust iterator.
             c = 0
             print('\nReduce starts loop... >>>>>>>>>>>>>>>>>>>>>>>>>>>')
-            for d in collection:
+            for d in test_coll:
                 print('  Reduce consumed item', c, '\n')
                 c += 1
                 pass
             print('...Reduce exits loop. <<<<<<<<<<<<<<<<<<<<<<<<<<<\n')
-            print('  Reduce asks for pendurado at...', collection.debug_info)
-            return collection.data
+            print('  Reduce asks for pendurado at...', test_coll.debug_info)
+            return test_coll.data
 
         return transform
 
-    def model_func(self, data):
-        return self.enhancer_func()
+    def _model_func(self, train_coll: Collection) -> Callable[[Collection], Data]:
+        return self._enhancer_func()
 
-    @property
-    def finite(self):
+    @Property
+    def finite(self) -> bool:
         return False
-
-    # def iterators(self, train, test) -> Tuple[Iterator]:
-    #     pass
 
     @classmethod
     def _cs_impl(cls):

@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Any, Dict
 
 from pjdata.collection import Collection
 from pjml.config.description.cs.containercs import ContainerCS
@@ -18,39 +18,35 @@ class Map(NonFinalizer, MinimalContainer1):
             return object.__new__(cls)
         return ContainerCS(Map.name, Map.path, transformers)
 
-    def enhancer_info(self):
-        return {'enhancer': self.transformer.enhancer}
+    def _enhancer_info(self, train_coll: Collection) -> Dict[str, Any]:
+        return {"enhancer": self.transformer.enhancer}
 
-    def model_info(self, collection) -> dict:
-        return {
-            'models': [self.transformer.model(data) for data in collection]
-        }
+    def _model_info(self, train_coll: Collection) -> Dict[str, Any]:
+        return {"models": [self.transformer.model(data) for data in train_coll]}
 
-    def enhancer_func(self) -> Callable[[Collection], Collection]:
+    def _enhancer_func(self) -> Callable[[Collection], Collection]:
         enhancer = self.transformer.enhancer
 
-        def transform(collection: Collection):
-            iterator = map(enhancer.transform, collection)
-            return Collection(iterator, lambda: collection.data, debug_info='map')
+        def transform(test_coll: Collection) -> Collection:
+            iterator = map(enhancer.transform, test_coll)
+            return Collection(iterator, lambda: test_coll.data, debug_info="map")
 
         return transform
 
-    def model_func(self, train_collection) \
-            -> Callable[[Collection], Callable[[Collection], Collection]]:
+    def _model_func(self, train_coll: Collection) -> Callable[[Collection], Collection]:
         transformer = self.transformer
 
-        def transform(collection):
+        def transform(test_coll: Collection) -> Collection:
             def func(train, test):
                 return transformer.model(train).transform(test)
 
-            iterator = map(func, train_collection, collection)
-            return Collection(iterator, lambda: collection.data,
-                              debug_info='map')
+            iterator = map(func, train_coll, test_coll)
+            return Collection(iterator, lambda: test_coll.data, debug_info="map")
 
         return transform
 
     @property
-    def finite(self):
+    def finite(self) -> bool:
         return True
 
     # def iterators(self, train_collection, test_collection):

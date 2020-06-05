@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Tuple, Iterator
+from typing import Tuple, Iterator, Callable
 
 from pjdata.collection import Collection, AccResult
 from pjml.tool.abc.mixin.batch import Batch
@@ -8,24 +8,24 @@ from pjml.tool.abc.mixin.component import Component
 
 class Finalizer(Batch, Component):
 
-    def enhancer_func(self):
-        def transform(collection):
+    def _enhancer_func(self) -> Callable[[Collection], Collection]:
+        def transform(train_coll: Collection) -> Collection:
             def iterator():
                 acc = []
-                for data in collection:
+                for data in train_coll:
                     acc.append(self.partial_result(data))
                     yield AccResult(data, acc)
 
-            return Collection(iterator(), self.final_result_func(collection),
+            return Collection(iterator(), self.final_result_func(train_coll),
                               debug_info='summ')
 
         return transform
 
-    def model_func(self, data):
-        return self.enhancer_func()
+    def _model_func(self, train_coll: Collection) -> Callable[[Collection], Collection]:
+        return self._enhancer_func()
 
     @property
-    def finite(self):
+    def finite(self) -> bool:
         return False
 
     # def iterators(self, train_collection, test_collection) -> Tuple[Iterator]:
