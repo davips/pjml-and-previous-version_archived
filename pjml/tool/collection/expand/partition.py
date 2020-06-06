@@ -59,7 +59,7 @@ class Partition(NonFinalizer, Component):
         return True
 
     def iterator(self, train: Data, test: Data) -> Iterator[Tuple[Data, Data]]:
-        # TODO: parece que já é feito no Batch.
+        # TODO: parece que já é feito no Streamer.
         return zip(self.enhancer.transform(train),
                    self.model(train).transform(test))
 

@@ -4,14 +4,12 @@ from typing import Tuple, Iterator
 from itertools import tee
 from typing import Optional, List, Tuple, Dict, Iterator
 
-from pjdata.collection import Collection
+from pjdata.content.collection import Collection
 from pjml.config.description.cs.containercs import ContainerCS
 from pjml.tool.abc.nonfinalizer import NonFinalizer
-from pjml.tool.abc.mixin.batch import unzip_iterator
+from pjml.tool.abc.mixin.streamer import unzip_iterator
 from pjml.tool.abc.minimalcontainer import MinimalContainerN
 from pjml.tool.abc.mixin.component import Component
-from pjml.tool.abc.mixin.transformer import Transformer
-from pjml.util import Property
 
 
 class Multi(NonFinalizer, MinimalContainerN):

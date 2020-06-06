@@ -12,9 +12,9 @@ from pjml.tool.transformer import TTransformer
 
 
 class PCA(TSKLAlgorithm):
-    def __init__(self, onenhancer=True, onmodel=True, **sklconfig):
-        super().__init__(sklconfig, SKLPCA, onenhancer=onenhancer,
-                         onmodel=onmodel)
+    def __init__(self, enhance=True, model=True, **sklconfig):
+        super().__init__(sklconfig, SKLPCA, enhance=enhance,
+                         model=model)
 
     @lru_cache()
     def _info(self, prior):  # old apply

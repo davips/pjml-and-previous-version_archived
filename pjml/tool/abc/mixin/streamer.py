@@ -4,10 +4,8 @@ from typing import Tuple, Iterator
 
 from itertools import tee
 
-from pjdata.collection import Collection
-from pjdata.data import Data
-from pjml.tool.abc.mixin.transformer import Transformer
-from pjml.util import Property
+from pjdata.content.collection import Collection
+from pjdata.content.data import Data
 
 
 def unzip_iterator(iterator: Iterator) -> Tuple[Iterator, Iterator]:
@@ -15,9 +13,10 @@ def unzip_iterator(iterator: Iterator) -> Tuple[Iterator, Iterator]:
     return map(operator.itemgetter(0), i1), map(operator.itemgetter(1), i2)
 
 
-class Batch:
+class Streamer:
     """Parent mixin for all classes that manipulate collections."""
-    onenhancer = onmodel = True  # Come from Component to children classes.
+    enhance = model = True  # Come from Component to children classes.
+    #TODO: i'm not sure this affects parent class' flags
 
     # TODO: esses métodos parecem gerais o bastante pra ir direto no Component.
     @abstractmethod

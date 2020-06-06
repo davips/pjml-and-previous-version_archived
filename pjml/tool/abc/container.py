@@ -9,7 +9,7 @@ from pjml.util import Property
 class Container(Component, ABC):
     """A container modifies 'transformer(s)'."""
 
-    def __init__(self, config, seed, transformers, onenhancer, onmodel,
+    def __init__(self, config, seed, transformers, enhance, model,
                  deterministic):
         if not transformers:
             raise Exception(
@@ -36,7 +36,7 @@ class Container(Component, ABC):
         complete_config = {'transformers': self.transformers}
         complete_config.update(config)
         super().__init__(complete_config,
-                         onenhancer=onenhancer, onmodel=onmodel,
+                         enhance=enhance, model=model,
                          deterministic=deterministic,
                          nodata_handler=self.transformers[0].nodata_handler)
 

@@ -7,7 +7,9 @@ from typing import List, Tuple, Iterator, Union
 from pjdata.aux.decorator import classproperty
 from pjdata.aux.serialization import serialize, materialize
 from pjdata.collection import Collection
-from pjdata.mixin.identifyable import Identifyable
+
+from pjdata.aux.uuid import UUID
+from pjdata.mixin.identifiable import Identifiable
 from pjdata.mixin.printable import Printable
 from pjdata.step.transformation import Transformation
 from pjml.config.description.cs.configlist import ConfigList
@@ -17,16 +19,17 @@ from pjml.tool.abc.mixin.transformer import Transformer
 from pjml.util import TDatasTuple, TDatas, Property
 
 
-class Component(Printable, Identifyable, ABC):
+class Component(Printable, Identifiable, ABC):
     def __init__(
             self,
             config: dict,
-            onenhancer: bool = True,
-            onmodel: bool = True,
+            enhance: bool = True,
+            model: bool = True,
             deterministic: bool = False,
             nodata_handler: bool = False
     ):
-        jsonable = {'_id': f'{self.name}@{self.path}', 'config': config}
+        self.transformer_info = {'_id': f'{self.name}@{self.path}', 'config': config}
+        jsonable = {'info': self.transformer_info, 'enhance': enhance, 'model': model}
         Printable.__init__(self, jsonable)
 
         self.config = config
@@ -35,9 +38,9 @@ class Component(Printable, Identifyable, ABC):
         from pjml.tool.abc.mixin.nodatahandler import NoDataHandler
         self.nodata_handler = isinstance(self, NoDataHandler) or nodata_handler
 
-        self.cs = self.cs1
-        self.onenhancer = onenhancer
-        self.onmodel = onmodel
+        self.cs = self.cs1  # TODO: This can take some time to type.
+        self._enhance = enhance
+        self._model = model
 
     @abstractmethod
     def _enhancer_impl(self) -> Transformer:
@@ -62,7 +65,7 @@ class Component(Printable, Identifyable, ABC):
     @Property
     @lru_cache()
     def enhancer(self) -> Transformer:  # clean, cleaup, dumb, dumb_transformer
-        if not self.onenhancer:
+        if not self._enhance:
             return Transformer(None, None)
         return self._enhancer_impl()
 
@@ -74,7 +77,7 @@ class Component(Printable, Identifyable, ABC):
     ) -> Transformer:  # smart, smart_transformer
         if isinstance(prior, tuple):
             prior = prior[0]
-        if not self.onmodel:
+        if not self._model:
             return Transformer(None, None)
         return self._model_impl(prior)
 
@@ -126,10 +129,10 @@ class Component(Printable, Identifyable, ABC):
         inside it."""
         return ConfigList(self)
 
-    @Property
-    @lru_cache()
-    def serialized(self):
-        return serialize(self)
+    # @Property
+    # @lru_cache()
+    # def serialized(self):
+    #     return serialize(self)
 
     @staticmethod
     def _to_config(locals_):
@@ -139,13 +142,20 @@ class Component(Printable, Identifyable, ABC):
         del config['__class__']
         if 'kwargs' in config:
             del config['kwargs']
-        if 'onenhancer' in config:
-            del config['onenhancer']
-            del config['onmodel']
+        if 'enhance' in config:
+            del config['enhance']
+            del config['model']
         return config
 
     def _uuid_impl(self):
-        return self.serialized
+        """Complete UUID; including 'model' and 'enhance' flags. Identifies the component."""
+        return self.cfg_uuid * UUID(str(self._enhance + self._model).rjust(14, '0'))
+
+    @Property
+    @lru_cache()
+    def cfg_uuid(self):
+        """UUID excluding 'model' and 'enhance' flags. Identifies the transformer."""
+        return serialize(self.transformer_info)
 
     @classproperty
     @lru_cache()

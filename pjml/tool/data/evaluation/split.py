@@ -114,8 +114,8 @@ class SplitTest(Component, FunctionInspector, NoDataHandler):
             test_size: float = 0.3,
             seed: int = 0,
             fields: Optional[List[str]] = None,
-            onenhancer: bool = True,
-            onmodel: bool = True
+            enhance: bool = True,
+            model: bool = True
     ):
         if fields is None:
             fields = ['X', 'Y']
@@ -211,8 +211,8 @@ class SplitTrain(Component, FunctionInspector, NoDataHandler):
             test_size: float = 0.3,
             seed: int = 0,
             fields: Optional[List[str]] = None,
-            onenhancer: bool = True,
-            onmodel: bool = True
+            enhance: bool = True,
+            model: bool = True
     ):
         if fields is None:
             fields = ['X', 'Y']
