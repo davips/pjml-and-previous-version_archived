@@ -1,7 +1,4 @@
 """Test"""
-from pjdata.specialdata import NoData
-import pjdata.specialdata
-
 from pjml.pipeline import Pipeline
 from pjml.tool.collection.expand.partition import Partition
 from pjml.tool.collection.reduce.reduce import Reduce
@@ -55,7 +52,7 @@ def test_metric(arq="iris.arff"):
         File(arq),
         Split(),
         SVMC(),
-        Metric(onenhancer=False)
+        Metric(enhance=False)
     )
     prior, posterior = pipe.dual_transform()
     print("Prior..............\n", prior)
@@ -69,7 +66,7 @@ def test_pca(arq="iris.arff"):
         Split(),
         PCA(),
         SVMC(),
-        Metric(onenhancer=False)
+        Metric(enhance=False)
     )
     prior, posterior = pipe.dual_transform()
     print("Prior..............\n", prior)
@@ -80,10 +77,10 @@ def test_partition(arq="iris.arff"):
     pipe = Pipeline(
         File(arq),
         Partition(),
-        Map(PCA(), SVMC(), Metric(onenhancer=False)),
-        RSumm(function='mean', onenhancer=False),
+        Map(PCA(), SVMC(), Metric(enhance=False)),
+        RSumm(function='mean', enhance=False),
         Reduce(),
-        Report('mean ... S: $S', onenhancer=False)
+        Report('mean ... S: $S', enhance=False)
     )
     prior, posterior = pipe.dual_transform()
 
@@ -98,8 +95,8 @@ def test_split_train_test(arq="iris.arff"):
         SplitTest(),
         PCA(),
         SVMC(),
-        Metric(onenhancer=False),
-        Report('metric ... R: $R', onenhancer=False)
+        Metric(enhance=False),
+        Report('metric ... R: $R', enhance=False)
     )
     prior, posterior = pipe.dual_transform()
 
@@ -111,11 +108,11 @@ def test_with_summ_reduce(arq="iris.arff"):
     pipe = Pipeline(
         File(arq),
         Partition(),
-        Map(PCA(), SVMC(), Metric(onenhancer=False)),
-        Map(Report('<---------------------- etapa'), onenhancer=False),
-        RSumm(function='mean', onenhancer=False),
+        Map(PCA(), SVMC(), Metric(enhance=False)),
+        Map(Report('<---------------------- etapa'), enhance=False),
+        RSumm(function='mean', enhance=False),
         Reduce(),
-        Report('mean ... S: $S', onenhancer=False)
+        Report('mean ... S: $S', enhance=False)
     )
     prior, posterior = pipe.dual_transform()
 
@@ -127,8 +124,8 @@ def test_check_architecture(arq='iris.arff'):
     pipe = Pipeline(
         File(arq),
         Partition(partitions=2),
-        Map(PCA(), SVMC(), Metric(onenhancer=False)),
-        RSumm(field="Y", function='mean', onenhancer=False),
+        Map(PCA(), SVMC(), Metric(enhance=False)),
+        RSumm(field="Y", function='mean', enhance=False),
     )
 
     # tenho file na frente
@@ -149,9 +146,9 @@ def test_check_architecture2(arq='iris.arff'):
     pipe = Pipeline(
         File(arq),
         Partition(),
-        Map(PCA(), SVMC(), Metric(onenhancer=False)),
-        RSumm(field="Y", function='mean', onenhancer=False),
-        Report('mean ... S: $S', onenhancer=False)
+        Map(PCA(), SVMC(), Metric(enhance=False)),
+        RSumm(field="Y", function='mean', enhance=False),
+        Report('mean ... S: $S', enhance=False)
     )
 
     # tenho file na frente

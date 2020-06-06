@@ -2,8 +2,8 @@ from typing import Tuple, Iterator
 
 from itertools import repeat
 
-from pjdata.collection import Collection
-from pjdata.data import Data
+from pjdata.content.collection import Collection
+from pjdata.content.data import Data
 from pjml.config.description.cs.emptycs import EmptyCS
 from pjml.tool.abc.nonfinalizer import NonFinalizer
 from pjml.tool.abc.mixin.component import Component

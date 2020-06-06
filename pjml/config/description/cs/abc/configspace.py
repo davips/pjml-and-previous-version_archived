@@ -12,7 +12,11 @@ class ConfigSpace(Printable):
 
     def __init__(self, jsonable):
         jsonable.update(cs=self.__class__.__name__[0:-2].lower())
-        super().__init__(jsonable)
+        self._jsonable = jsonable
+
+    @Property
+    def jsonable(self):
+        return self._jsonable
 
     @abstractmethod
     def sample(self):

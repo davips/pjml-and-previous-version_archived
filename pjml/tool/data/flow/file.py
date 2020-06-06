@@ -1,15 +1,16 @@
+import pjdata.types as t
 from functools import lru_cache
-from typing import List
+from typing import List, Callable, Dict, Any, Tuple
 
 from pjdata.data_creation import read_arff
-from pjdata.specialdata import NoData
-from pjdata.step.transformation import Transformation
-from pjdata.step.transformer import Transformer
+from pjdata.content.specialdata import NoData
+from pjdata.transformer import Transformer
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import FixedP
 from pjml.tool.abc.mixin.component import Component
 from pjml.tool.abc.mixin.nodatahandler import NoDataHandler
+
 
 # Precisa herdar de Invisible, pois o mesmo Data pode vir de diferentes
 # caminhos de arquivo (File) ou servidores (Source) e essas informações são
@@ -30,6 +31,12 @@ class File(Component, NoDataHandler):
     12M should be safe enough. Ideally, a single 'iris' be will stored.
     In practice, no more than a dozen are expected.
     """
+
+    def _enhancer_info(self, data: t.Data) -> Dict[str, Any]:
+        pass
+
+    def _model_info(self, data: t.Data) -> Dict[str, Any]:
+        pass
 
     def __init__(
             self,
@@ -65,19 +72,19 @@ class File(Component, NoDataHandler):
         super().__init__(config, deterministic=True, **kwargs)
         self.data = data
 
-    def _transformer(self) -> Transformer:
-        def transform(posterior):  # old use/apply
-            self._enforce_nodata(posterior, 'u')  # fixei 'u'
+    def _func(self) -> t.Transformation:
+        def transform(posterior: t.Data) -> t.Data:
+            self._enforce_nodata(posterior, 'u')
             return self.data
 
-        return Transformer(func=transform, info=None)
+        return transform
 
-    def _model_impl(self, prior: NoData) -> Transformer:
-        self._enforce_nodata(prior, 'a')  # fixei 'a'
-        return self._transformer()
+    def _model_func(self, data: t.Data) -> Callable[[t.Data], t.Data]:
+        self._enforce_nodata(data, 'a')
+        return self._func()
 
-    def _enhancer_impl(self) -> Transformer:
-        return self._transformer()
+    def _enhancer_func(self) -> Callable[[t.Data], t.Data]:
+        return self._func()
 
     @classmethod
     def _cs_impl(cls) -> TransformerCS:
@@ -97,5 +104,5 @@ class File(Component, NoDataHandler):
             self,
             step: str,
             clean: bool = True
-    ) -> List[Transformation]:
-        return [Transformation(self, 'u')]
+    ) -> Tuple[Transformer]:
+        return ()

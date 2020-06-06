@@ -1,14 +1,14 @@
 from functools import lru_cache
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Callable
 
 import numpy
 from numpy.random import uniform
 from sklearn.model_selection import StratifiedShuffleSplit as HO, \
     StratifiedKFold as SKF, LeaveOneOut as LOO
 
-from pjdata.aux.util import DataT
-from pjdata.data import Data
-from pjdata.step.transformer import Transformer
+import pjdata.types as t
+from pjdata.content.data import Data
+from pjdata.transformer import Transformer
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import IntP
@@ -33,6 +33,12 @@ class Split(Component, FunctionInspector, NoDataHandler):
     fields
         Name of the matrices to be modified.
     """
+
+    def _enhancer_info(self, data: t.Data) -> Dict[str, Any]:
+        return {}
+
+    def _model_info(self, data: t.Data) -> Dict[str, Any]:
+        return {}
 
     def __init__(
             self,
@@ -78,11 +84,11 @@ class Split(Component, FunctionInspector, NoDataHandler):
             SplitTest()
         )
 
-    def _model_impl(self, prior: DataT) -> Transformer:
-        return self.transformer.model(prior)
+    def _model_func(self, data: t.Data) -> Callable[[t.Data], t.Data]:
+        return self.transformer._model_func(data)
 
-    def _enhancer_impl(self) -> Transformer:
-        return self.transformer.enhancer   # type: ignore
+    def _enhancer_func(self) -> Callable[[t.Data], t.Data]:
+        return self.transformer._enhancer_func()
 
     @classmethod
     def _cs_impl(cls):
@@ -146,21 +152,24 @@ class SplitTest(Component, FunctionInspector, NoDataHandler):
         self.fields = fields
 
     @lru_cache()
-    def _info(self, prior: Data) -> Dict[str, Any]:
-        zeros = numpy.zeros(prior.field(self.fields[0], self).shape[0])
+    def _enhancer_info(self, data: t.Data) -> Dict[str, Any]:
+        zeros = numpy.zeros(data.field(self.fields[0], self).shape[0])
         partitions = list(self.algorithm.split(X=zeros, y=zeros))
-        _posterior = self._split(prior, partitions[self.partition][1],
-                                 step='u')
+        _posterior = self._split(data, partitions[self.partition][1], step='u')
         return {"posterior": _posterior}
 
-    def _enhancer_impl(self):
-        return Transformer(None, None)
+    @lru_cache()
+    def _model_info(self, data: t.Data) -> Dict[str, Any]:
+        return {}
 
-    def _model_impl(self, prior: Data) -> Transformer:
-        def func(posterior):
-            return self._info(posterior)["posterior"]
+    def _enhancer_func(self) -> Callable[[t.Data], t.Data]:
+        return None
 
-        return Transformer(func=func, info=None)
+    def _model_func(self, data: t.Data) -> Callable[[t.Data], t.Data]:
+        def transform(posterior):
+            return self._enhancer_info(posterior)["posterior"]
+
+        return transform
 
     def _split(
             self,
@@ -175,7 +184,7 @@ class SplitTest(Component, FunctionInspector, NoDataHandler):
             except Exception as e:
                 print(f'\nProblems splitting matrix {f}:', e)
                 exit()
-        return data.updated(self.transformations(step), **new_dic)
+        return data.updated((), **new_dic)
 
     @classmethod
     def _cs_impl(cls) -> TransformerCS:
@@ -243,20 +252,24 @@ class SplitTrain(Component, FunctionInspector, NoDataHandler):
         self.fields = fields
 
     @lru_cache()
-    def _info(self, prior: Data) -> Dict[str, Any]:
-        zeros = numpy.zeros(prior.field(self.fields[0], self).shape[0])
+    def _enhancer_info(self, data: t.Data) -> Dict[str, Any]:
+        zeros = numpy.zeros(data.field(self.fields[0], self).shape[0])
         partitions = list(self.algorithm.split(X=zeros, y=zeros))
-        _prior = self._split(prior, partitions[self.partition][0], step='a')
+        _prior = self._split(data, partitions[self.partition][0], step='a')
         return {"prior": _prior}
 
-    def _enhancer_impl(self) -> Transformer:
-        def func(prior: Data):
-            return self._info(prior)["prior"]
+    @lru_cache()
+    def _model_info(self, data: t.Data) -> Dict[str, Any]:
+        return {}
 
-        return Transformer(func=func, info=None)
+    def _enhancer_func(self) -> Callable[[t.Data], t.Data]:
+        def transform(prior: Data):
+            return self._enhancer_info(prior)["prior"]
 
-    def _model_impl(self, data):
-        return Transformer(None, None)
+        return transform
+
+    def _model_func(self, data: t.Data) -> Callable[[t.Data], t.Data]:
+        return None
 
     def _split(
             self,
@@ -271,7 +284,7 @@ class SplitTrain(Component, FunctionInspector, NoDataHandler):
             except Exception as e:
                 print(f'\nProblems splitting matrix {f}:', e)
                 exit()
-        return data.updated(self.transformations(step), **new_dic)
+        return data.updated((), **new_dic)
 
     @classmethod
     def _cs_impl(cls) -> TransformerCS:

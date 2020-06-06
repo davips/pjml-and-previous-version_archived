@@ -27,7 +27,7 @@ class Container(Component, ABC):
             kwargs = {}
             if 'seed' not in transformer.config and not transformer.deterministic:
                 kwargs['seed'] = seed
-            for arg in ['onenhancer', 'onmodel']:
+            for arg in ['enhance', 'model']:
                 if arg not in transformer.config:
                     kwargs[arg] = locals()[arg]
             transformer = transformer.updated(**kwargs)

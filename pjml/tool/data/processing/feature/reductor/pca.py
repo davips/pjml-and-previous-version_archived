@@ -3,7 +3,7 @@ from functools import lru_cache
 from numpy.random.mtrand import uniform
 from sklearn.decomposition import PCA as SKLPCA
 
-from pjdata.step.transformer import Transformer
+from pjdata.transformer import Transformer
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import RealP, FixedP
@@ -30,12 +30,14 @@ class PCA(TSKLAlgorithm):
 
     def _model_impl(self, prior):
         return Transformer(
+            self.uuid,
             func=lambda posterior: self.predict(prior, posterior),
             info=self._info(prior)
         )
 
     def _enhancer_impl(self):
         return Transformer(
+            self.uuid,
             func=lambda prior: self.predict(prior, prior),
             info=self._info
         )

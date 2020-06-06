@@ -1,6 +1,6 @@
 from typing import Callable
 
-from pjdata.collection import Collection
+from pjdata.content.collection import Collection
 from pjml.config.description.cs.containercs import ContainerCS
 from pjml.tool.abc.minimalcontainer import MinimalContainer1
 from pjml.tool.abc.mixin.component import Component

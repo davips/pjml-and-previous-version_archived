@@ -28,9 +28,9 @@ class Streamer:
             yield self.enhancer_func()(dtr), self.model_func(dtr)(dts)
 
     def dual_transform(self, train, test):
-        if not self.onenhancer:
+        if not self._enhance:
             return train, self.model_func(train)(test)
-        if not self.onmodel:
+        if not self._model:
             return self.enhancer_func()(train), test
 
         iterator1, iterator2 = unzip_iterator(self.iterator(train, test))

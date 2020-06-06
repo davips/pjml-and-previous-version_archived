@@ -1,9 +1,10 @@
 from functools import lru_cache
+from typing import Any, Dict, Callable, Optional
 
 import numpy as np
 from sklearn.metrics import accuracy_score
-
-from pjdata.step.transformer import Transformer
+import pjdata.types as t
+from pjdata.transformer import Transformer
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.distributions import choice
 from pjml.config.description.node import Node
@@ -37,32 +38,26 @@ class Metric(Component, FunctionInspector):
         self.target, self.prediction = target, prediction
         self.selected = [self.function_from_name[name] for name in functions]
 
+    def _enhancer_info(self, data: Optional[t.Data] = None) -> Dict[str, Any]:
+        return {}
+
     @lru_cache()
-    def _info(self, data):
+    def _model_info(self, data: t.Data) -> Dict[str, Any]:
         measures = [
             [f(data, self.target, self.prediction) for f in self.selected]
         ]
         return {'computed_metric': measures}
 
-    def _model_impl(self, prior):
+    def _model_func(self, data: t.Data) -> Callable[[t.Data], t.Data]:
         # prior deve ser ignorado
-        return Transformer(
-            func=lambda posterior: self._func(posterior),
-            info=None
-        )
+        return self._func
 
-    def _enhancer_impl(self):
-        return Transformer(
-            func=lambda posterior: self._func(posterior),
-            info=None
-        )
+    def _enhancer_func(self) -> Callable[[t.Data], t.Data]:
+        return self._func
 
     def _func(self, data, step='u'):
-        computed_metric = self._info(data)['computed_metric']
-        return data.updated(
-            self.transformations(step),
-            R=np.array(computed_metric)
-        )
+        computed_metric = self._model_info(data)['computed_metric']
+        return data.updated((), R=np.array(computed_metric))
 
     @classmethod
     def _cs_impl(cls):

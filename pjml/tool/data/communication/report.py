@@ -3,8 +3,8 @@ import re
 import numpy as np
 
 from pjdata.aux.util import flatten
-from pjdata.data import Data
-from pjdata.step.transformer import Transformer
+from pjdata.content.data import Data
+from pjdata.transformer import Transformer
 from pjml.config.description.cs.emptycs import EmptyCS
 from pjml.tool.abc.mixin.component import Component
 from pjml.tool.abc.invisible import Invisible
@@ -37,10 +37,7 @@ class Report(Invisible, Component):
             print(step, self._interpolate(self.text, posterior))
             return posterior
 
-        return Transformer(
-            func=func,
-            info=None
-        )
+        return Transformer(self, func=func, info=None)
 
     @classmethod
     def _interpolate(cls, text: str, data: Data) -> str:

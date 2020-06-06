@@ -1,8 +1,8 @@
 from abc import ABC
 from typing import Union
 
-from pjdata.data import Data
-from pjdata.specialdata import NoData
+from pjdata.content.data import Data
+from pjdata.content.specialdata import NoData
 
 
 class NoDataHandler(ABC):

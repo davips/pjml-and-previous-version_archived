@@ -1,7 +1,7 @@
 from functools import lru_cache
 from typing import Optional, List, Tuple, Iterator
 
-from pjdata.data import Data
+from pjdata.content.data import Data
 from pjml.tool.abc.mixin.component import Component
 from pjml.tool.abc.nonfinalizer import NonFinalizer
 from pjml.tool.chain import Chain

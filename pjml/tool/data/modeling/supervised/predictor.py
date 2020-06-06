@@ -1,8 +1,9 @@
 from abc import ABC
 from functools import lru_cache
+from typing import Callable, Any, Dict
 
-from pjdata.step.transformation import Transformation
-from pjdata.step.transformer import Transformer
+import pjdata.types as t
+from pjdata.transformer import Transformer
 from pjml.tool.abc.mixin.exceptionhandler import BadComponent
 from pjml.tool.data.algorithm import TSKLAlgorithm
 
@@ -13,30 +14,21 @@ class TPredictor(TSKLAlgorithm, ABC):
     """
 
     @lru_cache()
-    def _info(self, prior):  # old apply
+    def _enhancer_info(self, data: t.Data) -> Dict[str, Any]:
         sklearn_model = self.algorithm_factory()
-        sklearn_model.fit(*prior.Xy)
+        sklearn_model.fit(*data.Xy)
         return {'sklearn_model': sklearn_model}
 
-    def _model_impl(self, prior):
-        info = self._info(prior)
+    def _model_info(self, data: t.Data) -> Dict[str, Any]:
+        return {}
 
-        def transform(posterior):  # old use
+    def _model_func(self, data: t.Data) -> Callable[[t.Data], t.Data]:
+        def transform(posterior):
             return posterior.updated(
-                self.transformations('u'),
-                # desnecessário ? #TODO: memory leak?
-                z=self._info(prior)['sklearn_model'].predict(posterior.X)
+                (), z=self._enhancer_info(data)['sklearn_model'].predict(posterior.X)
             )
 
-        return Transformer(func=transform, info=info)
+        return transform
 
-    def _enhancer_impl(self):
-        return Transformer(func=lambda posterior: posterior.frozen, info={})
-
-    def transformations(self, step, clean=True):
-        if step == 'a':
-            return []
-        elif step == 'u':
-            return [Transformation(self, step)]
-        else:
-            raise BadComponent('Wrong current step:', step)
+    def _enhancer_func(self) -> Callable[[t.Data], t.Data]:
+        return lambda posterior: posterior.frozen
