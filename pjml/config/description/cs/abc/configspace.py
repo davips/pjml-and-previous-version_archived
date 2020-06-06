@@ -1,8 +1,8 @@
 from abc import abstractmethod
 from functools import lru_cache
 
+from pjdata.aux.util import Property
 from pjdata.mixin.printable import Printable
-from pjml.util import Property
 
 
 class ConfigSpace(Printable):

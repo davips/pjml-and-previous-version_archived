@@ -3,12 +3,11 @@ from functools import lru_cache
 from numpy.random.mtrand import uniform
 from sklearn.decomposition import PCA as SKLPCA
 
+from pjdata.step.transformer import Transformer
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import RealP, FixedP
-from pjml.tool.abc.mixin.transformer import Transformer
 from pjml.tool.data.algorithm import TSKLAlgorithm
-from pjml.tool.transformer import TTransformer
 
 
 class PCA(TSKLAlgorithm):

@@ -6,17 +6,16 @@ from numpy.random import uniform
 from sklearn.model_selection import StratifiedShuffleSplit as HO, \
     StratifiedKFold as SKF, LeaveOneOut as LOO
 
+from pjdata.aux.util import DataT
 from pjdata.data import Data
+from pjdata.step.transformer import Transformer
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import IntP
 from pjml.tool.abc.mixin.component import Component
-from pjml.tool.abc.mixin.transformer import Transformer
 from pjml.tool.abc.mixin.functioninspector import FunctionInspector
 from pjml.tool.abc.mixin.nodatahandler import NoDataHandler
-from pjml.tool.transformer import TTransformer
 from pjml.tool.chain import Chain
-from pjml.util import TDatas
 
 
 class Split(Component, FunctionInspector, NoDataHandler):
@@ -79,7 +78,7 @@ class Split(Component, FunctionInspector, NoDataHandler):
             SplitTest()
         )
 
-    def _model_impl(self, prior: TDatas) -> Transformer:
+    def _model_impl(self, prior: DataT) -> Transformer:
         return self.transformer.model(prior)
 
     def _enhancer_impl(self) -> Transformer:
@@ -155,7 +154,7 @@ class SplitTest(Component, FunctionInspector, NoDataHandler):
         return {"posterior": _posterior}
 
     def _enhancer_impl(self):
-        return TTransformer(None, None)
+        return Transformer(None, None)
 
     def _model_impl(self, prior: Data) -> Transformer:
         def func(posterior):
@@ -257,7 +256,7 @@ class SplitTrain(Component, FunctionInspector, NoDataHandler):
         return Transformer(func=func, info=None)
 
     def _model_impl(self, data):
-        return TTransformer(None, None)
+        return Transformer(None, None)
 
     def _split(
             self,

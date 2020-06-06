@@ -1,22 +1,21 @@
 """ Component module. """
-
 from abc import abstractmethod, ABC
 from functools import lru_cache
-from typing import List, Tuple, Iterator, Union
+from typing import List, Tuple, Iterator, Any, Dict, Callable
 
 from pjdata.aux.decorator import classproperty
 from pjdata.aux.serialization import serialize, materialize
+from pjdata.aux.util import Property, DataCollT, DataT
 from pjdata.collection import Collection
 
 from pjdata.aux.uuid import UUID
 from pjdata.mixin.identifiable import Identifiable
 from pjdata.mixin.printable import Printable
 from pjdata.step.transformation import Transformation
+from pjdata.step.transformer import Transformer
 from pjml.config.description.cs.configlist import ConfigList
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.tool.abc.mixin.exceptionhandler import BadComponent
-from pjml.tool.abc.mixin.transformer import Transformer
-from pjml.util import TDatasTuple, TDatas, Property
 
 
 class Component(Printable, Identifiable, ABC):
@@ -43,16 +42,32 @@ class Component(Printable, Identifiable, ABC):
         self._model = model
 
     @abstractmethod
-    def _enhancer_impl(self) -> Transformer:
-        # return Transformer(None, None)
+    def _enhancer_info(self, data: DataT) -> Dict[str, Any]:
         pass
 
     @abstractmethod
-    def _model_impl(
-            self,
-            prior: TDatasTuple
-    ) -> Transformer:
-        return Transformer(None, None)
+    def _model_info(self, data: DataT) -> Dict[str, Any]:
+        pass
+
+    @abstractmethod
+    def _enhancer_func(self) -> Callable[[DataT], DataT]:
+        pass
+
+    @abstractmethod
+    def _model_func(self, data: DataT) -> Callable[[DataT], DataT]:
+        pass
+
+    def _enhancer_impl(self) -> Transformer:
+        return Transformer(
+            func=self._enhancer_func(),
+            info=self._enhancer_info
+        )
+
+    def _model_impl(self, prior) -> Transformer:
+        return Transformer(
+            func=self._model_func(prior),
+            info=self._model_info(prior)
+        )
 
     def iterators(
             self,
@@ -73,7 +88,7 @@ class Component(Printable, Identifiable, ABC):
     @lru_cache()
     def model(
             self,
-            prior: TDatas
+            prior: DataCollT
     ) -> Transformer:  # smart, smart_transformer
         if isinstance(prior, tuple):
             prior = prior[0]
@@ -85,9 +100,9 @@ class Component(Printable, Identifiable, ABC):
     #   of this IF and the parent ABC method iterator().
     def dual_transform(
             self,
-            prior: TDatasTuple,
-            posterior: TDatasTuple
-    ) -> Tuple[TDatasTuple, TDatasTuple]:
+            prior: DataCollT,
+            posterior: DataCollT
+    ) -> Tuple[DataCollT, DataCollT]:
 
         # We need to put the ignore here because @porperty has not annotations.
         # Another alternative is creating our own @property decorator and

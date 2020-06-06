@@ -1,9 +1,9 @@
 import operator
 from abc import abstractmethod
+from itertools import tee
 from typing import Tuple, Iterator
 
-from itertools import tee
-
+from pjdata.aux.util import Property
 from pjdata.content.collection import Collection
 from pjdata.content.data import Data
 
@@ -17,38 +17,6 @@ class Streamer:
     """Parent mixin for all classes that manipulate collections."""
     enhance = model = True  # Come from Component to children classes.
     #TODO: i'm not sure this affects parent class' flags
-
-    # TODO: esses métodos parecem gerais o bastante pra ir direto no Component.
-    @abstractmethod
-    def _enhancer_info(self, data):
-        pass
-
-    @abstractmethod
-    def _model_info(self, data):
-        pass
-
-    @abstractmethod
-    def _enhancer_func(self):
-        pass
-
-    @abstractmethod
-    def _model_func(self, data):
-        pass
-
-    # TODO: isso parece geral o bastante pra ir direto no enhancer() no Component.
-    def _enhancer_impl(self) -> Transformer:
-        return Transformer(
-            func=self.enhancer_func(),
-            info=self.enhancer_info
-        )
-
-    def _model_impl(self, prior) -> Transformer:
-        return Transformer(
-            func=self.model_func(prior),
-            info=self.model_info(prior)
-        )
-
-    #######################################################################
 
     @Property
     @abstractmethod

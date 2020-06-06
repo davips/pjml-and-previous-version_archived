@@ -1,19 +1,12 @@
-from typing import Tuple, Iterator
-import operator
-from itertools import tee
-
 import numpy
 from numpy import mean
 
-from pjdata.collection import Collection, AccResult
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.distributions import choice
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import CatP
 from pjml.tool.abc.finalizer import Finalizer
-from pjml.tool.abc.mixin.component import Component
 from pjml.tool.abc.mixin.functioninspector import FunctionInspector
-from pjml.tool.abc.mixin.transformer import Transformer
 
 
 class RSumm(Finalizer, FunctionInspector):
