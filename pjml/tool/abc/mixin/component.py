@@ -62,13 +62,6 @@ class Component(Printable, Identifiable, ABC):
     def _model_func(self, data: t.Data) -> Callable[[t.Data], t.Data]:
         pass
 
-    def _enhancer_impl(self) -> Transformer:
-        return Transformer(self, func=self._enhancer_func(), info=self._enhancer_info)
-
-    def _model_impl(self, prior) -> Transformer:
-        # Assumes all components are symmetric. I.e. the same self for both enhance and model.
-        return Transformer(self, func=self._model_func(prior), info=self._model_info(prior))
-
     def iterators(
             self,
             prior_collection: Collection,
@@ -82,27 +75,24 @@ class Component(Printable, Identifiable, ABC):
     def enhancer(self) -> Transformer:  # clean, cleaup, dumb, dumb_transformer
         if not self._enhance:
             return Transformer(self.uuid, None, None)
-        return self._enhancer_impl()
+        return Transformer(self, func=self._enhancer_func(), info=self._enhancer_info)
 
     # TODO: verify if Data (/ Collection?) should have a better __hash__
     @lru_cache()
-    def model(
-            self,
-            prior: Content
-    ) -> Transformer:  # smart, smart_transformer
-        if isinstance(prior, tuple):
+    def model(self, prior: Content) -> Transformer:  # <-- com os novos tipos ficou mais curto, então subi
+        if isinstance(prior, tuple): # <-- Pq??
             prior = prior[0]
         if not self._model:
             return Transformer(self.uuid, None, None)
-        return self._model_impl(prior)
+        # Assumes all components are symmetric. I.e. we can use the same self for both enhance and model.
+        return Transformer(self, func=self._model_func(prior), info=self._model_info(prior))
 
     # TODO: special sub class for concurrent components containing the content
     #   of this IF and the parent ABC method iterator().
-    def dual_transform(
-            self,
-            prior: Content,
-            posterior: Content
-    ) -> Tuple[Content, Content]:
+    def dual_transform(self,
+                       prior: t.DataOrColl,
+                       posterior: t.DataOrCollOrTup
+                       ) -> Tuple[t.DataOrColl, t.DataOrCollOrTup]: #TODO: overload
 
         # We need to put the ignore here because @porperty has not annotations.
         # Another alternative is creating our own @property decorator and
@@ -147,7 +137,7 @@ class Component(Printable, Identifiable, ABC):
     @Property
     @lru_cache()
     def serialized(self):
-        print('TODO: aproveitar processamento do cfg_serialized!')  #<-- TODO
+        print('TODO: aproveitar processamento do cfg_serialized!')  # <-- TODO
         return serialize(self)
 
     @staticmethod
