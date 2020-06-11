@@ -1,9 +1,9 @@
 from itertools import repeat
-from typing import Tuple, Iterator, Dict, Any, Callable
+from typing import Tuple, Iterator, Callable
 
 from pjdata.content.collection import Collection
 from pjdata.content.data import Data
-from pjdata.mixin.noinfo import NoInfo
+from pjml.tool.abc.mixin.noinfo import NoInfo
 from pjml.config.description.cs.emptycs import EmptyCS
 from pjml.tool.abc.mixin.component import Component
 from pjml.tool.abc.nonfinalizer import NonFinalizer
