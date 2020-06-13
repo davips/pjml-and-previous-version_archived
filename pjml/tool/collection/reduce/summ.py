@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from collections import Iterator
 from functools import lru_cache
 from typing import Callable, Iterable, Dict, Any, List, Generator
@@ -6,27 +7,14 @@ import numpy
 from numpy import ndarray, mean
 
 from pjdata.content.data import Data
-from pjdata.types import Result
+from pjdata.types import Result, Field
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.distributions import choice
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import CatP
 from pjml.tool.abc.mixin.component import Component
 from pjml.tool.abc.mixin.functioninspector import FunctionInspector
-
-
-class ResultIt(Iterator):
-    def __init__(self, gen):
-        self.gen = gen
-
-    def __iter__(self):
-        self.result = yield from self.gen
-        print('----------------', self.result)
-        return self.result
-
-    def __next__(self):
-        raise Exception('Do not use next on ResultIt!')
-        # return next(self.gen)
+from pjml.tool.collection.accumulator import Accumulator
 
 
 class Summ(Component, FunctionInspector):
@@ -60,15 +48,13 @@ class Summ(Component, FunctionInspector):
         summarize = self.function
 
         def transform(data: Data) -> Result:
-            def generator() -> Generator[Data, None, List[Data]]:
-                acc = []
-                for d in data.stream:
-                    acc.append(d.field(self.field, "Summ"))
-                    yield d
-                return acc
+            def step(d, acc):
+                acc.append(d.field(self.field, "Summ"))
+                return d, acc
 
-            iterator = ResultIt(generator())
-            return {'stream': iterator, 'S': lambda: summarize(iterator.result)}
+            iterator = Accumulator(data.stream, start=[], step_func=step, summ_func=summarize)
+
+            return {'stream': iterator, 'S': lambda: iterator.result}
 
         return transform
 

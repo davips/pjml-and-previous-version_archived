@@ -82,9 +82,11 @@ class Component(Printable, Identifiable, ABC):
         # Another alternative is creating our own @property decorator and
         # putting Any as a return. More information can be found on mypy's
         # Github, issue #1362
-        prior_result = self.enhancer.transform(train)
-        posterior_result = self.model(train).transform(test)
-        return prior_result, posterior_result
+        if self._model:  # TODO: I am not sure these IFs are really needed...
+            test = self.model(train).transform(test)
+        if self._enhance:  # TODO: ... I've put them here because of streams.
+            train = self.enhancer.transform(train)
+        return train, test
 
     @classmethod
     @abstractmethod

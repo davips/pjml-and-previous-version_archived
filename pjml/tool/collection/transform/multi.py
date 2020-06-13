@@ -8,6 +8,7 @@ from pjdata.types import Result
 from pjml.config.description.cs.containercs import ContainerCS
 from pjml.tool.abc.minimalcontainer import MinimalContainerN
 from pjml.tool.abc.mixin.component import Component
+from pjml.tool.collection.accumulator import Accumulator
 
 
 class Multi(MinimalContainerN):
@@ -39,8 +40,12 @@ class Multi(MinimalContainerN):
 
     def _enhancer_func(self) -> t.Transformation:
         enhancers = self._enhancer_info()["enhancers"]
-        return lambda data: {'stream': map(lambda e, d: e.transform(d), enhancers, data.stream)}
+        return lambda data: {
+            'stream': map(lambda e, d: e.transform(d), enhancers, data.stream)
+        }
 
     def _model_func(self, data: Data) -> Callable[[Data], Result]:
         models = self._model_info(data)["models"]
-        return lambda ds: {'stream': map(lambda m, d: m.transform(d), models, ds.stream)}
+        return lambda ds: {
+            'stream': map(lambda m, d: m.transform(d), models, ds.stream)
+        }
