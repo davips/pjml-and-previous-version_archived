@@ -6,6 +6,7 @@ from typing import Tuple, Iterator, Callable
 from pjdata.aux.util import Property
 from pjdata.content.collection import Collection
 from pjdata.content.data import Data
+import pjdata.types as t
 
 
 def unzip_iterator(iterator: Iterator) -> Tuple[Iterator, Iterator]:
@@ -15,15 +16,15 @@ def unzip_iterator(iterator: Iterator) -> Tuple[Iterator, Iterator]:
 
 class Streamer(ABC):
     """Parent mixin for all classes that manipulate collections."""
-    enhance = model = True  # Come from Component to children classes.
+    _enhance = _model = True  # Come from Component to children classes.
     #TODO: i'm not sure this affects parent class' flags
 
     @abstractmethod
-    def _enhancer_func(self) -> Callable[[Collection], Collection]:
+    def _enhancer_func(self) -> Callable[[t.DataOrColl], t.DataOrColl]:
         pass
 
     @abstractmethod
-    def _model_func(self, train_coll: Collection) -> Callable[[Collection], Collection]:
+    def _model_func(self, train: t.DataOrColl) -> Callable[[t.DataOrColl], t.DataOrColl]:
         pass
 
     @Property
@@ -37,9 +38,9 @@ class Streamer(ABC):
 
     def dual_transform(self, train, test):
         if not self._enhance:
-            return train, self.model_func(train)(test)
+            return train, self._model_func(train)(test)
         if not self._model:
-            return self.enhancer_func()(train), test
+            return self._enhancer_func()(train), test
 
         iterator1, iterator2 = unzip_iterator(self.iterator(train, test))
         coll1 = Collection(
