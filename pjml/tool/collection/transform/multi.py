@@ -1,24 +1,25 @@
 from functools import lru_cache
 from typing import Optional, Tuple, Dict, Callable, Any
 
+from pjdata import types as t
 from pjdata.aux.util import Property
-from pjdata.content.collection import Collection
+from pjdata.content.data import Data
+from pjdata.types import Result
 from pjml.config.description.cs.containercs import ContainerCS
 from pjml.tool.abc.minimalcontainer import MinimalContainerN
 from pjml.tool.abc.mixin.component import Component
-from pjml.tool.abc.nonfinalizer import NonFinalizer
 
 
-class Multi(NonFinalizer, MinimalContainerN):
+class Multi(MinimalContainerN):
     """Process each Data object from a collection with its respective
     transformer."""
 
     def __new__(
-        cls,
-        *args: Component,
-        seed: int = 0,
-        transformers: Optional[Tuple[Component, ...]] = None,
-        **kwargs
+            cls,
+            *args: Component,
+            seed: int = 0,
+            transformers: Optional[Tuple[Component, ...]] = None,
+            **kwargs
     ):
         """Shortcut to create a ConfigSpace."""
         if transformers is None:
@@ -27,56 +28,19 @@ class Multi(NonFinalizer, MinimalContainerN):
             return object.__new__(cls)
         return ContainerCS(Multi.name, Multi.path, transformers)
 
-    # def iterators(self, train_collection, test_collection) -> Tuple[Iterator]:
-    #     funcs = [trf.dual_transform for trf in self.transformers]
-    #     iterator = map(
-    #         lambda func, prior, posterior: func(prior, posterior),
-    #         funcs, train_collection, test_collection
-    #     )
-    #     return unzip_iterator(iterator)
-
-    @lru_cache()
-    def _enhancer_info(self, train_coll=None) -> Dict[str, Any]:
+    def _enhancer_info(self, data: t.Data = None) -> Dict[str, Any]:
         return {"enhancers": [trf.enhancer for trf in self.transformers]}
 
-    def _enhancer_func(self) -> Callable[[Collection], Collection]:
-        enhancers = self._enhancer_info()["enhancers"]
-
-        def transform(train_coll: Collection) -> Collection:
-            funcs = [lambda data: enhancer.transform(data) for enhancer in enhancers]
-            iterator = map(lambda func, data: func(data), funcs, train_coll)
-            return Collection(iterator, lambda: train_coll.data, debug_info="multi")
-
-        return transform
-
-    @lru_cache()
-    def _model_info(self, train_coll: Collection) -> Dict[str, Any]:
+    def _model_info(self, data: t.Data) -> Dict[str, Any]:
         models = [
-            trf.model(data) for trf, data in zip(self.transformers, train_coll)
-        ]  # TODO: aqui trfs acaba antes de coll, então data fica inacessível?
+            trf.model(data) for trf, data in zip(self.transformers, data.stream)
+        ]
         return {"models": models}
 
-    def _model_func(self, train_coll: Collection) -> Callable[[Collection], Collection]:
-        transformers = self.transformers
+    def _enhancer_func(self) -> t.Transformation:
+        enhancers = self._enhancer_info()["enhancers"]
+        return lambda data: {'stream': map(lambda e, d: e.transform(d), enhancers, data.stream)}
 
-        def transform(test_coll: Collection) -> Collection:
-            # models = info1['models']
-            funcs = [
-                lambda prior, posterior: trf.model(prior).transform(posterior)
-                for trf in transformers
-            ]
-            iterator = map(
-                lambda func, prior, posterior: func(prior, posterior),
-                funcs,
-                train_coll,
-                test_coll,
-            )
-            return Collection(iterator, lambda: test_coll.data, debug_info="multi")
-
-            # TODO: Tratar StopException com hint sobre montar better pipeline?
-
-        return transform
-
-    @Property
-    def finite(self) -> bool:
-        return True
+    def _model_func(self, data: Data) -> Callable[[Data], Result]:
+        models = self._model_info(data)["models"]
+        return lambda ds: {'stream': map(lambda m, d: m.transform(d), models, ds.stream)}

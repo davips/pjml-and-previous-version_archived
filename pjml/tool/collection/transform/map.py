@@ -1,13 +1,13 @@
+from functools import lru_cache
 from typing import Callable, Any, Dict
 
-from pjdata.content.collection import Collection
+import pjdata.types as t
 from pjml.config.description.cs.containercs import ContainerCS
 from pjml.tool.abc.minimalcontainer import MinimalContainer1
 from pjml.tool.abc.mixin.component import Component
-from pjml.tool.abc.nonfinalizer import NonFinalizer
 
 
-class Map(NonFinalizer, MinimalContainer1):
+class Map(MinimalContainer1):
     """Execute the same transformer for the entire collection."""
 
     def __new__(cls, *args, seed=0, transformers=None, **kwargs):
@@ -18,38 +18,21 @@ class Map(NonFinalizer, MinimalContainer1):
             return object.__new__(cls)
         return ContainerCS(Map.name, Map.path, transformers)
 
-    def _enhancer_info(self, train_coll: Collection) -> Dict[str, Any]:
+    @lru_cache()
+    def _enhancer_info(self, data: t.Data = None) -> Dict[str, Any]:
         return {"enhancer": self.transformer.enhancer}
 
-    def _model_info(self, train_coll: Collection) -> Dict[str, Any]:
-        return {"models": [self.transformer.model(data) for data in train_coll]}
+    @lru_cache()
+    def _model_info(self, data: t.Data) -> Dict[str, Any]:
+        return {
+            "models": map(self.transformer.model, data.stream),   # TODO: decidir sobre lazy models
+            # "model_stream": map(self.transformer.model, data.stream)
+        }
 
-    def _enhancer_func(self) -> Callable[[Collection], Collection]:
+    def _enhancer_func(self) -> Callable[[t.Data], t.Result]:
         enhancer = self.transformer.enhancer
+        return lambda d: {'stream': map(enhancer.transform, d.stream)}
 
-        def transform(test_coll: Collection) -> Collection:
-            iterator = map(enhancer.transform, test_coll)
-            return Collection(iterator, lambda: test_coll.data, debug_info="map")
-
-        return transform
-
-    def _model_func(self, train_coll: Collection) -> Callable[[Collection], Collection]:
+    def _model_func(self, data: t.Data) -> t.Transformation:
         transformer = self.transformer
-
-        def transform(test_coll: Collection) -> Collection:
-            def func(train, test):
-                return transformer.model(train).transform(test)
-
-            iterator = map(func, train_coll, test_coll)
-            return Collection(iterator, lambda: test_coll.data, debug_info="map")
-
-        return transform
-
-    @property
-    def finite(self) -> bool:
-        return True
-
-    # def iterators(self, train_collection, test_collection):
-    #     iterator = map(self.transformer.dual_transform,
-    #                    train_collection, test_collection)
-    #     return unzip_iterator(iterator)
+        return lambda d: {'stream': map(transformer.model(data).transform, d.stream)}

@@ -1,14 +1,13 @@
 from functools import lru_cache
-from typing import Optional, List, Tuple, Iterator
+from typing import Optional, List
 
 from pjdata.content.data import Data
 from pjml.tool.abc.mixin.component import Component
-from pjml.tool.abc.nonfinalizer import NonFinalizer
 from pjml.tool.chain import Chain
 from pjml.tool.collection.expand.repeat import Repeat
 
 
-class Partition(NonFinalizer, Component):
+class Partition(Component):
     """Class to perform, e.g. Expand+kfoldCV.
 
     This task is already done by function split(),
@@ -53,28 +52,19 @@ class Partition(NonFinalizer, Component):
             tsplit(split_type, partitions, test_size, seed, fields)
         )
 
-    @property
-    def finite(self):
-        return True
-
-    def iterator(self, train: Data, test: Data) -> Iterator[Tuple[Data, Data]]:
-        # TODO: parece que já é feito no Streamer.
-        return zip(self.enhancer.transform(train),
-                   self.model(train).transform(test))
+    @lru_cache()
+    def _enhancer_info(self, data: Data):
+        return self.transformer.enhancer.info(data)
 
     @lru_cache()
-    def _enhancer_info(self, train: Data):
-        return self.transformer.enhancer.info
-
-    @lru_cache()
-    def _model_info(self, train: Data):
-        return self.transformer.model(train).info
+    def _model_info(self, data: Data):
+        return self.transformer.model(data).info
 
     def _enhancer_func(self):
         return self.transformer.enhancer.transform
 
-    def _model_func(self, train: Data):
-        return self.transformer.model(train).transform
+    def _model_func(self, data: Data):
+        return self.transformer.model(data).transform
 
     @classmethod
     def _cs_impl(cls):

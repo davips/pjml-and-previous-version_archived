@@ -1,19 +1,35 @@
-from typing import Callable, Iterable, Dict, Any
+from collections import Iterator
+from functools import lru_cache
+from typing import Callable, Iterable, Dict, Any, List, Generator
 
 import numpy
-from numpy import mean
+from numpy import ndarray, mean
 
-from pjdata.content.collection import Collection
 from pjdata.content.data import Data
+from pjdata.types import Result
 from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.distributions import choice
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import CatP
-from pjml.tool.abc.finalizer import Finalizer
+from pjml.tool.abc.mixin.component import Component
 from pjml.tool.abc.mixin.functioninspector import FunctionInspector
 
 
-class RSumm(Finalizer, FunctionInspector):
+class ResultIt(Iterator):
+    def __init__(self, gen):
+        self.gen = gen
+
+    def __iter__(self):
+        self.result = yield from self.gen
+        print('----------------', self.result)
+        return self.result
+
+    def __next__(self):
+        raise Exception('Do not use next on ResultIt!')
+        # return next(self.gen)
+
+
+class Summ(Component, FunctionInspector):
     """Given a field, summarizes a Collection object to a Data object.
 
     The resulting Data object will have only the 's' field. To keep other
@@ -32,18 +48,32 @@ class RSumm(Finalizer, FunctionInspector):
         self.function = self.function_from_name[config["function"]]
         self.field = field
 
-    def _enhancer_info(self, data: Collection) -> Dict[str, Any]:
+    @lru_cache()
+    def _enhancer_info(self, data: Data = None) -> Dict[str, Any]:
         return {}
 
-    def _model_info(self, data: Collection) -> Dict[str, Any]:
+    @lru_cache()
+    def _model_info(self, data: Data) -> Dict[str, Any]:
         return {}
 
-    def partial_result(self, data: Data) -> Data:
-        return data.field(self.field, "Summ")
-
-    def final_result_func(self, collection: Collection) -> Callable[[Iterable], Data]:
+    def _enhancer_func(self) -> Callable[[Data], Result]:
         summarize = self.function
-        return lambda values: summarize(collection.data, values)
+
+        def transform(data: Data) -> Result:
+            def generator() -> Generator[Data, None, List[Data]]:
+                acc = []
+                for d in data.stream:
+                    acc.append(d.field(self.field, "Summ"))
+                    yield d
+                return acc
+
+            iterator = ResultIt(generator())
+            return {'stream': iterator, 'S': lambda: summarize(iterator.result)}
+
+        return transform
+
+    def _model_func(self, data: Data) -> Callable[[Data], Result]:
+        return self._enhancer_func()
 
     @classmethod
     def _cs_impl(cls) -> TransformerCS:
@@ -53,9 +83,7 @@ class RSumm(Finalizer, FunctionInspector):
         }
         return TransformerCS(nodes=[Node(params)])
 
-    def _fun_mean(self, data: Data, values: Iterable) -> Data:
+    @staticmethod
+    def _fun_mean(values: Iterable[float]) -> ndarray:
         res = mean([m for m in values], axis=0)
-        if isinstance(res, tuple):
-            return data.updated(self.transformations("u"), S=numpy.array(res))
-        else:
-            return data.updated(self.transformations("u"), s=res)
+        return numpy.array(res) if isinstance(res, tuple) else res
