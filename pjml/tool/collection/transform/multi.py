@@ -12,8 +12,7 @@ from pjml.tool.collection.accumulator import Accumulator
 
 
 class Multi(MinimalContainerN):
-    """Process each Data object from a collection with its respective
-    transformer."""
+    """Process each Data object from a stream with its respective transformer."""
 
     def __new__(
             cls,
@@ -30,12 +29,10 @@ class Multi(MinimalContainerN):
         return ContainerCS(Multi.name, Multi.path, transformers)
 
     def _enhancer_info(self, data: t.Data = None) -> Dict[str, Any]:
-        return {"enhancers": [trf.enhancer for trf in self.transformers]}
+        return {"enhancers": map(lambda trf: trf.enhancer, self.transformers)}
 
     def _model_info(self, data: t.Data) -> Dict[str, Any]:
-        models = [
-            trf.model(data) for trf, data in zip(self.transformers, data.stream)
-        ]
+        models = map(lambda trf, d: trf.model(d), self.transformers, data.stream)
         return {"models": models}
 
     def _enhancer_func(self) -> t.Transformation:
@@ -46,6 +43,6 @@ class Multi(MinimalContainerN):
 
     def _model_func(self, data: Data) -> Callable[[Data], Result]:
         models = self._model_info(data)["models"]
-        return lambda ds: {
-            'stream': map(lambda m, d: m.transform(d), models, ds.stream)
+        return lambda test: {
+            'stream': map(lambda m, d: m.transform(d), models, test.stream)
         }
