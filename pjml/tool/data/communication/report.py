@@ -27,7 +27,7 @@ class Report(Invisible, Component):
         super().__init__({'text': text}, deterministic=True, **kwargs)
         self.text = text
 
-    def _enhancer_info(self, data: t.Data) -> Dict[str, Any]:
+    def _enhancer_info(self, data: t.Data = None) -> Dict[str, Any]:
         return {}
 
     def _enhancer_func(self) -> Callable[[Data], Data]:
@@ -53,7 +53,7 @@ class Report(Invisible, Component):
 
         def f(obj_match):
             field = obj_match.group(1)
-            M = data.field(field, cls)
+            M = data.field(field, component=cls)
             try:
                 if np.issubdtype(M, np.number):
                     return samerow(np.round(M, decimals=4))

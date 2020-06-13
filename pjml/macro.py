@@ -5,7 +5,7 @@ from typing import List, Optional
 
 from pjml.tool.chain import Chain
 from pjml.tool.collection.expand.partition import Partition
-from pjml.tool.collection.reduce.summ import RSumm
+from pjml.tool.collection.reduce.summ import Summ
 from pjml.tool.collection.transform.map import Map
 from pjml.tool.collection.transform.multi import Multi
 
@@ -14,7 +14,7 @@ def evaluator(*components, function='mean_std', **validation_args):
     return Chain(
         Partition(**validation_args),
         Map(transformers=components),
-        RSumm(function=function)
+        Summ(function=function)
     )
 
 

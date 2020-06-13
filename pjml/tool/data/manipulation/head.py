@@ -38,5 +38,5 @@
 #     def _use_impl(self, data, step='u'):
 #         dic = {}
 #         for field in self.fields:
-#             dic[field] = data.field(field, self)[0:self.nrows]
+#             dic[field] = data.field(field, component=self)[0:self.nrows]
 #         return data.updated(self.transformations(step), **dic)

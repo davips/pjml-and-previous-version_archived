@@ -18,7 +18,7 @@ def full(cs, data=NoData, n=1, field='S'):
     for pipe in cs:
         # try: não recomendado capturar exceções aqui, aumente ExceptionHandler!
         model = pipe.apply()
-        res = model.use(model.data).field(field, 'full search').item(0)
+        res = model.use(model.data).field(field, component='full search').item(0)
         # except Exception as e:
         #     res = -Inf
 

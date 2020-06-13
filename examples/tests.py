@@ -3,7 +3,7 @@ import pjdata.content.specialdata as s
 from pjml.pipeline import Pipeline
 from pjml.tool.collection.expand.partition import Partition
 from pjml.tool.collection.reduce.reduce import Reduce
-from pjml.tool.collection.reduce.summ import RSumm
+from pjml.tool.collection.reduce.summ import Summ
 from pjml.tool.collection.transform.map import Map
 from pjml.tool.data.communication.report import Report
 from pjml.tool.data.evaluation.metric import Metric
@@ -72,7 +72,7 @@ def test_partition(arq="iris.arff"):
         File(arq),
         Partition(),
         Map(PCA(), SVMC(), Metric(enhance=False)),
-        RSumm(function='mean', enhance=False),
+        Summ(function='mean', enhance=False),
         Reduce(),
         Report('mean ... S: $S', enhance=False)
     )
@@ -104,7 +104,7 @@ def test_with_summ_reduce(arq="iris.arff"):
         Partition(),
         Map(PCA(), SVMC(), Metric(enhance=False)),
         Map(Report('<---------------------- etapa'), enhance=False),
-        RSumm(function='mean', enhance=False),
+        Summ(function='mean', enhance=False),
         Reduce(),
         Report('mean ... S: $S', enhance=False)
     )
@@ -119,7 +119,7 @@ def test_check_architecture(arq="iris.arff"):
         File(arq),
         Partition(partitions=2),
         Map(PCA(), SVMC(), Metric(enhance=False)),
-        RSumm(field="Y", function='mean', enhance=False),
+        Summ(field="Y", function='mean', enhance=False),
     )
 
     # tenho file na frente
@@ -141,7 +141,7 @@ def test_check_architecture2(arq="iris.arff"):
         File(arq),
         Partition(),
         Map(PCA(), SVMC(), Metric(enhance=False)),
-        RSumm(field="Y", function='mean', enhance=False),
+        Summ(field="Y", function='mean', enhance=False),
         Report('mean ... S: $S', enhance=False)
     )
 
@@ -181,14 +181,14 @@ def test_check_architecture2(arq="iris.arff"):
 
 def main():
     """Main function"""
-    printable_test()
+    # printable_test()
     test_tsvmc()
     test_split()
     test_metric()
     test_pca()
-    # test_partition()
-    # test_split_train_test()
-    # test_with_summ_reduce()
+    test_partition()
+    test_split_train_test()
+    test_with_summ_reduce()
 
     # sanity test
     # test_check_architecture()

@@ -71,7 +71,7 @@ class File(Component, NoDataHandler):
         super().__init__(config, deterministic=True, **kwargs)
         self.data = data
 
-    def _enhancer_info(self, train: NoData) -> Dict[str, Any]:
+    def _enhancer_info(self, data: t.Data = None) -> Dict[str, Any]:
         return {}
 
     def _enhancer_func(self) -> Callable[[t.Data], t.Data]:

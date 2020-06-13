@@ -1,4 +1,5 @@
 from abc import ABC
+from functools import lru_cache
 from typing import Callable, Any, Dict
 
 import pjdata.types as t
@@ -12,20 +13,15 @@ class TPredictor(DefaultEnhancer, TSKLAlgorithm, ABC):
     Base class for classifiers, regressors, ... that implement fit/predict.
     """
 
-    def _model_info(self, train: t.Data) -> Dict[str, Any]:
+    @lru_cache()
+    def _model_info(self, data: t.Data) -> Dict[str, Any]:
         sklearn_model = self.algorithm_factory()
-        sklearn_model.fit(*train.Xy)
+        sklearn_model.fit(*data.Xy)
         return {"sklearn_model": sklearn_model}
 
-    def _model_func(self, train: t.Data) -> Callable[[t.Data], t.Data]:
-        info = self._model_info(train)
+    def _model_func(self, data: t.Data) -> Callable[[t.Data], t.Result]:
+        info = self._model_info(data)
+        return lambda d: {'z': info["sklearn_model"].predict(d.X)}
 
-        def transform(posterior):  # old use
-            return posterior.updated(
-                (), z=info["sklearn_model"].predict(posterior.X)
-            )
-
-        return transform
-
-    def _enhancer_impl(self):
-        return Transformer(func=lambda posterior: posterior.frozen, info={})
+    def _enhancer_func(self) -> Callable[[t.Data], t.Result]:
+        return lambda posterior: posterior.frozen

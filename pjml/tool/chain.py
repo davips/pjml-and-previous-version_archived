@@ -4,7 +4,6 @@ from typing import Optional, Tuple, Dict, List, Callable, Any
 
 import pjdata.types as t
 from pjdata.aux.util import flatten
-from pjdata.content.collection import Collection
 from pjdata.content.specialdata import NoData
 from pjdata.transformer import Transformer
 from pjml.config.description.cs.chaincs import TChainCS
@@ -33,18 +32,13 @@ class Chain(MinimalContainerN):
             return object.__new__(cls)
         return TChainCS(*transformers)
 
-    def dual_transform( # TODO: type overload
-            self,
-            prior: t.DataOrCollOrTup = NoData,
-            posterior: t.DataOrCollOrTup = NoData
-    ) -> Tuple[t.DataOrCollOrTup, t.DataOrCollOrTup]:
-        print(self.__class__.__name__, ' dual transf (((')
+    def dual_transform(self, train: t.Data=NoData, test: t.Data=NoData) -> Tuple[t.Data, t.Data]:
         for trf in self.transformers:
-            prior, posterior = trf.dual_transform(prior, posterior)
-        return prior, posterior
+            train, test = trf.dual_transform(train, test)
+        return train, test
 
     @lru_cache()
-    def _enhancer_info(self, data: Optional[t.Data]=None) -> Dict[str, Any]:
+    def _enhancer_info(self, data: t.Data = None) -> Dict[str, Any]:
         return {'enhancers': [trf.enhancer for trf in self.transformers]}
 
     def _enhancer_func(self) -> Callable[[t.Data], t.Data]:
@@ -58,24 +52,16 @@ class Chain(MinimalContainerN):
         return transform
 
     @lru_cache()
-    def _model_info(self, train: t.Data) -> Dict[str, Any]:
+    def _model_info(self, data: t.Data) -> Dict[str, Any]:
         models = []
         for trf in self.transformers:
-            if isinstance(train, Collection):
-                iter0, iter1 = tee(train.iterator)
-                prior0 = Collection(
-                    iter0, train.finalizer,
-                    debug_info='compo' + self.__class__.__name__ + ' pri')
-                prior1 = Collection(
-                    iter1, train.finalizer,
-                    debug_info='compo' + self.__class__.__name__ + ' pos')
+            if data.stream is None:
+                data0 = data1 = data
             else:
-                prior0 = prior1 = train
-            print('                   gera modelo', trf.name)
-            models.append(trf.model(prior0))
-
-            print('      melhora dado pro próximo modelo', trf.name)
-            train = trf.enhancer.transform(prior1)
+                stream0, stream1 = tee(data.stream)
+                data0, data1 = data.updated((), stream=stream0), data.updated((), stream=stream1)
+            models.append(trf.model(data0))
+            data = trf.enhancer.transform(data1)
         return {'models': models}
 
     def _model_func(self, data: t.Data) -> Callable[[t.Data], t.Data]:
@@ -84,34 +70,38 @@ class Chain(MinimalContainerN):
         def transform(posterior: t.Data):
             c = 0
             for model in models['models']:
-                print('                 USA modelo', c, model)
+                # print('                 USA modelo', c, model)
                 posterior = model.transform(posterior)
                 c += 1
             return posterior
 
         return transform
 
-    @lru_cache()
-    def transformations(
-            self,
-            step: str,
-            clean: bool = True
-    ) -> List[Transformer]:
-        lst = []
-        for transformer in self.transformers:
-            transformations = transformer.transformations(step, clean=False)
-            lst.append(transformations)
-        result = flatten(lst)
-        if clean:
-            lst = []
-            previous = None
-            for transformation in result + [None]:
-                if previous and previous.name == "Sink":
-                    lst = []
-                lst.append(transformation)
-                previous = transformation
-            result = lst[:-1]
-        return result
+    # TODO: Chain needs to report to Cache about its "monster" status
+    #  That's because monsters generate two histories:
+    #  the predictable short (itself) and the possibly data-dependent long (all that goes inside Data as "bytecodes")
+    #  This code commented out below can be useful for that.
+    # @lru_cache()
+    # def transformations(
+    #         self,
+    #         step: str,
+    #         clean: bool = True
+    # ) -> List[Transformer]:
+    #     lst = []
+    #     for transformer in self.transformers:
+    #         transformations = transformer.transformations(step, clean=False)
+    #         lst.append(transformations)
+    #     result = flatten(lst)
+    #     if clean:
+    #         lst = []
+    #         previous = None
+    #         for transformation in result + [None]:
+    #             if previous and previous.name == "Sink":
+    #                 lst = []
+    #             lst.append(transformation)
+    #             previous = transformation
+    #         result = lst[:-1]
+    #     return result
 
     def __str__(self, depth=''):
         if not self.pretty_printing:
