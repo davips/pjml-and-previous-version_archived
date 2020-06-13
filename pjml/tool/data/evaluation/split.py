@@ -148,11 +148,10 @@ class SplitTest(DefaultEnhancer, AbstractSplit):
 
 
 class SplitTrain(DefaultModel, AbstractSplit):
-    @lru_cache()
-    def _enhancer_info(self, train: Data) -> Dict[str, Any]:
-        zeros = numpy.zeros(train.field(self.fields[0], self).shape[0])
+    def _enhancer_info(self, data: Data) -> Dict[str, Any]:
+        zeros = numpy.zeros(data.field(self.fields[0], self).shape[0])
         partitions = list(self.algorithm.split(X=zeros, y=zeros))
-        train_ = self._split(train, partitions[self.partition][0], step="a")
+        train_ = self._split(data, partitions[self.partition][0], step="a")
         return {"train": train_, "algorithm": self.algorithm}
 
     def _enhancer_func(self) -> Callable[[Data], Data]:

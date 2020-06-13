@@ -1,15 +1,13 @@
 """ Component module. """
 from abc import abstractmethod, ABC
 from functools import lru_cache
-from typing import Dict, Any, Callable, Tuple, Iterator, Optional
+from typing import Dict, Any, Tuple, Iterator
 
 import pjdata.types as t
 from pjdata.aux.decorator import classproperty
 from pjdata.aux.serialization import serialize, materialize
 from pjdata.aux.util import Property
 from pjdata.aux.uuid import UUID
-from pjdata.content.collection import Collection
-from pjdata.content.content import Content
 from pjdata.mixin.identifiable import Identifiable
 from pjdata.mixin.printable import Printable
 from pjdata.transformer import Transformer
@@ -35,7 +33,7 @@ class Component(Printable, Identifiable, ABC):
         from pjml.tool.abc.mixin.nodatahandler import NoDataHandler
         self.nodata_handler = isinstance(self, NoDataHandler) or nodata_handler
 
-        self.cs = self.cs1  # TODO: This can take some time to type.
+        self.cs = self.cs1  # TODO: This can take some time to type. It is pure magic!
         self._enhance = enhance
         self._model = model
 
@@ -44,66 +42,48 @@ class Component(Printable, Identifiable, ABC):
         return self._jsonable
 
     @abstractmethod
-    @lru_cache()
-    def _enhancer_info(self, train: t.DataOrColl) -> Dict[str, Any]:  # <-- TODO: check this optional
+    def _enhancer_info(self, data: t.Data) -> Dict[str, Any]:
         pass
 
     @abstractmethod
-    @lru_cache()
-    def _model_info(self, train: t.DataOrColl) -> Dict[str, Any]:
+    def _model_info(self, data: t.Data) -> Dict[str, Any]:
         pass
 
     @abstractmethod
-    def _enhancer_func(self) -> Callable[[t.DataOrColl], t.DataOrColl]:
+    def _enhancer_func(self) -> t.Transformation:
         pass
 
     @abstractmethod
-    def _model_func(self, train: t.DataOrColl) -> Callable[[t.DataOrColl], t.DataOrColl]:
+    def _model_func(self, data: t.Data) -> t.Transformation:
         pass
-
-    def _enhancer_impl(self) -> Transformer:
-        return Transformer(self, func=self._enhancer_func(), info=self._enhancer_info)
-
-    def _model_impl(self, prior) -> Transformer:
-        return Transformer(self, func=self._model_func(prior), info=self._model_info(prior))
-
-    def iterators(
-        self, prior_collection: Collection, posterior_collection: Collection
-    ) -> Tuple[Iterator, Iterator]:
-        raise Exception(
-            "NotImplementedError: Only concurrent components have " "iterators"
-        )
 
     @Property
     @lru_cache()
-    def enhancer(self) -> Transformer:  # clean, cleaup, dumb, dumb_transformer
+    def enhancer(self) -> Transformer:
         if not self._enhance:
             return Transformer(self, None, None)
         return Transformer(self, func=self._enhancer_func(), info=self._enhancer_info)
 
     # TODO: verify if Data (/ Collection?) should have a better __hash__
     @lru_cache()
-    def model(self, prior: Content) -> Transformer:  # <-- com os novos tipos ficou mais curto, então subi
-        if isinstance(prior, tuple): # <-- Pq??
-            prior = prior[0]
+    def model(self, data: t.Data) -> Transformer:
+        if isinstance(data, tuple):  # <-- Pq??
+            data = data[0]
         if not self._model:
             return Transformer(self, None, None)
         # Assumes all components are symmetric. I.e. we can use the same self for both enhance and model.
-        return Transformer(self, func=self._model_func(prior), info=self._model_info(prior))
+        return Transformer(self, func=self._model_func(data), info=self._model_info(data))
 
     # TODO: special sub class for concurrent components containing the content
     #   of this IF and the parent ABC method iterator().
-    def dual_transform(self,
-                       prior: t.DataOrColl,
-                       posterior: t.DataOrCollOrTup
-                       ) -> Tuple[t.DataOrColl, t.DataOrCollOrTup]: #TODO: overload
+    def dual_transform(self, train: t.Data, test: t.Data) -> Tuple[t.Data, t.Data]:
 
         # We need to put the ignore here because @porperty has not annotations.
         # Another alternative is creating our own @property decorator and
         # putting Any as a return. More information can be found on mypy's
         # Github, issue #1362
-        prior_result = self.enhancer.transform(prior)
-        posterior_result = self.model(prior).transform(posterior)
+        prior_result = self.enhancer.transform(train)
+        posterior_result = self.model(train).transform(test)
         return prior_result, posterior_result
 
     @classmethod
@@ -141,7 +121,7 @@ class Component(Printable, Identifiable, ABC):
     @Property
     @lru_cache()
     def serialized(self):
-        print('TODO: aproveitar processamento do cfg_serialized!')  # <-- TODO
+        # print('TODO: aproveitar processamento do cfg_serialized!')  # <-- TODO
         return serialize(self)
 
     @staticmethod
@@ -230,8 +210,8 @@ class Component(Printable, Identifiable, ABC):
             config.update(kwargs)
 
         self.disable_pretty_printing()
-        print('OBJ: ', self)
-        print('CONFIG: ', config)
+        # print('OBJ: ', self)
+        # print('CONFIG: ', config)
 
         return materialize(self.name, self.path, config)
 
