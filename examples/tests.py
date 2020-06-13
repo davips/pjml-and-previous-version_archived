@@ -186,9 +186,9 @@ def main():
     test_split()
     test_metric()
     test_pca()
-    # test_partition()
-    # test_split_train_test()
-    # test_with_summ_reduce()
+    test_partition()
+    test_split_train_test()
+    test_with_summ_reduce()
 
     # sanity test
     # test_check_architecture()
