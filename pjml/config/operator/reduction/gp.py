@@ -16,7 +16,7 @@ def full(cs, data=NoData, n=1, field='S'):
     for pipe in cs:
         p = pipe
         result_data = p.apply()
-        res = p.use(result_data).field(field, 'full search').item(0)
+        res = p.use(result_data).field(field, component='full search').item(0)
         results.append((p, -res))
 
     pipes = [x[0] for x in sorted(results, key=itemgetter(1))[:n]]
