@@ -110,8 +110,8 @@ def test_with_summ_reduce(arq="iris.arff"):
     )
     prior, posterior = pipe.dual_transform()
 
-    print("Prior..............\n", prior)
-    print("Posterior..........\n", posterior)
+    print("Prior..............\n", [h.name for h in prior.history])
+    print("Posterior..........\n", [h.name for h in posterior.history])
 
 
 def test_check_architecture(arq="iris.arff"):
