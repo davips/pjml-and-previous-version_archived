@@ -64,7 +64,6 @@ class Component(Printable, Identifiable, ABC):
             return Transformer(self, None, None)
         return Transformer(self, func=self._enhancer_func(), info=self._enhancer_info)
 
-    # TODO: verify if Data (/ Collection?) should have a better __hash__
     @lru_cache()
     def model(self, data: t.Data) -> Transformer:
         if isinstance(data, tuple):  # <-- Pq??
@@ -74,14 +73,7 @@ class Component(Printable, Identifiable, ABC):
         # Assumes all components are symmetric. I.e. we can use the same self for both enhance and model.
         return Transformer(self, func=self._model_func(data), info=self._model_info(data))
 
-    # TODO: special sub class for concurrent components containing the content
-    #   of this IF and the parent ABC method iterator().
     def dual_transform(self, train: t.Data, test: t.Data) -> Tuple[t.Data, t.Data]:
-
-        # We need to put the ignore here because @porperty has not annotations.
-        # Another alternative is creating our own @property decorator and
-        # putting Any as a return. More information can be found on mypy's
-        # Github, issue #1362
         if self._model:  # TODO: I am not sure these IFs are really needed...
             test = self.model(train).transform(test)
         if self._enhance:  # TODO: ... I've put them here because of streams.
@@ -242,3 +234,4 @@ class Component(Printable, Identifiable, ABC):
     #         return [Transformation(self, step)]
     #     else:
     #         raise BadComponent("Wrong current step:", step)
+
