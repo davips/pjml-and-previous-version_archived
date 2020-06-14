@@ -1,6 +1,6 @@
 """ Component module. """
 from abc import abstractmethod, ABC
-from functools import lru_cache
+from functools import lru_cache, cached_property
 from typing import Dict, Any, Tuple, Iterator
 
 import pjdata.types as t

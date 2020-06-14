@@ -19,15 +19,12 @@ class Map(MinimalContainer1):
         return ContainerCS(Map.name, Map.path, transformers)
 
     @lru_cache()
-    def _enhancer_info(self, data: t.Data = None) -> Dict[str, Any]:
+    def _enhancer_info(self, data: t.Data = None) -> Dict[str, Any]:  #TODO: should _*info accept None?
         return {"enhancer": self.transformer.enhancer}
 
     @lru_cache()
     def _model_info(self, data: t.Data) -> Dict[str, Any]:
-        return {
-            "models": map(self.transformer.model, data.stream),   # TODO: decidir sobre lazy models
-            # "model_stream": map(self.transformer.model, data.stream)
-        }
+        return {"models": map(self.transformer.model, data.stream)}
 
     def _enhancer_func(self) -> Callable[[t.Data], t.Result]:
         enhancer = self.transformer.enhancer
