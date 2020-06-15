@@ -1,12 +1,10 @@
-from pjml.tool.data.modeling.supervised.classifier.rf import RF
-from pjml.tool.data.processing.instance.sampler.over.random import OverS
-from pjml.tool.data.processing.instance.sampler.under.random import UnderS
+from pjml.tool.data.processing.feature.reductor.pca import PCA
 
-cs = (UnderS @ OverS) * RF()
+cs = (PCA @ PCA) * PCA()
 print(cs.longname)
 
 print()
-p = UnderS() * RF() * UnderS() * RF()
+p = PCA() * PCA() * PCA() * PCA()
 print(p.longname)
 
 # class A:

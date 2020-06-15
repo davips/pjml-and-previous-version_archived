@@ -8,14 +8,15 @@ from pjdata.aux.decorator import classproperty
 from pjdata.aux.serialization import serialize, materialize
 from pjdata.aux.util import Property
 from pjdata.aux.uuid import UUID
-from pjdata.mixin.identifiable import Identifiable
+from pjdata.mixin.withidentification import WithIdentification
 from pjdata.mixin.printable import Printable
 from pjdata.transformer import Transformer
 from pjml.config.description.cs.configlist import ConfigList
 from pjml.config.description.cs.cs import CS
+from pjml.tool.abc.operand import Operand
 
 
-class Component(Printable, Identifiable, ABC):
+class Component(Printable, WithIdentification, Operand, ABC):
     def __init__(
             self,
             config: dict,
@@ -38,7 +39,7 @@ class Component(Printable, Identifiable, ABC):
         self.hasmodel = model
 
     @Property
-    def jsonable(self):
+    def _jsonable_impl(self):
         return self._jsonable
 
     @abstractmethod
@@ -146,10 +147,8 @@ class Component(Printable, Identifiable, ABC):
     def cfg_serialized(self):
         return serialize(self.transformer_info)
 
-    @classproperty
-    @lru_cache()
-    def name(cls):
-        return cls.__name__
+    def _name_impl(self):
+        return self.__class__.__name__
 
     @Property
     @lru_cache()

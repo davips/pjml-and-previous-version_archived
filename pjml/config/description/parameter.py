@@ -3,6 +3,7 @@ from functools import partial
 
 import numpy
 
+from pjdata.aux.util import Property
 from pjdata.mixin.printable import Printable
 
 
@@ -10,12 +11,13 @@ class Param(Printable):
     """Base class for all kinds of algorithm (hyper)parameters."""
 
     def __init__(self, function, **kwargs):
-        dic = kwargs.copy()
-        dic['function'] = function.__name__
-        super().__init__(dic)  # For pretty printing.
-
+        self._jsonable = kwargs.copy()
+        self._jsonable['function'] = function.__name__
         self.function = partial(function, **kwargs)
         self.kwargs = kwargs
+
+    def _jsonable_impl(self):
+        return self._jsonable
 
     def sample(self):
         try:

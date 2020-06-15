@@ -15,7 +15,7 @@ def keyboardInterruptHandler(signal, frame):
 signal.signal(signal.SIGINT, keyboardInterruptHandler)
 
 
-class ExceptionHandler:
+class WithExceptionHandling:
     """Handle component exceptions and enable/disable numpy warnings.
 
         E.g. Mahalanobis distance in KNN needs to supress warnings due to NaN
@@ -23,10 +23,9 @@ class ExceptionHandler:
         nonconvergence issues among other problems.
     """
 
-    @classproperty
-    @abstractmethod
-    def name(cls):
-        pass
+    @property
+    def name(self):
+        raise TypeError("Mixin", self.__class__.__name__, ' should be the last one to be imported to avoid clashing with name property.')
 
     @staticmethod
     def _handle_warnings():

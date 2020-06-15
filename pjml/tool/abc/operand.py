@@ -1,5 +1,7 @@
 from abc import ABCMeta
 
+from pjdata.mixin.withidentification import WithIdentification
+
 
 class MetaOperand(ABCMeta):
     def __add__(cls, other):
@@ -21,6 +23,10 @@ class MetaOperand(ABCMeta):
     def __rmatmul__(self, other):
         return self.__matmul__(other, self)
 
+    # I had to put it here, since I cannot create a specific metaclass for that.
+    # Such attempt would lead to the diamond inheritance problem.
+    def _name_impl(cls):
+        return cls.__name__
 
 
 class Operand(metaclass=MetaOperand):
