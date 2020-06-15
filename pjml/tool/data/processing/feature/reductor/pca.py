@@ -49,4 +49,4 @@ class PCA(TSKLAlgorithm):
             "tol": FixedP(0.0),
             "iterated_power": FixedP("auto"),
         }
-        return CS(nodes=Node(param))
+        return CS(nodes=[Node(param)])
