@@ -34,8 +34,8 @@ class Component(Printable, Identifiable, ABC):
         self.nodata_handler = isinstance(self, NoDataHandler) or nodata_handler
 
         self.cs = self.cs1  # TODO: This can take some time to type. It is pure magic!
-        self._enhance = enhance
-        self._model = model
+        self.hasenhancer = enhance
+        self.hasmodel = model
 
     @Property
     def jsonable(self):
@@ -60,24 +60,24 @@ class Component(Printable, Identifiable, ABC):
     @Property
     @lru_cache()
     def enhancer(self) -> Transformer:
-        if not self._enhance:
-            return Transformer(self, None, None)
+        if not self.hasenhancer:
+            return Transformer(self, None, None)  # TODO: replace by PlaceHolder
         return Transformer(self, func=self._enhancer_func(), info=self._enhancer_info)
 
     @lru_cache()
     def model(self, data: t.Data) -> Transformer:
         if isinstance(data, tuple):  # <-- Pq??
             data = data[0]
-        if not self._model:
+        if not self.hasmodel:  # TODO: replace by PlaceHolder
             return Transformer(self, None, None)
         # Assumes all components are symmetric. I.e. we can use the same self for both enhance and model.
         return Transformer(self, func=self._model_func(data), info=self._model_info(data))
 
     def dual_transform(self, train: t.Data, test: t.Data) -> Tuple[t.Data, t.Data]:
-        if self._model:  # TODO: I am not sure these IFs are really needed...
-            test = self.model(train).transform(test)
-        if self._enhance:  # TODO: ... I've put them here because of streams.
-            train = self.enhancer.transform(train)
+        # if self._model:  # TODO: I am not sure these IFs are really needed...
+        test = self.model(train).transform(test)
+        # if self._enhance:  # TODO: ... I've put them here because of streams.
+        train = self.enhancer.transform(train)
         return train, test
 
     @classmethod
@@ -133,7 +133,7 @@ class Component(Printable, Identifiable, ABC):
 
     def _uuid_impl(self):
         """Complete UUID; including 'model' and 'enhance' flags. Identifies the component."""
-        return self.cfg_uuid * UUID(str(self._enhance + self._model).rjust(14, '0'))
+        return self.cfg_uuid * UUID(str(self.hasenhancer + self.hasmodel).rjust(14, '0'))
 
     @Property
     @lru_cache()
@@ -194,10 +194,10 @@ class Component(Printable, Identifiable, ABC):
         """
         config = self.config
         if 'model' not in self.config:
-            config.update({'model': self._model})
+            config.update({'model': self.hasmodel})
 
         if 'enhancer' not in self.config:
-            config.update({'enhance': self._enhance})
+            config.update({'enhance': self.hasenhancer})
 
         if kwargs:
             config = config.copy()
@@ -209,29 +209,4 @@ class Component(Printable, Identifiable, ABC):
 
         return materialize(self.name, self.path, config)
 
-    # # TODO: Is unbounded lrucache a source of memory leak?
-    # @lru_cache()
-    # def transformations(self, step: str, clean: bool = True) -> List[Transformation]:
-    #     """Expected transformation described as a list of Transformation
-    #     objects.
-    #
-    #     Child classes should override this method to perform non-atomic or
-    #     non-trivial transformations.
-    #     A missing implementation will be detected during apply/use.
-    #
-    #     Parameters
-    #     ----------
-    #     step: str
-    #         TODO
-    #     clean: bool
-    #         TODO
-    #
-    #     Returns
-    #     -------
-    #         list of Transformation
-    #     """
-    #     if step in "au":
-    #         return [Transformation(self, step)]
-    #     else:
-    #         raise BadComponent("Wrong current step:", step)
-
+    # TODO: Is unbounded lrucache a source of memory leak?

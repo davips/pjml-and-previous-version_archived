@@ -12,15 +12,6 @@ from pjml.tool.abc.mixin.component import Component
 from pjml.tool.abc.mixin.nodatahandler import NoDataHandler
 
 
-# Precisa herdar de Invisible, pois o mesmo Data pode vir de diferentes
-# caminhos de arquivo (File) ou servidores (Source) e essas informações são
-# irrelevantes para reprodutibilidade. Herdando de Invisible, o histórico é [].
-
-
-class DataT(object):
-    pass
-
-
 class File(Component, NoDataHandler):
     """Source of Data object from CSV, ARFF, file.
 

@@ -5,10 +5,10 @@ from pjml.config.description.cs.transformercs import TransformerCS
 from pjml.config.description.distributions import choice
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import FixedP, IntP, RealP, CatP, OrdP
-from pjml.tool.data.modeling.supervised.predictor import TPredictor
+from pjml.tool.data.modeling.supervised.predictor import Predictor
 
 
-class SVMC(TPredictor):
+class SVMC(Predictor):
     def __init__(self, enhance=True, model=True, **sklconfig):
         super().__init__(sklconfig, SVC,
                          enhance=enhance, model=model)
