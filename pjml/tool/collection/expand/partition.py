@@ -54,7 +54,7 @@ class Partition(Macro, Component):
         )
 
     @property
-    def transformer(self) -> co.Component:
+    def component(self) -> co.Component:
         return self._transformer
 
     @classmethod

@@ -9,17 +9,17 @@ from pjdata.types import Data
 class Macro(ABC):
     @property
     @abstractmethod
-    def transformer(self) -> co.Component:
+    def component(self) -> co.Component:
         pass
 
     def _enhancer_info(self, data: t.Data) -> t.Dict[str, Any]:
-        return self.transformer.enhancer.info(data)
+        return self.component.enhancer.info(data)
 
     def _model_info(self, data: Data) -> t.Dict[str, Any]:
-        return self.transformer.model(data).info
+        return self.component.model(data).info
 
     def _enhancer_func(self) -> t.Transformation:
-        return self.transformer.enhancer.transform
+        return self.component.enhancer.transform
 
     def _model_func(self, data: Data) -> t.Transformation:
-        return self.transformer.model(data).transform
+        return self.component.model(data).transform

@@ -5,7 +5,7 @@ from typing import List, Callable, Dict, Any, Tuple
 from pjdata.data_creation import read_arff
 from pjdata.content.specialdata import NoData
 from pjdata.transformer import Transformer
-from pjml.config.description.cs.transformercs import TransformerCS
+from pjml.config.description.cs.cs import CS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import FixedP
 from pjml.tool.abc.mixin.component import Component
@@ -22,7 +22,7 @@ class File(Component, NoDataHandler):
     Actually, the first collision is expected after 12M different datasets
     with the same name ( 2**(log(107**7, 2)/2) ).
     Since we already expect unique names like 'iris', and any transformed
-    dataset is expected to enter the system through a transformer,
+    dataset is expected to enter the system through a component,
     12M should be safe enough. Ideally, a single 'iris' be will stored.
     In practice, no more than a dozen are expected.
     """
@@ -83,7 +83,7 @@ class File(Component, NoDataHandler):
         return transform
 
     @classmethod
-    def _cs_impl(cls) -> TransformerCS:
+    def _cs_impl(cls) -> CS:
         params = {
             "path": FixedP("./"),
             "name": FixedP("iris.arff"),
@@ -93,7 +93,7 @@ class File(Component, NoDataHandler):
 
         # TODO: I think that we should set as follow:
         # TransformerCS(nodes=[Node(params=params)])
-        return TransformerCS(Node(params=params))
+        return CS(Node(params=params))
 
     @lru_cache()
     def transformations(

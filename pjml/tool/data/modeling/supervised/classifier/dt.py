@@ -3,7 +3,7 @@ from functools import partial
 from numpy.random import uniform
 from sklearn.tree import DecisionTreeClassifier
 
-from pjml.config.description.cs.transformercs import TransformerCS
+from pjml.config.description.cs.cs import CS
 from pjml.config.description.distributions import choice
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import CatP, FixedP, IntP, RealP
@@ -31,4 +31,4 @@ class DT(Predictor):
             'min_weight_fraction_leaf': RealP(uniform, low=0.0, high=0.3),
             'min_impurity_decrease': RealP(uniform, low=0.0, high=0.2)
         }
-        return TransformerCS(nodes=[Node(params=params)])
+        return CS(nodes=[Node(params=params)])

@@ -12,7 +12,7 @@ from pjdata.mixin.identifiable import Identifiable
 from pjdata.mixin.printable import Printable
 from pjdata.transformer import Transformer
 from pjml.config.description.cs.configlist import ConfigList
-from pjml.config.description.cs.transformercs import TransformerCS
+from pjml.config.description.cs.cs import CS
 
 
 class Component(Printable, Identifiable, ABC):
@@ -82,7 +82,7 @@ class Component(Printable, Identifiable, ABC):
 
     @classmethod
     @abstractmethod
-    def _cs_impl(cls) -> TransformerCS:
+    def _cs_impl(cls) -> CS:
         """Each component should implement its own 'cs'. The parent class
         takes care of 'name' and 'path' arguments of ConfigSpace"""
 
@@ -90,8 +90,8 @@ class Component(Printable, Identifiable, ABC):
     @lru_cache()
     def cs(cls):
         """Config Space of this component, when called as class method.
-        If called on an transformer (object/instance method), will convert
-        the object to a config space with a single transformer.
+        If called on a component (object/instance method), will convert
+        the object to a config space with a single component.
 
         Each Config Space is a tree, where each path represents a parameter
         space of the learning/processing/evaluating algorithm of this component.
@@ -108,7 +108,7 @@ class Component(Printable, Identifiable, ABC):
     @Property
     @lru_cache()
     def cs1(self=None):
-        """Convert transformer into a config space with a single transformer
+        """Convert component into a config space with a single component
         inside it."""
         return ConfigList(self)
 
@@ -137,14 +137,14 @@ class Component(Printable, Identifiable, ABC):
 
     @Property
     @lru_cache()
-    def cfg_serialized(self):
-        return serialize(self.transformer_info)
-
-    @Property
-    @lru_cache()
     def cfg_uuid(self):
         """UUID excluding 'model' and 'enhance' flags. Identifies the transformer."""
         return UUID(self.cfg_serialized.encode())
+
+    @Property
+    @lru_cache()
+    def cfg_serialized(self):
+        return serialize(self.transformer_info)
 
     @classproperty
     @lru_cache()
@@ -183,14 +183,14 @@ class Component(Printable, Identifiable, ABC):
         )
         pipe.unwrap  # -> Chain(Std(), SVMC())
         """
-        return self.wrapped.transformer
+        return self.wrapped.component
 
     def updated(self, **kwargs):
-        """Clone this transformer, optionally replacing given params.
+        """Clone this component, optionally replacing given params.
 
         Returns
         -------
-        A ready to use transformer.
+        A ready to use component.
         """
         config = self.config
         if 'model' not in self.config:

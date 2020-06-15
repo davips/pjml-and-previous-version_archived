@@ -12,7 +12,7 @@ from sklearn.model_selection import (
 
 from pjdata.aux.util import Property
 from pjdata.content.data import Data
-from pjml.config.description.cs.transformercs import TransformerCS
+from pjml.config.description.cs.cs import CS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import IntP
 from pjml.tool.abc.mixin import component as co
@@ -76,10 +76,10 @@ class AbstractSplit(Component, FunctionInspector, NoDataHandler, ABC):
         return data.updated((), **new_dic)
 
     @classmethod
-    def _cs_impl(cls) -> TransformerCS:
+    def _cs_impl(cls) -> CS:
         # TODO complete CS for split; useless?
         params = {"partitions": IntP(uniform, low=2, high=10)}
-        return TransformerCS(Node(params=params))
+        return CS(Node(params=params))
 
 
 class Split(Macro, AbstractSplit):
@@ -118,11 +118,11 @@ class Split(Macro, AbstractSplit):
             **kwargs,
         )
 
-        self._transformer = Chain(SplitTrain(), SplitTest())
+        self._component = Chain(SplitTrain(), SplitTest())
 
     @property
-    def transformer(self) -> co.Component:
-        return self._transformer
+    def component(self) -> co.Component:
+        return self._component
 
 
 class SplitTest(DefaultEnhancer, AbstractSplit):

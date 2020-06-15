@@ -40,8 +40,8 @@ class ConfigSpace(Printable):
     @lru_cache()
     def longname(self):
         long = ''
-        for things in ['transformers', 'components']:
-            if things in self.jsonable:
-                items = ', '.join(tr.longname for tr in self.jsonable[things])
+        for component in ['components']:
+            if component in self.jsonable:
+                items = ', '.join(tr.longname for tr in self.jsonable[component])
                 long = f'[{items}]'
         return self.name + long

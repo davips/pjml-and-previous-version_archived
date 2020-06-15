@@ -4,19 +4,19 @@ from pjml.tool.abc.container import Container
 
 
 class Container1(Container, ABC):
-    """Configurable container for a single transformer.
+    """Configurable container for a single component.
 
-    If more are given, they will be handled as a single Seq transformer."""
+    If more are given, they will be handled as a single Seq component."""
 
-    def __init__(self, config, seed, transformers, enhance, model,
+    def __init__(self, config, seed, components, enhance, model,
                  deterministic):
-        super().__init__(config, seed, transformers, enhance, model,
+        super().__init__(config, seed, components, enhance, model,
                          deterministic)
 
         # Implementation-wise, Container1(Chain(a,b,c)) is needed to make
         # Container1(a,b,c) possible.
-        if len(self.transformers) > 1:
+        if len(self.components) > 1:
             from pjml.tool.chain import Chain
-            self.transformer = Chain(transformers=self.transformers)
+            self.component = Chain(components=self.components)
         else:
-            self.transformer = self.transformers[0]
+            self.component = self.components[0]

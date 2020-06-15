@@ -5,7 +5,7 @@ from pjdata.transformer import Transformer
 
 
 class Invisible:
-    """Parent class of all atomic transformers that don't increase history
+    """Parent class of all atomic components that don't increase history
     of transformations.
 
     They are useful, but sometimes do not transform Data objects."""

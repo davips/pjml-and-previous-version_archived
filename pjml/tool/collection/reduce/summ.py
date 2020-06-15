@@ -8,7 +8,7 @@ from numpy import ndarray, mean
 
 from pjdata.content.data import Data
 from pjdata.types import Result, Field
-from pjml.config.description.cs.transformercs import TransformerCS
+from pjml.config.description.cs.cs import CS
 from pjml.config.description.distributions import choice
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import CatP
@@ -62,12 +62,12 @@ class Summ(Component, FunctionInspector):
         return self._enhancer_func()
 
     @classmethod
-    def _cs_impl(cls) -> TransformerCS:
+    def _cs_impl(cls) -> CS:
         params = {
             "function": CatP(choice, items=cls.function_from_name.keys()),
             "field": CatP(choice, items=["z", "r", "s"]),
         }
-        return TransformerCS(nodes=[Node(params)])
+        return CS(nodes=[Node(params)])
 
     @staticmethod
     def _fun_mean(values: Iterable[float]) -> ndarray:

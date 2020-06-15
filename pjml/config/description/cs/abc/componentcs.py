@@ -7,13 +7,13 @@ from pjml.config.description.node import Node
 
 
 class ComponentCS(ConfigSpace, ABC):
-    def __init__(self, name, path, components, nodes):
+    def __init__(self, name, path, config_spaces, nodes):
         if nodes is None:
             nodes = []
         jsonable = {'component': {'name': name, 'path': path}, 'nodes': nodes}
-        if components:
-            components = [compo.cs for compo in components]
-            jsonable['components'] = components
+        if config_spaces:
+            config_spaces = [compo.cs for compo in config_spaces]
+            jsonable['components'] = config_spaces
         super().__init__(jsonable)
         for cs in nodes:
             if not isinstance(cs, Node):
@@ -22,21 +22,21 @@ class ComponentCS(ConfigSpace, ABC):
                     f' Not {type(cs)} !'
                 )
         self._name, self.path, self.nodes = name, path, nodes
-        self.components = components
+        self.config_spaces = config_spaces
 
     @abstractmethod
     def _sample_cfg(self):
         pass
 
     def sample(self):
-        """Sample a completely configured transformer.
+        """Sample a completely configured component.
 
         Choose a path from tree and set values to parameters according to
         the given sampling functions.
 
         Returns
         -------
-        A transformer
+        A component
         """
         config = self._sample_cfg()
 

@@ -24,7 +24,7 @@ class Node(Printable):
             raise Exception('Node can only have Nodes as children.')
 
     def partial_sample(self):
-        """Sample a partial config. Not enough to make a transformer.
+        """Sample a partial config. It is not enough to make a component.
 
         Returns
         -------

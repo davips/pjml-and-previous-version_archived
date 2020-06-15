@@ -128,7 +128,7 @@ dataout = pipe.apply().data
 """
 Problemas filosoficos
 
-obs. Containers sempre contêm referências a outros transformers (sejam leves ou 
+obs. Containers sempre contêm referências a outros components (sejam leves ou 
 pesados) em config.
 
 obs. Um mesmo pipeline pode gerar diversos históricos. 

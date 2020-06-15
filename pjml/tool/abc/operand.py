@@ -35,9 +35,9 @@ class Operand(metaclass=MetaOperand):
     def __mul__(self, other):
         from pjml.tool.chain import Chain, ChainCS
         if isinstance(other, (Chain, ChainCS)):
-            return Chain(self, *other.transformers)
+            return Chain(self, *other.components)
         if isinstance(self, (Chain, ChainCS)):
-            return Chain(*self.transformers, other)
+            return Chain(*self.components, other)
         return Chain(self, other)
 
     def __matmul__(self, other):  # @

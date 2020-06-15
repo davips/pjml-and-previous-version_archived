@@ -1,45 +1,43 @@
 from functools import lru_cache
 from itertools import tee
-from typing import Optional, Tuple, Dict, List, Callable, Any
+from typing import Optional, Tuple, Dict, Callable, Any
 
 import pjdata.types as t
-from pjdata.aux.util import flatten
 from pjdata.content.specialdata import NoData
-from pjdata.transformer import Transformer
-from pjml.config.description.cs.chaincs import TChainCS
+from pjml.config.description.cs.chaincs import ChainCS
 from pjml.tool.abc.minimalcontainer import MinimalContainerN
 from pjml.tool.abc.mixin.component import Component
 
 
 class Chain(MinimalContainerN):
-    """Chain the execution of the given transformers.
+    """Chain the execution of the given components.
 
-    Each arg is a transformer. Optionally, a list of them can be passed as a
-    named arg called 'transformers'.
+    Each arg is a component. Optionally, a list of them can be passed as a
+    named arg called 'components'.
     """
 
     def __new__(
         cls,
         *args: Component,
         seed: int = 0,
-        transformers: Optional[Tuple[Component, ...]] = None,
+        components: Optional[Tuple[Component, ...]] = None,
         **kwargs
     ):
         """Shortcut to create a ConfigSpace."""
-        if transformers is None:
-            transformers = args
-        if all([isinstance(t, Component) for t in transformers]):
+        if components is None:
+            components = args
+        if all([isinstance(t, Component) for t in components]):
             return object.__new__(cls)
-        return TChainCS(*transformers)
+        return ChainCS(*components)
 
     def dual_transform(self, train: t.Data=NoData, test: t.Data=NoData) -> Tuple[t.Data, t.Data]:
-        for trf in self.transformers:
+        for trf in self.components:
             train, test = trf.dual_transform(train, test)
         return train, test
 
     @lru_cache()
     def _enhancer_info(self, data: t.Data = None) -> Dict[str, Any]:
-        return {'enhancers': [trf.enhancer for trf in self.transformers]}
+        return {'enhancers': [trf.enhancer for trf in self.components]}
 
     def _enhancer_func(self) -> Callable[[t.Data], t.Data]:
         enhancers = self._enhancer_info()['enhancers']
@@ -54,7 +52,7 @@ class Chain(MinimalContainerN):
     @lru_cache()
     def _model_info(self, data: t.Data) -> Dict[str, Any]:
         models = []
-        for trf in self.transformers:
+        for trf in self.components:
             if data.stream is None:
                 data0 = data1 = data
             else:
@@ -77,10 +75,7 @@ class Chain(MinimalContainerN):
 
         return transform
 
-    # TODO: Chain needs to report to Cache about its "monster" status
-    #  That's because monsters generate two histories:
-    #  the predictable short (itself) and the possibly data-dependent long (all that goes inside Data as "bytecodes")
-    #  This code commented out below can be useful for that.
+    # TODO: Chain needs to traverse its subcomponents to build a uuid
     # @lru_cache()
     # def transformations(
     #         self,
@@ -88,7 +83,7 @@ class Chain(MinimalContainerN):
     #         clean: bool = True
     # ) -> List[Transformer]:
     #     lst = []
-    #     for transformer in self.transformers:
+    #     for transformer in self.components:
     #         transformations = transformer.transformations(step, clean=False)
     #         lst.append(transformations)
     #     result = flatten(lst)
@@ -108,6 +103,6 @@ class Chain(MinimalContainerN):
             return super().__str__()
 
         txts = []
-        for t in self.transformers:
+        for t in self.components:
             txts.append(t.__str__(depth))
         return '\n'.join(txts)

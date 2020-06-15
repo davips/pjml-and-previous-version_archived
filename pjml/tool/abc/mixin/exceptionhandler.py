@@ -16,7 +16,7 @@ signal.signal(signal.SIGINT, keyboardInterruptHandler)
 
 
 class ExceptionHandler:
-    """Handle transformer exceptions and enable/disable numpy warnings.
+    """Handle component exceptions and enable/disable numpy warnings.
 
         E.g. Mahalanobis distance in KNN needs to supress warnings due to NaN
         in linear algebra calculations. MLP is also verbose due to
@@ -44,12 +44,12 @@ class ExceptionHandler:
             'MemoryError',
             'On entry to DLASCL parameter number',  # Mahala knn
             'excess of neighbors!',  # KNN
-            'subtransformer failed',  # nested failure
+            'subcomponent failed',  # nested failure
             'specified nu is infeasible',  # SVM
             'excess of neurons',
             'max_depth must be greater than zero'
             ]
-    transformer = None
+    transformer = None  #TODO: what is this for?
 
     def _handle_exception(self, e, exit_on_error):
         """Pipeline failure is different from python error."""

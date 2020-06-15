@@ -8,28 +8,28 @@ from pjml.tool.abc.mixin.component import Component
 
 
 class Map(MinimalContainer1):
-    """Execute the same transformer for the entire collection."""
+    """Execute the same component for the entire collection."""
 
-    def __new__(cls, *args, seed=0, transformers=None, **kwargs):
+    def __new__(cls, *args, seed=0, components=None, **kwargs):
         """Shortcut to create a ConfigSpace."""
-        if transformers is None:
-            transformers = args
-        if all([isinstance(t, Component) for t in transformers]):
+        if components is None:
+            components = args
+        if all([isinstance(c, Component) for c in components]):
             return object.__new__(cls)
-        return ContainerCS(Map.name, Map.path, transformers)
+        return ContainerCS(Map.name, Map.path, components)
 
     @lru_cache()
     def _enhancer_info(self, data: t.Data = None) -> Dict[str, Any]:  #TODO: should _*info accept None?
-        return {"enhancer": self.transformer.enhancer}
+        return {"enhancer": self.component.enhancer}
 
     @lru_cache()
     def _model_info(self, data: t.Data) -> Dict[str, Any]:
-        return {"models": map(self.transformer.model, data.stream)}
+        return {"models": map(self.component.model, data.stream)}
 
     def _enhancer_func(self) -> Callable[[t.Data], t.Result]:
-        enhancer = self.transformer.enhancer
+        enhancer = self.component.enhancer
         return lambda d: {'stream': map(enhancer.transform, d.stream)}
 
     def _model_func(self, data: t.Data) -> t.Transformation:
-        transformer = self.transformer
-        return lambda d: {'stream': map(transformer.model(data).transform, d.stream)}
+        component = self.component
+        return lambda d: {'stream': map(component.model(data).transform, d.stream)}
