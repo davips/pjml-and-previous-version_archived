@@ -53,7 +53,7 @@ class Report(Invisible, Component):
 
         def f(obj_match):
             field = obj_match.group(1)
-            M = data.field(field, component=cls)
+            M = data.field(field, context=cls)
             try:
                 if np.issubdtype(M, np.number):
                     return samerow(np.round(M, decimals=4))

@@ -4,7 +4,7 @@ from numpy.random.mtrand import uniform
 from sklearn.decomposition import PCA as SKLPCA
 
 from pjdata.types import Data
-from pjml.config.description.cs.transformercs import TransformerCS
+from pjml.config.description.cs.cs import CS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import RealP, FixedP
 from pjml.tool.data.algorithm import TSKLAlgorithm
@@ -39,7 +39,7 @@ class PCA(TSKLAlgorithm):
         return test.updated((), X=info["sklearn_model"].transform(test.X))
 
     @classmethod
-    def _cs_impl(cls) -> TransformerCS:
+    def _cs_impl(cls) -> CS:
         # todo: set random seed; set 'cache_size'
         param = {
             "n_components": RealP(uniform, low=0.0, high=1.0),
@@ -49,4 +49,4 @@ class PCA(TSKLAlgorithm):
             "tol": FixedP(0.0),
             "iterated_power": FixedP("auto"),
         }
-        return TransformerCS(nodes=Node(param))
+        return CS(nodes=[Node(param)])

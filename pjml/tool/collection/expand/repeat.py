@@ -9,7 +9,7 @@ from pjml.tool.abc.mixin.component import Component
 
 
 class Repeat(NoInfo, Component):
-    """Add stream to a Data object."""
+    """Add infinite stream to a Data object."""
 
     def __init__(self, **kwargs):
         super().__init__({}, deterministic=True, **kwargs)

@@ -5,7 +5,7 @@ from pjml.tool.abc.mixin.component import Component
 
 
 class ConfigLess(Component, ABC):
-    """Parent class of all transformers without config. Also, apply==use."""
+    """Parent class of all components without config. Also, apply==use."""
 
     def __init__(self):
         super().__init__({}, deterministic=True)

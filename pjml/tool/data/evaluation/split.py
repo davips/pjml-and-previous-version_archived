@@ -10,28 +10,31 @@ from sklearn.model_selection import (
     LeaveOneOut as LOO,
 )
 
+from pjdata.aux.util import Property
 from pjdata.content.data import Data
-from pjml.config.description.cs.transformercs import TransformerCS
+from pjml.config.description.cs.cs import CS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import IntP
+from pjml.tool.abc.mixin import component as co
 from pjml.tool.abc.mixin.component import Component
 from pjml.tool.abc.mixin.defaultenhancer import DefaultEnhancer
 from pjml.tool.abc.mixin.defaultmodel import DefaultModel
 from pjml.tool.abc.mixin.functioninspector import FunctionInspector
+from pjml.tool.abc.mixin.macro import Macro
 from pjml.tool.abc.mixin.nodatahandler import NoDataHandler
 from pjml.tool.chain import Chain
 
 
 class AbstractSplit(Component, FunctionInspector, NoDataHandler, ABC):
     def __init__(
-        self,
-        split_type: str = "holdout",
-        partitions: int = 2,
-        partition: int = 0,
-        test_size: float = 0.3,
-        seed: int = 0,
-        fields: Optional[List[str]] = None,
-        **kwargs
+            self,
+            split_type: str = "holdout",
+            partitions: int = 2,
+            partition: int = 0,
+            test_size: float = 0.3,
+            seed: int = 0,
+            fields: List[str] = None,
+            **kwargs
     ):
         if fields is None:
             fields = ["X", "Y"]
@@ -73,13 +76,13 @@ class AbstractSplit(Component, FunctionInspector, NoDataHandler, ABC):
         return data.updated((), **new_dic)
 
     @classmethod
-    def _cs_impl(cls) -> TransformerCS:
+    def _cs_impl(cls) -> CS:
         # TODO complete CS for split; useless?
         params = {"partitions": IntP(uniform, low=2, high=10)}
-        return TransformerCS(Node(params=params))
+        return CS(Node(params=params))
 
 
-class Split(AbstractSplit):
+class Split(Macro, AbstractSplit):
     """Split a given Data field into training/apply set and testing/use set.
 
     Developer: new metrics can be added just following the pattern '_fun_xxxxx'
@@ -96,14 +99,14 @@ class Split(AbstractSplit):
     """
 
     def __init__(
-        self,
-        split_type: str = "holdout",
-        partitions: int = 2,
-        partition: int = 0,
-        test_size: float = 0.3,
-        seed: int = 0,
-        fields: Optional[List[str]] = None,
-        **kwargs,
+            self,
+            split_type: str = "holdout",
+            partitions: int = 2,
+            partition: int = 0,
+            test_size: float = 0.3,
+            seed: int = 0,
+            fields: List[str] = None,
+            **kwargs,
     ):
         super().__init__(
             split_type=split_type,
@@ -115,21 +118,11 @@ class Split(AbstractSplit):
             **kwargs,
         )
 
-        self.transformer = Chain(SplitTrain(), SplitTest())
+        self._component = Chain(SplitTrain(), SplitTest())
 
-    @lru_cache()
-    def _enhancer_info(self, data: Data) -> Dict[str, Any]:
-        return self.transformer._enhancer_info(data)
-
-    def _enhancer_func(self) -> Callable[[Data], Data]:
-        return self.transformer._enhancer_func()
-
-    @lru_cache()
-    def _model_info(self, data: Data) -> Dict[str, Any]:
-        return self.transformer._model_info(data)
-
-    def _model_func(self, prior: Data) -> Callable[[Data], Data]:
-        return self.transformer._model_func(prior)
+    @property
+    def component(self) -> co.Component:
+        return self._component
 
 
 class SplitTest(DefaultEnhancer, AbstractSplit):

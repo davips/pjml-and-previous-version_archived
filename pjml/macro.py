@@ -13,12 +13,12 @@ from pjml.tool.collection.transform.multi import Multi
 def evaluator(*components, function='mean_std', **validation_args):
     return Chain(
         Partition(**validation_args),
-        Map(transformers=components),
+        Map(components=components),
         Summ(function=function)
     )
 
 
-def concat(*transformers):
+def concat(*components):
     # TODO: para que era isso msm?
     pass
 
@@ -37,16 +37,16 @@ def tsplit(
         partitions: int = 10,
         test_size: float = 0.3,
         seed: int = 0,
-        fields: Optional[List[str]] = None
+        fields: List[str] = None
 ) -> Multi:
     """Make a sequence of Data splitters."""
     from pjml.tool.data.evaluation.split import Split
     if fields is None:
         fields = ['X', 'Y']
-    transformers = []
+    components = []
     for i in range(partitions):
         s = Split(split_type, partitions, i, test_size, seed, fields)
-        transformers.append(s)
+        components.append(s)
     # from pjml.config.description.cs.finitecs import FiniteCS
-    # return FiniteCS(trasformers=transformers).sample()
-    return Multi(*transformers)
+    # return FiniteCS(components=components).sample()
+    return Multi(*components)

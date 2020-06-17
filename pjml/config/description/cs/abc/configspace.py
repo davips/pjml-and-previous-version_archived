@@ -15,7 +15,7 @@ class ConfigSpace(Printable):
         self._jsonable = jsonable
 
     @Property
-    def jsonable(self):
+    def _jsonable_impl(self):
         return self._jsonable
 
     @abstractmethod
@@ -40,8 +40,8 @@ class ConfigSpace(Printable):
     @lru_cache()
     def longname(self):
         long = ''
-        for things in ['transformers', 'components']:
-            if things in self.jsonable:
-                items = ', '.join(tr.longname for tr in self.jsonable[things])
+        for component in ['components']:
+            if component in self._jsonable_impl:
+                items = ', '.join(tr.longname for tr in self._jsonable_impl[component])
                 long = f'[{items}]'
         return self.name + long

@@ -12,30 +12,27 @@ from pjml.tool.collection.accumulator import Accumulator
 
 
 class Multi(MinimalContainerN):
-    """Process each Data object from a collection with its respective
-    transformer."""
+    """Process each Data object from a stream with its respective component."""
 
     def __new__(
             cls,
             *args: Component,
             seed: int = 0,
-            transformers: Optional[Tuple[Component, ...]] = None,
+            components: Tuple[Component, ...] = None,
             **kwargs
     ):
         """Shortcut to create a ConfigSpace."""
-        if transformers is None:
-            transformers = args
-        if all([isinstance(t, Component) for t in transformers]):
+        if components is None:
+            components = args
+        if all([isinstance(t, Component) for t in components]):
             return object.__new__(cls)
-        return ContainerCS(Multi.name, Multi.path, transformers)
+        return ContainerCS(Multi.name, Multi.path, components)
 
     def _enhancer_info(self, data: t.Data = None) -> Dict[str, Any]:
-        return {"enhancers": [trf.enhancer for trf in self.transformers]}
+        return {"enhancers": map(lambda trf: trf.enhancer, self.components)}
 
     def _model_info(self, data: t.Data) -> Dict[str, Any]:
-        models = [
-            trf.model(data) for trf, data in zip(self.transformers, data.stream)
-        ]
+        models = map(lambda c, d: c.model(d), self.components, data.stream)
         return {"models": models}
 
     def _enhancer_func(self) -> t.Transformation:
@@ -46,6 +43,6 @@ class Multi(MinimalContainerN):
 
     def _model_func(self, data: Data) -> Callable[[Data], Result]:
         models = self._model_info(data)["models"]
-        return lambda ds: {
-            'stream': map(lambda m, d: m.transform(d), models, ds.stream)
+        return lambda test: {
+            'stream': map(lambda m, d: m.transform(d), models, test.stream)
         }

@@ -1,6 +1,6 @@
 """ Component module. """
 from abc import abstractmethod, ABC
-from functools import lru_cache
+from functools import lru_cache, cached_property
 from typing import Dict, Any, Tuple, Iterator
 
 import pjdata.types as t
@@ -8,14 +8,19 @@ from pjdata.aux.decorator import classproperty
 from pjdata.aux.serialization import serialize, materialize
 from pjdata.aux.util import Property
 from pjdata.aux.uuid import UUID
-from pjdata.mixin.identifiable import Identifiable
+from pjdata.mixin.withidentification import WithIdentification
 from pjdata.mixin.printable import Printable
-from pjdata.transformer import Transformer
+from pjdata.mixin.withserialization import WithSerialization
+from pjdata.transformer.enhancer import Enhancer
+from pjdata.transformer.model import Model
+from pjdata.transformer.pholder import PHolder
+from pjdata.transformer.transformer import Transformer
 from pjml.config.description.cs.configlist import ConfigList
-from pjml.config.description.cs.transformercs import TransformerCS
+from pjml.config.description.cs.cs import CS
+from pjml.tool.abc.asoperand import AsOperand
 
 
-class Component(Printable, Identifiable, ABC):
+class Component(Printable, WithSerialization, AsOperand, ABC):
     def __init__(
             self,
             config: dict,
@@ -24,6 +29,7 @@ class Component(Printable, Identifiable, ABC):
             deterministic: bool = False,
             nodata_handler: bool = False
     ):
+        self.path = self.__module__
         self.transformer_info = {'_id': f'{self.name}@{self.path}', 'config': config}
         self._jsonable = {'info': self.transformer_info, 'enhance': enhance, 'model': model}
 
@@ -34,11 +40,11 @@ class Component(Printable, Identifiable, ABC):
         self.nodata_handler = isinstance(self, NoDataHandler) or nodata_handler
 
         self.cs = self.cs1  # TODO: This can take some time to type. It is pure magic!
-        self._enhance = enhance
-        self._model = model
+        self.hasenhancer = enhance
+        self.hasmodel = model
 
     @Property
-    def jsonable(self):
+    def _jsonable_impl(self):
         return self._jsonable
 
     @abstractmethod
@@ -60,37 +66,28 @@ class Component(Printable, Identifiable, ABC):
     @Property
     @lru_cache()
     def enhancer(self) -> Transformer:
-        if not self._enhance:
-            return Transformer(self, None, None)
-        return Transformer(self, func=self._enhancer_func(), info=self._enhancer_info)
+        if not self.hasenhancer:
+            return PHolder(self)
+        return Enhancer(self, func=self._enhancer_func(), info_func=self._enhancer_info)
 
-    # TODO: verify if Data (/ Collection?) should have a better __hash__
     @lru_cache()
     def model(self, data: t.Data) -> Transformer:
         if isinstance(data, tuple):  # <-- Pq??
             data = data[0]
-        if not self._model:
-            return Transformer(self, None, None)
-        # Assumes all components are symmetric. I.e. we can use the same self for both enhance and model.
-        return Transformer(self, func=self._model_func(data), info=self._model_info(data))
+        if not self.hasmodel:
+            return PHolder(self)
+        return Model(self, func=self._model_func(data), info=self._model_info(data), data=data)
 
-    # TODO: special sub class for concurrent components containing the content
-    #   of this IF and the parent ABC method iterator().
     def dual_transform(self, train: t.Data, test: t.Data) -> Tuple[t.Data, t.Data]:
-
-        # We need to put the ignore here because @porperty has not annotations.
-        # Another alternative is creating our own @property decorator and
-        # putting Any as a return. More information can be found on mypy's
-        # Github, issue #1362
-        if self._model:  # TODO: I am not sure these IFs are really needed...
-            test = self.model(train).transform(test)
-        if self._enhance:  # TODO: ... I've put them here because of streams.
-            train = self.enhancer.transform(train)
+        # if self._model:  # TODO: I am not sure these IFs are really needed...
+        test = self.model(train).transform(test)
+        # if self._enhance:  # TODO: ... I've put them here because of streams.
+        train = self.enhancer.transform(train)
         return train, test
 
     @classmethod
     @abstractmethod
-    def _cs_impl(cls) -> TransformerCS:
+    def _cs_impl(cls) -> CS:
         """Each component should implement its own 'cs'. The parent class
         takes care of 'name' and 'path' arguments of ConfigSpace"""
 
@@ -98,8 +95,8 @@ class Component(Printable, Identifiable, ABC):
     @lru_cache()
     def cs(cls):
         """Config Space of this component, when called as class method.
-        If called on an transformer (object/instance method), will convert
-        the object to a config space with a single transformer.
+        If called on a component (object/instance method), will convert
+        the object to a config space with a single component.
 
         Each Config Space is a tree, where each path represents a parameter
         space of the learning/processing/evaluating algorithm of this component.
@@ -116,15 +113,9 @@ class Component(Printable, Identifiable, ABC):
     @Property
     @lru_cache()
     def cs1(self=None):
-        """Convert transformer into a config space with a single transformer
+        """Convert component into a config space with a single component
         inside it."""
         return ConfigList(self)
-
-    @Property
-    @lru_cache()
-    def serialized(self):
-        # print('TODO: aproveitar processamento do cfg_serialized!')  # <-- TODO
-        return serialize(self)
 
     @staticmethod
     def _to_config(locals_):
@@ -141,33 +132,24 @@ class Component(Printable, Identifiable, ABC):
 
     def _uuid_impl(self):
         """Complete UUID; including 'model' and 'enhance' flags. Identifies the component."""
-        return self.cfg_uuid * UUID(str(self._enhance + self._model).rjust(14, '0'))
+        return self.cfuuid * UUID(str(self.hasenhancer + self.hasmodel).rjust(14, '0'))
+
+    def _cfuuid_impl(self):
+        """UUID excluding 'model' and 'enhance' flags. Identifies the transformer."""
+        return UUID(self.cfserialized.encode())
 
     @Property
     @lru_cache()
-    def cfg_serialized(self):
+    def cfserialized(self):
         return serialize(self.transformer_info)
 
-    @Property
-    @lru_cache()
-    def cfg_uuid(self):
-        """UUID excluding 'model' and 'enhance' flags. Identifies the transformer."""
-        return UUID(self.cfg_serialized.encode())
-
-    @classproperty
-    @lru_cache()
-    def name(cls):
-        return cls.__name__
+    def _name_impl(self):
+        return self.__class__.__name__
 
     @Property
     @lru_cache()
     def longname(self):
         return self.name
-
-    @classproperty
-    @lru_cache()
-    def path(cls):
-        return cls.__module__
 
     @Property
     @lru_cache()
@@ -191,21 +173,21 @@ class Component(Printable, Identifiable, ABC):
         )
         pipe.unwrap  # -> Chain(Std(), SVMC())
         """
-        return self.wrapped.transformer
+        return self.wrapped.component
 
     def updated(self, **kwargs):
-        """Clone this transformer, optionally replacing given params.
+        """Clone this component, optionally replacing given params.
 
         Returns
         -------
-        A ready to use transformer.
+        A ready to use component.
         """
         config = self.config
         if 'model' not in self.config:
-            config.update({'model': self._model})
+            config.update({'model': self.hasmodel})
 
         if 'enhancer' not in self.config:
-            config.update({'enhance': self._enhance})
+            config.update({'enhance': self.hasenhancer})
 
         if kwargs:
             config = config.copy()
@@ -217,28 +199,4 @@ class Component(Printable, Identifiable, ABC):
 
         return materialize(self.name, self.path, config)
 
-    # # TODO: Is unbounded lrucache a source of memory leak?
-    # @lru_cache()
-    # def transformations(self, step: str, clean: bool = True) -> List[Transformation]:
-    #     """Expected transformation described as a list of Transformation
-    #     objects.
-    #
-    #     Child classes should override this method to perform non-atomic or
-    #     non-trivial transformations.
-    #     A missing implementation will be detected during apply/use.
-    #
-    #     Parameters
-    #     ----------
-    #     step: str
-    #         TODO
-    #     clean: bool
-    #         TODO
-    #
-    #     Returns
-    #     -------
-    #         list of Transformation
-    #     """
-    #     if step in "au":
-    #         return [Transformation(self, step)]
-    #     else:
-    #         raise BadComponent("Wrong current step:", step)
+    # TODO: Is unbounded lrucache a source of memory leak?

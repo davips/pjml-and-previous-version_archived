@@ -3,12 +3,11 @@ from functools import lru_cache
 from typing import Callable, Any, Dict
 
 import pjdata.types as t
-from pjdata.transformer import Transformer
 from pjml.tool.abc.mixin.defaultenhancer import DefaultEnhancer
 from pjml.tool.data.algorithm import TSKLAlgorithm
 
 
-class TPredictor(DefaultEnhancer, TSKLAlgorithm, ABC):
+class Predictor(DefaultEnhancer, TSKLAlgorithm, ABC):
     """
     Base class for classifiers, regressors, ... that implement fit/predict.
     """

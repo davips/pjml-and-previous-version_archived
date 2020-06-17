@@ -1,10 +1,10 @@
 from pjml.config.description.cs.abc.componentcs import ComponentCS
 
 
-class TransformerCS(ComponentCS):
-    """Complete settings for a component (a component is a set of
-    transformers, e.g. the component KNN represents the set of all k-NN
-    transformers: KNN(k=1), KNN(k=3), ...
+class CS(ComponentCS):
+    """Complete settings for a CS (a CS is a set of
+    components, e.g. the CS KNN represents the set of all k-NN
+    components: KNN(k=1), KNN(k=3), ...
 
     Parameters
     ----------

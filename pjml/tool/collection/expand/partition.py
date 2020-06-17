@@ -1,13 +1,14 @@
 from functools import lru_cache
 from typing import Optional, List
 
-from pjdata.content.data import Data
+from pjml.tool.abc.mixin import component as co
 from pjml.tool.abc.mixin.component import Component
+from pjml.tool.abc.mixin.macro import Macro
 from pjml.tool.chain import Chain
 from pjml.tool.collection.expand.repeat import Repeat
 
 
-class Partition(Component):
+class Partition(Macro, Component):
     """Class to perform, e.g. Expand+kfoldCV.
 
     This task is already done by function split(),
@@ -24,7 +25,7 @@ class Partition(Component):
             partitions: int = 10,
             test_size: float = 0.3,
             seed: int = 0,
-            fields: Optional[List[str]] = None,
+            fields: List[str] = None,
             **kwargs
     ):
         if fields is None:
@@ -47,24 +48,14 @@ class Partition(Component):
 
         super().__init__(config, **kwargs)
         from pjml.macro import tsplit
-        self.transformer = Chain(
+        self._transformer = Chain(
             Repeat(),
             tsplit(split_type, partitions, test_size, seed, fields)
         )
 
-    @lru_cache()
-    def _enhancer_info(self, data: Data):
-        return self.transformer.enhancer.info(data)
-
-    @lru_cache()
-    def _model_info(self, data: Data):
-        return self.transformer.model(data).info
-
-    def _enhancer_func(self):
-        return self.transformer.enhancer.transform
-
-    def _model_func(self, data: Data):
-        return self.transformer.model(data).transform
+    @property
+    def component(self) -> co.Component:
+        return self._transformer
 
     @classmethod
     def _cs_impl(cls):

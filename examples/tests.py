@@ -5,6 +5,7 @@ from pjml.tool.collection.expand.partition import Partition
 from pjml.tool.collection.reduce.reduce import Reduce
 from pjml.tool.collection.reduce.summ import Summ
 from pjml.tool.collection.transform.map import Map
+from pjml.tool.data.communication.cache import Cache
 from pjml.tool.data.communication.report import Report
 from pjml.tool.data.evaluation.metric import Metric
 from pjml.tool.data.evaluation.split import Split, SplitTrain, SplitTest
@@ -102,7 +103,7 @@ def test_with_summ_reduce(arq="iris.arff"):
     pipe = Pipeline(
         File(arq),
         Partition(),
-        Map(PCA(), SVMC(), Metric(enhance=False)),
+        Map(PCA(), SVMC(),  Metric(enhance=False)),
         Map(Report('<---------------------- etapa'), enhance=False),
         Summ(function='mean', enhance=False),
         Reduce(),
@@ -110,8 +111,16 @@ def test_with_summ_reduce(arq="iris.arff"):
     )
     prior, posterior = pipe.dual_transform()
 
-    print("Prior..............\n", prior)
-    print("Posterior..........\n", posterior)
+    print("Prior..............\n", [h.longname for h in prior.history])
+    print("Posterior..........\n", [h.longname for h in posterior.history])
+
+
+def test_cache(arq="iris.arff"):
+    pipe = Pipeline(Cache(File(arq)))
+    prior, posterior = pipe.dual_transform()
+
+    print("Prior..............\n", [h.name for h in prior.history])
+    print("Posterior..........\n", [h.name for h in posterior.history])
 
 
 def test_check_architecture(arq="iris.arff"):
@@ -189,6 +198,7 @@ def main():
     test_partition()
     test_split_train_test()
     test_with_summ_reduce()
+    # test_cache()
 
     # sanity test
     # test_check_architecture()

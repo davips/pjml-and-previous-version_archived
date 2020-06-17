@@ -5,44 +5,44 @@ from pjml.config.description.distributions import choice
 class ConfigList(ConfigSpace):
     """Traversable discrete finite CS.
 
-    Iterable CS. This CS does not accept config spaces, only transformers.
+    Iterable CS. This CS does not accept config spaces, only components.
 
     components
-        A list of transformers.
+        A list of components.
     """
 
-    def __init__(self, *args, transformers=None):
-        if transformers is None:
-            transformers = args
-        super().__init__({'transformers': transformers})
+    def __init__(self, *args, components=None):
+        if components is None:
+            components = args
+        super().__init__({'components': components})
 
         from pjml.tool.abc.mixin.component import Component
-        for transformer in transformers:
-            if not (isinstance(transformer, Component)):
+        for component in components:
+            if not (isinstance(component, Component)):
                 raise Exception(
-                    f'\nGiven: {type(transformer)}\n{transformer}\n'
+                    f'\nGiven: {type(component)}\n{component}\n'
                     f'ConfigList does not accept config spaces, '
                     f'only components!')
         self.current_index = -1
-        self.size = len(transformers)
-        self.transformers = transformers
+        self.size = len(components)
+        self.components = components
         self._name = 'list'
 
     def sample(self):
-        return choice(self.transformers)
+        return choice(self.components)
 
-    def __iter__(self):
-        return self.transformers.__iter__()
+    def __iter__(self):  # TODO: Make ConfigList scalable through some sort of generator solution.
+        return self.components.__iter__()
 
     # def __next__(self):
     #     self.current_index += 1
     #     if self.current_index >= self.size:
     #         self.current_index = -1
     #         raise StopIteration('No more objects left.')
-    #     return self.transformers[self.current_index]
+    #     return self.components[self.current_index]
     #
     # def __len__(self):
     #     return self.size
     #
     # def __getitem__(self, idx):
-    #     return self.transformers[idx]
+    #     return self.components[idx]

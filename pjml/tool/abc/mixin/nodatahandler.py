@@ -7,7 +7,9 @@ from pjdata.content.specialdata import NoData
 
 class NoDataHandler(ABC):
     """All components that accept NoData should derive this class after
-    deriving Transformer or descendants."""
+    deriving Transformer or descendants.
+
+    Should be the last mixin (to avoid overriding attribute 'name')."""
     name = 'NoDataHandler'
 
     def _enforce_nodata(self, data: Union[NoData, Data], step) -> None:

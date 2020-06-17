@@ -8,7 +8,7 @@ from pjml.tool.abc.mixin.component import Component
 
 
 class Reduce(Invisible, Component):
-    def __init__(self, config: Optional[dict] = None, **kwargs):
+    def __init__(self, config: dict = None, **kwargs):
         # TODO: delete onenhance/onmodel? senão, consumir pode explodir
         config = {} if config is None else config
         super().__init__(config, deterministic=True, **kwargs)
@@ -54,9 +54,9 @@ class Reduce(Invisible, Component):
         for _ in zip(train.stream, test.stream):
             pass
 
-        if self._enhance:  # TODO: I am not sure these IFs are the right approach needed...
+        if self.hasenhancer:  # TODO: I am not sure these IFs are the right approach...
             train = train.updated((), stream=None)
-        if self._model:  # TODO: ... I've put them here because of streams.
+        if self.hasmodel:  # TODO: ... I've put them here because of streams.
             test = test.updated((), stream=None)
         return train, test
 

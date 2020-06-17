@@ -1,5 +1,7 @@
 from abc import ABCMeta
 
+from pjdata.mixin.withidentification import WithIdentification
+
 
 class MetaOperand(ABCMeta):
     def __add__(cls, other):
@@ -21,9 +23,13 @@ class MetaOperand(ABCMeta):
     def __rmatmul__(self, other):
         return self.__matmul__(other, self)
 
+    # I had to put it here, since I cannot create a specific metaclass for that.
+    # Such attempt would lead to the diamond inheritance problem.
+    def _name_impl(cls):
+        return cls.__name__
 
 
-class Operand(metaclass=MetaOperand):
+class AsOperand(metaclass=MetaOperand):
     def __add__(self, other):
         from pjml.config.description.cs.selectcs import SelectCS
         if isinstance(other, SelectCS):
@@ -35,9 +41,9 @@ class Operand(metaclass=MetaOperand):
     def __mul__(self, other):
         from pjml.tool.chain import Chain, ChainCS
         if isinstance(other, (Chain, ChainCS)):
-            return Chain(self, *other.transformers)
+            return Chain(self, *other.components)
         if isinstance(self, (Chain, ChainCS)):
-            return Chain(*self.transformers, other)
+            return Chain(*self.components, other)
         return Chain(self, other)
 
     def __matmul__(self, other):  # @
