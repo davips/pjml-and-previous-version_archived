@@ -33,7 +33,7 @@ class AbstractSplit(Component, FunctionInspector, NoDataHandler, ABC):
             partition: int = 0,
             test_size: float = 0.3,
             seed: int = 0,
-            fields: Optional[List[str]] = None,
+            fields: List[str] = None,
             **kwargs
     ):
         if fields is None:
@@ -105,7 +105,7 @@ class Split(Macro, AbstractSplit):
             partition: int = 0,
             test_size: float = 0.3,
             seed: int = 0,
-            fields: Optional[List[str]] = None,
+            fields: List[str] = None,
             **kwargs,
     ):
         super().__init__(

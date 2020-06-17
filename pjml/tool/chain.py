@@ -20,7 +20,7 @@ class Chain(MinimalContainerN):
         cls,
         *args: Component,
         seed: int = 0,
-        components: Optional[Tuple[Component, ...]] = None,
+        components: Tuple[Component, ...] = None,
         **kwargs
     ):
         """Shortcut to create a ConfigSpace."""
@@ -49,7 +49,6 @@ class Chain(MinimalContainerN):
 
         return transform
 
-    @lru_cache()
     def _model_info(self, data: t.Data) -> Dict[str, Any]:
         models = []
         for trf in self.components:

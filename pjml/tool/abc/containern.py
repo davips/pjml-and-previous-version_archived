@@ -9,7 +9,6 @@ class ContainerN(Container, ABC):
     def __init__(self, config, seed, components,
                  enhance=True, model=True,
                  deterministic=False):
-        super().__init__(config, seed, components, enhance, model,
-                         deterministic)
+        super().__init__(config, seed, components, enhance, model, deterministic)
 
         self.size = len(components)

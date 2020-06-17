@@ -18,7 +18,7 @@ class Multi(MinimalContainerN):
             cls,
             *args: Component,
             seed: int = 0,
-            components: Optional[Tuple[Component, ...]] = None,
+            components: Tuple[Component, ...] = None,
             **kwargs
     ):
         """Shortcut to create a ConfigSpace."""

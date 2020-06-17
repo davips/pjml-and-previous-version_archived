@@ -8,7 +8,7 @@ from pjml.tool.abc.mixin.component import Component
 
 
 class Reduce(Invisible, Component):
-    def __init__(self, config: Optional[dict] = None, **kwargs):
+    def __init__(self, config: dict = None, **kwargs):
         # TODO: delete onenhance/onmodel? senão, consumir pode explodir
         config = {} if config is None else config
         super().__init__(config, deterministic=True, **kwargs)
