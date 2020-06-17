@@ -29,7 +29,7 @@ class MetaOperand(ABCMeta):
         return cls.__name__
 
 
-class Operand(metaclass=MetaOperand):
+class AsOperand(metaclass=MetaOperand):
     def __add__(self, other):
         from pjml.config.description.cs.selectcs import SelectCS
         if isinstance(other, SelectCS):

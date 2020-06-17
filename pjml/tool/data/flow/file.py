@@ -4,7 +4,7 @@ from typing import List, Callable, Dict, Any, Tuple
 
 from pjdata.data_creation import read_arff
 from pjdata.content.specialdata import NoData
-from pjdata.transformer import Transformer
+from pjdata.transformer.transformer import Transformer
 from pjml.config.description.cs.cs import CS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import FixedP

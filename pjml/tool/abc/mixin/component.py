@@ -10,13 +10,17 @@ from pjdata.aux.util import Property
 from pjdata.aux.uuid import UUID
 from pjdata.mixin.withidentification import WithIdentification
 from pjdata.mixin.printable import Printable
-from pjdata.transformer import Transformer
+from pjdata.mixin.withserialization import WithSerialization
+from pjdata.transformer.enhancer import Enhancer
+from pjdata.transformer.model import Model
+from pjdata.transformer.pholder import PHolder
+from pjdata.transformer.transformer import Transformer
 from pjml.config.description.cs.configlist import ConfigList
 from pjml.config.description.cs.cs import CS
-from pjml.tool.abc.operand import Operand
+from pjml.tool.abc.asoperand import AsOperand
 
 
-class Component(Printable, WithIdentification, Operand, ABC):
+class Component(Printable, WithSerialization, AsOperand, ABC):
     def __init__(
             self,
             config: dict,
@@ -25,6 +29,7 @@ class Component(Printable, WithIdentification, Operand, ABC):
             deterministic: bool = False,
             nodata_handler: bool = False
     ):
+        self.path = self.__module__
         self.transformer_info = {'_id': f'{self.name}@{self.path}', 'config': config}
         self._jsonable = {'info': self.transformer_info, 'enhance': enhance, 'model': model}
 
@@ -62,17 +67,16 @@ class Component(Printable, WithIdentification, Operand, ABC):
     @lru_cache()
     def enhancer(self) -> Transformer:
         if not self.hasenhancer:
-            return Transformer(self, None, None)  # TODO: replace by PlaceHolder
-        return Transformer(self, func=self._enhancer_func(), info=self._enhancer_info)
+            return PHolder(self)
+        return Enhancer(self, func=self._enhancer_func(), info_func=self._enhancer_info)
 
     @lru_cache()
     def model(self, data: t.Data) -> Transformer:
         if isinstance(data, tuple):  # <-- Pq??
             data = data[0]
-        if not self.hasmodel:  # TODO: replace by PlaceHolder
-            return Transformer(self, None, None)
-        # Assumes all components are symmetric. I.e. we can use the same self for both enhance and model.
-        return Transformer(self, func=self._model_func(data), info=self._model_info(data))
+        if not self.hasmodel:
+            return PHolder(self)
+        return Model(self, func=self._model_func(data), info=self._model_info(data), data=data)
 
     def dual_transform(self, train: t.Data, test: t.Data) -> Tuple[t.Data, t.Data]:
         # if self._model:  # TODO: I am not sure these IFs are really needed...
@@ -113,12 +117,6 @@ class Component(Printable, WithIdentification, Operand, ABC):
         inside it."""
         return ConfigList(self)
 
-    @Property
-    @lru_cache()
-    def serialized(self):
-        # print('TODO: aproveitar processamento do cfg_serialized!')  # <-- TODO
-        return serialize(self)
-
     @staticmethod
     def _to_config(locals_):
         """Convert a dict coming from locals() to config."""
@@ -134,17 +132,15 @@ class Component(Printable, WithIdentification, Operand, ABC):
 
     def _uuid_impl(self):
         """Complete UUID; including 'model' and 'enhance' flags. Identifies the component."""
-        return self.cfg_uuid * UUID(str(self.hasenhancer + self.hasmodel).rjust(14, '0'))
+        return self.cfuuid * UUID(str(self.hasenhancer + self.hasmodel).rjust(14, '0'))
 
-    @Property
-    @lru_cache()
-    def cfg_uuid(self):
+    def _cfuuid_impl(self):
         """UUID excluding 'model' and 'enhance' flags. Identifies the transformer."""
-        return UUID(self.cfg_serialized.encode())
+        return UUID(self.cfserialized.encode())
 
     @Property
     @lru_cache()
-    def cfg_serialized(self):
+    def cfserialized(self):
         return serialize(self.transformer_info)
 
     def _name_impl(self):
@@ -154,11 +150,6 @@ class Component(Printable, WithIdentification, Operand, ABC):
     @lru_cache()
     def longname(self):
         return self.name
-
-    @classproperty
-    @lru_cache()
-    def path(cls):
-        return cls.__module__
 
     @Property
     @lru_cache()

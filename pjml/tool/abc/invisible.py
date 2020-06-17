@@ -1,7 +1,7 @@
 from functools import lru_cache
 from typing import List
 
-from pjdata.transformer import Transformer
+from pjdata.transformer.transformer import Transformer
 
 
 class Invisible:
