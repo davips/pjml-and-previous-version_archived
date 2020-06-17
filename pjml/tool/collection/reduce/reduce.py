@@ -54,7 +54,7 @@ class Reduce(Invisible, Component):
         for _ in zip(train.stream, test.stream):
             pass
 
-        if self.hasenhancer:  # TODO: I am not sure these IFs are the right approach needed...
+        if self.hasenhancer:  # TODO: I am not sure these IFs are the right approach...
             train = train.updated((), stream=None)
         if self.hasmodel:  # TODO: ... I've put them here because of streams.
             test = test.updated((), stream=None)

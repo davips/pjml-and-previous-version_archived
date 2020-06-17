@@ -74,7 +74,7 @@ class Chain(MinimalContainerN):
 
         return transform
 
-    # TODO: Chain needs to traverse its subcomponents to build a uuid
+    # TODO: Chain needs(?) to traverse its subcomponents to build a uuid
     # @lru_cache()
     # def transformations(
     #         self,

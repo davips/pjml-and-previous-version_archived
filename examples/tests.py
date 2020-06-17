@@ -103,7 +103,7 @@ def test_with_summ_reduce(arq="iris.arff"):
     pipe = Pipeline(
         File(arq),
         Partition(),
-        Map(PCA(), SVMC(), Metric(enhance=False)),
+        Map(PCA(), SVMC(),  Metric(enhance=False)),
         Map(Report('<---------------------- etapa'), enhance=False),
         Summ(function='mean', enhance=False),
         Reduce(),
@@ -111,8 +111,8 @@ def test_with_summ_reduce(arq="iris.arff"):
     )
     prior, posterior = pipe.dual_transform()
 
-    print("Prior..............\n", [h.name for h in prior.history])
-    print("Posterior..........\n", [h.name for h in posterior.history])
+    print("Prior..............\n", [h.longname for h in prior.history])
+    print("Posterior..........\n", [h.longname for h in posterior.history])
 
 
 def test_cache(arq="iris.arff"):
