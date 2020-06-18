@@ -11,8 +11,6 @@ class ComponentCS(ConfigSpace, ABC):
         if nodes is None:
             nodes = []
         jsonable = {'component': {'name': name, 'path': path}, 'nodes': nodes}
-        print("TYPE NAME= ", type(name))
-        print("TYPE PATH= ", type(path))
         if config_spaces:
             config_spaces = [compo.cs for compo in config_spaces]
             jsonable['components'] = config_spaces

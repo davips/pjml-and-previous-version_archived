@@ -205,12 +205,10 @@ def printing_test(arq="iris.arff"):
         Report('mean ... S: $S', enhance=False)
     )
     print(exp)
-
     print(select(DT(), SVMC()))
 
     sel = select(DT(), SVMC())
     print(sel)
-
     print(Map(DT()))
     # exp = ChainCS(
     #     Map(Report())
