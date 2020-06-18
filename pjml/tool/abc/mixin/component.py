@@ -39,11 +39,10 @@ class Component(Printable, WithSerialization, AsOperand, ABC):
         from pjml.tool.abc.mixin.nodatahandler import NoDataHandler
         self.nodata_handler = isinstance(self, NoDataHandler) or nodata_handler
 
-        self.cs = self.cs1  # TODO: This can take some time to type. It is pure magic!
+        # self.cs = self.cs1  # TODO: This can take some time to type. It is pure magic!
         self.hasenhancer = enhance
         self.hasmodel = model
 
-    @Property
     def _jsonable_impl(self):
         return self._jsonable
 
@@ -93,7 +92,7 @@ class Component(Printable, WithSerialization, AsOperand, ABC):
 
     @classproperty
     @lru_cache()
-    def cs(cls):
+    def cs(cls) -> CS:
         """Config Space of this component, when called as class method.
         If called on a component (object/instance method), will convert
         the object to a config space with a single component.
@@ -107,8 +106,8 @@ class Component(Printable, WithSerialization, AsOperand, ABC):
             Tree representing all the possible parameter spaces.
         """
         cs_ = cls._cs_impl()
-        result = cs_.identified(name=cls.__name__, path=cls.__module__)
-        return result
+        # TODO: Why do we send the 'cls' to the CS contructor avoiding to call 'identified' ?
+        return cs_.identified(name=cls.__name__, path=cls.__module__)
 
     @Property
     @lru_cache()

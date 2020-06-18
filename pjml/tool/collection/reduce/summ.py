@@ -33,7 +33,7 @@ class Summ(Component, FunctionInspector):
     def __init__(self, field: str = "R", function: str = "mean", **kwargs):
         config = self._to_config(locals())
         super().__init__(config, deterministic=True, **kwargs)
-        self.function = self.function_from_name[config["function"]]
+        self.function = Summ.function_from_name()[config["function"]]
         self.field = field
 
     @lru_cache()
@@ -64,7 +64,7 @@ class Summ(Component, FunctionInspector):
     @classmethod
     def _cs_impl(cls) -> CS:
         params = {
-            "function": CatP(choice, items=cls.function_from_name.keys()),
+            "function": CatP(choice, items=cls.function_from_name().keys()),
             "field": CatP(choice, items=["z", "r", "s"]),
         }
         return CS(nodes=[Node(params)])

@@ -1,6 +1,7 @@
-from functools import lru_cache
-from typing import Optional, List
+from typing import List
 
+from pjml.config.description.cs.cs import CS
+from pjml.config.description.node import Node
 from pjml.tool.abc.mixin import component as co
 from pjml.tool.abc.mixin.component import Component
 from pjml.tool.abc.mixin.macro import Macro
@@ -59,4 +60,6 @@ class Partition(Macro, Component):
 
     @classmethod
     def _cs_impl(cls):
-        raise NotImplementedError
+        # TODO: Implement this cs
+        params = {}
+        return CS(nodes=[Node(params=params)])

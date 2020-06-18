@@ -15,6 +15,8 @@ class EmptyCS(ConfigSpace):
 
     def __init__(self, name=None, path=None):
         super().__init__({'component': {'name': name, 'path': path}})
+        print("NAME: ", name)
+        print("PATH: ", path)
         self.name, self.path = name, path
 
     def sample(self):

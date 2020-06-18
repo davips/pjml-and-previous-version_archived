@@ -26,7 +26,7 @@ class Multi(MinimalContainerN):
             components = args
         if all([isinstance(t, Component) for t in components]):
             return object.__new__(cls)
-        return ContainerCS(Multi.name, Multi.path, components)
+        return ContainerCS(Multi.__name__, Multi.__module__, components)
 
     def _enhancer_info(self, data: t.Data = None) -> Dict[str, Any]:
         return {"enhancers": map(lambda trf: trf.enhancer, self.components)}

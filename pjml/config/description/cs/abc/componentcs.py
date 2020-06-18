@@ -11,6 +11,8 @@ class ComponentCS(ConfigSpace, ABC):
         if nodes is None:
             nodes = []
         jsonable = {'component': {'name': name, 'path': path}, 'nodes': nodes}
+        print("TYPE NAME= ", type(name))
+        print("TYPE PATH= ", type(path))
         if config_spaces:
             config_spaces = [compo.cs for compo in config_spaces]
             jsonable['components'] = config_spaces
@@ -45,6 +47,9 @@ class ComponentCS(ConfigSpace, ABC):
             child_node = choice(self.nodes)
             config.update(child_node.partial_sample())
 
+        print("name: ", self.name)
+        print("path: ", self.path)
+        print("config: ", config)
         return materialize(self.name, self.path, config)
 
     @abstractmethod

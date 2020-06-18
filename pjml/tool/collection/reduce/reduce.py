@@ -3,6 +3,8 @@ from typing import Union, Tuple, Optional, Any, Dict, Callable
 
 import pjdata.types as t
 from pjdata.content.data import Data
+from pjml.config.description.cs.cs import CS
+from pjml.config.description.node import Node
 from pjml.tool.abc.invisible import Invisible
 from pjml.tool.abc.mixin.component import Component
 
@@ -40,7 +42,8 @@ class Reduce(Invisible, Component):
 
     @classmethod
     def _cs_impl(cls):
-        raise NotImplementedError
+        params={}
+        return CS(nodes=[Node(params)])
 
     def dual_transform(self, train: t.Data, test: t.Data) -> Tuple[t.Data, t.Data]:
 

@@ -8,13 +8,13 @@ from pjdata.mixin.printable import Printable
 class ConfigSpace(Printable):
     """Tree representing a (probably infinite) set of (hyper)parameter spaces.
     """
+
     _name = None
 
     def __init__(self, jsonable):
         jsonable.update(cs=self.__class__.__name__[0:-2].lower())
         self._jsonable = jsonable
 
-    @Property
     def _jsonable_impl(self):
         return self._jsonable
 
@@ -39,9 +39,9 @@ class ConfigSpace(Printable):
     @Property
     @lru_cache()
     def longname(self):
-        long = ''
-        for component in ['components']:
+        long = ""
+        for component in ["components"]:
             if component in self._jsonable_impl:
-                items = ', '.join(tr.longname for tr in self._jsonable_impl[component])
-                long = f'[{items}]'
+                items = ", ".join(tr.longname for tr in self._jsonable_impl[component])
+                long = f"[{items}]"
         return self.name + long

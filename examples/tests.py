@@ -1,6 +1,10 @@
 """Test"""
 import pjdata.content.specialdata as s
+from pjml.config.description.cs.chaincs import ChainCS
+from pjml.config.operator.many import select
+from pjml.config.operator.reduction.rnd import rnd
 from pjml.pipeline import Pipeline
+from pjml.tool.chain import Chain
 from pjml.tool.collection.expand.partition import Partition
 from pjml.tool.collection.reduce.reduce import Reduce
 from pjml.tool.collection.reduce.summ import Summ
@@ -75,7 +79,9 @@ def test_partition(arq="iris.arff"):
         Map(PCA(), SVMC(), Metric(enhance=False)),
         Summ(function='mean', enhance=False),
         Reduce(),
-        Report('mean ... S: $S', enhance=False)
+        Report('mean ... S: $S', enhance=False),
+        Report('$X'),
+        Report('$y')
     )
     prior, posterior = pipe.dual_transform()
 
@@ -188,9 +194,59 @@ def test_check_architecture2(arq="iris.arff"):
     # info = pipe.model(train).info()
 
 
+def printing_test(arq="iris.arff"):
+    exp = Pipeline(
+        File(arq),
+        Partition(),
+        Map(PCA(), SVMC(), Metric(enhance=False)),
+        Map(Report('<---------------------- fold'), enhance=False),
+        Summ(function='mean', enhance=False),
+        Reduce(),
+        Report('mean ... S: $S', enhance=False)
+    )
+    print(exp)
+
+    print(select(DT(), SVMC()))
+
+    sel = select(DT(), SVMC())
+    print(sel)
+
+    print(Map(DT()))
+    # exp = ChainCS(
+    #     Map(Report())
+    #     File(arq),
+    #     Partition(),
+    #     Map(PCA(), select(SVMC(), DT(criterion="gini")),  Metric(enhance=False)),
+    #     Map(Report('<---------------------- fold'), enhance=False)
+    # )
+    # print(exp)
+
+
+def random_search(arq="iris.arff"):
+    exp = Pipeline(
+        File(arq),
+        Partition(),
+        Map(PCA(), select(SVMC(), DT(criterion="gini")),  Metric(enhance=False)),
+        Map(Report('<---------------------- fold'), enhance=False),
+        Summ(function='mean', enhance=False),
+        Reduce(),
+        Report('mean ... S: $S', enhance=False)
+    )
+    # print(type(exp))
+    # print(exp)
+    # prior, posterior = exp.dual_transform()
+
+    # print(SVMC().cs.cs.sample())
+    # print(SVMC().cs.cs.sample())
+    # print(select(SVMC(), DT()))
+    # result = rnd(exp, n=2)
+    # print(result)
+    # pipe = full(rnd(expr, n=2), field='S', n=1).sample()
+
+
 def main():
     """Main function"""
-    # printable_test()
+    printable_test()
     test_tsvmc()
     test_split()
     test_metric()
@@ -199,6 +255,8 @@ def main():
     test_split_train_test()
     test_with_summ_reduce()
     # test_cache()
+    printing_test()
+    # random_search()
 
     # sanity test
     # test_check_architecture()

@@ -86,14 +86,14 @@ class File(Component, NoDataHandler):
     def _cs_impl(cls) -> CS:
         params = {
             "path": FixedP("./"),
-            "name": FixedP("iris.arff"),
+            "name": FixedP("blalbairis.arff"),
             "description": FixedP("No description."),
             "matrices_hash": FixedP("1234567890123456789"),
         }
 
         # TODO: I think that we should set as follow:
         # TransformerCS(nodes=[Node(params=params)])
-        return CS(Node(params=params))
+        return CS(nodes=[Node(params=params)])
 
     @lru_cache()
     def transformations(

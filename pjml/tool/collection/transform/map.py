@@ -16,7 +16,7 @@ class Map(MinimalContainer1):
             components = args
         if all([isinstance(c, Component) for c in components]):
             return object.__new__(cls)
-        return ContainerCS(Map.name, Map.path, components)
+        return ContainerCS(Map.__name__, Map.__module__, components)
 
     @lru_cache()
     def _enhancer_info(self, data: t.Data = None) -> Dict[str, Any]:  #TODO: should _*info accept None?

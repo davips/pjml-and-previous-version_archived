@@ -35,7 +35,7 @@ class Metric(Component, FunctionInspector):
         super().__init__(self._to_config(locals()), deterministic=True, **kwargs)
         self.functions = functions
         self.target, self.prediction = target, prediction
-        self.selected = [self.function_from_name[name] for name in functions]
+        self.selected = [Metric.function_from_name()[name] for name in functions]
 
     @lru_cache()
     def _enhancer_info(self, data: t.Data = None) -> Dict[str, Any]:
@@ -68,7 +68,7 @@ class Metric(Component, FunctionInspector):
             "target": CatP(choice, items=["Y"]),
             "prediction": CatP(choice, items=["Z"]),
         }
-        return CS(Node(params=params))
+        return CS(nodes=[Node(params=params)])
 
     @staticmethod
     def _fun_error(data, target, prediction):
