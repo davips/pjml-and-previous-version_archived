@@ -1,10 +1,7 @@
 """Test"""
 import pjdata.content.specialdata as s
-from pjml.config.description.cs.chaincs import ChainCS
 from pjml.config.operator.many import select
-from pjml.config.operator.reduction.rnd import rnd
 from pjml.pipeline import Pipeline
-from pjml.tool.chain import Chain
 from pjml.tool.collection.expand.partition import Partition
 from pjml.tool.collection.reduce.reduce import Reduce
 from pjml.tool.collection.reduce.summ import Summ
@@ -47,12 +44,7 @@ def test_split(arq="iris.arff"):
 
 
 def test_metric(arq="iris.arff"):
-    pipe = Pipeline(
-        File(arq),
-        Split(),
-        SVMC(),
-        Metric(enhance=False)
-    )
+    pipe = Pipeline(File(arq), Split(), SVMC(), Metric(enhance=False))
     prior, posterior = pipe.dual_transform()
     print("Prior..............\n", prior)
     print("Posterior..........\n", posterior)
@@ -60,13 +52,7 @@ def test_metric(arq="iris.arff"):
 
 def test_pca(arq="iris.arff"):
     cs = File(arq).cs
-    pipe = Pipeline(
-        File(arq),
-        Split(),
-        PCA(),
-        SVMC(),
-        Metric(enhance=False)
-    )
+    pipe = Pipeline(File(arq), Split(), PCA(), SVMC(), Metric(enhance=False))
     prior, posterior = pipe.dual_transform()
     print("Prior..............\n", prior)
     print("Posterior..........\n", posterior)
@@ -77,11 +63,11 @@ def test_partition(arq="iris.arff"):
         File(arq),
         Partition(),
         Map(PCA(), SVMC(), Metric(enhance=False)),
-        Summ(function='mean', enhance=False),
+        Summ(function="mean", enhance=False),
         Reduce(),
-        Report('mean ... S: $S', enhance=False),
-        Report('$X'),
-        Report('$y')
+        Report("mean ... S: $S", enhance=False),
+        Report("$X"),
+        Report("$y"),
     )
     prior, posterior = pipe.dual_transform()
 
@@ -97,7 +83,7 @@ def test_split_train_test(arq="iris.arff"):
         PCA(),
         SVMC(),
         Metric(enhance=False),
-        Report('metric ... R: $R', enhance=False)
+        Report("metric ... R: $R", enhance=False),
     )
     prior, posterior = pipe.dual_transform()
 
@@ -109,11 +95,11 @@ def test_with_summ_reduce(arq="iris.arff"):
     pipe = Pipeline(
         File(arq),
         Partition(),
-        Map(PCA(), SVMC(),  Metric(enhance=False)),
-        Map(Report('<---------------------- etapa'), enhance=False),
-        Summ(function='mean', enhance=False),
+        Map(PCA(), SVMC(), Metric(enhance=False)),
+        Map(Report("<---------------------- etapa"), enhance=False),
+        Summ(function="mean", enhance=False),
         Reduce(),
-        Report('mean ... S: $S', enhance=False)
+        Report("mean ... S: $S", enhance=False),
     )
     prior, posterior = pipe.dual_transform()
 
@@ -134,7 +120,7 @@ def test_check_architecture(arq="iris.arff"):
         File(arq),
         Partition(partitions=2),
         Map(PCA(), SVMC(), Metric(enhance=False)),
-        Summ(field="Y", function='mean', enhance=False),
+        Summ(field="Y", function="mean", enhance=False),
     )
 
     # tenho file na frente
@@ -156,8 +142,8 @@ def test_check_architecture2(arq="iris.arff"):
         File(arq),
         Partition(),
         Map(PCA(), SVMC(), Metric(enhance=False)),
-        Summ(field="Y", function='mean', enhance=False),
-        Report('mean ... S: $S', enhance=False)
+        Summ(field="Y", function="mean", enhance=False),
+        Report("mean ... S: $S", enhance=False),
     )
 
     # tenho file na frente
@@ -199,10 +185,10 @@ def printing_test(arq="iris.arff"):
         File(arq),
         Partition(),
         Map(PCA(), SVMC(), Metric(enhance=False)),
-        Map(Report('<---------------------- fold'), enhance=False),
-        Summ(function='mean', enhance=False),
+        Map(Report("<---------------------- fold"), enhance=False),
+        Summ(function="mean", enhance=False),
         Reduce(),
-        Report('mean ... S: $S', enhance=False)
+        Report("mean ... S: $S", enhance=False),
     )
     print(exp)
     print(select(DT(), SVMC()))
@@ -224,11 +210,11 @@ def random_search(arq="iris.arff"):
     exp = Pipeline(
         File(arq),
         Partition(),
-        Map(PCA(), select(SVMC(), DT(criterion="gini")),  Metric(enhance=False)),
-        Map(Report('<---------------------- fold'), enhance=False),
-        Summ(function='mean', enhance=False),
+        Map(PCA(), select(SVMC(), DT(criterion="gini")), Metric(enhance=False)),
+        Map(Report("<---------------------- fold"), enhance=False),
+        Summ(function="mean", enhance=False),
         Reduce(),
-        Report('mean ... S: $S', enhance=False)
+        Report("mean ... S: $S", enhance=False),
     )
     # print(type(exp))
     # print(exp)
