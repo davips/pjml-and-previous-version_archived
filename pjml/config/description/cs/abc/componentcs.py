@@ -45,9 +45,6 @@ class ComponentCS(ConfigSpace, ABC):
             child_node = choice(self.nodes)
             config.update(child_node.partial_sample())
 
-        print("name: ", self.name)
-        print("path: ", self.path)
-        print("config: ", config)
         return materialize(self.name, self.path, config)
 
     @abstractmethod
