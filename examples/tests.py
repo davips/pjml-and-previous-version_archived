@@ -1,8 +1,10 @@
 """Test"""
+
 import pjdata.content.specialdata as s
+from pjdata.util import gl_config
 from pjml.config.description.cs.chaincs import ChainCS
 from pjml.config.operator.many import select
-from pjml.config.operator.reduction.full import full, run, lrun
+from pjml.config.operator.reduction.full import maximize
 from pjml.config.operator.reduction.rnd import rnd
 from pjml.pipeline import Pipeline
 from pjml.tool.chain import Chain
@@ -204,9 +206,9 @@ def printing_test(arq="iris.arff"):
     exp = ChainCS(
         File(arq),
         Partition(),
-        Map(PCA(), select(SVMC(), DT(criterion="gini")),  Metric(enhance=False)),
-        Report('teste'),
-        Map(Report('<---------------------- fold'))
+        Map(PCA(), select(SVMC(), DT(criterion="gini")), Metric(enhance=False)),
+        Report("teste"),
+        Map(Report("<---------------------- fold")),
     )
     print(exp)
 
@@ -216,34 +218,30 @@ def random_search(arq="iris.arff"):
         File(arq),
         Partition(),
         Map(PCA(), select(SVMC(), DT(criterion="gini")), Metric(enhance=False)),
-        Map(Report("<---------------------- fold"), enhance=False),
+        # Map(Report("<---------------------- fold"), enhance=False),
         Summ(function="mean", enhance=False),
         Reduce(),
-        Report("mean ... S: $S", enhance=False),
+        Report("Mean S: $S", enhance=False),
     )
-    # print(type(exp))
-    # print(exp)
-    # prior, posterior = exp.dual_transform()
 
-    expr = rnd(exp, n=2)
-    # print(expr)
-    # pipe = full(rnd(expr, n=10), field='S', n=2).sample()
-    result = tuple(lrun(expr))
+    expr = rnd(exp, n=10)
+    result = maximize(expr, n=5)
+    result.disable_pretty_printing()
     print(result)
 
 
 def main():
     """Main function"""
-    printable_test()
-    test_tsvmc()
-    test_split()
-    test_metric()
-    test_pca()
-    test_partition()
-    test_split_train_test()
-    test_with_summ_reduce()
+    # printable_test()
+    # test_tsvmc()
+    # test_split()
+    # test_metric()
+    # test_pca()
+    # test_partition()
+    # test_split_train_test()
+    # test_with_summ_reduce()
     # test_cache()
-    printing_test()
+    # printing_test()
     random_search()
 
     # sanity test
