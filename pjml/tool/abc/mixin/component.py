@@ -39,7 +39,7 @@ class Component(Printable, WithSerialization, AsOperand, ABC):
         from pjml.tool.abc.mixin.nodatahandler import NoDataHandler
         self.nodata_handler = isinstance(self, NoDataHandler) or nodata_handler
 
-        # self.cs = self.cs1  # TODO: This can take some time to type. It is pure magic!
+        self.cs = self.cs1  # TODO: This can take some time to type. It is pure magic!
         self.hasenhancer = enhance
         self.hasmodel = model
 
@@ -105,6 +105,7 @@ class Component(Printable, WithSerialization, AsOperand, ABC):
         -------
             Tree representing all the possible parameter spaces.
         """
+        print("Calling CS from Component")
         cs_ = cls._cs_impl()
         # TODO: Why do we send the 'cls' to the CS contructor avoiding to call 'identified' ?
         return cs_.identified(name=cls.__name__, path=cls.__module__)
