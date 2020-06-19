@@ -1,7 +1,11 @@
 """Test"""
 import pjdata.content.specialdata as s
+from pjml.config.description.cs.chaincs import ChainCS
 from pjml.config.operator.many import select
+from pjml.config.operator.reduction.full import full, run, lrun
+from pjml.config.operator.reduction.rnd import rnd
 from pjml.pipeline import Pipeline
+from pjml.tool.chain import Chain
 from pjml.tool.collection.expand.partition import Partition
 from pjml.tool.collection.reduce.reduce import Reduce
 from pjml.tool.collection.reduce.summ import Summ
@@ -181,6 +185,7 @@ def test_check_architecture2(arq="iris.arff"):
 
 
 def printing_test(arq="iris.arff"):
+    print(Chain(Map(select(File(arq)))))
     exp = Pipeline(
         File(arq),
         Partition(),
@@ -196,14 +201,14 @@ def printing_test(arq="iris.arff"):
     sel = select(DT(), SVMC())
     print(sel)
     print(Map(DT()))
-    # exp = ChainCS(
-    #     Map(Report())
-    #     File(arq),
-    #     Partition(),
-    #     Map(PCA(), select(SVMC(), DT(criterion="gini")),  Metric(enhance=False)),
-    #     Map(Report('<---------------------- fold'), enhance=False)
-    # )
-    # print(exp)
+    exp = ChainCS(
+        File(arq),
+        Partition(),
+        Map(PCA(), select(SVMC(), DT(criterion="gini")),  Metric(enhance=False)),
+        Report('teste'),
+        Map(Report('<---------------------- fold'))
+    )
+    print(exp)
 
 
 def random_search(arq="iris.arff"):
@@ -220,12 +225,11 @@ def random_search(arq="iris.arff"):
     # print(exp)
     # prior, posterior = exp.dual_transform()
 
-    # print(SVMC().cs.cs.sample())
-    # print(SVMC().cs.cs.sample())
-    # print(select(SVMC(), DT()))
-    # result = rnd(exp, n=2)
-    # print(result)
-    # pipe = full(rnd(expr, n=2), field='S', n=1).sample()
+    expr = rnd(exp, n=2)
+    # print(expr)
+    # pipe = full(rnd(expr, n=10), field='S', n=2).sample()
+    result = tuple(lrun(expr))
+    print(result)
 
 
 def main():
@@ -238,9 +242,9 @@ def main():
     test_partition()
     test_split_train_test()
     test_with_summ_reduce()
-    # test_cache()
+    test_cache()
     printing_test()
-    # random_search()
+    random_search()
 
     # sanity test
     # test_check_architecture()
