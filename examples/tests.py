@@ -242,7 +242,7 @@ def main():
     test_partition()
     test_split_train_test()
     test_with_summ_reduce()
-    test_cache()
+    # test_cache()
     printing_test()
     random_search()
 
