@@ -114,7 +114,7 @@ def test_with_summ_reduce(arq="iris.arff"):
 
 
 def test_cache(arq="iris.arff"):
-    pipe = Pipeline(Cache(File(arq)))
+    pipe = Pipeline(Cache(File(arq), storage_alias='default_sqlite'))
     prior, posterior = pipe.dual_transform()
 
     print("Prior..............\n", [h.name for h in prior.history])
@@ -240,7 +240,7 @@ def main():
     # test_partition()
     # test_split_train_test()
     # test_with_summ_reduce()
-    # test_cache()
+    test_cache()
     # printing_test()
     random_search()
 

@@ -1,27 +1,9 @@
+from heapq import nlargest, nsmallest
 from operator import itemgetter
 
+from pjdata.aux.util import _
 from pjdata.content.specialdata import NoData
 from pjml.config.description.cs.configlist import ConfigList
-
-
-def full(cs, data=NoData, n=1, field="S"):
-    """Exhaustive search to maximize value at 'field'.
-
-    Return 'n' best pipelines."""
-    # TODO: seed?
-    if not isinstance(cs, ConfigList):
-        raise Exception("Exhaustive search is only possible on FiniteCS!")
-
-    results = []
-    for pipe in cs:
-        pipe.dual_transform(data, data)
-        model = pipe.apply()
-        res = model.use(model.data).field(field, context="full search").item(0)
-
-        results.append((pipe, -res))
-
-    pipes = [x[0] for x in sorted(results, key=itemgetter(1))[:n]]
-    return ConfigList(components=pipes)
 
 
 def min_max_pipe(cs, n=1, train=NoData, test=NoData, reverse=False):
@@ -48,7 +30,7 @@ def sort(iterator, key=itemgetter(0), reverse=False):
 
 
 def get(iterator, function=lambda x: (x[1].s, x[2])):
-    for it in iterator:
+    for it in iterator:  # <-- essa ideia é tão boa que a função map() virou um padrão p/ isso [davi]
         yield function(it)
 
 
@@ -71,3 +53,19 @@ def run(cs, train=NoData, test=NoData):
         results.append((pipe, train_result, test_result))
 
     return results
+
+
+# TODO: p/ consistencia de configs, elas só vão aceitar matrizes; vou ainda atualizar os componentes
+def best(cs, n=1, train=NoData, test=NoData, better='higher'):
+    """Edesio: não sei se entendi seus objetivos, mas baseado na sua implementação condensei aqui de forma simples.
+    ps. We assume that even if training accuracy is desired,
+     it will be already transferred to the test set as 's' (or 'r' as a last resource).
+    Return 'n' best pipelines."""
+    if not isinstance(cs, ConfigList):
+        raise Exception("Exhaustive search is only possible on FiniteCS!")
+
+    def dual(component):
+        return component.dual_transform(train, test)[1], component
+
+    select = nlargest if better == 'higher' else nsmallest
+    return ConfigList(components=map(_[1], select(n, map(dual, cs))))
