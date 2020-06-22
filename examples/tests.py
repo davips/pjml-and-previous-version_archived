@@ -1,11 +1,12 @@
 """Test"""
 
+import numpy as np
+
 import pjdata.content.specialdata as s
-from pjdata.util import gl_config
 from pjml.config.description.cs.chaincs import ChainCS
 from pjml.config.operator.many import select
-from pjml.config.operator.reduction.full import maximize
 from pjml.config.operator.reduction.rnd import rnd
+from pjml.config.operator.util import maximize
 from pjml.pipeline import Pipeline
 from pjml.tool.chain import Chain
 from pjml.tool.collection.expand.partition import Partition
@@ -114,7 +115,7 @@ def test_with_summ_reduce(arq="iris.arff"):
 
 
 def test_cache(arq="iris.arff"):
-    pipe = Pipeline(Cache(File(arq), storage_alias='default_sqlite'))
+    pipe = Pipeline(Cache(File(arq), storage_alias="default_sqlite"))
     prior, posterior = pipe.dual_transform()
 
     print("Prior..............\n", [h.name for h in prior.history])
@@ -214,6 +215,7 @@ def printing_test(arq="iris.arff"):
 
 
 def random_search(arq="iris.arff"):
+    np.random.seed(0)
     exp = Pipeline(
         File(arq),
         Partition(),
@@ -226,7 +228,7 @@ def random_search(arq="iris.arff"):
 
     expr = rnd(exp, n=10)
     result = maximize(expr, n=5)
-    result.disable_pretty_printing()
+    # result.disable_pretty_printing()
     print(result)
 
 
@@ -240,7 +242,7 @@ def main():
     # test_partition()
     # test_split_train_test()
     # test_with_summ_reduce()
-    test_cache()
+    # test_cache()
     # printing_test()
     random_search()
 
