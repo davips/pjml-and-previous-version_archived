@@ -6,7 +6,7 @@ import pjdata.content.specialdata as s
 from pjml.config.description.cs.chaincs import ChainCS
 from pjml.config.operator.many import select
 from pjml.config.operator.reduction.rnd import rnd
-from pjml.config.operator.util import maximize, best, run, lrun, compare, minimize, sort
+from pjml.config.operator.util import maximize, best, run, lrun, compare, minimize, sort, cut
 from pjml.pipeline import Pipeline
 from pjml.tool.chain import Chain
 from pjml.tool.collection.expand.partition import Partition
@@ -290,19 +290,19 @@ def util():
     print(res1)
     print("----------------------------")
 
-    # # sort
-    # print("sort experiment result")
-    # res2 = sort(clist())
-    # res2.disable_pretty_printing()
-    # print(result)
-    # print("----------------------------")
+    # sort
+    print("sort experiment result")
+    res2 = sort(clist())
+    res2.disable_pretty_printing()
+    print(result)
+    print("----------------------------")
 
-    # get a piece
-    # print("take the top three")
-    # result = best(clist(), n=3)
-    # result.disable_pretty_printing()
-    # print(result)
-    # print("----------------------------")
+    # take the best first quartile
+    print("take the best first quartile")
+    result = cut(sort(clist()))
+    result.disable_pretty_printing()
+    print(result)
+    print("----------------------------")
 
 
 def main():
