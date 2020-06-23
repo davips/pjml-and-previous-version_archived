@@ -6,7 +6,16 @@ import pjdata.content.specialdata as s
 from pjml.config.description.cs.chaincs import ChainCS
 from pjml.config.operator.many import select
 from pjml.config.operator.reduction.rnd import rnd
-from pjml.config.operator.util import maximize, best, run, lrun, compare, minimize, sort, cut
+from pjml.config.operator.util import (
+    maximize,
+    best,
+    run,
+    lrun,
+    compare,
+    minimize,
+    sort,
+    cut,
+)
 from pjml.pipeline import Pipeline
 from pjml.tool.chain import Chain
 from pjml.tool.collection.expand.partition import Partition
@@ -254,6 +263,7 @@ def util():
     def clist():
         np.random.seed(0)
         return rnd(ger_workflow(), n=10)
+
     # run all the experiment
     print("run all the experiment")
     res1 = run(clist())
@@ -305,6 +315,13 @@ def util():
     print("----------------------------")
 
 
+def default_config():
+    print("SVMC: ", SVMC())
+
+    clist = rnd(SVMC, n=3)
+    print(clist)
+
+
 def main():
     """Main function"""
     # printable_test()
@@ -318,7 +335,8 @@ def main():
     # test_cache()
     # printing_test()
     # random_search()
-    util()
+    # util()
+    default_config()
 
     # sanity test
     # test_check_architecture()
