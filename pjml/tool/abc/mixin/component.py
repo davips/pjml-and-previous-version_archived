@@ -36,7 +36,11 @@ class Component(Printable, WithSerialization, AsOperand, ABC):
             "model": model,
         }
 
-        self.config = config
+        # We must always obtain the default parameter, because we want to completely
+        # identify the transformation.
+        self.config = self.default_config()
+        self.config.update(config)
+
         self.deterministic = deterministic
 
         from pjml.tool.abc.mixin.nodatahandler import NoDataHandler
@@ -96,6 +100,22 @@ class Component(Printable, WithSerialization, AsOperand, ABC):
     def _cs_impl(cls) -> CS:
         """Each component should implement its own 'cs'. The parent class
         takes care of 'name' and 'path' arguments of ConfigSpace"""
+
+    @classmethod
+    def default_config(cls) -> Dict[str, Any]:
+        """Create a copy of the component default configuration.
+
+        Returns
+        -------
+            dict
+                Copy of the component default configuration.
+
+        """
+        return cls._default_config_impl.copy()
+
+    @classproperty
+    def _default_config_impl(cls) -> Dict[str, Any]:
+        return {}
 
     @classproperty
     @lru_cache()
