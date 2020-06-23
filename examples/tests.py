@@ -1,11 +1,12 @@
 """Test"""
+import time
+import numpy as np
 
 import pjdata.content.specialdata as s
-from pjdata.util import gl_config
 from pjml.config.description.cs.chaincs import ChainCS
 from pjml.config.operator.many import select
-from pjml.config.operator.reduction.full import maximize
 from pjml.config.operator.reduction.rnd import rnd
+from pjml.config.operator.util import maximize, best, run, lrun, compare, minimize, sort, cut
 from pjml.pipeline import Pipeline
 from pjml.tool.chain import Chain
 from pjml.tool.collection.expand.partition import Partition
@@ -114,7 +115,7 @@ def test_with_summ_reduce(arq="iris.arff"):
 
 
 def test_cache(arq="iris.arff"):
-    pipe = Pipeline(Cache(File(arq), storage_alias='default_sqlite'))
+    pipe = Pipeline(Cache(File(arq), storage_alias="default_sqlite"))
     prior, posterior = pipe.dual_transform()
 
     print("Prior..............\n", [h.name for h in prior.history])
@@ -214,6 +215,7 @@ def printing_test(arq="iris.arff"):
 
 
 def random_search(arq="iris.arff"):
+    np.random.seed(0)
     exp = Pipeline(
         File(arq),
         Partition(),
@@ -225,9 +227,82 @@ def random_search(arq="iris.arff"):
     )
 
     expr = rnd(exp, n=10)
-    result = maximize(expr, n=5)
+    result = best(expr, n=5)
     result.disable_pretty_printing()
     print(result)
+
+
+def ger_workflow(arq="iris.arff"):
+    np.random.seed(0)
+
+    workflow = Pipeline(
+        File(arq),
+        Partition(),
+        Map(PCA(), select(SVMC(), DT(criterion="gini")), Metric(enhance=False)),
+        Summ(function="mean", enhance=False),
+        Reduce(),
+        # Report("Mean S: $S", enhance=False),
+    )
+
+    return workflow
+
+
+def util():
+    # set state for all seed in pjml
+    # we should study if it is necessary a global seed handler to make available multiprocessing.
+
+    def clist():
+        np.random.seed(0)
+        return rnd(ger_workflow(), n=10)
+    # run all the experiment
+    print("run all the experiment")
+    res1 = run(clist())
+    print("----------------------------")
+
+    # run all experiment lazily
+    print("run all experiment lazily")
+    res2 = lrun(clist())
+    print("----------------------------")
+
+    # compare the experiments
+    print("compare the two experiment")
+    print(compare(res1, res2))
+    print("----------------------------")
+
+    # minimize
+    print("take the minimun")
+    result = minimize(clist(), n=3)
+    result.disable_pretty_printing()
+    print(result)
+    print("----------------------------")
+
+    # maximize
+    print("take the maximum")
+    result = maximize(clist(), n=3)
+    result.disable_pretty_printing()
+    print(result)
+    print("----------------------------")
+
+    # take the top n
+    print("take the top three")
+    res1 = best(clist(), n=3)
+    res1.disable_pretty_printing()
+    print(res1)
+    print("----------------------------")
+
+    # sort
+    print("sort experiment result")
+    res2 = sort(clist())
+    res2.disable_pretty_printing()
+    print(result)
+    print("----------------------------")
+
+    # take the best first quartile
+    print("take the best first quartile")
+    result = cut(sort(clist()))
+    result.disable_pretty_printing()
+    print(result)
+    print("----------------------------")
 
 
 def main():
@@ -240,9 +315,10 @@ def main():
     # test_partition()
     # test_split_train_test()
     # test_with_summ_reduce()
-    test_cache()
+    # test_cache()
     # printing_test()
-    random_search()
+    # random_search()
+    util()
 
     # sanity test
     # test_check_architecture()

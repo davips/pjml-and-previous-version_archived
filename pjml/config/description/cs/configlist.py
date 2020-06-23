@@ -1,3 +1,5 @@
+from collections import Iterable
+
 from pjml.config.description.cs.abc.configspace import ConfigSpace
 from pjml.config.description.distributions import choice
 
@@ -14,6 +16,8 @@ class ConfigList(ConfigSpace):
     def __init__(self, *args, components=None):
         if components is None:
             components = args
+        if isinstance(components, Iterable):
+            components = [comp for comp in components]
         super().__init__({'components': components})
 
         from pjml.tool.abc.mixin.component import Component

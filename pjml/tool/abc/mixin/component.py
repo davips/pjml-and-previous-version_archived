@@ -1,14 +1,13 @@
 """ Component module. """
 from abc import abstractmethod, ABC
-from functools import lru_cache, cached_property
-from typing import Dict, Any, Tuple, Iterator
+from functools import lru_cache
+from typing import Dict, Any, Tuple
 
 import pjdata.types as t
 from pjdata.aux.decorator import classproperty
 from pjdata.aux.serialization import serialize, materialize
 from pjdata.aux.util import Property
 from pjdata.aux.uuid import UUID
-from pjdata.mixin.withidentification import WithIdentification
 from pjdata.mixin.printable import Printable
 from pjdata.mixin.withserialization import WithSerialization
 from pjdata.transformer.enhancer import Enhancer
@@ -22,26 +21,32 @@ from pjml.tool.abc.asoperand import AsOperand
 
 class Component(Printable, WithSerialization, AsOperand, ABC):
     def __init__(
-            self,
-            config: dict,
-            enhance: bool = True,
-            model: bool = True,
-            deterministic: bool = False,
-            nodata_handler: bool = False
+        self,
+        config: dict,
+        enhance: bool = True,
+        model: bool = True,
+        deterministic: bool = False,
+        nodata_handler: bool = False,
     ):
         self.path = self.__module__
-        self.transformer_info = {'_id': f'{self.name}@{self.path}', 'config': config}
-        self._jsonable = {'info': self.transformer_info, 'enhance': enhance, 'model': model}
+        self.transformer_info = {"_id": f"{self.name}@{self.path}", "config": config}
+        self._jsonable = {
+            "info": self.transformer_info,
+            "enhance": enhance,
+            "model": model,
+        }
 
         self.config = config
         self.deterministic = deterministic
 
         from pjml.tool.abc.mixin.nodatahandler import NoDataHandler
+
         self.nodata_handler = isinstance(self, NoDataHandler) or nodata_handler
 
-        self.cs = self.cs1  # TODO: This can take some time to type. It is pure magic!
         self.hasenhancer = enhance
         self.hasmodel = model
+
+        self.cs = self.cs1  # TODO: This can take some time to type. It is pure magic!
 
     def _jsonable_impl(self):
         return self._jsonable
@@ -75,7 +80,9 @@ class Component(Printable, WithSerialization, AsOperand, ABC):
             data = data[0]
         if not self.hasmodel:
             return PHolder(self)
-        return Model(self, func=self._model_func(data), info=self._model_info(data), data=data)
+        return Model(
+            self, func=self._model_func(data), info=self._model_info(data), data=data
+        )
 
     def dual_transform(self, train: t.Data, test: t.Data) -> Tuple[t.Data, t.Data]:
         # if self._model:  # TODO: I am not sure these IFs are really needed...
@@ -121,26 +128,31 @@ class Component(Printable, WithSerialization, AsOperand, ABC):
     def _to_config(locals_):
         """Convert a dict coming from locals() to config."""
         config = locals_.copy()
-        del config['self']
-        del config['__class__']
-        if 'kwargs' in config:
-            del config['kwargs']
-        if 'enhance' in config:
-            del config['enhance']
-            del config['model']
+        del config["self"]
+        del config["__class__"]
+        if "kwargs" in config:
+            del config["kwargs"]
+        if "enhance" in config:
+            del config["enhance"]
+            del config["model"]
         return config
 
     def _uuid_impl(self):
         """Complete UUID; including 'model' and 'enhance' flags. Identifies the component."""
-        return self.cfuuid * UUID(str(self.hasenhancer + self.hasmodel).rjust(14, '0'))
+        return self._cfuuid_impl() * UUID(
+            str(self.hasenhancer + self.hasmodel).rjust(14, "0")
+        )
 
     def _cfuuid_impl(self):
         """UUID excluding 'model' and 'enhance' flags. Identifies the transformer."""
-        return UUID(self.cfserialized.encode())
+        return UUID(self._cfserialized().encode())
 
     @Property
     @lru_cache()
     def cfserialized(self):
+        return self._cfserialized()
+
+    def _cfserialized(self):
         return serialize(self.transformer_info)
 
     def _name_impl(self):
@@ -183,11 +195,11 @@ class Component(Printable, WithSerialization, AsOperand, ABC):
         A ready to use component.
         """
         config = self.config
-        if 'model' not in self.config:
-            config.update({'model': self.hasmodel})
+        if "model" not in self.config:
+            config.update({"model": self.hasmodel})
 
-        if 'enhancer' not in self.config:
-            config.update({'enhance': self.hasenhancer})
+        if "enhancer" not in self.config:
+            config.update({"enhance": self.hasenhancer})
 
         if kwargs:
             config = config.copy()
