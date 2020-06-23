@@ -9,7 +9,8 @@ from pjml.config.description.cs.configlist import ConfigList
 #  Edesio: não sei se entendi seus objetivos, mas baseado na sua implementação condensei aqui de forma simples.
 #  R: Obrigado Davi, tentei criar algumas ferramentas básicas para coletar/trabalhar com resultados e otimizar pipeline
 
-def best(clist, n=1, train=NoData, test=NoData, better='higher'):
+
+def best(clist, n=1, train=NoData, test=NoData, better="higher"):
     """"Sample" the 'n' best evaluation-pipelines.
     # <-- TODO: essa terminologia faz sentido? ou devemos encontrar outro nome pro núcleo que exclui métrica (PCA->MLP)?
     ps.1 We call the component evaluation-pipeline when it is expected to produce 's' or 'r' fields.  
@@ -37,13 +38,5 @@ def best(clist, n=1, train=NoData, test=NoData, better='higher'):
         print(aux[0])
         return aux
 
-    select = nlargest if better == 'higher' else nsmallest
-    return ConfigList(
-        components=map(
-            _[1],
-            select(
-                n,
-                map(dual, clist)
-            )
-        )
-    )
+    select = nlargest if better == "higher" else nsmallest
+    return ConfigList(components=map(_[1], select(n, map(dual, clist))))
