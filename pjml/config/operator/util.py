@@ -1,5 +1,6 @@
 from collections import Iterable
 from heapq import nsmallest, nlargest
+from math import ceil, floor
 
 from pjdata.aux.util import _
 from pjdata.content.specialdata import NoData
@@ -10,10 +11,6 @@ def compare(x, y):
     if isinstance(x, Iterable) and isinstance(y, Iterable):
         return all(compare(i, j) for i, j in zip(x, y))
     return x.isequal(y)
-
-
-def slice(clist, start=0.75, end=1.0):
-    return sort(clist, train=train, test=test,)
 
 
 def run(clist, train=NoData, test=NoData):
@@ -37,16 +34,24 @@ def lrun(clist, train=NoData, test=NoData):
         yield pipe, train_result, test_result
 
 
-def sort(clist, train=NoData, test=NoData, key=lambda x: x[2].S, reverse=False):
+def cut(iterable, start=0.75, end=1.0):
+    tp = tuple(iterable)
+    start, end = int(floor(start*len(tp))), int(ceil(end*len(tp)))
+
+    if start > end:
+        raise Exception("The 'start' should be less or equal than 'end'.")
+    return ConfigList(components=tp[start:end])
+
+
+def sort(clist, train=NoData, test=NoData, key=lambda x: (x[1], x[0]), reverse=False):
     """Exhaustive search to maximize value at 'field'.
 
     Return 'n' best pipelines."""
-
-    def iterator():
-        for r in lrun(clist, train, test):
-            yield key(r)
-
-    return sorted(iterator(), key=key, reverse=reverse)
+    return ConfigList(
+        components=map(
+            _[1], sorted(map(key, lrun(clist, train, test)), reverse=reverse)
+        )
+    )
 
 
 def best(clist, n=1, train=NoData, test=NoData, better="higher"):
