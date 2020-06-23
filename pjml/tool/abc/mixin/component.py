@@ -28,18 +28,21 @@ class Component(Printable, WithSerialization, AsOperand, ABC):
         deterministic: bool = False,
         nodata_handler: bool = False,
     ):
+        # We must always obtain the default parameter, because we want to completely
+        # identify the transformation.
+        self.config = self.default_config()
+        self.config.update(config)
+
         self.path = self.__module__
-        self.transformer_info = {"_id": f"{self.name}@{self.path}", "config": config}
+        self.transformer_info = {
+            "_id": f"{self.name}@{self.path}",
+            "config": self.config,
+        }
         self._jsonable = {
             "info": self.transformer_info,
             "enhance": enhance,
             "model": model,
         }
-
-        # We must always obtain the default parameter, because we want to completely
-        # identify the transformation.
-        self.config = self.default_config()
-        self.config.update(config)
 
         self.deterministic = deterministic
 
@@ -132,7 +135,6 @@ class Component(Printable, WithSerialization, AsOperand, ABC):
         -------
             Tree representing all the possible parameter spaces.
         """
-        print("Calling CS from Component")
         cs_ = cls._cs_impl()
         # TODO: Why do we send the 'cls' to the CS contructor avoiding to call 'identified' ?
         return cs_.identified(name=cls.__name__, path=cls.__module__)
