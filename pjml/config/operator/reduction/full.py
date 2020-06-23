@@ -1,4 +1,4 @@
-from heapq import nlargest, nsmallest
+import heapq as heap
 from operator import itemgetter
 
 from pjdata.aux.util import _
@@ -83,5 +83,5 @@ def best(clist, n=1, train=NoData, test=NoData, better='higher'):
     def dual(component):
         return component.dual_transform(train, test)[1], component
 
-    select = nlargest if better == 'higher' else nsmallest
+    select = heap.nlargest if better == 'higher' else heap.nsmallest
     return ConfigList(components=map(_[1], select(n, map(dual, clist))))
