@@ -1,6 +1,4 @@
-from pjml.config.operator.many import select
-from pjml.config.operator.reduction.full import full
-from pjml.config.operator.reduction.rnd import rnd
+from pjml.config.search.many import select
 from pjml.pipeline import Pipeline
 from pjml.tool.chain import Chain
 from pjml.tool.collection.expand.partition import Partition

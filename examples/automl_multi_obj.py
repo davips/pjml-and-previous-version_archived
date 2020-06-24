@@ -6,15 +6,11 @@ from cururu.persistence import Persistence
 from cururu.storage import Storage
 from cururu.worker import Worker
 from pjdata.mixin.printable import disable_global_pretty_printing
-from pjml.config.operator.many import select
-from pjml.config.operator.reduction.full import full
-from pjml.config.operator.reduction.rnd import rnd
-from pjml.config.operator.single import hold
-from pjml.macro import split
+from pjml.config.search.many import select
+from pjml.config.search.single import hold
 from pjml.pipeline import Pipeline
 from pjml.tool.abc.mixin.timers import Timers
 from pjml.tool.chain import Chain
-from pjml.tool.collection.expand.repeat import NonFinalizer
 from pjml.tool.collection.expand.partition import Partition
 from pjml.tool.collection.reduce.summ import Summ
 from pjml.tool.collection.transform.map import Map

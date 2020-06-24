@@ -1,5 +1,8 @@
 """Operations over a single CS."""
+from pjdata.content.specialdata import NoData
+from pjml.config.description.cs.configlist import ConfigList
 from pjml.config.description.parameter import FixedP
+from pjml.config.search.util import optimize
 
 
 def hold(cs, **kwargs):
@@ -49,3 +52,16 @@ def replace(cs, **kwargs):
         in-place, not just extend overwritting it
     """
     raise NotImplementedError
+
+
+def maximize(clist, n=1, train=NoData, test=NoData):
+    return optimize(clist, n=n, train=train, test=test, better="smaller")
+
+
+def minimize(clist, n=1, train=NoData, test=NoData):
+    return optimize(clist, n=n, train=train, test=test, better="higher")
+
+
+def sample(cs, n=100):
+    """Reduces CS by random sampling."""
+    return ConfigList(components=[cs.cs.sample() for _ in range(n)])

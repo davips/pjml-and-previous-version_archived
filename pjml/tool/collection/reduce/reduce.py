@@ -42,7 +42,7 @@ class Reduce(Invisible, Component):
 
     @classmethod
     def _cs_impl(cls):
-        params={}
+        params = {}
         return CS(nodes=[Node(params)])
 
     def dual_transform(self, train: t.Data, test: t.Data) -> Tuple[t.Data, t.Data]:
@@ -54,7 +54,10 @@ class Reduce(Invisible, Component):
         # train_iterator = train_collection if self.enhance else repeat(None)
 
         # Consume iterators.
+        c = 0
         for _ in zip(train.stream, test.stream):
+            print('  DUAL Reduce consumed item', c, '\n')
+            c += 1
             pass
 
         if self.hasenhancer:  # TODO: I am not sure these IFs are the right approach...

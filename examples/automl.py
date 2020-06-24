@@ -3,9 +3,7 @@ import numpy
 from cururu.persistence import DuplicateEntryException, FailedEntryException
 from pjdata.data_creation import read_arff
 from pjdata.mixin.printable import disable_global_pretty_printing
-from pjml.config.operator.many import shuffle, select
-from pjml.config.operator.reduction.full import full
-from pjml.config.operator.reduction.rnd import rnd
+from pjml.config.search.many import shuffle, select
 from pjml.macro import evaluator
 from pjml.pipeline import Pipeline
 from pjml.tool.collection.expand.partition import Partition

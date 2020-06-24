@@ -1,18 +1,15 @@
 """Test"""
-import time
 import numpy as np
 
 import pjdata.content.specialdata as s
 from pjml.config.description.cs.chaincs import ChainCS
-from pjml.config.operator.many import select
-from pjml.config.operator.reduction.rnd import rnd
-from pjml.config.operator.util import (
-    maximize,
-    best,
+from pjml.config.search.many import select
+from pjml.config.search.single import sample, maximize, minimize
+from pjml.config.search.util import (
+    optimize,
     run,
     lrun,
     compare,
-    minimize,
     sort,
     cut,
 )
@@ -235,8 +232,8 @@ def random_search(arq="iris.arff"):
         Report("Mean S: $S", enhance=False),
     )
 
-    expr = rnd(exp, n=10)
-    result = best(expr, n=5)
+    expr = sample(exp, n=10)
+    result = optimize(expr, n=5)
     result.disable_pretty_printing()
     print(result)
 
@@ -262,7 +259,7 @@ def util():
 
     def clist():
         np.random.seed(0)
-        return rnd(ger_workflow(), n=10)
+        return sample(ger_workflow(), n=10)
 
     # run all the experiment
     print("run all the experiment")
@@ -295,7 +292,7 @@ def util():
 
     # take the top n
     print("take the top three")
-    res1 = best(clist(), n=3)
+    res1 = optimize(clist(), n=3)
     res1.disable_pretty_printing()
     print(res1)
     print("----------------------------")
@@ -318,7 +315,7 @@ def util():
 def default_config():
     print("SVMC: ", SVMC())
 
-    clist = rnd(SVMC, n=3)
+    clist = sample(SVMC, n=3)
     print(clist)
 
 

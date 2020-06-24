@@ -54,7 +54,7 @@ def sort(clist, train=NoData, test=NoData, key=lambda x: (x[1], x[0]), reverse=F
     )
 
 
-def best(clist, n=1, train=NoData, test=NoData, better="higher"):
+def optimize(clist, n=1, train=NoData, test=NoData, better="higher"):
     print(type(clist))
     if not isinstance(clist, ConfigList):
         raise Exception("Exhaustive search is only possible on FiniteCS!")
@@ -75,11 +75,3 @@ def best(clist, n=1, train=NoData, test=NoData, better="higher"):
         return component.dual_transform(train, test)[1], component
 
     return ConfigList(components=map(_[1], select(n, map(dual, clist))))
-
-
-def maximize(clist, n=1, train=NoData, test=NoData):
-    return best(clist, n=n, train=train, test=test, better="smaller")
-
-
-def minimize(clist, n=1, train=NoData, test=NoData):
-    return best(clist, n=n, train=train, test=test, better="higher")
