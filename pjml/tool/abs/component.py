@@ -240,9 +240,3 @@ class Component(withPrinting, WithSerialization, AsOperand, ABC):
          there are two identical Data objects, so the heap sorting will attempt to order by the component.
         """
         return False
-
-    def __eq__(self, other):
-        return id(self) == id(other)
-
-    def __hash__(self) -> int:
-        return self.uuid.n

@@ -1,4 +1,6 @@
 """Test"""
+from datetime import time
+
 import numpy as np
 
 import pjdata.content.specialdata as s
@@ -15,6 +17,7 @@ from pjml.config.search.util import (
     cut,
 )
 from pjml.pipeline import Pipeline
+from pjml.tool.abs.mixin.timing import withTiming
 from pjml.tool.chain import Chain
 from pjml.tool.collection.expand.partition import Partition
 from pjml.tool.collection.reduce.reduce import Reduce
@@ -342,3 +345,25 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+def ger_workflow(arq="iris.arff"):
+    np.random.seed(0)
+
+    workflow = Pipeline(
+        File(arq),
+        Partition(),
+        Map(PCA(), select(SVMC(), DT(criterion="gini")), Metric(enhance=False)),
+        Summ(function="mean", enhance=False),
+        Reduce(),
+        Report("Mean S: $S", enhance=False),
+    )
+
+    return workflow
+
+
+np.random.seed(0)
+start_time = withTiming._clock()
+pipes = sample(ger_workflow(), n=1000)
+elapsed_time = withTiming._clock() - start_time
+print("1-sample avg time: ", elapsed_time, "ms")
