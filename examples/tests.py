@@ -2,6 +2,7 @@
 import numpy as np
 
 import pjdata.content.specialdata as s
+from pjdata.aux.util import _
 from pjml.config.description.cs.chaincs import ChainCS
 from pjml.config.search.many import select
 from pjml.config.search.single import sample, maximize, minimize
@@ -22,7 +23,7 @@ from pjml.tool.collection.transform.map import Map
 from pjml.tool.data.communication.cache import Cache
 from pjml.tool.data.communication.report import Report
 from pjml.tool.data.evaluation.metric import Metric
-from pjml.tool.data.evaluation.split import Split, SplitTrain, SplitTest
+from pjml.tool.data.evaluation.split import Split, TrSplit, TsSplit
 from pjml.tool.data.flow.file import File
 from pjml.tool.data.modeling.supervised.classifier.dt import DT
 from pjml.tool.data.modeling.supervised.classifier.svmc import SVMC
@@ -65,10 +66,10 @@ def test_metric(arq="iris.arff"):
 
 def test_pca(arq="iris.arff"):
     cs = File(arq).cs
-    pipe = Pipeline(File(arq), Split(), PCA(), SVMC(), Metric(enhance=False))
-    prior, posterior = pipe.dual_transform()
-    print("Prior..............\n", prior)
-    print("Posterior..........\n", posterior)
+    pipe = Pipeline(File(arq), Split(), PCA(), SVMC(), Metric())
+    train, test = pipe.dual_transform()
+    print("Prior..............\n", _.m(_.name, train.history))
+    print("Posterior..........\n", _.m(_.name, test.history))
 
 
 def test_partition(arq="iris.arff"):
@@ -91,8 +92,8 @@ def test_partition(arq="iris.arff"):
 def test_split_train_test(arq="iris.arff"):
     pipe = Pipeline(
         File(arq),
-        SplitTrain(),
-        SplitTest(),
+        TrSplit(),
+        TsSplit(),
         PCA(),
         SVMC(),
         Metric(enhance=False),
