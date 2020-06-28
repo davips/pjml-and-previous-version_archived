@@ -20,9 +20,13 @@ class Accumulator:
     start: List[Field]
     step_func: Callable[[Data, List[Field]], Tuple[Data, List[Field]]]
     summ_func: Callable[[List[Field]], Field]
+    stream_exception = False
 
     @property
     def result(self):
+        from pjml.tool.collection.reduce.summ import InterruptedStreamException
+        if self.stream_exception:
+            raise InterruptedStreamException
         try:
             return self._result
         except AttributeError as e:
@@ -31,10 +35,15 @@ class Accumulator:
             raise e from None
 
     def __iter__(self):
+        from pjml.tool.collection.reduce.summ import InterruptedStreamException
         acc = self.start.copy()
         try:
             for item in self.iterator:
-                item, acc = self.step_func(item, acc)
+                if not self.stream_exception:
+                    item, acc = self.step_func(item, acc)
+                    if acc is None:
+                        self.stream_exception = True
                 yield item
         finally:
-            self._result = self.summ_func(acc)
+            if not self.stream_exception:
+                self._result = self.summ_func(acc)

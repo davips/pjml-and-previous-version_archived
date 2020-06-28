@@ -17,6 +17,10 @@ from pjml.tool.abs.mixin.functioninspection import withFunctionInspection
 from pjml.tool.collection.accumulator import Accumulator
 
 
+class InterruptedStreamException(Exception):
+    pass
+
+
 class Summ(Component, withFunctionInspection):
     """Given a field, summarizes a Collection object to a Data object.
 
@@ -49,12 +53,20 @@ class Summ(Component, withFunctionInspection):
 
         def transform(data: Data) -> Result:
             def step(d, acc):
+                if d.isfrozen or d.failure:
+                    return d, None
                 acc.append(d.field(self.field, "Summ"))
                 return d, acc
 
             iterator = Accumulator(data.stream, start=[], step_func=step, summ_func=summarize)
 
-            return {'stream': iterator, 'S': lambda: iterator.result}
+            def lazy():
+                # try:
+                return iterator.result
+
+            # except StreamException:
+
+            return {'stream': iterator, 'S': lazy}
 
         return transform
 

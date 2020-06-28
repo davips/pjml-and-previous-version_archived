@@ -30,7 +30,7 @@ class Chain(MinimalContainerN):
             return object.__new__(cls)
         return ChainCS(*components)
 
-    def dual_transform(self, train: t.Data=NoData, test: t.Data=NoData) -> Tuple[t.Data, t.Data]:
+    def dual_transform(self, train: t.Data = NoData, test: t.Data = NoData) -> Tuple[t.Data, t.Data]:
         for trf in self.components:
             train, test = trf.dual_transform(train, test)
         return train, test
@@ -56,7 +56,7 @@ class Chain(MinimalContainerN):
                 data0 = data1 = data
             else:
                 stream0, stream1 = tee(data.stream)
-                data0, data1 = data.updated((), stream=stream0), data.updated((), stream=stream1)
+                data0, data1 = data.updated((), stream=stream0), data.updated((), stream=stream1)  # TODO: fix ()
             models.append(trf.model(data0))
             data = trf.enhancer.transform(data1)
         return {'models': models}

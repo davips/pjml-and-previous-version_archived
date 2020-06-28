@@ -1,12 +1,14 @@
 from functools import lru_cache
-from typing import Union, Tuple, Optional, Any, Dict, Callable
+from typing import Tuple, Any, Dict
 
 import pjdata.types as t
 from pjdata.content.data import Data
+from pjdata.transformer.enhancer import Enhancer
+from pjdata.transformer.model import Model
 from pjml.config.description.cs.cs import CS
 from pjml.config.description.node import Node
-from pjml.tool.abs.invisible import Invisible
 from pjml.tool.abs.component import Component
+from pjml.tool.abs.invisible import Invisible
 
 
 class Reduce(Invisible, Component):
@@ -26,11 +28,11 @@ class Reduce(Invisible, Component):
     def _enhancer_func(self) -> t.Transformation:
         def transform(data: Data) -> t.Result:
             # Exhaust iterator.
-            c = 0
+            frozen, failure = False, None
             for d in data.stream:
-                c += 1
-                pass
-            return {'stream': None}
+                frozen = frozen or d.isfrozen
+                failure = failure or d.failure  # TODO: is it ok to just get the last failure?
+            return {'stream': None, 'frozen': frozen, 'failure': failure}
 
         return transform
 
@@ -43,24 +45,22 @@ class Reduce(Invisible, Component):
         return CS(nodes=[Node(params)])
 
     def dual_transform(self, train: t.Data, test: t.Data) -> Tuple[t.Data, t.Data]:
-
-        # # Handle non-collection cases.  <- makes no sense
-        # if not self.enhance and not self.onmodel:
-        #     return train_collection, test_collection
-        # train_iterator = train_collection if self.enhance else repeat(None)
-        # train_iterator = train_collection if self.enhance else repeat(None)
-
-        # Consume iterators.
-        c = 0
-        for _ in zip(train.stream, test.stream):
-            c += 1
-            pass
-
-        if self.hasenhancer:  # TODO: I am not sure these IFs are the right approach...
-            train = train.updated((), stream=None)
-        if self.hasmodel:  # TODO: ... I've put them here because of streams.
-            test = test.updated((), stream=None)
+        if self.hasenhancer and self.hasmodel:
+            afrozen, afailure = False, None
+            bfrozen, bfailure = False, None
+            for a, b in zip(train.stream, test.stream):
+                afrozen = afrozen or a.isfrozen
+                bfrozen = bfrozen or b.isfrozen
+                afailure = afailure or a.failure  # TODO: is it ok to just get the last failure?
+                bfailure = bfailure or b.failure  # TODO: is it ok to just get the last failure?
+            train = train.transformedby(
+                Enhancer(self, lambda _: {'stream': None, 'frozen': afrozen, 'failure': afailure}, lambda: {})
+            )
+            test = test.transformedby(
+                Model(self, lambda _: {'stream': None, 'frozen': bfrozen, 'failure': bfailure}, {}, train)
+            )
+        elif self.hasenhancer:
+            train = self.enhancer.transform(train)
+        elif self.hasmodel:
+            test = self.model(train).transform(test)
         return train, test
-
-        # As @property is not recognized, mypy raises an error saying that this
-        # property coll.data does not exist.

@@ -110,11 +110,11 @@ def test_with_summ_reduce(arq="iris.arff"):
     pipe = Pipeline(
         File(arq),
         Partition(),
-        Map(PCA(), SVMC(), Metric(enhance=False)),
-        Map(Report("<---------------------- etapa"), enhance=False),
-        Summ(function="mean", enhance=False),
+        Map(PCA(), SVMC(), Metric()),
+        Map(Report("<---------------------- etapa")),
+        Summ(),
         Reduce(),
-        Report("mean ... S: $S", enhance=False),
+        Report("mean ... S: $S"),
     )
     prior, posterior = pipe.dual_transform()
 
@@ -227,11 +227,11 @@ def random_search(arq="iris.arff"):
     exp = Pipeline(
         File(arq),
         Partition(),
-        Map(PCA(), select(SVMC(), DT(criterion="gini")), Metric(enhance=False)),
+        Map(PCA(), select(SVMC(), DT(criterion="gini")), Metric()),
         # Map(Report("<---------------------- fold"), enhance=False),
-        Summ(function="mean", enhance=False),
+        Summ(function="mean"),
         Reduce(),
-        Report("Mean S: $S", enhance=False),
+        Report("Mean S: $S"),
     )
 
     expr = sample(exp, n=10)
@@ -325,14 +325,14 @@ def default_config():
 def avg_cost_of_a_single_sample():
     np.random.seed(0)
     elapsed_times = []
-    for i in range(20):
+    for i in range(10):
         start_time = withTiming._clock()
-        pipes = sample(ger_workflow(i), n=100)
-        delta = withTiming._clock() - start_time
+        pipes = sample(ger_workflow(i), n=50)
+        delta = round((withTiming._clock() - start_time) * 200) / 10
         elapsed_times.append(delta)
         if i % 3 == 0:
-            print(round(i / 0.19), '%   ->', delta * 10, 'ms')
-    print("1-sample avg min time: ", round(min(elapsed_times) * 100) / 10, "ms")
+            print(round(i / 0.09), '%   ->', delta, 'ms')
+    print("1-sample avg min time: ", min(elapsed_times), "ms")
 
 
 def main():

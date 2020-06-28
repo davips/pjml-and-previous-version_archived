@@ -56,7 +56,6 @@ def sort(clist, train=NoData, test=NoData, key=lambda x: (x[1], x[0]), reverse=F
 
 
 def optimize(clist, n=1, train=NoData, test=NoData, better="higher"):
-    print(type(clist))
     if not isinstance(clist, ConfigList):
         raise Exception("Exhaustive search is only possible on FiniteCS!")
     higher = "higher"  # TODO: ?? [davi]
