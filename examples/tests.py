@@ -1,5 +1,4 @@
 """Test"""
-from datetime import time
 
 import numpy as np
 
@@ -242,8 +241,8 @@ def random_search(arq="iris.arff"):
     print(result)
 
 
-def ger_workflow(arq="iris.arff"):
-    np.random.seed(0)
+def ger_workflow(seed=0, arq="iris.arff"):
+    np.random.seed(seed)
 
     workflow = Pipeline(
         File(arq),
@@ -251,7 +250,8 @@ def ger_workflow(arq="iris.arff"):
         Map(PCA(), select(SVMC(), DT(criterion="gini")), Metric(enhance=False)),
         Summ(function="mean", enhance=False),
         Reduce(),
-        # Report("Mean S: $S", enhance=False),
+        Report("Mean S: $S", enhance=False),
+        seed=seed
     )
 
     return workflow
@@ -323,6 +323,19 @@ def default_config():
     print(clist)
 
 
+def avg_cost_of_a_single_sample():
+    np.random.seed(0)
+    elapsed_times = []
+    for i in range(20):
+        start_time = withTiming._clock()
+        pipes = sample(ger_workflow(i), n=100)
+        delta = withTiming._clock() - start_time
+        elapsed_times.append(delta)
+        if i % 3 == 0:
+            print(round(i / 0.19), '%   ->', delta * 10, 'ms')
+    print("1-sample avg min time: ", round(min(elapsed_times) * 100) / 10, "ms")
+
+
 def main():
     """Main function"""
     printable_test()
@@ -338,6 +351,7 @@ def main():
     random_search()
     util()
     default_config()
+    avg_cost_of_a_single_sample()
 
     # sanity test
     # test_check_architecture()
@@ -345,25 +359,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-def ger_workflow(arq="iris.arff"):
-    np.random.seed(0)
-
-    workflow = Pipeline(
-        File(arq),
-        Partition(),
-        Map(PCA(), select(SVMC(), DT(criterion="gini")), Metric(enhance=False)),
-        Summ(function="mean", enhance=False),
-        Reduce(),
-        Report("Mean S: $S", enhance=False),
-    )
-
-    return workflow
-
-
-np.random.seed(0)
-start_time = withTiming._clock()
-pipes = sample(ger_workflow(), n=1000)
-elapsed_time = withTiming._clock() - start_time
-print("1-sample avg time: ", elapsed_time, "ms")
