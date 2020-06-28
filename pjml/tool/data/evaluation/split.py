@@ -33,11 +33,9 @@ class AbstractSplit(Component, FunctionInspector, NoDataHandler, ABC):
             partition: int = 0,
             test_size: float = 0.3,
             seed: int = 0,
-            fields: List[str] = None,
+            fields: str = 'X,Y',
             **kwargs
     ):
-        if fields is None:
-            fields = ["X", "Y"]
         config = self._to_config(locals())
 
         # Using 'self.algorithm' here to avoid 'algorithm' inside config.
@@ -51,9 +49,7 @@ class AbstractSplit(Component, FunctionInspector, NoDataHandler, ABC):
             del config["test_size"]
             del config["seed"]
         elif split_type == "holdout":
-            self.algorithm = HO(
-                n_splits=partitions, test_size=test_size, random_state=seed
-            )
+            self.algorithm = HO(n_splits=partitions, test_size=test_size, random_state=seed)
         else:
             raise Exception("Wrong split_type: ", split_type)
 
@@ -63,9 +59,9 @@ class AbstractSplit(Component, FunctionInspector, NoDataHandler, ABC):
         self.partition = partition
         self.test_size = test_size
         self.seed = seed
-        self.fields = fields
+        self.fields = fields.split(',')
 
-    def _split(self, data: Data, indices: List[numpy.ndarray], step: str = "u") -> Data:
+    def _split(self, data: Data, indices: List[numpy.ndarray]) -> Data:
         new_dic = {}
         for f in self.fields:
             try:
@@ -73,7 +69,7 @@ class AbstractSplit(Component, FunctionInspector, NoDataHandler, ABC):
             except Exception as e:
                 print(f"\nProblems splitting matrix {f}:", e)
                 exit()
-        return data.updated((), **new_dic)
+        return new_dic
 
     @classmethod
     def _cs_impl(cls) -> CS:
@@ -82,7 +78,7 @@ class AbstractSplit(Component, FunctionInspector, NoDataHandler, ABC):
         return CS(Node(params=params))
 
 
-class Split(Macro, AbstractSplit):
+class Split(Macro, Component):
     """Split a given Data field into training/apply set and testing/use set.
 
     Developer: new metrics can be added just following the pattern '_fun_xxxxx'
@@ -100,15 +96,18 @@ class Split(Macro, AbstractSplit):
 
     def __init__(
             self,
-            split_type: str = "holdout",
+            split_type: str ="holdout",
             partitions: int = 2,
             partition: int = 0,
             test_size: float = 0.3,
             seed: int = 0,
-            fields: List[str] = None,
+            fields: str = 'X,Y',
             **kwargs,
     ):
-        super().__init__(
+        config = self._to_config(locals())
+        super().__init__(config, **kwargs)
+
+        self._component = Chain(TrSplit(
             split_type=split_type,
             partitions=partitions,
             partition=partition,
@@ -116,21 +115,27 @@ class Split(Macro, AbstractSplit):
             seed=seed,
             fields=fields,
             **kwargs,
-        )
-
-        self._component = Chain(SplitTrain(), SplitTest())
+        ), TsSplit(
+            split_type=split_type,
+            partitions=partitions,
+            partition=partition,
+            test_size=test_size,
+            seed=seed,
+            fields=fields,
+            **kwargs,
+        ))
 
     @property
     def component(self) -> co.Component:
         return self._component
 
 
-class SplitTest(DefaultEnhancer, AbstractSplit):
+class TsSplit(DefaultEnhancer, AbstractSplit):
     @lru_cache()
     def _model_info(self, test: Data) -> Dict[str, Any]:
         zeros = numpy.zeros(test.field(self.fields[0], self).shape[0])
         partitions = list(self.algorithm.split(X=zeros, y=zeros))
-        test_ = self._split(test, partitions[self.partition][1], step="u")
+        test_ = self._split(test, partitions[self.partition][1])
         return {"test": test_, "algorithm": self.algorithm}
 
     def _model_func(self, prior: Data) -> Callable[[Data], Data]:
@@ -140,11 +145,11 @@ class SplitTest(DefaultEnhancer, AbstractSplit):
         return transform
 
 
-class SplitTrain(DefaultModel, AbstractSplit):
+class TrSplit(DefaultModel, AbstractSplit):
     def _enhancer_info(self, data: Data) -> Dict[str, Any]:
         zeros = numpy.zeros(data.field(self.fields[0], self).shape[0])
         partitions = list(self.algorithm.split(X=zeros, y=zeros))
-        train_ = self._split(data, partitions[self.partition][0], step="a")
+        train_ = self._split(data, partitions[self.partition][0])
         return {"train": train_, "algorithm": self.algorithm}
 
     def _enhancer_func(self) -> Callable[[Data], Data]:

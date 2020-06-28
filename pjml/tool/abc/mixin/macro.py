@@ -23,3 +23,6 @@ class Macro(ABC):
 
     def _model_func(self, data: Data) -> t.Transformation:
         return self.component.model(data).transform
+
+    def _cs_impl(self):
+        return self.component.cs

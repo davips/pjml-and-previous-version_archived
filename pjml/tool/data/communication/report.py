@@ -31,18 +31,18 @@ class Report(Invisible, Component):
         return {}
 
     def _enhancer_func(self) -> Callable[[Data], Data]:
-        step = '[model] '
+        step = '[enhancer] '
         return lambda train: self._transform(train, step)
 
     def _model_info(self, data: Data) -> Dict[str, Any]:
         return {}
 
     def _model_func(self, train: t.Data) -> Callable[[t.Data], t.Data]:
-        step = '[enhancer] '
+        step = '[model] '
         return lambda test: self._transform(test, step)
 
     def _transform(self, data: Data, step) -> Data:
-        print(step, self._interpolate(self.text, data))
+        print(step.rjust(11), self._interpolate(self.text, data))
         return data
 
     @classmethod
@@ -71,6 +71,7 @@ class Report(Invisible, Component):
         for seg in flatten(expanded):
             if run:
                 try:
+                    # Data cannot be changed, so we don't use exec, which would accept assignment.
                     txt += str(eval('data.' + seg))
                 except Exception as e:
                     print(
