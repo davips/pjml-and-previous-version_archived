@@ -19,7 +19,7 @@ from pjml.tool.abs import component as co
 from pjml.tool.abs.component import Component
 from pjml.tool.abs.mixin.defaultenhancerimpl import withDefaultEnhancerImpl
 from pjml.tool.abs.mixin.functioninspection import withFunctionInspection
-from pjml.tool.abs.mixin.macro import Macro
+from pjml.tool.abs.macro import Macro
 from pjml.tool.abs.mixin.nodatahandling import withNoDataHandling
 from pjml.tool.abs.mixin.defaultmodelimpl import withDefaultModelImpl
 from pjml.tool.chain import Chain

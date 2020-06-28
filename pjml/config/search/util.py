@@ -10,7 +10,8 @@ from pjml.config.description.cs.configlist import ConfigList
 def compare(x, y):
     if isinstance(x, Iterable) and isinstance(y, Iterable):
         return all(compare(i, j) for i, j in zip(x, y))
-    return x.isequal(y)
+    # return x.isequal(y)
+    return x == y
 
 
 def run(clist, train=NoData, test=NoData):
@@ -36,7 +37,7 @@ def lrun(clist, train=NoData, test=NoData):
 
 def cut(iterable, start=0.75, end=1.0):
     tp = tuple(iterable)
-    start, end = int(floor(start*len(tp))), int(ceil(end*len(tp)))
+    start, end = int(floor(start * len(tp))), int(ceil(end * len(tp)))
 
     if start > end:
         raise Exception("The 'start' should be less or equal than 'end'.")
@@ -58,7 +59,7 @@ def optimize(clist, n=1, train=NoData, test=NoData, better="higher"):
     print(type(clist))
     if not isinstance(clist, ConfigList):
         raise Exception("Exhaustive search is only possible on FiniteCS!")
-    higher = "higher"
+    higher = "higher"  # TODO: ?? [davi]
     smaller = "smaller"
 
     select = None

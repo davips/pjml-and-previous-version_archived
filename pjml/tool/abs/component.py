@@ -21,12 +21,12 @@ from pjml.tool.abs.asoperand import AsOperand
 
 class Component(withPrinting, WithSerialization, AsOperand, ABC):
     def __init__(
-        self,
-        config: dict,
-        enhance: bool = True,
-        model: bool = True,
-        deterministic: bool = False,
-        nodata_handler: bool = False,
+            self,
+            config: dict,
+            enhance: bool = True,
+            model: bool = True,
+            deterministic: bool = False,
+            nodata_handler: bool = False,
     ):
         # We must always obtain the default parameter, because we want to completely
         # identify the transformation.
@@ -234,3 +234,15 @@ class Component(withPrinting, WithSerialization, AsOperand, ABC):
         return materialize(self.name, self.path, config)
 
     # TODO: Is unbounded lrucache a source of memory leak?
+
+    def __lt__(self, other):
+        """This is needed because heuristics usually com pare tuples (Data, Component), and sometimes,
+         there are two identical Data objects, so the heap sorting will attempt to order by the component.
+        """
+        return False
+
+    def __eq__(self, other):
+        return id(self) == id(other)
+
+    def __hash__(self) -> int:
+        return self.uuid.n
