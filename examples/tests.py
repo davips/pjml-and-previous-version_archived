@@ -11,9 +11,8 @@ from pjml.config.search.util import (
     optimize,
     run,
     lrun,
-    compare,
     sort,
-    cut,
+    cut, compare,
 )
 from pjml.pipeline import Pipeline
 from pjml.tool.abs.mixin.timing import withTiming

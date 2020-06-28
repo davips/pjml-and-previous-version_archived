@@ -236,7 +236,15 @@ class Component(withPrinting, WithSerialization, AsOperand, ABC):
     # TODO: Is unbounded lrucache a source of memory leak?
 
     def __lt__(self, other):
-        """This is needed because heuristics usually com pare tuples (Data, Component), and sometimes,
+        """This is needed because heuristics usually compare tuples (Data, Component), and sometimes,
          there are two identical Data objects, so the heap sorting will attempt to order by the component.
         """
         return False
+
+    def __eq__(self, other):
+        return self.uuid == other.uuid
+
+    def __hash__(self):
+        return id(self)
+        # <- TODO: Ideally this should be done by hash(self.uuid), but it gives "Stream not consumed!".
+        #        The lrrcaching/property depending on components seems to be the problem here, despite making no sense.
