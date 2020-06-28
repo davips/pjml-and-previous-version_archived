@@ -37,12 +37,10 @@ def tsplit(
         partitions: int = 10,
         test_size: float = 0.3,
         seed: int = 0,
-        fields: List[str] = None
+        fields: str = 'X,Y',
 ) -> Multi:
     """Make a sequence of Data splitters."""
     from pjml.tool.data.evaluation.split import Split
-    if fields is None:
-        fields = ['X', 'Y']
     components = []
     for i in range(partitions):
         s = Split(split_type, partitions, i, test_size, seed, fields)

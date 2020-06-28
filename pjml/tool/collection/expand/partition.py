@@ -26,11 +26,9 @@ class Partition(Macro, Component):
             partitions: int = 10,
             test_size: float = 0.3,
             seed: int = 0,
-            fields: List[str] = None,
+            fields: str = 'X,Y',
             **kwargs
     ):
-        if fields is None:
-            fields = ['X', 'Y']
         config = self._to_config(
             locals())  # todo: kwargs is going to locals, em outros comp tb!!!
 

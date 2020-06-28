@@ -3,7 +3,7 @@ from typing import Dict, Any, Callable
 from numpy.random.mtrand import uniform
 from sklearn.decomposition import PCA as SKLPCA
 
-from pjdata.types import Data
+import pjdata.types as t
 from pjml.config.description.cs.cs import CS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import RealP, FixedP
@@ -11,32 +11,29 @@ from pjml.tool.data.algorithm import TSKLAlgorithm
 
 
 class PCA(TSKLAlgorithm):
-    def __init__(self, enhance=True, model=True, **sklconfig):
-        super().__init__(sklconfig, SKLPCA, enhance=enhance, model=model)
-
     def __init__(self, enhance: bool = True, model: bool = True, **kwargs):
         super().__init__(kwargs, SKLPCA, enhance=enhance, model=model)
 
-    def _enhancer_info(self, data: Data) -> Dict[str, Any]:
+    def _enhancer_info(self, data: t.Data) -> Dict[str, Any]:
         return self._info(data)
 
-    def _enhancer_func(self) -> Callable[[Data], Data]:
+    def _enhancer_func(self) -> t.Transformation:
         return lambda train: self.predict(train, train)
 
-    def _model_info(self, train: Data) -> Dict[str, Any]:
-        return self._info(train)
+    def _model_info(self, data: t.Data) -> Dict[str, Any]:
+        return self._info(data)
 
-    def _model_func(self, train: Data) -> Callable[[Data], Data]:
-        return lambda test: self.predict(train, test)
+    def _model_func(self, data: t.Data) -> t.Transformation:
+        return lambda test: self.predict(data, test)
 
-    def _info(self, data: Data) -> Dict[str, Any]:
+    def _info(self, data: t.Data) -> Dict[str, Any]:
         sklearn_model = self.algorithm_factory()
         sklearn_model.fit(data.X)
         return {"sklearn_model": sklearn_model}
 
-    def predict(self, train: Data, test: Data) -> Data:
+    def predict(self, train: t.Data, test: t.Data) -> t.Result:
         info = self._info(train)
-        return test.updated((), X=info["sklearn_model"].transform(test.X))
+        return {'X': info["sklearn_model"].transform(test.X)}
 
     @classmethod
     def _cs_impl(cls) -> CS:
