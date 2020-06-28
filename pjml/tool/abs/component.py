@@ -245,6 +245,8 @@ class Component(withPrinting, WithSerialization, AsOperand, ABC):
         return self.uuid == other.uuid
 
     def __hash__(self):
-        return id(self)
+        return id(self)  # <-- TODO: not optimal, a dict can have many identical components this way.
+        # raise Exception
+        # return hash(self.uuid)
         # <- TODO: Ideally this should be done by hash(self.uuid), but it gives "Stream not consumed!".
         #        The lrrcaching/property depending on components seems to be the problem here, despite making no sense.
