@@ -15,17 +15,17 @@ from pjdata.content.data import Data
 from pjml.config.description.cs.cs import CS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import IntP
-from pjml.tool.abc.mixin import component as co
-from pjml.tool.abc.mixin.component import Component
-from pjml.tool.abc.mixin.defaultenhancer import DefaultEnhancer
-from pjml.tool.abc.mixin.defaultmodel import DefaultModel
-from pjml.tool.abc.mixin.functioninspector import FunctionInspector
-from pjml.tool.abc.mixin.macro import Macro
-from pjml.tool.abc.mixin.nodatahandler import NoDataHandler
+from pjml.tool.abs import component as co
+from pjml.tool.abs.component import Component
+from pjml.tool.abs.mixin.defaultenhancerimpl import withDefaultEnhancerImpl
+from pjml.tool.abs.mixin.functioninspection import withFunctionInspection
+from pjml.tool.abs.mixin.macro import Macro
+from pjml.tool.abs.mixin.nodatahandling import withNoDataHandling
+from pjml.tool.abs.mixin.defaultmodelimpl import withDefaultModelImpl
 from pjml.tool.chain import Chain
 
 
-class AbstractSplit(Component, FunctionInspector, NoDataHandler, ABC):
+class AbstractSplit(Component, withFunctionInspection, withNoDataHandling, ABC):
     def __init__(
             self,
             split_type: str = "holdout",
@@ -130,7 +130,7 @@ class Split(Macro, Component):
         return self._component
 
 
-class TsSplit(DefaultEnhancer, AbstractSplit):
+class TsSplit(withDefaultEnhancerImpl, AbstractSplit):
     @lru_cache()
     def _model_info(self, test: Data) -> Dict[str, Any]:
         zeros = numpy.zeros(test.field(self.fields[0], self).shape[0])
@@ -145,7 +145,7 @@ class TsSplit(DefaultEnhancer, AbstractSplit):
         return transform
 
 
-class TrSplit(DefaultModel, AbstractSplit):
+class TrSplit(withDefaultModelImpl, AbstractSplit):
     def _enhancer_info(self, data: Data) -> Dict[str, Any]:
         zeros = numpy.zeros(data.field(self.fields[0], self).shape[0])
         partitions = list(self.algorithm.split(X=zeros, y=zeros))

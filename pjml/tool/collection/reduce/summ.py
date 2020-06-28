@@ -12,12 +12,12 @@ from pjml.config.description.cs.cs import CS
 from pjml.config.description.distributions import choice
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import CatP
-from pjml.tool.abc.mixin.component import Component
-from pjml.tool.abc.mixin.functioninspector import FunctionInspector
+from pjml.tool.abs.component import Component
+from pjml.tool.abs.mixin.functioninspection import withFunctionInspection
 from pjml.tool.collection.accumulator import Accumulator
 
 
-class Summ(Component, FunctionInspector):
+class Summ(Component, withFunctionInspection):
     """Given a field, summarizes a Collection object to a Data object.
 
     The resulting Data object will have only the 's' field. To keep other

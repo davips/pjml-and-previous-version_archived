@@ -3,7 +3,7 @@ from typing import Any, Dict, Callable
 from pjdata.types import Data
 
 
-class WithDefaultEnhancerImpl:
+class withDefaultEnhancerImpl:
     def _enhancer_info(self, data: Data = None) -> Dict[str, Any]:
         return {}
 

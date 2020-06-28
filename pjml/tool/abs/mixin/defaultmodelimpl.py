@@ -5,7 +5,7 @@ from typing import Any, Dict, Callable
 from pjdata.types import Data
 
 
-class DefaultModel:
+class withDefaultModelImpl:
     # @property
     # @abstractmethod
     # def name(self):

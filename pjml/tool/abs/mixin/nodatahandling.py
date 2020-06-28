@@ -5,7 +5,7 @@ from pjdata.content.data import Data
 from pjdata.content.specialdata import NoData
 
 
-class NoDataHandler(ABC):
+class withNoDataHandling(ABC):
     """All components that accept NoData should derive this class after
     deriving Transformer or descendants.
 

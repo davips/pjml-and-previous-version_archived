@@ -20,7 +20,7 @@ class ConfigList(ConfigSpace):
             components = [comp for comp in components]
         super().__init__({'components': components})
 
-        from pjml.tool.abc.mixin.component import Component
+        from pjml.tool.abs.component import Component
         for component in components:
             if not (isinstance(component, Component)):
                 raise Exception(

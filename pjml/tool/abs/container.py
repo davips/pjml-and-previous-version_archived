@@ -3,7 +3,7 @@ from functools import lru_cache
 
 from pjdata.aux.decorator import classproperty
 from pjdata.aux.util import Property
-from pjml.tool.abc.mixin.component import Component
+from pjml.tool.abs.component import Component
 
 
 class Container(Component, ABC):

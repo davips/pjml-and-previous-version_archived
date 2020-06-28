@@ -4,7 +4,7 @@ from contextlib import contextmanager
 import time
 
 
-class Timers:
+class withTiming:
     """Management of time.
     """
 

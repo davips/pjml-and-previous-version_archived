@@ -5,11 +5,11 @@ from time import sleep
 from cururu.persistence import Persistence
 from cururu.storage import Storage
 from cururu.worker import Worker
-from pjdata.mixin.printable import disable_global_pretty_printing
+from pjdata.mixin.printing import disable_global_pretty_printing
 from pjml.config.search.many import select
 from pjml.config.search.single import hold
 from pjml.pipeline import Pipeline
-from pjml.tool.abc.mixin.timers import Timers
+from pjml.tool.abs.mixin.timing import withTiming
 from pjml.tool.chain import Chain
 from pjml.tool.collection.expand.partition import Partition
 from pjml.tool.collection.reduce.summ import Summ
@@ -39,7 +39,7 @@ from pjml.tool.meta.wrap import Wrap
 import numpy as np
 
 arq = "abalone3.arff"
-start = Timers._clock()
+start = withTiming._clock()
 disable_global_pretty_printing()
 np.random.seed(50)
 
@@ -116,6 +116,6 @@ model = c.apply(data)
 print('use .................')
 dataout = model.use(data)
 
-print('Tempo: ', '{:.2f}'.format(Timers._clock() - start))
+print('Tempo: ', '{:.2f}'.format(withTiming._clock() - start))
 Worker.join()
-print('Tempo tot: ', '{:.2f}'.format(Timers._clock() - start))
+print('Tempo tot: ', '{:.2f}'.format(withTiming._clock() - start))

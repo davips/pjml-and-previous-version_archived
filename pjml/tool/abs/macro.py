@@ -2,7 +2,7 @@ from abc import abstractmethod, ABC
 from typing import Any
 
 import pjdata.types as t
-import pjml.tool.abc.mixin.component as co
+import pjml.tool.abs.component as co
 from pjdata.types import Data
 
 

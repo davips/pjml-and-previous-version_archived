@@ -5,7 +5,7 @@ from abc import abstractmethod
 import numpy
 
 from pjdata.aux.decorator import classproperty
-from pjml.tool.abc.mixin.timers import Timers
+from pjml.tool.abs.mixin.timing import withTiming
 
 
 def keyboardInterruptHandler(signal, frame):

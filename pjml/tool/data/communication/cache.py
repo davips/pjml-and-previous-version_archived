@@ -7,8 +7,8 @@ from pjdata.types import Data
 from pjml.config.description.cs.containercs import ContainerCS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import FixedP
-from pjml.tool.abc.container1 import Container1
-from pjml.tool.abc.mixin.component import Component
+from pjml.tool.abs.container1 import Container1
+from pjml.tool.abs.component import Component
 
 
 class Cache(Container1):

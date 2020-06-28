@@ -1,7 +1,7 @@
 from functools import lru_cache
 
 
-class FunctionInspector:
+class withFunctionInspection:
 
     @classmethod
     @lru_cache()

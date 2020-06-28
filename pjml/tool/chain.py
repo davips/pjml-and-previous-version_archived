@@ -5,8 +5,8 @@ from typing import Optional, Tuple, Dict, Callable, Any
 import pjdata.types as t
 from pjdata.content.specialdata import NoData
 from pjml.config.description.cs.chaincs import ChainCS
-from pjml.tool.abc.minimalcontainer import MinimalContainerN
-from pjml.tool.abc.mixin.component import Component
+from pjml.tool.abs.minimalcontainer import MinimalContainerN
+from pjml.tool.abs.component import Component
 
 
 class Chain(MinimalContainerN):

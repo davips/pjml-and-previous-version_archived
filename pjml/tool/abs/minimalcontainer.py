@@ -1,12 +1,12 @@
 from abc import ABC
 
-from pjml.tool.abc.container1 import Container1
+from pjml.tool.abs.container1 import Container1
 # TODO: Until now, every MinimalContainer is deterministic.
 #  Every container propagates the seed to the config of its internal
 #  components. So, it is determinist per se. However,
 #  a MinimalContainer that is randomized in some way may appear in
 #  the future.
-from pjml.tool.abc.containern import ContainerN
+from pjml.tool.abs.containern import ContainerN
 
 
 class MinimalContainer1(Container1, ABC):

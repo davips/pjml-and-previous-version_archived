@@ -6,8 +6,8 @@ from pjdata.aux.util import Property
 from pjdata.content.data import Data
 from pjdata.types import Result
 from pjml.config.description.cs.containercs import ContainerCS
-from pjml.tool.abc.minimalcontainer import MinimalContainerN
-from pjml.tool.abc.mixin.component import Component
+from pjml.tool.abs.minimalcontainer import MinimalContainerN
+from pjml.tool.abs.component import Component
 from pjml.tool.collection.accumulator import Accumulator
 
 

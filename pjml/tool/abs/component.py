@@ -8,18 +8,18 @@ from pjdata.aux.decorator import classproperty
 from pjdata.aux.serialization import serialize, materialize
 from pjdata.aux.util import Property
 from pjdata.aux.uuid import UUID
-from pjdata.mixin.printable import Printable
-from pjdata.mixin.withserialization import WithSerialization
+from pjdata.mixin.printing import withPrinting
+from pjdata.mixin.serialization import WithSerialization
 from pjdata.transformer.enhancer import Enhancer
 from pjdata.transformer.model import Model
 from pjdata.transformer.pholder import PHolder
 from pjdata.transformer.transformer import Transformer
 from pjml.config.description.cs.configlist import ConfigList
 from pjml.config.description.cs.cs import CS
-from pjml.tool.abc.asoperand import AsOperand
+from pjml.tool.abs.asoperand import AsOperand
 
 
-class Component(Printable, WithSerialization, AsOperand, ABC):
+class Component(withPrinting, WithSerialization, AsOperand, ABC):
     def __init__(
         self,
         config: dict,
@@ -46,9 +46,9 @@ class Component(Printable, WithSerialization, AsOperand, ABC):
 
         self.deterministic = deterministic
 
-        from pjml.tool.abc.mixin.nodatahandler import NoDataHandler
+        from pjml.tool.abs.mixin.nodatahandling import withNoDataHandling
 
-        self.nodata_handler = isinstance(self, NoDataHandler) or nodata_handler
+        self.nodata_handler = isinstance(self, withNoDataHandling) or nodata_handler
 
         self.hasenhancer = enhance
         self.hasmodel = model

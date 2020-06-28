@@ -9,11 +9,11 @@ from pjml.config.description.cs.cs import CS
 from pjml.config.description.distributions import choice
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import CatP
-from pjml.tool.abc.mixin.component import Component
-from pjml.tool.abc.mixin.functioninspector import FunctionInspector
+from pjml.tool.abs.component import Component
+from pjml.tool.abs.mixin.functioninspection import withFunctionInspection
 
 
-class Metric(Component, FunctionInspector):
+class Metric(Component, withFunctionInspection):
     """Metric to evaluate a given Data field.
 
     Developer: new metrics can be added just following the pattern '_fun_xxxxx'
@@ -56,9 +56,9 @@ class Metric(Component, FunctionInspector):
         measures = [[f(data, self.target, self.prediction) for f in self.selected]]
         return {"computed_metric": measures}
 
-    def _transform(self, data) -> t.Data:
+    def _transform(self, data) -> t.Result:
         computed_metric = self._info(data)["computed_metric"]
-        return data.updated((), R=np.array(computed_metric))
+        return {'R': np.array(computed_metric)}
 
     @classmethod
     def _cs_impl(cls):

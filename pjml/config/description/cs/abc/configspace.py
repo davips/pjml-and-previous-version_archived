@@ -2,10 +2,10 @@ from abc import abstractmethod
 from functools import lru_cache
 
 from pjdata.aux.util import Property
-from pjdata.mixin.printable import Printable
+from pjdata.mixin.printing import withPrinting
 
 
-class ConfigSpace(Printable):
+class ConfigSpace(withPrinting):
     """Tree representing a (probably infinite) set of (hyper)parameter spaces.
     """
 

@@ -3,7 +3,7 @@ from operator import itemgetter
 
 import numpy as np
 
-from pjml.tool.abc.configless import ConfigLess
+from pjml.tool.abs.configless import ConfigLess
 
 
 class Eq(ConfigLess):

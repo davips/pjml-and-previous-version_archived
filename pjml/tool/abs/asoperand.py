@@ -1,7 +1,5 @@
 from abc import ABCMeta
 
-from pjdata.mixin.withidentification import WithIdentification
-
 
 class MetaOperand(ABCMeta):
     def __add__(cls, other):

@@ -1,8 +1,8 @@
-from pjdata.mixin.printable import Printable
+from pjdata.mixin.printing import withPrinting
 from pjml.config.description.distributions import choice
 
 
-class Node(Printable):
+class Node(withPrinting):
     """Partial settings for a component.
 
     Parameters

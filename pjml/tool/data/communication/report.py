@@ -7,8 +7,8 @@ import pjdata.types as t
 from pjdata.aux.util import flatten
 from pjdata.content.data import Data
 from pjml.config.description.cs.emptycs import EmptyCS
-from pjml.tool.abc.invisible import Invisible
-from pjml.tool.abc.mixin.component import Component
+from pjml.tool.abs.invisible import Invisible
+from pjml.tool.abs.component import Component
 
 
 class Report(Invisible, Component):

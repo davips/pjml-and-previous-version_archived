@@ -1,4 +1,4 @@
-from pjdata.mixin.printable import Printable, disable_global_pretty_printing, \
+from pjdata.mixin.printing import withPrinting, disable_global_pretty_printing, \
     enable_global_pretty_printing
 from pjml.pipeline import Pipeline
 from pjml.tool.chain import Chain

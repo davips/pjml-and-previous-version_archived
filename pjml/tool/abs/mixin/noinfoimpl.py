@@ -4,7 +4,7 @@ from typing import Dict, Any
 from pjdata.types import Data
 
 
-class NoInfo:
+class withNoInfoImpl:
     @lru_cache()
     def _enhancer_info(self, data: Data) -> Dict[str, Any]:
         return {}

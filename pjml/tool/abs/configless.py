@@ -1,7 +1,7 @@
 from abc import ABC
 
 from pjml.config.description.cs.emptycs import EmptyCS
-from pjml.tool.abc.mixin.component import Component
+from pjml.tool.abs.component import Component
 
 
 class ConfigLess(Component, ABC):

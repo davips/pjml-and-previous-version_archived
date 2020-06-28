@@ -8,11 +8,11 @@ from pjdata.transformer.transformer import Transformer
 from pjml.config.description.cs.cs import CS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import FixedP
-from pjml.tool.abc.mixin.component import Component
-from pjml.tool.abc.mixin.nodatahandler import NoDataHandler
+from pjml.tool.abs.component import Component
+from pjml.tool.abs.mixin.nodatahandling import withNoDataHandling
 
 
-class File(Component, NoDataHandler):
+class File(Component, withNoDataHandling):
     """Source of Data object from CSV, ARFF, file.
 
     TODO: always classification task?

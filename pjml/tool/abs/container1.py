@@ -1,6 +1,6 @@
 from abc import ABC
 
-from pjml.tool.abc.container import Container
+from pjml.tool.abs.container import Container
 
 
 class Container1(Container, ABC):

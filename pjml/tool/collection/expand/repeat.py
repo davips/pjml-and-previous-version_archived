@@ -5,7 +5,7 @@ from pjdata.content.data import Data
 from pjdata.mixin.noinfo import NoInfo
 from pjdata.types import Result
 from pjml.config.description.cs.emptycs import EmptyCS
-from pjml.tool.abc.mixin.component import Component
+from pjml.tool.abs.component import Component
 
 
 class Repeat(NoInfo, Component):

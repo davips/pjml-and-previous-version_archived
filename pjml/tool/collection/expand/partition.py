@@ -2,9 +2,9 @@ from typing import List
 
 from pjml.config.description.cs.cs import CS
 from pjml.config.description.node import Node
-from pjml.tool.abc.mixin import component as co
-from pjml.tool.abc.mixin.component import Component
-from pjml.tool.abc.mixin.macro import Macro
+from pjml.tool.abs import component as co
+from pjml.tool.abs.component import Component
+from pjml.tool.abs.macro import Macro
 from pjml.tool.chain import Chain
 from pjml.tool.collection.expand.repeat import Repeat
 

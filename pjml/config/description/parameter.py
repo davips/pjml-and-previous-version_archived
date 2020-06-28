@@ -3,10 +3,10 @@ from functools import partial
 
 import numpy
 
-from pjdata.mixin.printable import Printable
+from pjdata.mixin.printing import withPrinting
 
 
-class Param(Printable):
+class Param(withPrinting):
     """Base class for all kinds of algorithm (hyper)parameters."""
 
     def __init__(self, function, **kwargs):
