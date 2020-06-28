@@ -14,6 +14,7 @@ from pjdata.transformer.enhancer import Enhancer
 from pjdata.transformer.model import Model
 from pjdata.transformer.pholder import PHolder
 from pjdata.transformer.transformer import Transformer
+from pjml.config.description.cs.abc.configspace import ConfigSpace
 from pjml.config.description.cs.configlist import ConfigList
 from pjml.config.description.cs.cs import CS
 from pjml.tool.abs.asoperand import AsOperand
@@ -26,7 +27,7 @@ class Component(withPrinting, WithSerialization, AsOperand, ABC):
             enhance: bool = True,
             model: bool = True,
             deterministic: bool = False,
-            nodata_handler: bool = False,
+            nodata_handler: bool = False,  # this flag and the mixin are needed, but I can't recall why...
     ):
         # We must always obtain the default parameter, because we want to completely
         # identify the transformation.
@@ -100,7 +101,7 @@ class Component(withPrinting, WithSerialization, AsOperand, ABC):
 
     @classmethod
     @abstractmethod
-    def _cs_impl(cls) -> CS:
+    def _cs_impl(cls) -> ConfigSpace:
         """Each component should implement its own 'cs'. The parent class
         takes care of 'name' and 'path' arguments of ConfigSpace"""
 
