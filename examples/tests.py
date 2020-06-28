@@ -46,30 +46,30 @@ def test_tsvmc(arq="iris.arff"):
     cs = File(arq).cs
     pipe = Pipeline(File(arq), SVMC())
     prior, posterior = pipe.dual_transform()
-    print("Prior..............\n", prior)
-    print("Posterior..........\n", posterior)
+    print("Train..............\n", prior)
+    print("Test..........\n", posterior)
 
 
 def test_split(arq="iris.arff"):
     pipe = Pipeline(File(arq), Split(), SVMC())
     prior, posterior = pipe.dual_transform()
-    print("Prior..............\n", str(prior))
-    print("Posterior..........\n", str(posterior))
+    print("Train..............\n", str(prior))
+    print("Test..........\n", str(posterior))
 
 
 def test_metric(arq="iris.arff"):
     pipe = Pipeline(File(arq), Split(), SVMC(), Metric(enhance=False))
     prior, posterior = pipe.dual_transform()
-    print("Prior..............\n", prior)
-    print("Posterior..........\n", posterior)
+    print("Train..............\n", prior)
+    print("Test..........\n", posterior)
 
 
 def test_pca(arq="iris.arff"):
     cs = File(arq).cs
     pipe = Pipeline(File(arq), Split(), PCA(), SVMC(), Metric())
     train, test = pipe.dual_transform()
-    print("Prior..............\n", _.m(_.name, train.history))
-    print("Posterior..........\n", _.m(_.name, test.history))
+    print("Train..............\n", _.m(_.name, train.history))
+    print("Test..........\n", _.m(_.name, test.history))
 
 
 def test_partition(arq="iris.arff"):
@@ -85,8 +85,8 @@ def test_partition(arq="iris.arff"):
     )
     prior, posterior = pipe.dual_transform()
 
-    print("Prior..............\n", prior)
-    print("Posterior..........\n", posterior)
+    print("Train..............\n", prior)
+    print("Test..........\n", posterior)
 
 
 def test_split_train_test(arq="iris.arff"):
@@ -101,8 +101,8 @@ def test_split_train_test(arq="iris.arff"):
     )
     prior, posterior = pipe.dual_transform()
 
-    print("Prior..............\n", prior)
-    print("Posterior..........\n", posterior)
+    print("Train..............\n", prior)
+    print("Test..........\n", posterior)
 
 
 def test_with_summ_reduce(arq="iris.arff"):
@@ -117,16 +117,16 @@ def test_with_summ_reduce(arq="iris.arff"):
     )
     prior, posterior = pipe.dual_transform()
 
-    print("Prior..............\n", [h.longname for h in prior.history])
-    print("Posterior..........\n", [h.longname for h in posterior.history])
+    print("Train..............\n", [h.longname for h in prior.history])
+    print("Test..........\n", [h.longname for h in posterior.history])
 
 
 def test_cache(arq="iris.arff"):
     pipe = Pipeline(Cache(File(arq), storage_alias="default_sqlite"))
     prior, posterior = pipe.dual_transform()
 
-    print("Prior..............\n", [h.name for h in prior.history])
-    print("Posterior..........\n", [h.name for h in posterior.history])
+    print("Train..............\n", [h.name for h in prior.history])
+    print("Test..........\n", [h.name for h in posterior.history])
 
 
 def test_check_architecture(arq="iris.arff"):
