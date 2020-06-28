@@ -27,12 +27,9 @@ class Reduce(Invisible, Component):
         def transform(data: Data) -> t.Result:
             # Exhaust iterator.
             c = 0
-            print('\nReduce starts loop... >>>>>>>>>>>>>>>>>>>>>>>>>>>')
             for d in data.stream:
-                print('  Reduce consumed item', c, '\n')
                 c += 1
                 pass
-            print('...Reduce exits loop. <<<<<<<<<<<<<<<<<<<<<<<<<<<\n')
             return {'stream': None}
 
         return transform
@@ -56,7 +53,6 @@ class Reduce(Invisible, Component):
         # Consume iterators.
         c = 0
         for _ in zip(train.stream, test.stream):
-            print('  DUAL Reduce consumed item', c, '\n')
             c += 1
             pass
 
