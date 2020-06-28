@@ -1,4 +1,4 @@
-from pjml.tool.collection.reduce.reduce import Reduce
+from pjml.tool.stream.reduce.reduce import Reduce
 
 
 class Concat(Reduce):

@@ -11,9 +11,9 @@ from pjml.config.search.single import hold
 from pjml.pipeline import Pipeline
 from pjml.tool.abs.mixin.timing import withTiming
 from pjml.tool.chain import Chain
-from pjml.tool.collection.expand.partition import Partition
-from pjml.tool.collection.reduce.summ import Summ
-from pjml.tool.collection.transform.map import Map
+from pjml.tool.stream.expand.partition import Partition
+from pjml.tool.stream.reduce.summ import Summ
+from pjml.tool.stream.transform.map import Map
 from pjml.tool.data.communication.cache import Cache
 from pjml.tool.data.communication.cache import Cache
 from pjml.tool.data.communication.report import Report

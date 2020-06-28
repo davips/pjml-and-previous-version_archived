@@ -1,20 +1,18 @@
-from abc import abstractmethod
-from collections import Iterator
 from functools import lru_cache
-from typing import Callable, Iterable, Dict, Any, List, Generator
+from typing import Callable, Iterable, Dict, Any
 
 import numpy
 from numpy import ndarray, mean
 
 from pjdata.content.data import Data
-from pjdata.types import Result, Field
+from pjdata.types import Result
 from pjml.config.description.cs.cs import CS
 from pjml.config.description.distributions import choice
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import CatP
 from pjml.tool.abs.component import Component
 from pjml.tool.abs.mixin.functioninspection import withFunctionInspection
-from pjml.tool.collection.accumulator import Accumulator
+from pjml.tool.stream.reduce.accumulator import Accumulator
 
 
 class InterruptedStreamException(Exception):
@@ -27,8 +25,6 @@ class Summ(Component, withFunctionInspection):
     The resulting Data object will have only the 's' field. To keep other
     fields, consider using a Keep containing all the concurrent part:
     Keep(Expand -> ... -> Summ).
-
-    The collection history will be exported to the summarized Data object.
 
     The cells of the given field (matrix) will be averaged across all data
     objects, resulting in a new matrix with the same dimensions.

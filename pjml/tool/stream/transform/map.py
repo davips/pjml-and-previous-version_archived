@@ -8,7 +8,7 @@ from pjml.tool.abs.component import Component
 
 
 class Map(MinimalContainer1):
-    """Execute the same component for the entire collection."""
+    """Execute the same component for the entire stream."""
 
     def __new__(cls, *args, seed=0, components=None, **kwargs):
         """Shortcut to create a ConfigSpace."""

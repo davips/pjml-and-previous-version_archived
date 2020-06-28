@@ -1,14 +1,11 @@
-from functools import lru_cache
-from typing import Optional, Tuple, Dict, Callable, Any
+from typing import Tuple, Dict, Callable, Any
 
 from pjdata import types as t
-from pjdata.aux.util import Property
 from pjdata.content.data import Data
 from pjdata.types import Result
 from pjml.config.description.cs.containercs import ContainerCS
-from pjml.tool.abs.minimalcontainer import MinimalContainerN
 from pjml.tool.abs.component import Component
-from pjml.tool.collection.accumulator import Accumulator
+from pjml.tool.abs.minimalcontainer import MinimalContainerN
 
 
 class Multi(MinimalContainerN):

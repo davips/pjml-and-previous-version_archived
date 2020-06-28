@@ -4,10 +4,10 @@ Shortcuts of common CS/AutoML expressions or ML pipelines.
 from typing import List, Optional
 
 from pjml.tool.chain import Chain
-from pjml.tool.collection.expand.partition import Partition
-from pjml.tool.collection.reduce.summ import Summ
-from pjml.tool.collection.transform.map import Map
-from pjml.tool.collection.transform.multi import Multi
+from pjml.tool.stream.expand.partition import Partition
+from pjml.tool.stream.reduce.summ import Summ
+from pjml.tool.stream.transform.map import Map
+from pjml.tool.stream.transform.multi import Multi
 
 
 def evaluator(*components, function='mean_std', **validation_args):

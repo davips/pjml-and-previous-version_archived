@@ -6,9 +6,9 @@ from pjdata.mixin.printing import disable_global_pretty_printing
 from pjml.config.search.many import shuffle, select
 from pjml.macro import evaluator
 from pjml.pipeline import Pipeline
-from pjml.tool.collection.expand.partition import Partition
-from pjml.tool.collection.reduce.summ import Summ
-from pjml.tool.collection.transform.map import Map
+from pjml.tool.stream.expand.partition import Partition
+from pjml.tool.stream.reduce.summ import Summ
+from pjml.tool.stream.transform.map import Map
 from pjml.tool.data.communication.cache import Cache
 from pjml.tool.data.communication.report import Report
 from pjml.tool.data.evaluation.metric import Metric

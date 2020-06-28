@@ -6,7 +6,7 @@ from pjml.tool.abs import component as co
 from pjml.tool.abs.component import Component
 from pjml.tool.abs.macro import Macro
 from pjml.tool.chain import Chain
-from pjml.tool.collection.expand.repeat import Repeat
+from pjml.tool.stream.expand.repeat import Repeat
 
 
 class Partition(Macro, Component):

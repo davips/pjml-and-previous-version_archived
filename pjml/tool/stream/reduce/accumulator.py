@@ -24,7 +24,7 @@ class Accumulator:
 
     @property
     def result(self):
-        from pjml.tool.collection.reduce.summ import InterruptedStreamException
+        from pjml.tool.stream.reduce.summ import InterruptedStreamException
         if self.stream_exception:
             raise InterruptedStreamException
         try:
@@ -35,7 +35,6 @@ class Accumulator:
             raise e from None
 
     def __iter__(self):
-        from pjml.tool.collection.reduce.summ import InterruptedStreamException
         acc = self.start.copy()
         try:
             for item in self.iterator:
