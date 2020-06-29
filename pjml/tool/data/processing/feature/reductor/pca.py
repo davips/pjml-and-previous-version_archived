@@ -53,7 +53,7 @@ class PCA(TSKLAlgorithm):
     def _cs_impl(cls) -> CS:
         # todo: set random seed; set 'cache_size'
         param = {
-            "n_components": RealP(uniform, low=0.0, high=1.0),
+            "n": RealP(uniform, low=0.0, high=1.0),
             "copy": FixedP(True),
             "whiten": FixedP(False),
             "svd_solver": FixedP("auto"),
