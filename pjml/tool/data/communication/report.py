@@ -19,9 +19,11 @@ class Report(Invisible, Component):
     {dataset.failure} prints the failure
     """
 
+    # TODO: 'default report' poderia ter uma sequencia de matrizes preferidas para tentar, p. ex.: ['s', 'r', 'z',
+    #  ..., 'X']
     def __init__(
             self,
-            text: str = 'Default report r=$R',
+            text: str = 'Default report r=$r',
             **kwargs
     ):
         super().__init__({'text': text}, deterministic=True, **kwargs)
@@ -47,13 +49,15 @@ class Report(Invisible, Component):
 
     @classmethod
     def _interpolate(cls, text: str, data: Data) -> str:
-        # TODO: global(?) option to reprettify line breaks from numpy arrays
+        # TODO: global(?) option to re-prettify line breaks from numpy arrays
         def samerow(M):
             return np.array_repr(M).replace('\n      ', '').replace('  ', '')
 
         def f(obj_match):
             field = obj_match.group(1)
             M = data.field(field, context=cls)
+            if isinstance(M, np.float64):
+                return str(M)
             try:
                 if np.issubdtype(M, np.number):
                     return samerow(np.round(M, decimals=4))
@@ -71,7 +75,7 @@ class Report(Invisible, Component):
         for seg in flatten(expanded):
             if run:
                 try:
-                    # Data cannot be changed, so we don't use exec, which would accept assignment.
+                    # Data cannot be changed, so we don't use exec, which would accept dangerous assignments.
                     txt += str(eval('data.' + seg))
                 except Exception as e:
                     print(
