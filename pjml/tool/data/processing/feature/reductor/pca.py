@@ -11,8 +11,22 @@ from pjml.tool.data.algorithm import TSKLAlgorithm
 
 
 class PCA(TSKLAlgorithm):
-    def __init__(self, enhance: bool = True, model: bool = True, **kwargs):
-        super().__init__(kwargs, SKLPCA, enhance=enhance, model=model)
+    # TODO:
+    #  Adopt explicit parameters in all components
+    #  Reason:
+    #   better for auto-completion of docs, webdocs, parsing/refactoring, IDE tips, command line/ipython, notebooks,
+    #   definition of default values etc.
+    #       (regarding def. values: we can easily get it through PCA().config
+    #           at zero cost since algorithm_factory is not actually called at init)
+    # TODO:
+    #  adopt sensible simple and common names for parameters
+    #  to allow a homogeneous "pajé-style" interface across different ML libraries.
+    #  Example: In the PCA context 'n' is obviously the number of features.
+    def __init__(self, n: int = 2, enhance: bool = True, model: bool = True):
+        super().__init__(
+            {'n': n}, SKLPCA, deterministic=True,
+            sklconfig={'n_components': n}, enhance=enhance, model=model
+        )
 
     def _enhancer_info(self, data: t.Data) -> Dict[str, Any]:
         return self._info(data)
