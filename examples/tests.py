@@ -339,9 +339,9 @@ def avg_cost_of_a_single_sample():
 def test_sequence_of_classifiers(arq="abalone3.arff"):
     pipe = Pipeline(
         File(arq),
-        Binarize(), Report('1 {X.shape} {history}'),
-        PCA(n=5), SVMC(), Metric(), Report('2 {X.shape} {history}'),
-        DT(), Metric(), Report('3 {X.shape} {history~name}'),
+        Binarize(),                      Report('1 {X.shape} {history~name}'),
+        PCA(n=5), SVMC(), Metric(),      Report('2 {X.shape} {history~name}'),
+        DT(), Metric(),                  Report('3 {X.shape} {history~name}'),
     )
     print('Enh')
     train = pipe.enhancer.transform(sd.NoData)
