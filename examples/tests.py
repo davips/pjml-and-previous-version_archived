@@ -339,14 +339,15 @@ def avg_cost_of_a_single_sample():
 def test_sequence_of_classifiers(arq="abalone3.arff"):
     pipe = Pipeline(
         File(arq),
-        Binarize(), Report('1 {X.shape}'),
-        PCA(n=5), SVMC(), Metric(), Report('2 {X.shape}'),
-        DT(), Metric(), Report('3 {X.shape} '),
+        Binarize(), Report('1 {X.shape} {history}'),
+        PCA(n=5), SVMC(), Metric(), Report('2 {X.shape} {history}'),
+        DT(), Metric(), Report('3 {X.shape} {history~name}'),
     )
     print('Enh')
     train = pipe.enhancer.transform(sd.NoData)
     print('Mod')
     test = pipe.model(sd.NoData).transform(sd.NoData)  # TODO: pq report não aparece no test?
+    print()
 
     print("[test_sequence_of_classifiers] Train.........\n", [h.longname for h in train.history])
     print("[test_sequence_of_classifiers] Test..........\n", [h.longname for h in test.history])

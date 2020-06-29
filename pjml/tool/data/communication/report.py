@@ -4,7 +4,7 @@ from typing import Callable, Dict, Any
 import numpy as np
 
 import pjdata.types as t
-from pjdata.aux.util import flatten
+from pjdata.aux.util import flatten, _
 from pjdata.content.data import Data
 from pjml.config.description.cs.emptycs import EmptyCS
 from pjml.tool.abs.invisible import Invisible
@@ -64,7 +64,7 @@ class Report(Invisible, Component):
             finally:
                 return samerow(M)
 
-        p = re.compile(r'\$([a-zA-Z]+)')
+        p = re.compile(r'\$([~a-zA-Z]+)')
         return cls._eval(p.sub(f, text), data)
 
     @classmethod
@@ -74,9 +74,15 @@ class Report(Invisible, Component):
         expanded = [w.split('}') for w in ('_' + text + '_').split('{')]
         for seg in flatten(expanded):
             if run:
+                code = 'data.' + seg
                 try:
+                    # Convert mapping through ~ operand.
+                    if '~' in seg:
+                        iterable, accessor = seg.split('~')
+                        code = f"[item.{accessor} for item in data.{iterable}]"
+
                     # Data cannot be changed, so we don't use exec, which would accept dangerous assignments.
-                    txt += str(eval('data.' + seg))
+                    txt += str(eval(code))
                 except Exception as e:
                     print(
                         f'Problems parsing\n  {text}\nwith data\n  {data}\n'
