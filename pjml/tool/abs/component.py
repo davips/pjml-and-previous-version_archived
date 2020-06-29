@@ -93,10 +93,10 @@ class Component(withPrinting, WithSerialization, AsOperand, ABC):
         )
 
     def dual_transform(self, train: t.Data, test: t.Data) -> Tuple[t.Data, t.Data]:
-        # if self._model:  # TODO: I am not sure these IFs are really needed...
-        test = self.model(train).transform(test)
-        # if self._enhance:  # TODO: ... I've put them here because of streams.
-        train = self.enhancer.transform(train)
+        if self.hasmodel:
+            test = self.model(train).transform(test)
+        if self.hasenhancer:
+            train = self.enhancer.transform(train)
         return train, test
 
     @classmethod

@@ -5,6 +5,7 @@ import numpy
 from numpy import ndarray, mean
 
 from pjdata.content.data import Data
+from pjdata.transformer.pholder import PHolder
 from pjdata.types import Result
 from pjml.config.description.cs.cs import CS
 from pjml.config.description.distributions import choice
@@ -50,7 +51,7 @@ class Summ(Component, withFunctionInspection):
         def transform(data: Data) -> Result:
             def step(d, acc):
                 if d.isfrozen or d.failure:
-                    return d, None
+                    return d.transformedby(PHolder(self)), None
                 acc.append(d.field(self.field, "Summ"))
                 return d, acc
 

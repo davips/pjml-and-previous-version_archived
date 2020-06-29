@@ -5,6 +5,7 @@ import pjdata.types as t
 from pjdata.content.data import Data
 from pjdata.transformer.enhancer import Enhancer
 from pjdata.transformer.model import Model
+from pjdata.transformer.pholder import PHolder
 from pjml.config.description.cs.cs import CS
 from pjml.config.description.node import Node
 from pjml.tool.abs.component import Component
@@ -61,6 +62,12 @@ class Reduce(Invisible, Component):
             )
         elif self.hasenhancer:
             train = self.enhancer.transform(train)
+            test = test.transformedby(PHolder(self))
         elif self.hasmodel:
+            train = train.transformedby(PHolder(self))
             test = self.model(train).transform(test)
+        else:
+            train = train.transformedby(PHolder(self))
+            test = test.transformedby(PHolder(self))
+
         return train, test

@@ -31,13 +31,13 @@ class Chain(MinimalContainerN):
         return ChainCS(*components)
 
     def dual_transform(self, train: t.Data = NoData, test: t.Data = NoData) -> Tuple[t.Data, t.Data]:
-        for trf in self.components:
-            train, test = trf.dual_transform(train, test)
+        for comp in self.components:
+            train, test = comp.dual_transform(train, test)
         return train, test
 
     @lru_cache()
     def _enhancer_info(self, data: t.Data = None) -> Dict[str, Any]:
-        return {'enhancers': [trf.enhancer for trf in self.components]}
+        return {'enhancers': [c.enhancer for c in self.components]}
 
     def _enhancer_func(self) -> Callable[[t.Data], t.Data]:
         enhancers = self._enhancer_info()['enhancers']
@@ -56,7 +56,8 @@ class Chain(MinimalContainerN):
                 data0 = data1 = data
             else:
                 stream0, stream1 = tee(data.stream)
-                data0, data1 = data.updated((), stream=stream0), data.updated((), stream=stream1)  # TODO: fix ()
+                # Empty history is accepted here, because the stream is not changed.
+                data0, data1 = data.updated((), stream=stream0), data.updated((), stream=stream1)
             models.append(trf.model(data0))
             data = trf.enhancer.transform(data1)
         return {'models': models}
