@@ -1,7 +1,16 @@
+from contextlib import contextmanager
 import os
 import signal
 from contextlib import contextmanager
 import time
+
+
+@contextmanager
+def clock(txt="Time:"):
+    st = withTiming._clock()
+    yield
+    val = '{:.2f}'.format((withTiming._clock() - st) * 1000)
+    print(f'{txt}\t{val}ms')
 
 
 class withTiming:
