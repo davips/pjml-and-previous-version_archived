@@ -1,132 +1,115 @@
 import traceback
+from typing import Dict, Any
 
-from cururu.storer import Storer
+from cururu.storage import Storage
+from pjdata import types as t
+from pjdata.types import Data
 from pjml.config.description.cs.containercs import ContainerCS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import FixedP
-from pjml.tool.abc.container1 import Container1
-from pjml.tool.abc.transformer import Transformer
-from pjml.tool.model.specialmodel import Model, CachedApplyModel
+from pjml.tool.abs.container1 import Container1
+from pjml.tool.abs.component import Component
 
 
 class Cache(Container1):
-    def __new__(cls, *args, fields=None, engine="dump", db='/tmp/cururu',
-                settings=None, blocking=False, seed=0, transformers=None):
-        """Shortcut to create a ConfigSpace."""
-        if transformers is None:
-            transformers = args
-        if all([isinstance(t, Transformer) for t in transformers]):
-            return object.__new__(cls)
-        node = Node(params={
-            'fields': FixedP(fields),
-            'engine': FixedP(engine),
-            'db': FixedP(db),
-            'settings': FixedP(settings),
-            'blocking': FixedP(blocking),
-            'seed': FixedP(seed),
-        })
-        return ContainerCS(Cache.name, Cache.path, transformers, nodes=[node])
+    def _enhancer_info(self, data: t.Data) -> Dict[str, Any]:
+        pass
 
-    def __init__(self, *args, fields=None, engine="dump", db='/tmp/cururu',
-                 settings=None, blocking=False, seed=0, transformers=None):
-        if transformers is None:
-            transformers = args
-        if fields is None:
-            fields = ['X', 'Y', 'Z']
-            # TODO: fields: 'all', 'new', ['X', 'Y', 'Z']
+    def _model_info(self, data: t.Data) -> Dict[str, Any]:
+        pass
 
-        if settings is None:
-            settings = {}
-        config = self._to_config(locals())
-        del config['args']
-        super().__init__(config, seed, transformers, deterministic=True)
+    def _flatten(self, transformer, acc=None):
+        """Depth-first search to solve nesting of transformers.
+        Provides only a rough history, since it does not enter inside unpredictable or complex* components.
 
-        self.fields = fields
-        self.storage = Storer.get(
-            engine, db, settings, blocking, multiprocess=False
-        )
+        * -> complex components are those - excluding Chain - that generate a sequence of transformations or
+        a single transformation different from themselves.
 
-    def _apply_impl(self, data):
+        This code istemporarily here, nut it is useless for Cache, since it resorts direct to UUID."""
+        if acc is None:
+            acc = []
+        if transformer.info.transformers:
+            for e in transformer.info.transformers:
+                acc = self._flatten(e, acc)
+        acc.append(transformer)
+        return acc
+
+    def _enhancer_func(self) -> t.Transformation:
         # TODO: CV() is too cheap to be recovered from storage, specially if
         #  it is a LOO. Maybe transformers could inform whether they are cheap.
 
-        transformations = self.transformer.transformations('a')
-        hollow = data.mockup(transformations=transformations)
-        output_data = self.storage.fetch(hollow, self.fields, lock=True)
+        def transform(data: Data) -> t.Result:
+            enhancer = self.component.enhancer  # TODO: Check if all enhancers are cheap!! We just need its uuid here.
+            hollow = data.hollow(enhancer)
+            output_data = self.storage.fetch(hollow, lock=True)
 
-        # pra carregar modelo [outdated code here!!]:
-        # self.transformer = self.storage.fetch_transformer(
-        #     data, self.transformer, lock=True
-        # )
-        #
-        # pra guardar modelo:
-        # self.storage.store_transformer(self.transformer, self.fields,
-        #                                check_dup=True)
+            # pra carregar modelo [outdated code here!!]:
+            # self.transformer = self.storage.fetch_transformer(
+            #     data, self.transformer, lock=True
+            # )
+            #
+            # pra guardar modelo:
+            # self.storage.store_transformer(self.transformer, self.fields,
+            #                                check_dup=True)
 
-        # Apply if still needed  ----------------------------------
-        if output_data is None:
-            try:
-                # model usável
-                sub_model = self.transformer.apply(data, exit_on_error=False)
-                applied = sub_model.data
-            except:
-                self.storage.unlock(hollow)
-                traceback.print_exc()
-                exit(0)
+            # Transform if still needed  ----------------------------------
+            if output_data is None:
+                try:
+                    output_data = enhancer.transform(data, exit_on_error=False)
+                except:
+                    self.storage.unlock(hollow)
+                    traceback.print_exc()
+                    exit(0)
+                # TODO: quando grava um frozen, é preciso marcar isso dealguma forma
+                #  para que seja devidamente reconhecido como tal na hora do fetch.
+                self.storage.store(output_data, check_dup=False)
 
-            # TODO: quando grava um frozen, é preciso marcar isso dealguma forma
-            #  para que seja devidamente reconhecido como tal na hora do fetch.
-            self.storage.store(applied, self.fields, check_dup=False)
-        else:
-            applied = output_data
-            # model não usável
-            sub_model = CachedApplyModel(self.transformer, data, applied)
+            return output_data
 
-        return Model(self, data, applied, model=sub_model)
+        return transform
 
-    def _use_impl(self, data, model=None, **kwargs):
-        training_data = model.data_before_apply
-        transformations = self.transformer.transformations('u')
-        mockup = data.mockup(transformations=transformations)
-        output_data = self.storage.fetch(
-            mockup, self.fields,
-            training_data_uuid=training_data.uuid00, lock=True
-        )
+    def _model_func(self, train: t.Data) -> t.Transformation:
+        # TODO: Check if all models can be cheap? We just need its uuid here.
+        model = self.component.model(train)
 
-        # Use if still needed  ----------------------------------
-        if output_data is None:
-            # If the apply step was bypassed by cache, but the use step is
-            # not fetchable, the internal model is not usable. We need to
-            # create a usable Model resurrecting the internal transformer or
-            # loading it from a previously dumped model.
-            if isinstance(model, CachedApplyModel):
-                print('It is possible that a previous apply() was successfully'
-                      ' stored, but use() with current data wasn\'t.\n'
-                      'E.g. you are trying to use with new data, or use() '
-                      'was never stored before.')
-                print('Recovering training data from model to reapply it.'
-                      'The goal is to induce a model usable by use()...\n'
-                      f'comp: {self.transformer.sid} '
-                      f'data: {data.sid}'
-                      f'training data: {training_data}\n')
-                # stored_train_data = self.storage.fetch(train_uuid)
-                model = self.transformer.apply(training_data)
-            try:
-                used = model.use(data, exit_on_error=False)
-            except:
-                self.storage.unlock(mockup,
-                                    training_data_uuid=training_data.uuid00)
-                traceback.print_exc()
-                exit(0)
-            self.storage.store(used, self.fields,
-                               training_data_uuid=training_data.uuid00,
-                               check_dup=False)
-        else:
-            used = output_data
+        def transform(test: Data) -> t.Result:
+            hollow = test.hollow(model)
+            output_data = self.storage.fetch(hollow, lock=True)
 
-        return used
+            # Use if still needed  ----------------------------------
+            if output_data is None:
+                try:
+                    # Do not exit on error, we need to cleanup storage first.
+                    output_data = model.transform(test, exit_on_error=False)
+                except:
+                    self.storage.unlock(hollow)
+                    traceback.print_exc()
+                    exit(0)
 
-    def transformations(self, step, clean=True):
-        """Cache produce no transformations by itself , so it needs to
-        override the list of expected transformations."""
-        return self.transformer.transformations(step, clean)
+                self.storage.store(output_data, check_dup=False)
+            return output_data
+
+        return transform
+
+    def __new__(cls, *args, storage_alias='default_dump', seed=0, components=None, **kwargs):
+        """Shortcut to create a ConfigSpace."""
+        if components is None:
+            components = args
+        if all([isinstance(c, Component) for c in components]):
+            return object.__new__(cls)
+        node = Node(params={
+            'storage_alias': FixedP(storage_alias),
+            'seed': FixedP(seed),
+        })
+        return ContainerCS(Cache.name, Cache.path, components, nodes=[node])
+
+    def __init__(self, *args, storage_alias='default_dump', seed=0, components=None, enhance=True, model=True):
+        if components is None:
+            components = args
+        self.storage = Storage(storage_alias)
+        config = {
+            'storage_alias': storage_alias,
+            'seed': seed,
+            'components': components
+        }
+        super().__init__(config, seed, components, enhance, model, deterministic=True)

@@ -1,14 +1,17 @@
 import re
+from typing import Callable, Dict, Any
 
 import numpy as np
 
+import pjdata.types as t
+from pjdata.aux.util import flatten
+from pjdata.content.data import Data
 from pjml.config.description.cs.emptycs import EmptyCS
-from pjml.tool.abc.invisible import Invisible
-from pjml.tool.model.model import Model
-from pjml.util import flatten
+from pjml.tool.abs.invisible import Invisible
+from pjml.tool.abs.component import Component
 
 
-class Report(Invisible):
+class Report(Invisible, Component):
     """Report printer.
 
     $r prints 'r'
@@ -16,29 +19,45 @@ class Report(Invisible):
     {dataset.failure} prints the failure
     """
 
-    def __init__(self, text='Default report r=$R'):
-        super().__init__({'text': text}, deterministic=True)
+    # TODO: 'default report' poderia ter uma sequencia de matrizes preferidas para tentar, p. ex.: ['s', 'r', 'z',
+    #  ..., 'X']
+    def __init__(
+            self,
+            text: str = 'Default report r=$r',
+            **kwargs
+    ):
+        super().__init__({'text': text}, deterministic=True, **kwargs)
         self.text = text
 
-    def _apply_impl(self, data):
-        if data is not None:
-            print('[apply] ', self._interpolate(self.text, data))
+    def _enhancer_info(self, data: t.Data = None) -> Dict[str, Any]:
+        return {}
 
-        return Model(self, data, data)
+    def _enhancer_func(self) -> Callable[[Data], Data]:
+        step = '[enhancer] '
+        return lambda train: self._transform(train, step)
 
-    def _use_impl(self, data, *args):
-        print('[use] ', self._interpolate(self.text, data))
+    def _model_info(self, data: Data) -> Dict[str, Any]:
+        return {}
+
+    def _model_func(self, train: t.Data) -> Callable[[t.Data], t.Data]:
+        step = '[model] '
+        return lambda test: self._transform(test, step)
+
+    def _transform(self, data: Data, step) -> Data:
+        print(step.rjust(11), self._interpolate(self.text, data))
         return data
 
     @classmethod
-    def _interpolate(cls, text, data):
-        # TODO: global(?) option to reprettify line breaks from numpy arrays
+    def _interpolate(cls, text: str, data: Data) -> str:
+        # TODO: global(?) option to re-prettify line breaks from numpy arrays
         def samerow(M):
             return np.array_repr(M).replace('\n      ', '').replace('  ', '')
 
         def f(obj_match):
             field = obj_match.group(1)
-            M = data.field(field, cls)
+            M = data.field(field, context=cls)
+            if isinstance(M, np.float64):
+                return str(M)
             try:
                 if np.issubdtype(M, np.number):
                     return samerow(np.round(M, decimals=4))
@@ -49,13 +68,14 @@ class Report(Invisible):
         return cls._eval(p.sub(f, text), data)
 
     @classmethod
-    def _eval(cls, text, data):
+    def _eval(cls, text: str, data: Data) -> str:
         txt = ''
         run = False
         expanded = [w.split('}') for w in ('_' + text + '_').split('{')]
         for seg in flatten(expanded):
             if run:
                 try:
+                    # Data cannot be changed, so we don't use exec, which would accept dangerous assignments.
                     txt += str(eval('data.' + seg))
                 except Exception as e:
                     print(
@@ -68,5 +88,5 @@ class Report(Invisible):
         return txt[1:][:-1]
 
     @classmethod
-    def _cs_impl(cls):
+    def _cs_impl(cls) -> EmptyCS:
         return EmptyCS()

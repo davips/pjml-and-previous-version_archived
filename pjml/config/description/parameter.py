@@ -3,19 +3,22 @@ from functools import partial
 
 import numpy
 
-from pjdata.mixin.printable import Printable
+from pjdata.mixin.printing import withPrinting
 
 
-class Param(Printable):
+class Param(withPrinting):
     """Base class for all kinds of algorithm (hyper)parameters."""
 
     def __init__(self, function, **kwargs):
-        dic = kwargs.copy()
-        dic['function'] = function.__name__
-        super().__init__(dic)  # For pretty printing.
-
+        self._jsonable = kwargs.copy()
+        # TODO: Should we also add the function module ?
+        self._jsonable["function"] = function.__name__
+        self._jsonable["module"] = function.__module__
         self.function = partial(function, **kwargs)
         self.kwargs = kwargs
+
+    def _jsonable_impl(self):
+        return self._jsonable
 
     def sample(self):
         try:
@@ -23,7 +26,7 @@ class Param(Printable):
         except Exception as e:
             traceback.print_exc()
             print(e)
-            print('Problems sampling: ', self)
+            print("Problems sampling: ", self)
             exit(0)
 
 
@@ -33,11 +36,13 @@ class CatP(Param):
 
 class SubP(Param):
     """Subset of values."""
+
     pass
 
 
 class PermP(Param):
     """Permutation of a list."""
+
     pass
 
 
@@ -56,10 +61,12 @@ class IntP(Param):
         except Exception as e:
             traceback.print_exc()
             print(e)
-            print('Problems sampling: ', self)
+            print("Problems sampling: ", self)
             exit(0)
 
 
 class FixedP(Param):
     def __init__(self, value):
+        # TODO: Should it return an implemented function?
+        #  Otherwise, in json formti, function will be  = <lambda>
         super().__init__(lambda: value)

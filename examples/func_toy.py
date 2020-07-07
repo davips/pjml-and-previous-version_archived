@@ -1,10 +1,10 @@
-from pjdata.mixin.printable import Printable, disable_global_pretty_printing, \
+from pjdata.mixin.printing import withPrinting, disable_global_pretty_printing, \
     enable_global_pretty_printing
 from pjml.pipeline import Pipeline
 from pjml.tool.chain import Chain
-from pjml.tool.collection.expand.partition import Partition
-from pjml.tool.collection.reduce.summ import Summ
-from pjml.tool.collection.transform.map import Map
+from pjml.tool.stream.expand.partition import Partition
+from pjml.tool.stream.reduce.summ import Summ
+from pjml.tool.stream.transform.map import Map
 from pjml.tool.data.communication.cache import Cache
 from pjml.tool.data.communication.report import Report
 from pjml.tool.data.evaluation.calc import Calc

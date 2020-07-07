@@ -1,12 +1,10 @@
 import numpy
 
-from pjdata.data import Data
 from pjml.pipeline import Pipeline
 from pjml.tool.data.communication.cache import Cache
 from pjml.tool.data.communication.report import Report
 from pjml.tool.data.evaluation.metric import Metric
 from pjml.tool.data.evaluation.split import Split
-from pjml.tool.data.flow.applyusing import ApplyUsing
 from pjml.tool.data.flow.file import File
 from pjml.tool.data.flow.save import Save
 from pjml.tool.data.modeling.supervised.classifier.dt import DT
@@ -128,7 +126,7 @@ dataout = pipe.apply().data
 """
 Problemas filosoficos
 
-obs. Containers sempre contêm referências a outros transformers (sejam leves ou 
+obs. Containers sempre contêm referências a outros components (sejam leves ou 
 pesados) em config.
 
 obs. Um mesmo pipeline pode gerar diversos históricos. 

@@ -1,8 +1,8 @@
-from pjdata.mixin.printable import Printable
+from pjdata.mixin.printing import withPrinting
 from pjml.config.description.distributions import choice
 
 
-class Node(Printable):
+class Node(withPrinting):
     """Partial settings for a component.
 
     Parameters
@@ -14,17 +14,18 @@ class Node(Printable):
     """
 
     def __init__(self, params=None, children=None):
-        dic = params.copy()
-        dic['children'] = children
-        super().__init__(dic)  # For pretty printing.
-
+        self._jsonable = params.copy()
+        self._jsonable['children'] = children
         self.params = {} if params is None else params
         self.children = [] if children is None else children
         if any([not isinstance(cs, Node) for cs in self.children]):
             raise Exception('Node can only have Nodes as children.')
 
+    def _jsonable_impl(self):
+        return self._jsonable
+
     def partial_sample(self):
-        """Sample a partial config. Not enough to make a transformer.
+        """Sample a partial config. It is not enough to make a component.
 
         Returns
         -------

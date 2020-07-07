@@ -1,32 +1,26 @@
 from abc import ABC
+from functools import lru_cache
+from typing import Callable, Any, Dict
 
-from pjdata.step.transformation import Transformation
-from pjml.tool.abc.mixin.enforceapply import EnforceApply
-from pjml.tool.abc.mixin.exceptionhandler import BadComponent
-from pjml.tool.data.algorithm import HeavyAlgorithm
-from pjml.tool.model.model import Model
+import pjdata.types as t
+from pjml.tool.abs.mixin.defaultenhancerimpl import withDefaultEnhancerImpl
+from pjml.tool.data.algorithm import TSKLAlgorithm
 
 
-class Predictor(HeavyAlgorithm, EnforceApply, ABC):
+class Predictor(withDefaultEnhancerImpl, TSKLAlgorithm, ABC):
     """
     Base class for classifiers, regressors, ... that implement fit/predict.
     """
 
-    def _apply_impl(self, data):
+    @lru_cache()
+    def _model_info(self, data: t.Data) -> Dict[str, Any]:
         sklearn_model = self.algorithm_factory()
         sklearn_model.fit(*data.Xy)
-        return Model(self, data, data.frozen, sklearn_model=sklearn_model)
+        return {"sklearn_model": sklearn_model}
 
-    def _use_impl(self, data, sklearn_model=None):
-        return data.updated(
-            self.transformations('u'),
-            z=sklearn_model.predict(data.X)
-        )
+    def _model_func(self, data: t.Data) -> Callable[[t.Data], t.Result]:
+        info = self._model_info(data)
+        return lambda d: {'z': info["sklearn_model"].predict(d.X)}
 
-    def transformations(self, step, clean=True):
-        if step == 'a':
-            return []
-        elif step == 'u':
-            return [Transformation(self, step)]
-        else:
-            raise BadComponent('Wrong current step:', step)
+    def _enhancer_func(self) -> Callable[[t.Data], t.Result]:
+        return lambda posterior: posterior.frozen

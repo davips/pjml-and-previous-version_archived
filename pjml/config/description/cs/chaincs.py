@@ -5,6 +5,7 @@ class ChainCS(OperatorCS):
     """A Chain is sampled."""
 
     def sample(self):
-        transformers = [cs.sample() for cs in self.components]
+        components = [cs.sample() for cs in self.components]
         from pjml.tool.chain import Chain
-        return Chain(transformers=transformers)
+        return Chain(components=components)
+

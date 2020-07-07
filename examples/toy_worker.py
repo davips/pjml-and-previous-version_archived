@@ -3,7 +3,7 @@ from functools import partial
 from time import sleep
 
 from cururu.worker import Worker, Nothing
-from pjml.tool.abc.mixin.timers import Timers
+from pjml.tool.abs.mixin.timing import withTiming
 
 
 def f(a, b):
@@ -14,7 +14,7 @@ def f(a, b):
     return Nothing
 
 
-start = Timers._clock()
+start = withTiming._clock()
 
 w = Worker()
 w.put((f, {'a': 2, 'b': 1}))
@@ -24,6 +24,6 @@ print(2)
 w.put((f, {'a': 2, 'b': 0}))
 print(3)
 
-print('Tempo: ', '{:.2f}'.format(Timers._clock() - start))
+print('Tempo: ', '{:.2f}'.format(withTiming._clock() - start))
 w.join()
-print('Tempo tot: ', Timers._clock() - start)
+print('Tempo tot: ', withTiming._clock() - start)

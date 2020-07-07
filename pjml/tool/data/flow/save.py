@@ -4,10 +4,10 @@ import arff
 import numpy as np
 
 from cururu.disk import save_txt
-from pjml.config.description.cs.transformercs import TransformerCS
+from pjml.config.description.cs.cs import CS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import FixedP
-from pjml.tool.abc.invisible import Invisible
+from pjml.tool.abs.invisible import Invisible
 
 
 class Save(Invisible):
@@ -56,7 +56,7 @@ class Save(Invisible):
             'path': FixedP('./'),
             'name': FixedP('iris.arff')
         }
-        return TransformerCS(Node(params=params))
+        return CS(nodes=[Node(params)])
 
 
 def translate_type(name):

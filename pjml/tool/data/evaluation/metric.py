@@ -1,16 +1,19 @@
+from functools import lru_cache
+from typing import Callable, Dict, Any
+
 import numpy as np
 from sklearn.metrics import accuracy_score
 
-from pjml.config.description.cs.transformercs import TransformerCS
+import pjdata.types as t
+from pjml.config.description.cs.cs import CS
 from pjml.config.description.distributions import choice
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import CatP
-from pjml.tool.abc.lighttransformer import LightTransformer
-from pjml.tool.abc.mixin.functioninspector import FunctionInspector
-from pjml.tool.model.model import Model
+from pjml.tool.abs.component import Component
+from pjml.tool.abs.mixin.functioninspection import withFunctionInspection
 
 
-class Metric(LightTransformer, FunctionInspector):
+class Metric(Component, withFunctionInspection):
     """Metric to evaluate a given Data field.
 
     Developer: new metrics can be added just following the pattern '_fun_xxxxx'
@@ -26,55 +29,57 @@ class Metric(LightTransformer, FunctionInspector):
         Name of the matrix to be evaluated.
     """
 
-    def __init__(self, functions=None, target='Y', prediction='Z'):
+    def __init__(self, functions=None, target="Y", prediction="Z", **kwargs):
         if functions is None:
-            functions = ['accuracy']
-        super().__init__(self._to_config(locals()), deterministic=True)
+            functions = ["accuracy"]
+        super().__init__(self._to_config(locals()), deterministic=True, **kwargs)
         self.functions = functions
         self.target, self.prediction = target, prediction
-        self.selected = [self.function_from_name[name] for name in functions]
+        self.selected = [Metric.function_from_name()[name] for name in functions]
 
-    def _apply_impl(self, data):
-        applied = self._use_impl(data, step='a')
-        return Model(self, data, applied)
+    @lru_cache()
+    def _enhancer_info(self, data: t.Data = None) -> Dict[str, Any]:
+        return {}
 
-    def _use_impl(self, data, step='u'):
-        if self.target not in data.matrices:
-            print(f'Impossible to calculate metric {self.functions}: \n'
-                  f'Field {self.target} does not exist!\nAvailable fields:',
-                  data.field_names)
-            raise Exception('Missing field!')
+    def _enhancer_func(self) -> Callable[[t.Data], t.Data]:
+        return lambda train: self._transform(train)
 
-        if self.prediction not in data.matrices:
-            raise Exception(
-                f'Impossible to calculate metric {self.functions}: Field '
-                f'{self.prediction} does not exist!')
-        return data.updated(
-            self.transformations(step),
-            R=np.array([[f(data, self.target, self.prediction)
-                         for f in self.selected]])
-        )
+    @lru_cache()
+    def _model_info(self, test: t.Data) -> Dict[str, Any]:
+        return {}
+
+    def _model_func(self, data: t.Data) -> Callable[[t.Data], t.Data]:
+        return lambda test: self._transform(test)
+
+    @lru_cache()
+    def _info(self, data: t.Data) -> Dict[str, Any]:
+        measures = [[f(data, self.target, self.prediction) for f in self.selected]]
+        return {"computed_metric": measures}
+
+    def _transform(self, data) -> t.Result:
+        computed_metric = self._info(data)["computed_metric"]
+        return {'R': np.array(computed_metric)}
 
     @classmethod
     def _cs_impl(cls):
         # TODO target and prediction
         params = {
-            'function': CatP(choice, items=cls.names()),
-            'target': CatP(choice, items=['Y']),
-            'prediction': CatP(choice, items=['Z'])
+            "function": CatP(choice, items=cls.names()),
+            "target": CatP(choice, items=["Y"]),
+            "prediction": CatP(choice, items=["Z"]),
         }
-        return TransformerCS(Node(params=params))
+        return CS(nodes=[Node(params=params)])
 
     @staticmethod
     def _fun_error(data, target, prediction):
         return 1 - accuracy_score(
-            data.matrices[target], data.matrices[prediction]
+            data.field(target, "metric"), data.field(prediction, "metric")
         )
 
     @staticmethod
     def _fun_accuracy(data, target, prediction):
         return accuracy_score(
-            data.matrices[target], data.matrices[prediction]
+            data.field(target, "metric"), data.field(prediction, "metric")
         )
 
     @staticmethod
