@@ -35,8 +35,9 @@ class Component(withPrinting, WithSerialization, AsOperand, ABC):
         self.config.update(config)
 
         self.path = self.__module__
+        # ALERT: Class Transfomer depends on this exact dict items for fast access without complete deserialization!
         self.transformer_info = {
-            "_id": f"{self.name}@{self.path}",
+            "_id": f"{self.name}@{self.path}",  # <-- TODO: remove unneeded '_'?
             "config": self.config,
         }
         self._jsonable = {

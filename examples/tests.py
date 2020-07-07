@@ -355,22 +355,22 @@ def test_sequence_of_classifiers(arq="abalone3.arff"):
 
 def main():
     """Main function"""
-    printable_test()
-    test_tsvmc()
-    test_split()
-    test_metric()
-    test_pca()
-    test_partition()
-    test_split_train_test()
+    # printable_test()
+    # test_tsvmc()
+    # test_split()
+    # test_metric()
+    # test_pca()
+    # test_partition()
+    # test_split_train_test()
     test_with_summ_reduce()
-    # test_cache()
-    printing_test()
-    random_search()
-    util()
-    default_config()
-    avg_cost_of_a_single_sample()
+    test_cache()
+    # printing_test()
+    # random_search()
+    # util()
+    # default_config()
+    # avg_cost_of_a_single_sample()
 
-    test_sequence_of_classifiers()
+    # test_sequence_of_classifiers()
 
     # sanity test
     # test_check_architecture()
