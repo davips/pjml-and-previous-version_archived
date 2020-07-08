@@ -336,7 +336,7 @@ def avg_cost_of_a_single_sample():
     print("1-sample avg min time: ", min(elapsed_times), "ms")
 
 
-def test_sequence_of_classifiers(arq="abalone3.arff"):
+def test_sequence_of_classifiers(arq="abalone.arff"):
     pipe = Pipeline(
         File(arq),
         Binarize(),                      Report('1 {X.shape} {history~name}'),
