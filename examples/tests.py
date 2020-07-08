@@ -119,7 +119,7 @@ def test_with_summ_reduce(arq="iris.arff"):
     )
     train, test = pipe.dual_transform()
 
-    print("Train..............\n", [h.longname for h in train.history])
+    print("Train..............\n", [h.longname for h in train.history ^ "name"])
     print("Test..........\n", [h.longname for h in test.history])
 
 

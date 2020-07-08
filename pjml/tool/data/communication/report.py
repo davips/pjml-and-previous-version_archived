@@ -77,8 +77,8 @@ class Report(Invisible, Component):
                 code = 'data.' + seg
                 try:
                     # Convert mapping through ~ operand.
-                    if '~' in seg:
-                        iterable, accessor = seg.split('~')
+                    if '^' in seg:
+                        iterable, accessor = seg.split('^')
                         code = f"[item.{accessor} for item in data.{iterable}]"
 
                     # Data cannot be changed, so we don't use exec, which would accept dangerous assignments.

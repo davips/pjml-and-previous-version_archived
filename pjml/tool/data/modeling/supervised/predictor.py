@@ -15,7 +15,7 @@ class Predictor(withDefaultEnhancerImpl, TSKLAlgorithm, ABC):
     @lru_cache()
     def _model_info(self, data: t.Data) -> Dict[str, Any]:
         sklearn_model = self.algorithm_factory()
-        sklearn_model.fit(*data.Xy)
+        sklearn_model.fit(*data.Xy())
         return {"sklearn_model": sklearn_model}
 
     def _model_func(self, data: t.Data) -> Callable[[t.Data], t.Result]:
