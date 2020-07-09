@@ -1,6 +1,8 @@
 from typing import Callable, Dict, Any
 
-import pjdata.types as t
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import pjdata.types as t
 from pjdata.content.specialdata import NoData
 from pjml.config.description.cs.abc.configspace import ConfigSpace
 from pjml.config.description.cs.emptycs import EmptyCS

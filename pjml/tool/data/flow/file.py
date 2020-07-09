@@ -94,11 +94,3 @@ class File(Component, withNoDataHandling):
         # TODO: I think that we should set as follow:
         # TransformerCS(nodes=[Node(params=params)])
         return CS(nodes=[Node(params=params)])
-
-    @lru_cache()
-    def transformations(
-            self,
-            step: str,
-            clean: bool = True
-    ) -> Tuple[Transformer]:
-        return ()

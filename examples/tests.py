@@ -3,7 +3,6 @@
 import numpy as np
 
 import pjdata.content.specialdata as sd
-from pjdata.aux.util import _
 from pjml.config.description.cs.chaincs import ChainCS
 from pjml.config.search.many import select
 from pjml.config.search.single import sample, maximize, minimize
@@ -70,8 +69,8 @@ def test_pca(arq="iris.arff"):
     cs = File(arq).cs
     pipe = Pipeline(File(arq), Split(), PCA(), SVMC(), Metric())
     train, test = pipe.dual_transform()
-    print("Train..............\n", _.m(_.name, train.history))
-    print("Test..........\n", _.m(_.name, test.history))
+    print("Train..............\n", train.history ^ "name")
+    print("Test..........\n", test.history ^ "name")
 
 
 def test_partition(arq="iris.arff"):
@@ -119,16 +118,16 @@ def test_with_summ_reduce(arq="iris.arff"):
     )
     train, test = pipe.dual_transform()
 
-    print("Train..............\n", [h.longname for h in train.history ^ "name"])
-    print("Test..........\n", [h.longname for h in test.history])
+    print("Train..............\n", train.history ^ "longname")
+    print("Test..........\n", test.history ^ "longname")
 
 
 def test_cache(arq="iris.arff"):
     pipe = Pipeline(Cache(File(arq), storage_alias="default_sqlite"))
     train, test = pipe.dual_transform()
 
-    print("Train..............\n", [h.name for h in train.history])
-    print("Test..........\n", [h.name for h in test.history])
+    print("Train..............\n", train.history ^ "name")
+    print("Test..........\n", test.history ^ "name")
 
 
 def test_check_architecture(arq="iris.arff"):
@@ -339,9 +338,9 @@ def avg_cost_of_a_single_sample():
 def test_sequence_of_classifiers(arq="abalone.arff"):
     pipe = Pipeline(
         File(arq),
-        Binarize(),                      Report('1 {X.shape} {history~name}'),
-        PCA(n=5), SVMC(), Metric(),      Report('2 {X.shape} {history~name}'),
-        DT(), Metric(),                  Report('3 {X.shape} {history~name}'),
+        Binarize(), Report('1 {X.shape} {history^name}'),
+        PCA(n=5), SVMC(), Metric(), Report('2 {X.shape} {history^name}'),
+        DT(), Metric(), Report('3 {X.shape} {history^name}'),
     )
     print('Enh')
     train = pipe.enhancer.transform(sd.NoData)
@@ -349,28 +348,28 @@ def test_sequence_of_classifiers(arq="abalone.arff"):
     test = pipe.model(sd.NoData).transform(sd.NoData)  # TODO: pq report não aparece no test?
     print()
 
-    print("[test_sequence_of_classifiers] Train.........\n", [h.longname for h in train.history])
-    print("[test_sequence_of_classifiers] Test..........\n", [h.longname for h in test.history])
+    print("[test_sequence_of_classifiers] Train.........\n", train.history ^ "longname")
+    print("[test_sequence_of_classifiers] Test..........\n", test.history ^ "longname")
 
 
 def main():
     """Main function"""
-    # printable_test()
-    # test_tsvmc()
-    # test_split()
-    # test_metric()
-    # test_pca()
-    # test_partition()
-    # test_split_train_test()
+    printable_test()
+    test_tsvmc()
+    test_split()
+    test_metric()
+    test_pca()
+    test_partition()
+    test_split_train_test()
     test_with_summ_reduce()
-    test_cache()
-    # printing_test()
-    # random_search()
-    # util()
-    # default_config()
-    # avg_cost_of_a_single_sample()
+    # test_cache()
+    printing_test()
+    random_search()
+    util()
+    default_config()
+    avg_cost_of_a_single_sample()
 
-    # test_sequence_of_classifiers()
+    test_sequence_of_classifiers()
 
     # sanity test
     # test_check_architecture()

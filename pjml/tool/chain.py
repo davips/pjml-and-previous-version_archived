@@ -2,6 +2,7 @@ from functools import lru_cache
 from itertools import tee
 from typing import Optional, Tuple, Dict, Callable, Any
 
+from typing import TYPE_CHECKING
 import pjdata.types as t
 from pjdata.content.specialdata import NoData
 from pjml.config.description.cs.chaincs import ChainCS

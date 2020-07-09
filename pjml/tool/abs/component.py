@@ -1,9 +1,13 @@
 """ Component module. """
+from __future__ import annotations
+
 from abc import abstractmethod, ABC
 from functools import lru_cache
 from typing import Dict, Any, Tuple
+from typing import TYPE_CHECKING
 
-import pjdata.types as t
+if TYPE_CHECKING:
+    import pjdata.types as t
 from pjdata.aux.decorator import classproperty
 from pjdata.aux.serialization import serialize, materialize
 from pjdata.aux.util import Property
@@ -27,21 +31,19 @@ class Component(withPrinting, WithSerialization, AsOperand, ABC):
             enhance: bool = True,
             model: bool = True,
             deterministic: bool = False,
-            nodata_handler: bool = False,  # this flag and the mixin are needed, but I can't recall why...
+            nodata_handler: bool = False,  # this flag and the mixin are needed, but I can't recall why... [davi]
     ):
-        # We must always obtain the default parameter, because we want to completely
-        # identify the transformation.
+        # We must always obtain the default parameter, because we want to completely identify the transformation.
         self.config = self.default_config()
         self.config.update(config)
 
         self.path = self.__module__
-        # ALERT: Class Transfomer depends on this exact dict items for fast access without complete deserialization!
-        self.transformer_info = {
-            "_id": f"{self.name}@{self.path}",  # <-- TODO: remove unneeded '_'?
+        self.info_for_transformer = {
+            "id": f"{self.name}@{self.path}",
             "config": self.config,
         }
         self._jsonable = {
-            "info": self.transformer_info,
+            "info": self.info_for_transformer,
             "enhance": enhance,
             "model": model,
         }
@@ -177,7 +179,7 @@ class Component(withPrinting, WithSerialization, AsOperand, ABC):
         return self._cfserialized()
 
     def _cfserialized(self):
-        return serialize(self.transformer_info)
+        return serialize(self.info_for_transformer)
 
     def _name_impl(self):
         return self.__class__.__name__
