@@ -99,7 +99,9 @@ class Component(withPrinting, WithSerialization, AsOperand, ABC):
         if self.hasmodel:
             test = self.model(train).transform(test)
         if self.hasenhancer:
+            print(8888888888888, train.uuid)
             train = self.enhancer.transform(train)
+            print(7777777777777, train.uuid)
         return train, test
 
     @classmethod

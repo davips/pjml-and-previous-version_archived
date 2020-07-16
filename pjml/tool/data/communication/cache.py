@@ -41,7 +41,9 @@ class Cache(Container1):
         def transform(data: Data) -> t.Result:
             enhancer = self.component.enhancer  # TODO: Check if all enhancers are cheap!! We just need its uuid here.
             hollow = data.hollow(enhancer)
+            print(111111111111111111111111, data.id)
             output_data = self.storage.fetch(hollow, lock=True)
+            print(hollow.id)
 
             # pra carregar modelo [outdated code here!!]:
             # self.transformer = self.storage.fetch_transformer(
@@ -73,7 +75,9 @@ class Cache(Container1):
         model = self.component.model(train)
 
         def transform(test: Data) -> t.Result:
+            print(22222222222222222222222222222222222,test.id)
             hollow = test.hollow(model)
+            print(hollow.id)
             output_data = self.storage.fetch(hollow, lock=True)
 
             # Use if still needed  ----------------------------------
@@ -81,6 +85,7 @@ class Cache(Container1):
                 try:
                     # Do not exit on error, we need to cleanup storage first.
                     output_data = model.transform(test, exit_on_error=False)
+                    print(output_data.id)
                 except:
                     self.storage.unlock(hollow)
                     traceback.print_exc()

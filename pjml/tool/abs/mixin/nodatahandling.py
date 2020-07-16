@@ -12,13 +12,6 @@ class withNoDataHandling(ABC):
     Should be the last mixin (to avoid overriding attribute 'name')."""
     name = 'NoDataHandler'
 
-    def _enforce_nodata(self, data: Union[NoData, Data], step) -> None:
-        if step == 'a':
-            step = 'applied'
-        elif step == 'u':
-            step = 'used'
-        else:
-            raise Exception('Wrong step', step)
+    def _enforce_nodata(self, data: Union[NoData, Data]) -> None:
         if data is not NoData:
-            raise Exception(f'Component {self.name} needs to be {step} with '
-                            f'NoData. Use Sink before it if needed.')
+            raise Exception(f'Component {self.name} only accepts NoData. Use Sink before it if needed.')

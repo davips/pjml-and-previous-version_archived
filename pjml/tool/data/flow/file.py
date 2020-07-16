@@ -72,12 +72,12 @@ class File(Component, withNoDataHandling):
         return {}
 
     def _model_func(self, train: t.Data) -> Callable[[t.Data], t.Data]:
-        self._enforce_nodata(train, "a")  # fixei 'a'
+        self._enforce_nodata(train)
         return self._transform()
 
     def _transform(self) -> Callable[[NoData], t.Data]:
-        def transform(test):  # old use/apply
-            self._enforce_nodata(test, "u")  # fixei 'u'
+        def transform(test):
+            self._enforce_nodata(test)
             return self.data
 
         return transform
