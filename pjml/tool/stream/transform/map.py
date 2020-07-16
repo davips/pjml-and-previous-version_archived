@@ -19,7 +19,7 @@ class Map(MinimalContainer1):
         return ContainerCS(Map.__name__, Map.__module__, components)
 
     @lru_cache()
-    def _enhancer_info(self, data: t.Data = None) -> Dict[str, Any]:  #TODO: should _*info accept None?
+    def _enhancer_info(self, data: t.Data = None) -> Dict[str, Any]:  # TODO: should _*info accept None?
         return {"enhancer": self.component.enhancer}
 
     @lru_cache()
@@ -28,8 +28,8 @@ class Map(MinimalContainer1):
 
     def _enhancer_func(self) -> Callable[[t.Data], t.Result]:
         enhancer = self.component.enhancer
-        return lambda d: {'stream': map(enhancer.transform, d.stream)}
+        return lambda d: {"stream": map(enhancer.transform, d.stream)}
 
     def _model_func(self, data: t.Data) -> t.Transformation:
         component = self.component
-        return lambda d: {'stream': map(component.model(data).transform, d.stream)}
+        return lambda d: {"stream": map(component.model(data).transform, d.stream)}

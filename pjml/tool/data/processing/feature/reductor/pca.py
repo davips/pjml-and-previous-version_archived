@@ -24,8 +24,7 @@ class PCA(TSKLAlgorithm):
     #  Example: In the PCA context 'n' is obviously the number of features.
     def __init__(self, n: int = 2, enhance: bool = True, model: bool = True):
         super().__init__(
-            {'n': n}, SKLPCA, deterministic=True,
-            sklconfig={'n_components': n}, enhance=enhance, model=model
+            {"n": n}, SKLPCA, deterministic=True, sklconfig={"n_components": n}, enhance=enhance, model=model
         )
 
     def _enhancer_info(self, data: t.Data) -> Dict[str, Any]:
@@ -47,7 +46,7 @@ class PCA(TSKLAlgorithm):
 
     def predict(self, train: t.Data, test: t.Data) -> t.Result:
         info = self._info(train)
-        return {'X': info["sklearn_model"].transform(test.X)}
+        return {"X": info["sklearn_model"].transform(test.X)}
 
     @classmethod
     def _cs_impl(cls) -> CS:

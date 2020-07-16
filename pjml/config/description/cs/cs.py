@@ -18,7 +18,7 @@ class CS(ComponentCS):
 
     def __init__(self, name=None, path=None, nodes=None):
         if nodes is None:
-            raise Exception('TransformerCS should have a list of nodes!')
+            raise Exception("TransformerCS should have a list of nodes!")
         super().__init__(name, path, None, nodes)
 
     def _sample_cfg(self):

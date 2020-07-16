@@ -11,11 +11,7 @@ class Invisible:
     They are useful, but sometimes do not transform Data objects."""
 
     @lru_cache()
-    def transformations(
-            self,
-            step: str,
-            clean: bool = True
-    ) -> List[Transformer]:
+    def transformations(self, step: str, clean: bool = True) -> List[Transformer]:
 
         """Invisible components produce no transformations, so they need to
         override the list of expected transformations with []."""

@@ -9,8 +9,8 @@ import time
 def clock(txt="Time:"):
     st = withTiming._clock()
     yield
-    val = '{:.2f}'.format((withTiming._clock() - st) * 1000)
-    print(f'{txt}\t{val}ms')
+    val = "{:.2f}".format((withTiming._clock() - st) * 1000)
+    print(f"{txt}\t{val}ms")
 
 
 class withTiming:

@@ -48,11 +48,7 @@ def sort(clist, train=NoData, test=NoData, key=lambda x: (x[1], x[0]), reverse=F
     """Exhaustive search to maximize value at 'field'.
 
     Return 'n' best pipelines."""
-    return ConfigList(
-        components=map(
-            _[1], sorted(map(key, lrun(clist, train, test)), reverse=reverse)
-        )
-    )
+    return ConfigList(components=map(_[1], sorted(map(key, lrun(clist, train, test)), reverse=reverse)))
 
 
 def optimize(clist, n=1, train=NoData, test=NoData, better="higher"):
@@ -67,9 +63,7 @@ def optimize(clist, n=1, train=NoData, test=NoData, better="higher"):
     elif better == "smaller":
         select = nsmallest
     else:
-        raise ValueError(
-            f"Expected '{higher}' or '{smaller}' in 'better', but was given '{better}'"
-        )
+        raise ValueError(f"Expected '{higher}' or '{smaller}' in 'better', but was given '{better}'")
 
     def dual(component):
         return component.dual_transform(train, test)[1], component

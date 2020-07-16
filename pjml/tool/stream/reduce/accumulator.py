@@ -25,6 +25,7 @@ class Accumulator:
     @property
     def result(self):
         from pjml.tool.stream.reduce.summ import InterruptedStreamException
+
         if self.stream_exception:
             raise InterruptedStreamException
         try:

@@ -123,7 +123,7 @@ def test_with_summ_reduce(arq="iris.arff"):
 
 
 def test_cache(arq="iris.arff"):
-    pipe = Pipeline(Cache(File(arq), storage_alias="default_sqlite"))
+    pipe = Pipeline(Cache(File(arq), storage_alias="default_sqlite"), Report("{history}"))
     train, test = pipe.dual_transform()
 
     print("Train..............\n", train.history ^ "name")
@@ -354,25 +354,25 @@ def test_sequence_of_classifiers(arq="abalone.arff"):
 
 def main():
     """Main function"""
-    printable_test()
+    # printable_test()
     test_tsvmc()
-    test_split()
-    test_metric()
-    test_pca()
-    test_partition()
-    test_split_train_test()
-    test_with_summ_reduce()
-    # test_cache()
-    printing_test()
-    random_search()
-    util()
-    default_config()
-    avg_cost_of_a_single_sample()
-
-    test_sequence_of_classifiers()
+    # test_split()
+    # test_metric()
+    # test_pca()
+    # test_partition()
+    # test_split_train_test()
+    # test_with_summ_reduce()
+    test_cache()
+    # printing_test()
+    # random_search()
+    # util()
+    # default_config()
+    # avg_cost_of_a_single_sample()
+    #
+    # test_sequence_of_classifiers()
 
     # sanity test
-    # test_check_architecture()
+    test_check_architecture()
 
 
 if __name__ == "__main__":

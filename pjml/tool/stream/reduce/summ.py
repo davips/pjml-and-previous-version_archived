@@ -63,7 +63,7 @@ class Summ(Component, withFunctionInspection):
 
             # except StreamException:
 
-            return {'stream': iterator, 'S': lazy}
+            return {"stream": iterator, "S": lazy}
 
         return transform
 

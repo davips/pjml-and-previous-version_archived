@@ -15,6 +15,7 @@ class Container1(Container, ABC):
         # Container1(a,b,c) possible.
         if len(self.components) > 1:
             from pjml.tool.chain import Chain
+
             self.component = Chain(components=self.components)
         else:
             self.component = self.components[0]

@@ -33,7 +33,7 @@ class Reduce(Invisible, Component):
             for d in data.stream:
                 frozen = frozen or d.isfrozen
                 failure = failure or d.failure  # TODO: is it ok to just get the last failure?
-            return {'stream': None, 'frozen': frozen, 'failure': failure}
+            return {"stream": None, "frozen": frozen, "failure": failure}
 
         return transform
 
@@ -55,10 +55,10 @@ class Reduce(Invisible, Component):
                 afailure = afailure or a.failure  # TODO: is it ok to just get the last failure?
                 bfailure = bfailure or b.failure  # TODO: is it ok to just get the last failure?
             train = train.transformedby(
-                Enhancer(self, lambda _: {'stream': None, 'frozen': afrozen, 'failure': afailure}, lambda: {})
+                Enhancer(self, lambda _: {"stream": None, "frozen": afrozen, "failure": afailure}, lambda: {})
             )
             test = test.transformedby(
-                Model(self, lambda _: {'stream': None, 'frozen': bfrozen, 'failure': bfailure}, {}, train)
+                Model(self, lambda _: {"stream": None, "frozen": bfrozen, "failure": bfailure}, {}, train)
             )
         elif self.hasenhancer:
             train = self.enhancer.transform(train)

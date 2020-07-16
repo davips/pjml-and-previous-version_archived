@@ -2,7 +2,6 @@ from functools import lru_cache
 
 
 class withFunctionInspection:
-
     @classmethod
     @lru_cache()
     def function_from_name(cls):

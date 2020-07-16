@@ -28,12 +28,7 @@ class File(Component, withNoDataHandling):
     """
 
     def __init__(
-        self,
-        name: str,
-        path: str = "./",
-        description: str = "No description.",
-        hashes: str = None,
-        **kwargs,
+        self, name: str, path: str = "./", description: str = "No description.", hashes: str = None, **kwargs,
     ):
 
         # Some checking.
@@ -45,10 +40,7 @@ class File(Component, withNoDataHandling):
             raise Exception("Unrecognized file extension:", name)
         if hashes:
             if hashes != actual_hashes:
-                raise Exception(
-                    f"Provided hashes f{hashes} differs from actual hashes "
-                    f"{actual_hashes}!"
-                )
+                raise Exception(f"Provided hashes f{hashes} differs from actual hashes " f"{actual_hashes}!")
 
         # Unique config for this file.
         config = {

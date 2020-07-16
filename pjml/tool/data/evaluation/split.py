@@ -27,14 +27,14 @@ from pjml.tool.chain import Chain
 
 class AbstractSplit(Component, withFunctionInspection, withNoDataHandling, ABC):
     def __init__(
-            self,
-            split_type: str = "holdout",
-            partitions: int = 2,
-            partition: int = 0,
-            test_size: float = 0.3,
-            seed: int = 0,
-            fields: str = 'X,Y',
-            **kwargs
+        self,
+        split_type: str = "holdout",
+        partitions: int = 2,
+        partition: int = 0,
+        test_size: float = 0.3,
+        seed: int = 0,
+        fields: str = "X,Y",
+        **kwargs,
     ):
         config = self._to_config(locals())
 
@@ -59,7 +59,7 @@ class AbstractSplit(Component, withFunctionInspection, withNoDataHandling, ABC):
         self.partition = partition
         self.test_size = test_size
         self.seed = seed
-        self.fields = fields.split(',')
+        self.fields = fields.split(",")
 
     def _split(self, data: Data, indices: List[numpy.ndarray]) -> Data:
         new_dic = {}
@@ -95,35 +95,38 @@ class Split(Macro, Component):
     """
 
     def __init__(
-            self,
-            split_type: str ="holdout",
-            partitions: int = 2,
-            partition: int = 0,
-            test_size: float = 0.3,
-            seed: int = 0,
-            fields: str = 'X,Y',
-            **kwargs,
+        self,
+        split_type: str = "holdout",
+        partitions: int = 2,
+        partition: int = 0,
+        test_size: float = 0.3,
+        seed: int = 0,
+        fields: str = "X,Y",
+        **kwargs,
     ):
         config = self._to_config(locals())
         super().__init__(config, **kwargs)
 
-        self._component = Chain(TrSplit(
-            split_type=split_type,
-            partitions=partitions,
-            partition=partition,
-            test_size=test_size,
-            seed=seed,
-            fields=fields,
-            **kwargs,
-        ), TsSplit(
-            split_type=split_type,
-            partitions=partitions,
-            partition=partition,
-            test_size=test_size,
-            seed=seed,
-            fields=fields,
-            **kwargs,
-        ))
+        self._component = Chain(
+            TrSplit(
+                split_type=split_type,
+                partitions=partitions,
+                partition=partition,
+                test_size=test_size,
+                seed=seed,
+                fields=fields,
+                **kwargs,
+            ),
+            TsSplit(
+                split_type=split_type,
+                partitions=partitions,
+                partition=partition,
+                test_size=test_size,
+                seed=seed,
+                fields=fields,
+                **kwargs,
+            ),
+        )
 
     @property
     def component(self) -> co.Component:

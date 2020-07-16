@@ -10,12 +10,8 @@ from pjml.tool.stream.transform.map import Map
 from pjml.tool.stream.transform.multi import Multi
 
 
-def evaluator(*components, function='mean_std', **validation_args):
-    return Chain(
-        Partition(**validation_args),
-        Map(components=components),
-        Summ(function=function)
-    )
+def evaluator(*components, function="mean_std", **validation_args):
+    return Chain(Partition(**validation_args), Map(components=components), Summ(function=function))
 
 
 def concat(*components):
@@ -33,14 +29,11 @@ def switch():
 
 
 def tsplit(
-        split_type: str = 'cv',
-        partitions: int = 10,
-        test_size: float = 0.3,
-        seed: int = 0,
-        fields: str = 'X,Y',
+    split_type: str = "cv", partitions: int = 10, test_size: float = 0.3, seed: int = 0, fields: str = "X,Y",
 ) -> Multi:
     """Make a sequence of Data splitters."""
     from pjml.tool.data.evaluation.split import Split
+
     components = []
     for i in range(partitions):
         s = Split(split_type, partitions, i, test_size, seed, fields)

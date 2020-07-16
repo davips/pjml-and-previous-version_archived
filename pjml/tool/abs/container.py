@@ -11,9 +11,7 @@ class Container(Component, ABC):
 
     def __init__(self, config, seed, components, enhance, model, deterministic):
         if not components:
-            raise Exception(
-                f"A container ({self.name}) should have at least one " f"component!"
-            )
+            raise Exception(f"A container ({self.name}) should have at least one " f"component!")
 
         # components=[Chain(A)] should appear as components=[A] in config.
         from pjml.tool.chain import Chain

@@ -15,4 +15,4 @@ class ConfigLess(Component, ABC):
         return EmptyCS()
 
     def transformations(self, step, clean=True):
-        return super().transformations('u')
+        return super().transformations("u")

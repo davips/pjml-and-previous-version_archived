@@ -10,17 +10,14 @@ class ComponentCS(ConfigSpace, ABC):
     def __init__(self, name, path, config_spaces, nodes):
         if nodes is None:
             nodes = []
-        jsonable = {'component': {'name': name, 'path': path}, 'nodes': nodes}
+        jsonable = {"component": {"name": name, "path": path}, "nodes": nodes}
         if config_spaces:
             config_spaces = [compo.cs for compo in config_spaces]
-            jsonable['components'] = config_spaces
+            jsonable["components"] = config_spaces
         super().__init__(jsonable)
         for cs in nodes:
             if not isinstance(cs, Node):
-                raise Exception(
-                    f'{self.__class__.__name__} can only have Node as nodes.'
-                    f' Not {type(cs)} !'
-                )
+                raise Exception(f"{self.__class__.__name__} can only have Node as nodes." f" Not {type(cs)} !")
         self._name, self.path, self.nodes = name, path, nodes
         self.config_spaces = config_spaces
 

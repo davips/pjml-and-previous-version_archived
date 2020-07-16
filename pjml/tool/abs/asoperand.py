@@ -30,6 +30,7 @@ class MetaOperand(ABCMeta):
 class AsOperand(metaclass=MetaOperand):
     def __add__(self, other):
         from pjml.config.description.cs.selectcs import SelectCS
+
         if isinstance(other, SelectCS):
             return SelectCS(self, *other.components)
         elif isinstance(self, SelectCS):
@@ -38,6 +39,7 @@ class AsOperand(metaclass=MetaOperand):
 
     def __mul__(self, other):
         from pjml.tool.chain import Chain, ChainCS
+
         if isinstance(other, (Chain, ChainCS)):
             return Chain(self, *other.components)
         if isinstance(self, (Chain, ChainCS)):
@@ -46,6 +48,7 @@ class AsOperand(metaclass=MetaOperand):
 
     def __matmul__(self, other):  # @
         from pjml.config.description.cs.shufflecs import ShuffleCS
+
         if isinstance(other, ShuffleCS):
             return ShuffleCS(self, *other.components)
         elif isinstance(self, ShuffleCS):

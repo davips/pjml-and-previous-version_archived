@@ -11,13 +11,7 @@ from pjml.tool.abs.minimalcontainer import MinimalContainerN
 class Multi(MinimalContainerN):
     """Process each Data object from a stream with its respective component."""
 
-    def __new__(
-            cls,
-            *args: Component,
-            seed: int = 0,
-            components: Tuple[Component, ...] = None,
-            **kwargs
-    ):
+    def __new__(cls, *args: Component, seed: int = 0, components: Tuple[Component, ...] = None, **kwargs):
         """Shortcut to create a ConfigSpace."""
         if components is None:
             components = args
@@ -34,12 +28,8 @@ class Multi(MinimalContainerN):
 
     def _enhancer_func(self) -> t.Transformation:
         enhancers = self._enhancer_info()["enhancers"]
-        return lambda data: {
-            'stream': map(lambda e, d: e.transform(d), enhancers, data.stream)
-        }
+        return lambda data: {"stream": map(lambda e, d: e.transform(d), enhancers, data.stream)}
 
     def _model_func(self, data: Data) -> Callable[[Data], Result]:
         models = self._model_info(data)["models"]
-        return lambda test: {
-            'stream': map(lambda m, d: m.transform(d), models, test.stream)
-        }
+        return lambda test: {"stream": map(lambda m, d: m.transform(d), models, test.stream)}

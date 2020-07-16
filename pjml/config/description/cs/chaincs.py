@@ -7,5 +7,5 @@ class ChainCS(OperatorCS):
     def sample(self):
         components = [cs.sample() for cs in self.components]
         from pjml.tool.chain import Chain
-        return Chain(components=components)
 
+        return Chain(components=components)

@@ -15,7 +15,7 @@ class Repeat(NoInfo, Component):
         super().__init__({}, deterministic=True, **kwargs)
 
     def _enhancer_func(self) -> Callable[[Data], Result]:
-        return lambda d: {'stream': repeat(d)}
+        return lambda d: {"stream": repeat(d)}
 
     def _model_func(self, data: Data) -> Callable[[Data], Result]:
         return self._enhancer_func()

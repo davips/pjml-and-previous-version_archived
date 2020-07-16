@@ -26,12 +26,12 @@ from pjml.tool.abs.asoperand import AsOperand
 
 class Component(withPrinting, WithSerialization, AsOperand, ABC):
     def __init__(
-            self,
-            config: dict,
-            enhance: bool = True,
-            model: bool = True,
-            deterministic: bool = False,
-            nodata_handler: bool = False,  # this flag and the mixin are needed, but I can't recall why... [davi]
+        self,
+        config: dict,
+        enhance: bool = True,
+        model: bool = True,
+        deterministic: bool = False,
+        nodata_handler: bool = False,  # this flag and the mixin are needed, but I can't recall why... [davi]
     ):
         # We must always obtain the default parameter, because we want to completely identify the transformation.
         self.config = self.default_config()
@@ -91,9 +91,7 @@ class Component(withPrinting, WithSerialization, AsOperand, ABC):
             data = data[0]
         if not self.hasmodel:
             return PHolder(self)
-        return Model(
-            self, func=self._model_func(data), info=self._model_info(data), data=data
-        )
+        return Model(self, func=self._model_func(data), info=self._model_info(data), data=data)
 
     def dual_transform(self, train: t.Data, test: t.Data) -> Tuple[t.Data, t.Data]:
         if self.hasmodel:
@@ -167,9 +165,7 @@ class Component(withPrinting, WithSerialization, AsOperand, ABC):
 
     def _uuid_impl(self):
         """Complete UUID; including 'model' and 'enhance' flags. Identifies the component."""
-        return self._cfuuid_impl() * UUID(
-            str(self.hasenhancer + self.hasmodel).rjust(14, "0")
-        )
+        return self._cfuuid_impl() * UUID(str(self.hasenhancer + self.hasmodel).rjust(14, "0"))
 
     def _cfuuid_impl(self):
         """UUID excluding 'model' and 'enhance' flags. Identifies the transformer."""

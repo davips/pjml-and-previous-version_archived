@@ -30,12 +30,9 @@ class Binarize(Component):
             encoder = OneHotEncoder()
             matrices = {}
             if len(data_nominal_idxs) > 0:
-                nom = encoder.fit_transform(
-                    data.X[:, data_nominal_idxs]
-                ).toarray()
-                num = np.delete(data.X,
-                                data_nominal_idxs, axis=1).astype(float)
-                matrices['X'] = np.column_stack((nom, num))
+                nom = encoder.fit_transform(data.X[:, data_nominal_idxs]).toarray()
+                num = np.delete(data.X, data_nominal_idxs, axis=1).astype(float)
+                matrices["X"] = np.column_stack((nom, num))
 
             return matrices
 

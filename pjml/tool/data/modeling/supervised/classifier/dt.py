@@ -11,9 +11,7 @@ class DT(Predictor):
     """Decision Tree."""
 
     def __init__(self, enhance=True, model=True, **sklconfig):
-        super().__init__(
-            sklconfig, DecisionTreeClassifier, enhance=enhance, model=model
-        )
+        super().__init__(sklconfig, DecisionTreeClassifier, enhance=enhance, model=model)
 
     @classmethod
     def _cs_impl(cls):

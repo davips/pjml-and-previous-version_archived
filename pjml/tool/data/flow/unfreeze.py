@@ -1,6 +1,7 @@
 from typing import Callable, Dict, Any
 
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     import pjdata.types as t
 from pjdata.content.specialdata import NoData

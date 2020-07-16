@@ -21,36 +21,33 @@ class Partition(Macro, Component):
     """
 
     def __init__(
-            self,
-            split_type: str = 'cv',
-            partitions: int = 10,
-            test_size: float = 0.3,
-            seed: int = 0,
-            fields: str = 'X,Y',
-            **kwargs
+        self,
+        split_type: str = "cv",
+        partitions: int = 10,
+        test_size: float = 0.3,
+        seed: int = 0,
+        fields: str = "X,Y",
+        **kwargs
     ):
-        config = self._to_config(
-            locals())  # todo: kwargs is going to locals, em outros comp tb!!!
+        config = self._to_config(locals())  # todo: kwargs is going to locals, em outros comp tb!!!
 
         # config cleaning.
         if split_type == "cv":
-            del config['test_size']
+            del config["test_size"]
         elif split_type == "loo":
-            del config['partitions']
-            del config['partition']
-            del config['test']
-            del config['seed']
-        elif split_type == 'holdout':
+            del config["partitions"]
+            del config["partition"]
+            del config["test"]
+            del config["seed"]
+        elif split_type == "holdout":
             pass
         else:
-            raise Exception('Wrong split_type: ', split_type)
+            raise Exception("Wrong split_type: ", split_type)
 
         super().__init__(config, **kwargs)
         from pjml.macro import tsplit
-        self._transformer = Chain(
-            Repeat(),
-            tsplit(split_type, partitions, test_size, seed, fields)
-        )
+
+        self._transformer = Chain(Repeat(), tsplit(split_type, partitions, test_size, seed, fields))
 
     @property
     def component(self) -> co.Component:

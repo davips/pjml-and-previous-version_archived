@@ -18,19 +18,21 @@ class ConfigList(ConfigSpace):
             components = args
         if isinstance(components, Iterable):
             components = [comp for comp in components]
-        super().__init__({'components': components})
+        super().__init__({"components": components})
 
         from pjml.tool.abs.component import Component
+
         for component in components:
             if not (isinstance(component, Component)):
                 raise Exception(
-                    f'\nGiven: {type(component)}\n{component}\n'
-                    f'ConfigList does not accept config spaces, '
-                    f'only components!')
+                    f"\nGiven: {type(component)}\n{component}\n"
+                    f"ConfigList does not accept config spaces, "
+                    f"only components!"
+                )
         self.current_index = -1
         self.size = len(components)
         self.components = components
-        self._name = 'list'
+        self._name = "list"
 
     def sample(self):
         return choice(self.components)

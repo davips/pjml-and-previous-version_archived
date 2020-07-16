@@ -14,7 +14,7 @@ class ContainerCS(ComponentCS):
         super().__init__(name, path, config_spaces, nodes)
 
     def _sample_cfg(self):
-        return {'components': [c.sample() for c in self.config_spaces]}
+        return {"components": [c.sample() for c in self.config_spaces]}
 
     def identified(self, name, path):
         """Useful to fill name/path after the component has the CS built."""

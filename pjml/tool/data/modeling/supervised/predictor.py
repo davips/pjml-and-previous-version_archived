@@ -20,7 +20,7 @@ class Predictor(withDefaultEnhancerImpl, TSKLAlgorithm, ABC):
 
     def _model_func(self, data: t.Data) -> Callable[[t.Data], t.Result]:
         info = self._model_info(data)
-        return lambda d: {'z': info["sklearn_model"].predict(d.X)}
+        return lambda d: {"z": info["sklearn_model"].predict(d.X)}
 
     def _enhancer_func(self) -> Callable[[t.Data], t.Result]:
         return lambda posterior: posterior.frozen

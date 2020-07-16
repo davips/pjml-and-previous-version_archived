@@ -11,15 +11,14 @@ from pjml.tool.abs.invisible import Invisible
 
 
 class Save(Invisible):
-
-    def __init__(self, name, path='./'):
+    def __init__(self, name, path="./"):
         config = self._to_config(locals())
-        if not path.endswith('/'):
-            raise Exception('Path should end with /', path)
-        if name.endswith('arff'):
+        if not path.endswith("/"):
+            raise Exception("Path should end with /", path)
+        if name.endswith("arff"):
             filename = path + name
         else:
-            raise Exception('Unrecognized file extension:', name)
+            raise Exception("Unrecognized file extension:", name)
         super().__init__(config, filename, deterministic=True)
         self.model = filename
         self.filename = filename
@@ -31,20 +30,20 @@ class Save(Invisible):
         Xt = [translate_type(typ) for typ in data.Xt]
         Yt = [translate_type(typ) for typ in data.Yt]
         dic = {
-            'description': data.dataset.description,
-            'relation': data.dataset.name,
-            'attributes': list(zip(data.Xd, Xt)) + list(zip(data.Yd, Yt)),
-            'data': np.column_stack((data.X, data.Y))
+            "description": data.dataset.description,
+            "relation": data.dataset.name,
+            "attributes": list(zip(data.Xd, Xt)) + list(zip(data.Yd, Yt)),
+            "data": np.column_stack((data.X, data.Y)),
         }
         try:
             txt = arff.dumps(dic)
         except:
             traceback.print_exc()
-            print('Problems creating ARFF', self.filename)
-            print('Types:', Xt, Yt)
-            print('Sample:', data.X[0], data.Y[0])
-            print('Expected sizes:', len(Xt), '+', len(Yt))
-            print('Real sizes:', len(data.X[0]), '+', len(data.Y[0].shape))
+            print("Problems creating ARFF", self.filename)
+            print("Types:", Xt, Yt)
+            print("Sample:", data.X[0], data.Y[0])
+            print("Expected sizes:", len(Xt), "+", len(Yt))
+            print("Real sizes:", len(data.X[0]), "+", len(data.Y[0].shape))
             exit(0)
 
         save_txt(self.filename, txt)
@@ -52,19 +51,16 @@ class Save(Invisible):
 
     @classmethod
     def _cs_impl(cls):
-        params = {
-            'path': FixedP('./'),
-            'name': FixedP('iris.arff')
-        }
+        params = {"path": FixedP("./"), "name": FixedP("iris.arff")}
         return CS(nodes=[Node(params)])
 
 
 def translate_type(name):
     if isinstance(name, list):
         return name
-    if name == 'real':
-        return 'REAL'
-    elif name == 'int':
-        return 'INTEGER'
+    if name == "real":
+        return "REAL"
+    elif name == "int":
+        return "INTEGER"
     else:
-        raise Exception('Unknown type:', name)
+        raise Exception("Unknown type:", name)

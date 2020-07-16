@@ -58,7 +58,7 @@ class Metric(Component, withFunctionInspection):
 
     def _transform(self, data) -> t.Result:
         computed_metric = self._info(data)["computed_metric"]
-        return {'R': np.array(computed_metric)}
+        return {"R": np.array(computed_metric)}
 
     @classmethod
     def _cs_impl(cls):
@@ -72,15 +72,11 @@ class Metric(Component, withFunctionInspection):
 
     @staticmethod
     def _fun_error(data, target, prediction):
-        return 1 - accuracy_score(
-            data.field(target, "metric"), data.field(prediction, "metric")
-        )
+        return 1 - accuracy_score(data.field(target, "metric"), data.field(prediction, "metric"))
 
     @staticmethod
     def _fun_accuracy(data, target, prediction):
-        return accuracy_score(
-            data.field(target, "metric"), data.field(prediction, "metric")
-        )
+        return accuracy_score(data.field(target, "metric"), data.field(prediction, "metric"))
 
     @staticmethod
     def _fun_length(data, target, prediction):

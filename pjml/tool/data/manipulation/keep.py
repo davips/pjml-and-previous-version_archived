@@ -1,4 +1,4 @@
-#TODO: talvez Keep seja desnecessário,
+# TODO: talvez Keep seja desnecessário,
 # já que collection agora mantém referência pra dados originais, entretanto,
 # nunca se sabe se outros casos de uso surgirão.
 # Poderia existir pra ser atalho de Push/Pop. E esses seriam apelidos de Copy.

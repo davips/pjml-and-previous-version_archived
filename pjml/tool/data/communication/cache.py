@@ -75,7 +75,7 @@ class Cache(Container1):
         model = self.component.model(train)
 
         def transform(test: Data) -> t.Result:
-            print(22222222222222222222222222222222222,test.id)
+            print(22222222222222222222222222222222222, test.id)
             hollow = test.hollow(model)
             print(hollow.id)
             output_data = self.storage.fetch(hollow, lock=True)
@@ -96,25 +96,18 @@ class Cache(Container1):
 
         return transform
 
-    def __new__(cls, *args, storage_alias='default_dump', seed=0, components=None, **kwargs):
+    def __new__(cls, *args, storage_alias="default_dump", seed=0, components=None, **kwargs):
         """Shortcut to create a ConfigSpace."""
         if components is None:
             components = args
         if all([isinstance(c, Component) for c in components]):
             return object.__new__(cls)
-        node = Node(params={
-            'storage_alias': FixedP(storage_alias),
-            'seed': FixedP(seed),
-        })
+        node = Node(params={"storage_alias": FixedP(storage_alias), "seed": FixedP(seed),})
         return ContainerCS(Cache.name, Cache.path, components, nodes=[node])
 
-    def __init__(self, *args, storage_alias='default_dump', seed=0, components=None, enhance=True, model=True):
+    def __init__(self, *args, storage_alias="default_dump", seed=0, components=None, enhance=True, model=True):
         if components is None:
             components = args
         self.storage = Storage(storage_alias)
-        config = {
-            'storage_alias': storage_alias,
-            'seed': seed,
-            'components': components
-        }
+        config = {"storage_alias": storage_alias, "seed": seed, "components": components}
         super().__init__(config, seed, components, enhance, model, deterministic=True)
