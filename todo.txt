@@ -1,0 +1,257 @@
+############# Alertas #############
+1) Sempre que a porquice do sklearn exigir setar random_state globalmente,
+    precisamos fazer isso imediatamente antes da chamada que uso o gerador de números.
+    Exemplo: SelectKBest com mutual_info_classif.
+    É impossível setar o random_state do mutual_info_classif, sem ser globalmente.
+
+############# Prioridades #############
+-1) UUID reversível.
+
+0) Individualizar uuids por matriz, assim evitar calculo inútil comprimindo pra hashear.
+
+1) Fazer o pai dos Transformers [DONE]
+
+2) Criar modulo proprio para o Sklean []
+
+3) Arrumar ConfigLess1 e ConfigLess2 [Done]
+
+4) Ressuscitar o Random AutoML [Done]
+
+5) Historico [Done]
+
+6a) Cache [done]
+
+6b) Cache SQL [ ]
+
+7) Por que a msg de erro [done]
+    'AttributeError: type object 'NoData' has no attribute 'Xt''
+    aparece em vez de
+    'NoData is not accepted by Binarize'?
+
+8a) Incluir seed nos componentes [done]
+8b) Incluir seed nos redutores de CS (rnd, ...) [ ]
+
+9) Resolver problema do tempo (matar pipeline que passar o tempo permitido)
+
+10) Definir parametros default nos Param do CS
+
+11) Injetar valores default no config durante init quando usuário não prover alguns parâmetros
+
+12) Probabilidade dos nós do CS
+    SelectCS(A, B, C, probs=[0.2, 0.35, 0.45])   # probs ou P ou ...?
+    Node(children=[A, B, C], probs=[0.2, 0.35, 0.45])
+    ConfigList(A, B, C, probs=[0.2, 0.35, 0.45])
+
+    def choice(items, probs=None):
+        ...
+
+13a) Remover parametros sem sentido do config [done]
+    Split, Partition
+
+13b) Fazer o mesmo para todos componentes especialmente quando defaults forem injetados?
+
+14) Fazer mapa de hints para ir junto com falha de pipeline (failure={'message':'sdfsdf', 'hint':'dsffgg'})
+
+15) Ressuscitar a PyMFE
+
+16) AutoML baseado em programação genética.
+
+17) Incluir versão no config
+
+18) Remodelar (levemente) hierarquia de classes para que o implementador de
+    componentes componha sua herança com mixins. Ideia futura(0) é parecida.
+    Há vários eixos independentes a se fazer escolhas:
+    apply==use?             ex. Metric, Expand
+    configless?             ex. Expand
+    invisible?              ex. Report
+    use depende de apply?   ex. Predictor
+
+############# Ideias futuras #############
+
+0) Dividir componentes entre MonoTransformer, LightTransformer e HeavyTransformer
+    Mono e Light fornecem use()
+    _apply_impl() não é requerido para Mono
+
+1) Definir importancia/sensibilidade de parâmetros
+
+2) Temos CS de parametros que afetam acurácia. Poderemos ter outro CS, com parâmetros que afetam apenas(?) tempo ou memória?
+    n_estimators do RF: quanto menor mais rápido; qto maior mais preciso; poderia haver uma sugestão de direção em cada Param
+
+3) Possibilitar use() de componentes Light (sem gerar modelo / sem apply):
+    data = File("abalone3.arff").use()
+
+4) Casca imperativa em cima do funcional.
+    Funcional:
+        model = transf.apply(...)
+        result = model.use(...)
+    Mutável:
+        transf.apply(...)
+        result = transf.use(...)
+    Funcionamento: transf mantém referência para o último Model gerado; LightTransformers ignoram pois não precisam de modelo.
+
+5) Pessoalmente prefiro apply(), mas seria fit() mais palatável ao público geral? Fazer congresso Pajé para ver reação à API?
+
+6) Um IC poderia fazer um "ipython" pra rodar o pjml e parsear a saída de texto para collapsar/expandir o modo prettyprinting com o mouse.
+
+7) Para cada Param deveria ser possível estipular uma lista de microotimizadores, para que o automl selecione o melhor e delegue para ele a tarefa de tunar o parametro.
+    Exemplo: Estou vendo de puxar do Marcos Bedo do RJ alguns critérios de determinação do nr. ideal de atributos do PCA (ou qualquer seletor)
+    "Microotimizadores" (heurísticas):
+        Random, Scree-Plot %,	Scree-Plot GAP,	Kaiser Guttman,	Broken Stick e Rho-Score.
+
+8a) Cada transformer informar de quais matrizes depende.
+    O Cache se baseia no data.uuid, o uuid é diferente caso uma simples matriz
+    inútil extra estiver presente.
+    É possível fazer com que o cache se baseie apenas nas matrizes efetivamente
+    usadas (Solução 1);
+    mas é necessário que cada transformer informe de quais matrizes depende.
+    Não é tão crítico ignorar isso (Solução 2), pois espera-se que data tenha
+    apenas matrizes necessárias, mas, p. ex., durante a elaboração do
+    automlmultiobj, a cada nova extensão da expressão do CS, os modelos eram
+    redundantemente regerados, devido à nova identidade do data que saía do
+    apply do pipeline e entrava no use do cache.
+    Solução 3: o cururu poderá ser esperto o bastante para
+        (ao menos nos backends SQL), apesar de ser um novo data a armazenar,
+        perceber pelo uuid das matrizes quais delas precisam ser enviadas.
+        A única desvantagem seria gastar CPU recalculando o uuid
+        (inclui compressão) das matrizes que já estariam guardadas.
+
+8b) Cada transformer informar quais matrizes gera ou altera.
+    Permite otimizar tráfego e armazenamento, reduzindo-o a apenas o essencial.
+    Atualmente isso é feito pelo usuário, no param fields do Cache.
+
+9) Deixar Cache só pro essencial e criar componente Exp pra armazenar pipeline e
+outras coisas relacionadas a experimento.
+
+10) Adotar tuplas, onde possível, devido à imutabilidade?
+
+11) Oferecer compactconfig como parâmetro opcional em alguns componentes?
+    Assumindo um máximo de 256 parâmetros e cada parâmetro discretizado em até 16777216 valores,
+    bastariam 7 bytes para representar unicamente uma config.
+    Havendo um máximo de 16777216 componentes, 3 bytes são suficientes pra identificar a classe do Transformer.
+    Entretanto, há configs aninhadas, o que torna a listagem de parâmetros imprevisível.
+    Alternativa: um componente poderia fornecer voluntariamente a opção de compactconfig como argumento secreto,
+    equivalente ao config, mas representada de maneira binária ótima.
+    Haveria um pretty printing para descompactá-lo e imprimí-lo de forma human-friendly.
+
+12) Adotar compressão com dicionário.
+
+########################## Apêndice ###############################
+
+1)  UUID Proof:
+
+    Na realidade, no histórico só há transformações.
+    Aqui, por simplicidade, file1/file2 serão d/e.
+
+    APPLY---------------------------------------
+    (histórico de Data entre colchetes; d=training data)
+    File1  ->   A   ->    B    ->     C      ->
+          Mf[d]   Ma[d+a]   Mb[d+a+b]    Mc[d+a+b+c]
+
+    USE-----------------------------------------
+    (e = testing data)
+    File2  ->  Ma   ->     Mb    ->     Mc    ->
+           [e]    [e+Ma]       [e+Mb]       [e=Mc²]
+           [e]    [e+(d+a)]  [e+(d+a+b)]  [e+d+a+b+c]
+
+
+    Incluindo componente promíscuo (NoiseReduction):
+
+    APPLY---------------------------------------
+    File1  ->   A   ->    NR     ->      C      ->
+          Mf[d]   Ma[d+a]    Mnr[d+a+nr]   Mc[d+a+nr+c]
+
+    USE-----------------------------------------
+    File2  ->  Ma   ->     Mnr   ->    Mc    ->
+           [e]    [e+Ma]       [e+Ma]      [e+Mc]
+           [e]    [e+(d+a)]   [e+(d+a)]  [e+(d+a+b+c)]
+
+
+
+
+    USE    D'   --> M1     --> D'1         --> M2        --> D'2
+           (d') --> (d+t1) --> (d'+d+t1)   --> (d+t1+t2) --> (d'+d+t1+d+t1+t2)
+           (d') --> (m1)   --> (d'+m1)     --> (m1+t2) --> (d'+m1+m1+t2)
+           (d') --> (m1)   --> (d'+m1)     --> (m2)    --> (d'+m1+m2)
+
+    LightTransformer: USE análogo a APPLY
+
+
+########################## Temporário ###############################
+# Exemplo da sugestão de soft unwrap que enviei pra Intellij:
+# specialpackage1, specialpackage2, SomeClass1, SomeClass2, SomeClass3, SomeClass4, SomeClass5, SomeClass6 = 0, 0, 0, 0, 0, 0, 0, 0
+#
+# from specialpackage1.somecustommodule1 import SomeClass1, SomeClass2
+# from specialpackage2.somecustommodule1.verylongpath2 import SomeClass3, \
+#     SomeClass4, SomeClass5, SomeClass6
+#
+#
+# class MyClass(SomeClass1, SomeClass2, SomeClass3, SomeClass4, SomeClass5,
+#               SomeClass6):
+#     def __init__(cls, arg1, arg2, func, *args, kwarg1=None, kwarg2="text",
+#                  kwarg3=None, kwarg4=None, **kwargs):
+#         """
+#         This class is a contrived example supposedly copming from third party.
+#         This text will span several lines.
+#
+#         Parameters
+#         ----------
+#         arg1
+#             This arg will do something.
+#         arg2
+#         ... more args here ...
+#         """
+#         if arg1 != arg2 and len(
+#                 args) < 5 and kwarg1 is not None and 'key' in kwarg1 and \
+#                 kwarg2 is not None and 'key' in kwarg2 and kwarg3 is not kwarg4:
+#             raise Exception(
+#                 'Very bad alignment of lots of circunstances lead to this '
+#                 'sudden crash!')
+#
+#         # Dictionary with one item per line (it can be set to be untouched). <-
+#         # wrapped comment (probably not safe to unwrap by default).
+#         cls.dictionary = {
+#             'orange': func(arg1, arg2, kwarg1, kwarg2, kwarg3, kwarg4,
+#                            'called at start with this long string'),
+#             'apple': ['list with',
+#                       'one item',
+#                       'per line'],
+#             'pine': [1, 3, 5, 6, 8, 2, 4, 5, 8, 34, 67, 2, 4, 5, 67, 8, 89, 3,
+#                      45, 6, 78, 34, 2, 45]  # Wrapped list (more than one item
+#             # per line.) <- wrapped comment (same as above)
+#         }
+
+
+
+#
+#
+# specialpackage1, specialpackage2, SomeClass1, SomeClass2, SomeClass3, SomeClass4, SomeClass5, SomeClass6 = 0, 0, 0, 0, 0, 0, 0, 0
+#
+# from specialpackage1.somecustommodule1 import SomeClass1, SomeClass2
+# from specialpackage2.somecustommodule1.verylongpath2 import SomeClass3, SomeClass4, SomeClass5, SomeClass6
+#
+#
+# class MyClass(SomeClass1, SomeClass2, SomeClass3, SomeClass4, SomeClass5, SomeClass6):
+#     def __init__(cls, arg1, arg2, func, *args, kwarg1=None, kwarg2="text", kwarg3=None, kwarg4=None, **kwargs):
+#         """
+#         This class is a contrived example supposedly copming from third party.
+#         This text will span several lines.
+#
+#         Parameters
+#         ----------
+#         arg1
+#             This arg will do something.
+#         arg2
+#         ... more args here ...
+#         """
+#         if arg1 != arg2 and len(args) < 5 and kwarg1 is not None and 'key' in kwarg1 and kwarg2 is not None and 'key' in kwarg2 and kwarg3 is not kwarg4:
+#             raise Exception('Very bad alignment of lots of circunstances lead to this sudden crash!')
+#
+#         # Dictionary with one item per line (it can be set to be untouched). <- wrapped comment (probably not safe to unwrap by default).
+#         cls.dictionary = {
+#             'orange': func(arg1, arg2, kwarg1, kwarg2, kwarg3, kwarg4, 'called at start with this long string'),
+#             'apple': ['list with',
+#                       'one item',
+#                       'per line'],
+#             'pine': [1, 3, 5, 6, 8, 2, 4, 5, 8, 34, 67, 2, 4, 5, 67, 8, 89, 3, 45, 6, 78, 34, 2, 45]  # Wrapped list (more than one item per line.) <- wrapped comment (same as above)
+#         }
+
