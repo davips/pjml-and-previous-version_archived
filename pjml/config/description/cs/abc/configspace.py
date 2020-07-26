@@ -41,7 +41,11 @@ class ConfigSpace(withPrinting):
     def longname(self):
         long = ""
         for component in ["components"]:
-            if component in self._jsonable_impl:
-                items = ", ".join(tr.longname for tr in self._jsonable_impl[component])
+            if component in self._jsonable_impl():
+                items = ", ".join(tr.longname for tr in self._jsonable_impl()[component])
                 long = f"[{items}]"
         return self.name + long
+
+    @abstractmethod
+    def identified(self, name, path):
+        pass

@@ -13,7 +13,6 @@ from pjml.config.search.util import (
     sort,
     cut, compare,
 )
-from pjml.workflow import Workflow
 from pjml.tool.abs.mixin.timing import withTiming
 from pjml.tool.chain import Chain
 from pjml.tool.data.communication.cache import Cache
@@ -29,6 +28,7 @@ from pjml.tool.stream.expand.partition import Partition
 from pjml.tool.stream.reduce.reduce import Reduce
 from pjml.tool.stream.reduce.summ import Summ
 from pjml.tool.stream.transform.map import Map
+from pjml.workflow import Workflow
 
 
 def printable_test():
@@ -356,13 +356,13 @@ def main():
     """Main function"""
     # printable_test()
     test_svmc()
-    # test_split()
-    # test_metric()
+    test_split()
+    test_metric()
     # test_pca()
     # test_partition()
     # test_split_train_test()
     # test_with_summ_reduce()
-    test_cache()
+    # test_cache()
     # printing_test()
     # random_search()
     # util()
@@ -372,7 +372,7 @@ def main():
     # test_sequence_of_classifiers()
 
     # sanity test
-    test_check_architecture()
+    # test_check_architecture()
 
 
 if __name__ == "__main__":

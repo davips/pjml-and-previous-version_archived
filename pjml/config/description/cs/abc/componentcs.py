@@ -47,3 +47,6 @@ class ComponentCS(ConfigSpace, ABC):
     @abstractmethod
     def updated(self, nodes):
         pass
+
+    def identified(self, name, path):
+        return self.__class__(name, path, self.config_spaces, self.nodes)

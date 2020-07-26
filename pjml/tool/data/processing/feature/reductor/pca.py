@@ -28,7 +28,6 @@ class PCA(SKLAlgorithm):
         outerself = self
 
         class Enh(Enhancer):
-
             def _info_impl(self, data):
                 return outerself._info(data)
 
@@ -36,7 +35,6 @@ class PCA(SKLAlgorithm):
                 return {"X": self.info.sklearn_model.transform(data.X)}
 
         class Mod(Model):
-
             def _info_impl(self, train):
                 return outerself._info(train)
 

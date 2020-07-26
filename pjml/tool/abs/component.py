@@ -3,10 +3,9 @@ from __future__ import annotations
 
 from abc import abstractmethod, ABC
 from functools import lru_cache
-from typing import Dict, Any, Tuple, Optional
+from typing import Dict, Any, Tuple
 from typing import TYPE_CHECKING
 
-from pjdata.content.specialdata import NoData
 from pjdata.mixin.serialization import withSerialization
 
 if TYPE_CHECKING:
@@ -16,9 +15,6 @@ from pjdata.aux.serialization import serialize, materialize
 from pjdata.aux.util import Property
 from pjdata.aux.uuid import UUID
 from pjdata.mixin.printing import withPrinting
-from pjdata.transformer.enhancer import Enhancer
-from pjdata.transformer.model import Model
-from pjdata.transformer.pholder import PHolder
 from pjdata.transformer.transformer import Transformer
 from pjml.config.description.cs.abc.configspace import ConfigSpace
 from pjml.config.description.cs.configlist import ConfigList
@@ -213,8 +209,8 @@ class Component(withPrinting, withSerialization, asOperand, ABC):
             config.update(kwargs)
 
         self.disable_pretty_printing()
-        print('OBJ: ', self.name)
-        print('CONFIG: ', config)
+        print("OBJ: ", self.name)
+        print("CONFIG: ", config)
 
         return materialize(self.name, self.path, config)
 

@@ -1,12 +1,6 @@
-from typing import List
-
-from pjdata import types as t
-from pjdata.transformer.transformer import Transformer
-
 from pjml.config.description.cs.cs import CS
 from pjml.config.description.node import Node
 from pjml.tool.abs import component as co
-from pjml.tool.abs.component import Component
 from pjml.tool.abs.macro import Macro
 from pjml.tool.chain import Chain
 from pjml.tool.stream.expand.repeat import Repeat
@@ -23,8 +17,15 @@ class Partition(Macro):
         previous solution.
     """
 
-    def __init__(self, split_type: str = "cv", partitions: int = 10, test_size: float = 0.3, seed: int = 0,
-                 fields: str = "X,Y", **kwargs):
+    def __init__(
+            self,
+            split_type: str = "cv",
+            partitions: int = 10,
+            test_size: float = 0.3,
+            seed: int = 0,
+            fields: str = "X,Y",
+            **kwargs
+    ):
         config = self._to_config(locals())
 
         # config cleaning.
@@ -42,12 +43,12 @@ class Partition(Macro):
 
         from pjml.macro import split
 
-        self._transformer = Chain(Repeat(), split(split_type, partitions, test_size, seed, fields))
+        self._component = Chain(Repeat(), split(split_type, partitions, test_size, seed, fields))
         super().__init__(config, **kwargs)
 
     @property
     def component(self) -> co.Component:
-        return self._transformer
+        return self._component
 
     @classmethod
     def _cs_impl(cls):

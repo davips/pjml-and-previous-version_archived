@@ -27,15 +27,14 @@ class Multi(ContainerN):
         outerself = self
 
         class Enh(Enhancer):
-
             def _info_impl(self, data):
                 return {"enhancers": map(lambda trf: trf.enhancer, outerself.components)}
 
             def _transform_impl(self, data: t.Data) -> t.Result:
+                # noinspection PyUnresolvedReferences
                 return {"stream": map(lambda e, d: e.transform(d), self.info(data).enhancers, data.stream)}
 
         class Mod(Model):
-
             def _info_impl(self, train):
                 return {"models": map(lambda c, d: c.model(d), outerself.components, train.stream)}
 

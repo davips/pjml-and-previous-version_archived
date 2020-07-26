@@ -9,16 +9,16 @@ from sklearn.model_selection import (
     LeaveOneOut as LOO,
 )
 
+import pjdata.types as t
 from pjdata.content.data import Data
 from pjml.config.description.cs.cs import CS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import IntP
 from pjml.tool.abs.component import Component
 from pjml.tool.abs.mixin.functioninspection import withFunctionInspection
-from pjml.tool.abs.mixin.nodatahandling import withNoDataHandling
 
 
-class AbstractSplit(Component, withFunctionInspection, withNoDataHandling, ABC):
+class AbstractSplit(Component, withFunctionInspection, ABC):
     def __init__(
             self,
             enhancer_cls,
@@ -56,7 +56,7 @@ class AbstractSplit(Component, withFunctionInspection, withNoDataHandling, ABC):
         self.seed = seed
         self.fields = fields.split(",")
 
-    def _split(self, data: Data, indices: List[numpy.ndarray]) -> Data:
+    def _split(self, data: Data, indices: List[numpy.ndarray]) -> t.Result:
         new_dic = {}
         for f in self.fields:
             try:

@@ -1,15 +1,10 @@
-from functools import lru_cache
-from typing import Callable, Iterable, Dict, Any
+from typing import Iterable
 
 import numpy
 from numpy import ndarray, mean
 
 from pjdata import types as t
-from pjdata.content.data import Data
-from pjdata.transformer.enhancer import Enhancer, DSStep
-from pjdata.transformer.pholder import PHolder
-from pjdata.transformer.transformer import Transformer
-from pjdata.types import Result
+from pjdata.transformer.enhancer import DSStep
 from pjml.config.description.cs.cs import CS
 from pjml.config.description.distributions import choice
 from pjml.config.description.node import Node
@@ -43,7 +38,6 @@ class Summ(Component, withFunctionInspection):
         outerself = self
 
         class Step(withNoInfo, DSStep):
-
             def _transform_impl(self, data: t.Data) -> t.Result:
                 def step(d, acc):
                     if d.isfrozen or d.failure:

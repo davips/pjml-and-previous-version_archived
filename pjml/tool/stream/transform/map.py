@@ -26,7 +26,6 @@ class Map(Container1):
         outerself = self
 
         class Enh(Enhancer):
-
             def _info_impl(self, data):
                 return {"enhancer": map(lambda trf: trf.enhancer, outerself.component)}
 
@@ -34,7 +33,6 @@ class Map(Container1):
                 return {"stream": map(outerself.component.enhancer.transform, data.stream)}
 
         class Mod(Model):
-
             def _info_impl(self, train):
                 return {"models": map(outerself.component.model, train.stream)}
 

@@ -1,11 +1,6 @@
-from abc import abstractmethod, ABC
-from typing import Any
+from abc import abstractmethod
 
-import pjdata.types as t
 import pjml.tool.abs.component as co
-from pjdata.transformer.enhancer import Enhancer
-from pjdata.transformer.transformer import Transformer
-from pjdata.types import Data
 
 
 class Macro(co.Component):
@@ -19,3 +14,10 @@ class Macro(co.Component):
 
     def _cs_impl(self):
         return self.component.cs
+
+    def _cfuuid_impl(self, data=None):
+        """UUID excluding 'model' and 'enhance' flags. Identifies the transformer.
+
+        Macro is special case, and needs to calculate the uuid based on its internal component.
+        """
+        return self.component.cfuuid(data)

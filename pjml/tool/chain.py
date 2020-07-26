@@ -1,6 +1,6 @@
-from itertools import tee
-from itertools import tee
 from typing import Tuple
+
+from itertools import tee
 
 import pjdata.types as t
 from pjdata.aux.uuid import UUID
@@ -34,17 +34,16 @@ class Chain(ContainerN):
         outerself = self
 
         class Enh(Enhancer):
-
             def _info_impl(self, data):
                 return {"enhancers": [c.enhancer for c in outerself.components]}
 
             def _transform_impl(self, data: t.Data) -> t.Result:
+                # noinspection PyUnresolvedReferences
                 for enhancer in self.info(data).enhancers:
                     data = enhancer.transform(data)
                 return data
 
         class Mod(Model):
-
             def _info_impl(self, train):
                 models = []
                 for comp in outerself.components:
@@ -67,7 +66,7 @@ class Chain(ContainerN):
 
         super().__init__({}, Enh, Mod, seed, components, enhance, model, deterministic=True)
 
-    def dual_transform(self, train: t.Data = NoData, test: t.Data = NoData) -> Tuple[t.Data, t.Data]:
+    def dual_transform(self, train: t.Data = NoData, test: t.DataOrTup = NoData) -> Tuple[t.Data, t.DataOrTup]:
         for comp in self.components:
             train, test = comp.dual_transform(train, test)
         return train, test

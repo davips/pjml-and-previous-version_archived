@@ -20,7 +20,7 @@ class Predictor(SKLAlgorithm, ABC):
             def _info_impl(self_, train):
                 sklearn_model = self.algorithm_factory()
                 sklearn_model.fit(*train.Xy())
-                return {'sklearn_model': sklearn_model}
+                return {"sklearn_model": sklearn_model}
 
             def _transform_impl(self, data: t.Data) -> t.Result:
                 return {"z": self.info.sklearn_model.predict(data.X)}

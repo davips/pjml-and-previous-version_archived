@@ -1,8 +1,10 @@
 from abc import ABCMeta
 
 
+# noinspection PyArgumentList
 class MetaOperand(ABCMeta):
     """Operators for CSs."""
+
     def __add__(cls, other):
         return cls.__add__(cls, other)
 
@@ -30,6 +32,7 @@ class MetaOperand(ABCMeta):
 
 class asOperand(metaclass=MetaOperand):
     """Operations between Components and CSs."""
+
     def __add__(self, other):
         from pjml.config.description.cs.selectcs import SelectCS
 

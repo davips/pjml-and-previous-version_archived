@@ -32,11 +32,15 @@ class Split(Macro):
             **kwargs,
     ):
         config = self._to_config(locals())
-        print('11111111111111111111111111111111111d')
         print(kwargs)
         trsplit = TrSplit(
-            split_type=split_type, partitions=partitions, partition=partition, test_size=test_size, seed=seed,
-            fields=fields, **kwargs
+            split_type=split_type,
+            partitions=partitions,
+            partition=partition,
+            test_size=test_size,
+            seed=seed,
+            fields=fields,
+            **kwargs,
         )
         tssplit = TsSplit(
             split_type=split_type,
