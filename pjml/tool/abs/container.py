@@ -9,7 +9,7 @@ from pjml.tool.abs.component import Component
 class Container(Component, ABC):
     """A container modifies 'component(s)'."""
 
-    def __init__(self, config, seed, components, enhance, model, deterministic):
+    def __init__(self, config, seed, components, enhancer_cls, model_cls, enhance, model, deterministic):
         if not components:
             raise Exception(f"A container ({self.name}) should have at least one " f"component!")
 
@@ -41,6 +41,8 @@ class Container(Component, ABC):
         complete_config.update(config)
         super().__init__(
             complete_config,
+            enhancer_cls=enhancer_cls,
+            model_cls=model_cls,
             enhance=enhance,
             model=model,
             deterministic=deterministic,

@@ -30,8 +30,10 @@ class Component(withPrinting, withSerialization, asOperand, ABC):
     def __init__(
             self,
             config: dict,
-            enhancer_cls: Optional[type],
-            model_cls: Optional[type],
+            enhancer_cls: type,
+            model_cls: type,
+            enhance: bool = True,
+            model: bool = True,
             deterministic: bool = False,
             nodata_handler: bool = False,  # this flag and the mixin are needed, but I can't recall why... [davi]
     ):
@@ -46,8 +48,8 @@ class Component(withPrinting, withSerialization, asOperand, ABC):
         }
         self._jsonable = {
             "info": self.info_for_transformer,
-            "enhance": enhancer_cls is not None,
-            "model": model_cls is not None,
+            "enhance": enhance,
+            "model": model,
         }
 
         self.deterministic = deterministic
@@ -56,10 +58,10 @@ class Component(withPrinting, withSerialization, asOperand, ABC):
 
         self.nodata_handler = isinstance(self, withNoDataHandling) or nodata_handler
 
-        self.hasenhancer0 = enhancer_cls is not None
-        self.hasmodel0 = model_cls is not None
-        self.enhancer_cls = PHolder(self) if enhancer_cls is None else enhancer_cls
-        self.model_cls = PHolder(self) if model_cls is None else model_cls
+        self.hasenhancer = enhance
+        self.hasmodel = model
+        self.enhancer_cls = enhancer_cls
+        self.model_cls = model_cls
 
         self.cs = self.cs1  # TODO: This can take some time to type. It is pure magic!
 
@@ -69,13 +71,13 @@ class Component(withPrinting, withSerialization, asOperand, ABC):
     @Property
     @lru_cache()
     def enhancer(self) -> Transformer:
-        return self.enhancer_cls()
+        return self.enhancer_cls(self)
 
     @lru_cache()
     def model(self, data: t.Data) -> Transformer:
         if isinstance(data, tuple):  # <-- Pq??
             data = data[0]
-        return self.model_cls(data)
+        return self.model_cls(self, data)
 
     def dual_transform(self, train: t.Data, test: t.Data) -> Tuple[t.Data, t.Data]:
         return self.enhancer.transform(train), self.model(train).transform(test)
@@ -143,7 +145,7 @@ class Component(withPrinting, withSerialization, asOperand, ABC):
 
     def _uuid_impl(self):
         """Complete UUID; including 'model' and 'enhance' flags. Identifies the component."""
-        return self._cfuuid_impl() * UUID(str(self.hasenhancer0 + self.hasmodel0).rjust(14, "0"))
+        return self._cfuuid_impl() * UUID(str(self.hasenhancer + self.hasmodel).rjust(14, "0"))
 
     def _cfuuid_impl(self, data=None):
         """UUID excluding 'model' and 'enhance' flags. Identifies the transformer."""
@@ -198,10 +200,10 @@ class Component(withPrinting, withSerialization, asOperand, ABC):
         """
         config = self.config
         if "model" not in self.config:
-            config.update({"model": self.hasmodel0})
+            config.update({"model": self.hasmodel})
 
         if "enhancer" not in self.config:
-            config.update({"enhance": self.hasenhancer0})
+            config.update({"enhance": self.hasenhancer})
 
         if kwargs:
             config = config.copy()

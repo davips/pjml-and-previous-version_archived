@@ -12,6 +12,7 @@ from pjml.config.description.node import Node
 from pjml.config.description.parameter import FixedP
 from pjml.tool.abs.component import Component
 from pjml.tool.abs.mixin.nodatahandling import withNoDataHandling
+from pjml.tool.abs.mixin.noinfo import withNoInfo
 
 
 class File(Component, withNoDataHandling):
@@ -53,19 +54,12 @@ class File(Component, withNoDataHandling):
         }
         # self._digest = md5digest(serialize(actual_hashes).encode())
 
-        super().__init__(config, deterministic=True, **kwargs)
-        self.data = data
+        class Enh(withNoInfo, withNoDataHandling, Enhancer):
+            def _transform_impl(self, nodata):
+                self._enforce_nodata(nodata)
+                return data
 
-    def _enhancer_impl(self) -> Transformer:
-        return Enhancer(self, self._transform, lambda _: {})
-
-    def _model_impl(self, train: t.Data) -> Transformer:
-        self._enforce_nodata(train)
-        return Enhancer(self, self._transform, lambda _: {})
-
-    def _transform(self, data) -> t.Data:
-        self._enforce_nodata(data)
-        return self.data
+        super().__init__(config, enhancer_cls=Enh, model_cls=Enh, deterministic=True, **kwargs)
 
     @classmethod
     def _cs_impl(cls) -> CS:
