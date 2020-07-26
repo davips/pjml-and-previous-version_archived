@@ -15,7 +15,7 @@ def keyboardInterruptHandler(signal, frame):
 signal.signal(signal.SIGINT, keyboardInterruptHandler)
 
 
-class WithExceptionHandling:
+class withExceptionHandling:
     """Handle component exceptions and enable/disable numpy warnings.
 
         E.g. Mahalanobis distance in KNN needs to supress warnings due to NaN

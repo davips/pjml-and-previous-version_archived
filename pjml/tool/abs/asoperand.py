@@ -2,6 +2,7 @@ from abc import ABCMeta
 
 
 class MetaOperand(ABCMeta):
+    """Operators for CSs."""
     def __add__(cls, other):
         return cls.__add__(cls, other)
 
@@ -27,7 +28,8 @@ class MetaOperand(ABCMeta):
         return cls.__name__
 
 
-class AsOperand(metaclass=MetaOperand):
+class asOperand(metaclass=MetaOperand):
+    """Operations between Components and CSs."""
     def __add__(self, other):
         from pjml.config.description.cs.selectcs import SelectCS
 
@@ -54,6 +56,8 @@ class AsOperand(metaclass=MetaOperand):
         elif isinstance(self, ShuffleCS):
             return ShuffleCS(*self.components, other)
         return ShuffleCS(self, other)
+
+    # TODO: 'combine' operator.
 
     # Ensures resulting object will also accept operators.
     def __radd__(self, other):

@@ -36,7 +36,8 @@ CLASSIFIERS = ['Intended Audience :: Science/Research',
 
 INSTALL_REQUIRES = [
     'imblearn', 'methodtools', 'pjdata', 'cururu', 'pymfe', 'sklearn',
-    'compose'
+    'compose',
+    'numpy'  # required by tests.py
 ]
 
 EXTRAS_REQUIRE = {

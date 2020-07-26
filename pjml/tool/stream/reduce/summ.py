@@ -4,8 +4,11 @@ from typing import Callable, Iterable, Dict, Any
 import numpy
 from numpy import ndarray, mean
 
+from pjdata import types as t
 from pjdata.content.data import Data
+from pjdata.transformer.enhancer import Enhancer
 from pjdata.transformer.pholder import PHolder
+from pjdata.transformer.transformer import Transformer
 from pjdata.types import Result
 from pjml.config.description.cs.cs import CS
 from pjml.config.description.distributions import choice
@@ -37,15 +40,7 @@ class Summ(Component, withFunctionInspection):
         self.function = Summ.function_from_name()[config["function"]]
         self.field = field
 
-    @lru_cache()
-    def _enhancer_info(self, data: Data = None) -> Dict[str, Any]:
-        return {}
-
-    @lru_cache()
-    def _model_info(self, data: Data) -> Dict[str, Any]:
-        return {}
-
-    def _enhancer_func(self) -> Callable[[Data], Result]:
+    def _enhancer_impl(self) -> Transformer:
         summarize = self.function
 
         def transform(data: Data) -> Result:
@@ -65,10 +60,10 @@ class Summ(Component, withFunctionInspection):
 
             return {"stream": iterator, "S": lazy}
 
-        return transform
+        return Enhancer(self, transform, lambda _: {})
 
-    def _model_func(self, data: Data) -> Callable[[Data], Result]:
-        return self._enhancer_func()
+    def _model_impl(self, data: t.Data) -> Transformer:
+        return self._enhancer_impl()
 
     @classmethod
     def _cs_impl(cls) -> CS:

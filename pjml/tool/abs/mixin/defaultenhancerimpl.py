@@ -1,11 +1,24 @@
-from typing import Any, Dict, Callable
-
-from pjdata.types import Data
-
-
-class withDefaultEnhancerImpl:
-    def _enhancer_info(self, data: Data = None) -> Dict[str, Any]:
-        return {}
-
-    def _enhancer_func(self) -> Callable[[Data], Data]:
-        return lambda data: data
+# from pjdata.mixin.serialization import withSerialization
+# from pjdata.transformer.enhancer import Enhancer
+# from pjdata.transformer.pholder import PHolder
+# from pjdata.transformer.transformer import Transformer
+#
+#
+# class withDefaultEnhancerImpl(withSerialization):  # withSerialization need because of Enhancer(*self* ... )
+#     def _enhancer_impl(self) -> Transformer:
+#         return PHolder(self)
+#
+#     def _cfuuid_impl(self):
+#         raise Exception(
+#             "This method should be overriden by a child class. HINT: put the mixin in the last inheritance position"
+#         )
+#
+#     def _name_impl(self):
+#         raise Exception(
+#             "This method should be overriden by a child class. HINT: put the mixin in the last inheritance position"
+#         )
+#
+#     def _uuid_impl(self):
+#         raise Exception(
+#             "This method should be overriden by a child class. HINT: put the mixin in the last inheritance position"
+#         )

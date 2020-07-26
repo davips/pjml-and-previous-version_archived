@@ -4,7 +4,10 @@ from typing import Optional, Tuple, Dict, Callable, Any
 
 from typing import TYPE_CHECKING
 import pjdata.types as t
-from pjdata.content.specialdata import NoData
+from pjdata.aux.uuid import UUID
+from pjdata.content.specialdata import NoData, UUIDData
+from pjdata.transformer.enhancer import Enhancer
+from pjdata.transformer.model import Model
 from pjml.config.description.cs.chaincs import ChainCS
 from pjml.tool.abs.minimalcontainer import MinimalContainerN
 from pjml.tool.abs.component import Component
@@ -30,11 +33,7 @@ class Chain(MinimalContainerN):
             train, test = comp.dual_transform(train, test)
         return train, test
 
-    @lru_cache()
-    def _enhancer_info(self, data: t.Data = None) -> Dict[str, Any]:
-        return {"enhancers": [c.enhancer for c in self.components]}
-
-    def _enhancer_func(self) -> Callable[[t.Data], t.Data]:
+    def _enhancer_impl(self) -> Enhancer:
         enhancers = self._enhancer_info()["enhancers"]
 
         def transform(prior):
@@ -42,33 +41,56 @@ class Chain(MinimalContainerN):
                 prior = enhancer.transform(prior)
             return prior
 
-        return transform
+        return Enhancer(self, transform, lambda _: self._enhancer_info())
+
+    def _model_impl(self, data: t.Data) -> Model:
+        models = self._model_info(data)
+
+        def transform(test: t.Data):
+            c = 0
+            for model in models["models"]:
+                test = model.transform(test)
+                c += 1
+            return test
+
+        return Model(self, transform, self._model_info(data), data)
+
+    @lru_cache()
+    def _enhancer_info(self, data: t.Data = None) -> Dict[str, Any]:
+        return {"enhancers": [c.enhancer for c in self.components]}
 
     def _model_info(self, data: t.Data) -> Dict[str, Any]:
         models = []
-        for trf in self.components:
+        for comp in self.components:
             if data.stream is None:
                 data0 = data1 = data
             else:
                 stream0, stream1 = tee(data.stream)
-                # Empty history is accepted here, because the stream is not changed.
+                # Empty history is acceptable here, because the stream is not changed.
                 data0, data1 = data.updated((), stream=stream0), data.updated((), stream=stream1)
-            models.append(trf.model(data0))
-            data = trf.enhancer.transform(data1)
+            models.append(comp.model(data0))
+            data = comp.enhancer.transform(data1)
         return {"models": models}
 
-    def _model_func(self, data: t.Data) -> Callable[[t.Data], t.Data]:
-        models = self._model_info(data)
+    def _cfuuid_impl(self, data=None):
+        """UUID excluding 'model' and 'enhance' flags. Identifies the transformer.
 
-        def transform(posterior: t.Data):
-            c = 0
-            for model in models["models"]:
-                # print('                 USA modelo', c, model)
-                posterior = model.transform(posterior)
-                c += 1
-            return posterior
+        Chain is a special case, and needs to calculate the uuid based on its internal components.
+        """
+        # print('chainnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn')
+        if data is None:
+            uuid = UUID.identity
+            for comp in self.components:
+                uuid *= comp.enhancer.uuid
+                # print('enhhhhhhhhhhhhhh', comp.enhancer.uuid)
+            return uuid
 
-        return transform
+        uuid = UUID.identity
+        for comp in self.components:
+            uuid *= comp.model(data).uuid
+            # print('modddddddddddddd', comp.model(data).uuid)
+            data = UUIDData(comp.enhancer.uuid * data.uuid)
+        return uuid
 
     # TODO: Chain needs(?) to traverse its subcomponents to build a uuid
     # @lru_cache()

@@ -1,6 +1,6 @@
 from abc import ABC
 from functools import lru_cache
-from typing import Optional, List, Dict, Any, Callable
+from typing import List, Dict, Any, Callable
 
 import numpy
 from numpy.random import uniform
@@ -10,31 +10,33 @@ from sklearn.model_selection import (
     LeaveOneOut as LOO,
 )
 
-from pjdata.aux.util import Property
+import pjdata.types as t
 from pjdata.content.data import Data
+from pjdata.transformer.enhancer import Enhancer
+from pjdata.transformer.model import Model
+from pjdata.transformer.pholder import PHolder
+from pjdata.transformer.transformer import Transformer
 from pjml.config.description.cs.cs import CS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import IntP
 from pjml.tool.abs import component as co
 from pjml.tool.abs.component import Component
-from pjml.tool.abs.mixin.defaultenhancerimpl import withDefaultEnhancerImpl
-from pjml.tool.abs.mixin.functioninspection import withFunctionInspection
 from pjml.tool.abs.macro import Macro
+from pjml.tool.abs.mixin.functioninspection import withFunctionInspection
 from pjml.tool.abs.mixin.nodatahandling import withNoDataHandling
-from pjml.tool.abs.mixin.defaultmodelimpl import withDefaultModelImpl
 from pjml.tool.chain import Chain
 
 
 class AbstractSplit(Component, withFunctionInspection, withNoDataHandling, ABC):
     def __init__(
-        self,
-        split_type: str = "holdout",
-        partitions: int = 2,
-        partition: int = 0,
-        test_size: float = 0.3,
-        seed: int = 0,
-        fields: str = "X,Y",
-        **kwargs,
+            self,
+            split_type: str = "holdout",
+            partitions: int = 2,
+            partition: int = 0,
+            test_size: float = 0.3,
+            seed: int = 0,
+            fields: str = "X,Y",
+            **kwargs,
     ):
         config = self._to_config(locals())
 
@@ -95,14 +97,14 @@ class Split(Macro, Component):
     """
 
     def __init__(
-        self,
-        split_type: str = "holdout",
-        partitions: int = 2,
-        partition: int = 0,
-        test_size: float = 0.3,
-        seed: int = 0,
-        fields: str = "X,Y",
-        **kwargs,
+            self,
+            split_type: str = "holdout",
+            partitions: int = 2,
+            partition: int = 0,
+            test_size: float = 0.3,
+            seed: int = 0,
+            fields: str = "X,Y",
+            **kwargs,
     ):
         config = self._to_config(locals())
         super().__init__(config, **kwargs)
@@ -133,30 +135,31 @@ class Split(Macro, Component):
         return self._component
 
 
-class TsSplit(withDefaultEnhancerImpl, AbstractSplit):
-    @lru_cache()
-    def _model_info(self, test: Data) -> Dict[str, Any]:
-        zeros = numpy.zeros(test.field(self.fields[0], self).shape[0])
-        partitions = list(self.algorithm.split(X=zeros, y=zeros))
-        test_ = self._split(test, partitions[self.partition][1])
-        return {"test": test_, "algorithm": self.algorithm}
+class TrSplit(AbstractSplit, ABC):
+    def _enhancer_impl(self) -> Transformer:
+        def transform(data: Data):
+            zeros = numpy.zeros(data.field(self.fields[0], self).shape[0])
+            partitions = list(self.algorithm.split(X=zeros, y=zeros))
+            return self._split(data, partitions[self.partition][0])
 
-    def _model_func(self, prior: Data) -> Callable[[Data], Data]:
-        def transform(test: Data) -> Data:
-            return self._model_info(test)["test"]
+        return Enhancer(self, transform, lambda _: {"train": "TODO:put doubtful infohere", "algorithm": self.algorithm})
 
-        return transform
+    def _model_impl(self, data: t.Data) -> Transformer:
+        return PHolder(self)
 
 
-class TrSplit(withDefaultModelImpl, AbstractSplit):
-    def _enhancer_info(self, data: Data) -> Dict[str, Any]:
+class TsSplit(AbstractSplit, ABC):
+    def _enhancer_impl(self) -> Transformer:
+        return PHolder(self)
+
+    def _model_impl(self, data: t.Data) -> Transformer:
         zeros = numpy.zeros(data.field(self.fields[0], self).shape[0])
         partitions = list(self.algorithm.split(X=zeros, y=zeros))
-        train_ = self._split(data, partitions[self.partition][0])
-        return {"train": train_, "algorithm": self.algorithm}
+        testsplit = self._split(data, partitions[self.partition][1])
 
-    def _enhancer_func(self) -> Callable[[Data], Data]:
-        def transform(train: Data):
-            return self._enhancer_info(train)["train"]
+        def transform(test):
+            if data != test:
+                raise Exception("Split needs the same data object at training and test!")
+            return testsplit
 
-        return transform
+        return Enhancer(self, transform, lambda _: {"test": testsplit, "algorithm": self.algorithm})

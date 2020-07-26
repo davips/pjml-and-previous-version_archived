@@ -5,6 +5,8 @@ import numpy as np
 from sklearn.metrics import accuracy_score
 
 import pjdata.types as t
+from pjdata.transformer.enhancer import Enhancer
+from pjdata.transformer.transformer import Transformer
 from pjml.config.description.cs.cs import CS
 from pjml.config.description.distributions import choice
 from pjml.config.description.node import Node
@@ -37,19 +39,11 @@ class Metric(Component, withFunctionInspection):
         self.target, self.prediction = target, prediction
         self.selected = [Metric.function_from_name()[name] for name in functions]
 
-    @lru_cache()
-    def _enhancer_info(self, data: t.Data = None) -> Dict[str, Any]:
-        return {}
+    def _enhancer_impl(self) -> Transformer:
+        return Enhancer(self, lambda data: self._transform(data), lambda _: {})
 
-    def _enhancer_func(self) -> Callable[[t.Data], t.Data]:
-        return lambda train: self._transform(train)
-
-    @lru_cache()
-    def _model_info(self, test: t.Data) -> Dict[str, Any]:
-        return {}
-
-    def _model_func(self, data: t.Data) -> Callable[[t.Data], t.Data]:
-        return lambda test: self._transform(test)
+    def _model_impl(self, data: t.Data) -> Transformer:
+        return Enhancer(self, lambda test: self._transform(test), lambda _: {})
 
     @lru_cache()
     def _info(self, data: t.Data) -> Dict[str, Any]:

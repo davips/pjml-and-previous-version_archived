@@ -3,8 +3,11 @@ from __future__ import annotations
 
 from abc import abstractmethod, ABC
 from functools import lru_cache
-from typing import Dict, Any, Tuple
+from typing import Dict, Any, Tuple, Optional
 from typing import TYPE_CHECKING
+
+from pjdata.content.specialdata import NoData
+from pjdata.mixin.serialization import withSerialization
 
 if TYPE_CHECKING:
     import pjdata.types as t
@@ -13,7 +16,6 @@ from pjdata.aux.serialization import serialize, materialize
 from pjdata.aux.util import Property
 from pjdata.aux.uuid import UUID
 from pjdata.mixin.printing import withPrinting
-from pjdata.mixin.serialization import WithSerialization
 from pjdata.transformer.enhancer import Enhancer
 from pjdata.transformer.model import Model
 from pjdata.transformer.pholder import PHolder
@@ -21,17 +23,17 @@ from pjdata.transformer.transformer import Transformer
 from pjml.config.description.cs.abc.configspace import ConfigSpace
 from pjml.config.description.cs.configlist import ConfigList
 from pjml.config.description.cs.cs import CS
-from pjml.tool.abs.asoperand import AsOperand
+from pjml.tool.abs.asoperand import asOperand
 
 
-class Component(withPrinting, WithSerialization, AsOperand, ABC):
+class Component(withPrinting, withSerialization, asOperand, ABC):
     def __init__(
-        self,
-        config: dict,
-        enhance: bool = True,
-        model: bool = True,
-        deterministic: bool = False,
-        nodata_handler: bool = False,  # this flag and the mixin are needed, but I can't recall why... [davi]
+            self,
+            config: dict,
+            enhancer_cls: Optional[type],
+            model_cls: Optional[type],
+            deterministic: bool = False,
+            nodata_handler: bool = False,  # this flag and the mixin are needed, but I can't recall why... [davi]
     ):
         # We must always obtain the default parameter, because we want to completely identify the transformation.
         self.config = self.default_config()
@@ -44,8 +46,8 @@ class Component(withPrinting, WithSerialization, AsOperand, ABC):
         }
         self._jsonable = {
             "info": self.info_for_transformer,
-            "enhance": enhance,
-            "model": model,
+            "enhance": enhancer_cls is not None,
+            "model": model_cls is not None,
         }
 
         self.deterministic = deterministic
@@ -54,53 +56,29 @@ class Component(withPrinting, WithSerialization, AsOperand, ABC):
 
         self.nodata_handler = isinstance(self, withNoDataHandling) or nodata_handler
 
-        self.hasenhancer = enhance
-        self.hasmodel = model
+        self.hasenhancer0 = enhancer_cls is not None
+        self.hasmodel0 = model_cls is not None
+        self.enhancer_cls = PHolder(self) if enhancer_cls is None else enhancer_cls
+        self.model_cls = PHolder(self) if model_cls is None else model_cls
 
         self.cs = self.cs1  # TODO: This can take some time to type. It is pure magic!
 
     def _jsonable_impl(self):
         return self._jsonable
 
-    @abstractmethod
-    def _enhancer_info(self, data: t.Data) -> Dict[str, Any]:
-        pass
-
-    @abstractmethod
-    def _model_info(self, data: t.Data) -> Dict[str, Any]:
-        pass
-
-    @abstractmethod
-    def _enhancer_func(self) -> t.Transformation:
-        pass
-
-    @abstractmethod
-    def _model_func(self, data: t.Data) -> t.Transformation:
-        pass
-
     @Property
     @lru_cache()
     def enhancer(self) -> Transformer:
-        if not self.hasenhancer:
-            return PHolder(self)
-        return Enhancer(self, func=self._enhancer_func(), info_func=self._enhancer_info)
+        return self.enhancer_cls()
 
     @lru_cache()
     def model(self, data: t.Data) -> Transformer:
         if isinstance(data, tuple):  # <-- Pq??
             data = data[0]
-        if not self.hasmodel:
-            return PHolder(self)
-        return Model(self, func=self._model_func(data), info=self._model_info(data), data=data)
+        return self.model_cls(data)
 
     def dual_transform(self, train: t.Data, test: t.Data) -> Tuple[t.Data, t.Data]:
-        if self.hasmodel:
-            test = self.model(train).transform(test)
-        if self.hasenhancer:
-            print(8888888888888, train.uuid)
-            train = self.enhancer.transform(train)
-            print(7777777777777, train.uuid)
-        return train, test
+        return self.enhancer.transform(train), self.model(train).transform(test)
 
     @classmethod
     @abstractmethod
@@ -165,9 +143,9 @@ class Component(withPrinting, WithSerialization, AsOperand, ABC):
 
     def _uuid_impl(self):
         """Complete UUID; including 'model' and 'enhance' flags. Identifies the component."""
-        return self._cfuuid_impl() * UUID(str(self.hasenhancer + self.hasmodel).rjust(14, "0"))
+        return self._cfuuid_impl() * UUID(str(self.hasenhancer0 + self.hasmodel0).rjust(14, "0"))
 
-    def _cfuuid_impl(self):
+    def _cfuuid_impl(self, data=None):
         """UUID excluding 'model' and 'enhance' flags. Identifies the transformer."""
         return UUID(self._cfserialized().encode())
 
@@ -220,10 +198,10 @@ class Component(withPrinting, WithSerialization, AsOperand, ABC):
         """
         config = self.config
         if "model" not in self.config:
-            config.update({"model": self.hasmodel})
+            config.update({"model": self.hasmodel0})
 
         if "enhancer" not in self.config:
-            config.update({"enhance": self.hasenhancer})
+            config.update({"enhance": self.hasenhancer0})
 
         if kwargs:
             config = config.copy()

@@ -4,6 +4,8 @@ from typing import List, Callable, Dict, Any, Tuple
 
 from pjdata.data_creation import read_arff
 from pjdata.content.specialdata import NoData
+from pjdata.transformer.enhancer import Enhancer
+from pjdata.transformer.model import Model
 from pjdata.transformer.transformer import Transformer
 from pjml.config.description.cs.cs import CS
 from pjml.config.description.node import Node
@@ -28,7 +30,7 @@ class File(Component, withNoDataHandling):
     """
 
     def __init__(
-        self, name: str, path: str = "./", description: str = "No description.", hashes: str = None, **kwargs,
+            self, name: str, path: str = "./", description: str = "No description.", hashes: str = None, **kwargs,
     ):
 
         # Some checking.
@@ -54,25 +56,16 @@ class File(Component, withNoDataHandling):
         super().__init__(config, deterministic=True, **kwargs)
         self.data = data
 
-    def _enhancer_info(self, data: t.Data = None) -> Dict[str, Any]:
-        return {}
+    def _enhancer_impl(self) -> Transformer:
+        return Enhancer(self, self._transform, lambda _: {})
 
-    def _enhancer_func(self) -> Callable[[t.Data], t.Data]:
-        return self._transform()
-
-    def _model_info(self, test: NoData) -> Dict[str, Any]:
-        return {}
-
-    def _model_func(self, train: t.Data) -> Callable[[t.Data], t.Data]:
+    def _model_impl(self, train: t.Data) -> Transformer:
         self._enforce_nodata(train)
-        return self._transform()
+        return Enhancer(self, self._transform, lambda _: {})
 
-    def _transform(self) -> Callable[[NoData], t.Data]:
-        def transform(test):
-            self._enforce_nodata(test)
-            return self.data
-
-        return transform
+    def _transform(self, data) -> t.Data:
+        self._enforce_nodata(data)
+        return self.data
 
     @classmethod
     def _cs_impl(cls) -> CS:

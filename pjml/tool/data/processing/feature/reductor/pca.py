@@ -1,16 +1,20 @@
+from functools import lru_cache
 from typing import Dict, Any, Callable
 
 from numpy.random.mtrand import uniform
 from sklearn.decomposition import PCA as SKLPCA
 
 import pjdata.types as t
+from pjdata.transformer.enhancer import Enhancer
+from pjdata.transformer.model import Model
+from pjdata.transformer.transformer import Transformer
 from pjml.config.description.cs.cs import CS
 from pjml.config.description.node import Node
 from pjml.config.description.parameter import RealP, FixedP
-from pjml.tool.data.algorithm import TSKLAlgorithm
+from pjml.tool.data.algorithm import SKLAlgorithm
 
 
-class PCA(TSKLAlgorithm):
+class PCA(SKLAlgorithm):
     # TODO:
     #  Adopt explicit parameters in all components
     #  Reason:
@@ -27,18 +31,13 @@ class PCA(TSKLAlgorithm):
             {"n": n}, SKLPCA, deterministic=True, sklconfig={"n_components": n}, enhance=enhance, model=model
         )
 
-    def _enhancer_info(self, data: t.Data) -> Dict[str, Any]:
-        return self._info(data)
+    def _enhancer_impl(self) -> Transformer:
+        return Enhancer(self, lambda train: self.predict(train, train), self._info)  # INTERESTING: PCA has 2 UUIDs
 
-    def _enhancer_func(self) -> t.Transformation:
-        return lambda train: self.predict(train, train)
+    def _model_impl(self, data: t.Data) -> Transformer:
+        return Model(self, lambda test: self.predict(data, test), self._info(data), data)
 
-    def _model_info(self, data: t.Data) -> Dict[str, Any]:
-        return self._info(data)
-
-    def _model_func(self, data: t.Data) -> t.Transformation:
-        return lambda test: self.predict(data, test)
-
+    @lru_cache()
     def _info(self, data: t.Data) -> Dict[str, Any]:
         sklearn_model = self.algorithm_factory()
         sklearn_model.fit(data.X)

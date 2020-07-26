@@ -1,13 +1,27 @@
 from abc import ABC
 from functools import partial
 
+from pjdata.transformer.enhancer import Enhancer
+from pjdata.transformer.model import Model
 from pjml.tool.abs.component import Component
 
 
-class TSKLAlgorithm(Component, ABC):
+class SKLAlgorithm(Component, ABC):
     """Base class for scikitlearn algorithms."""
 
     def __init__(self, config, func, sklconfig=None, deterministic=False, **kwargs):
+        # class MLPEnhancer(Enhancer):
+        #     def transform(data):  # _transformer_impl?
+        #         return data.frozen
+        #
+        # class MLPModel(Model):
+        #     def info(self, data):
+        #         return Multilayer(cfg1, cfg2).fit(*data.Xy)
+        #
+        #     def transform(data):  # _transformer_impl?
+        #         y = self.info.skmodel.predict(data.X)
+        #         return data.updated(self, y=y)
+
         Component.__init__(self, config, deterministic=deterministic, **kwargs)
 
         sklconfig = config if sklconfig is None else sklconfig

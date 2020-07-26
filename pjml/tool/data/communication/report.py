@@ -1,14 +1,15 @@
 import re
-from typing import Callable, Dict, Any
 
 import numpy as np
 
 import pjdata.types as t
-from pjdata.aux.util import flatten, _
+from pjdata.aux.util import flatten
 from pjdata.content.data import Data
+from pjdata.transformer.pholder import PHolder
+from pjdata.transformer.transformer import Transformer
 from pjml.config.description.cs.emptycs import EmptyCS
-from pjml.tool.abs.invisible import Invisible
 from pjml.tool.abs.component import Component
+from pjml.tool.abs.invisible import Invisible
 
 
 class Report(Invisible, Component):
@@ -25,23 +26,18 @@ class Report(Invisible, Component):
         super().__init__({"text": text}, deterministic=True, **kwargs)
         self.text = text
 
-    def _enhancer_info(self, data: t.Data = None) -> Dict[str, Any]:
-        return {}
+    def _enhancer_impl(self) -> Transformer:
+        return self._pholder("[enhancer] ")
 
-    def _enhancer_func(self) -> Callable[[Data], Data]:
-        step = "[enhancer] "
-        return lambda train: self._transform(train, step)
+    def _model_impl(self, data: t.Data) -> Transformer:
+        return self._pholder("[model] ")
 
-    def _model_info(self, data: Data) -> Dict[str, Any]:
-        return {}
+    def _pholder(self, step) -> PHolder:
+        def transform(data):
+            print(step.rjust(11), self._interpolate(self.text, data))
+            return data
 
-    def _model_func(self, train: t.Data) -> Callable[[t.Data], t.Data]:
-        step = "[model] "
-        return lambda test: self._transform(test, step)
-
-    def _transform(self, data: Data, step) -> Data:
-        print(step.rjust(11), self._interpolate(self.text, data))
-        return data
+        return PHolder(self, transform)
 
     @classmethod
     def _interpolate(cls, text: str, data: Data) -> str:

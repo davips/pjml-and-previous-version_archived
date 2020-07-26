@@ -1,26 +1,33 @@
 from abc import ABC
-from functools import lru_cache
-from typing import Callable, Any, Dict
 
 import pjdata.types as t
-from pjml.tool.abs.mixin.defaultenhancerimpl import withDefaultEnhancerImpl
-from pjml.tool.data.algorithm import TSKLAlgorithm
+from pjdata.transformer.model import Model
+from pjdata.transformer.pholder import PHolder
+from pjdata.transformer.transformer import Transformer
+from pjml.tool.data.algorithm import SKLAlgorithm
 
 
-class Predictor(withDefaultEnhancerImpl, TSKLAlgorithm, ABC):
+class Predictor(SKLAlgorithm, ABC):
     """
     Base class for classifiers, regressors, ... that implement fit/predict.
     """
 
-    @lru_cache()
-    def _model_info(self, data: t.Data) -> Dict[str, Any]:
+    def _enhancer_impl(self) -> Transformer:
+        return PHolder(self, lambda data: data.frozen)
+
+    def _model_impl(self, data: t.Data) -> Model:
         sklearn_model = self.algorithm_factory()
         sklearn_model.fit(*data.Xy())
-        return {"sklearn_model": sklearn_model}
+        return Model(self, lambda test: {"z": sklearn_model.predict(test.X)}, {"sklearn_model": sklearn_model}, data)
 
-    def _model_func(self, data: t.Data) -> Callable[[t.Data], t.Result]:
-        info = self._model_info(data)
-        return lambda d: {"z": info["sklearn_model"].predict(d.X)}
 
-    def _enhancer_func(self) -> Callable[[t.Data], t.Result]:
-        return lambda posterior: posterior.frozen
+    # def _model_impl(self, data: t.Data) -> Model:
+    #     def lazymodel():
+    #         sklearn_model = self.algorithm_factory()
+    #         sklearn_model.fit(*data.Xy())
+    #         return sklearn_model
+    #
+    #     return Model(self,
+    #                  func=lambda info, test: {"z": info.sklearn_model.predict(test.X)},
+    #                  info={"sklearn_model": lazymodel},
+    #                  data=data)

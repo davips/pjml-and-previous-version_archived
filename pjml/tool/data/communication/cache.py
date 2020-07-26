@@ -3,6 +3,9 @@ from typing import Dict, Any
 
 from cururu.storage import Storage
 from pjdata import types as t
+from pjdata.transformer.enhancer import Enhancer
+from pjdata.transformer.model import Model
+from pjdata.transformer.transformer import Transformer
 from pjdata.types import Data
 from pjml.config.description.cs.containercs import ContainerCS
 from pjml.config.description.node import Node
@@ -12,12 +15,6 @@ from pjml.tool.abs.component import Component
 
 
 class Cache(Container1):
-    def _enhancer_info(self, data: t.Data) -> Dict[str, Any]:
-        pass
-
-    def _model_info(self, data: t.Data) -> Dict[str, Any]:
-        pass
-
     def _flatten(self, transformer, acc=None):
         """Depth-first search to solve nesting of transformers.
         Provides only a rough history, since it does not enter inside unpredictable or complex* components.
@@ -34,7 +31,8 @@ class Cache(Container1):
         acc.append(transformer)
         return acc
 
-    def _enhancer_func(self) -> t.Transformation:
+
+    def _enhancer_impl(self) -> Transformer:
         # TODO: CV() is too cheap to be recovered from storage, specially if
         #  it is a LOO. Maybe transformers could inform whether they are cheap.
 
@@ -68,11 +66,11 @@ class Cache(Container1):
 
             return output_data
 
-        return transform
+        return Enhancer(self.component, transform, lambda _: {})  # TODO: should we use self.component here? and info?
 
-    def _model_func(self, train: t.Data) -> t.Transformation:
+    def _model_impl(self, data: t.Data) -> Transformer:
         # TODO: Check if all models can be cheap? We just need its uuid here.
-        model = self.component.model(train)
+        model = self.component.model(data)
 
         def transform(test: Data) -> t.Result:
             print(22222222222222222222222222222222222, test.id)
@@ -94,7 +92,7 @@ class Cache(Container1):
                 self.storage.store(output_data, check_dup=False)
             return output_data
 
-        return transform
+        return Model(self.component, transform, {}, data)  # TODO: should we use self.component here? and info?
 
     def __new__(cls, *args, storage_alias="default_dump", seed=0, components=None, **kwargs):
         """Shortcut to create a ConfigSpace."""
@@ -102,7 +100,7 @@ class Cache(Container1):
             components = args
         if all([isinstance(c, Component) for c in components]):
             return object.__new__(cls)
-        node = Node(params={"storage_alias": FixedP(storage_alias), "seed": FixedP(seed),})
+        node = Node(params={"storage_alias": FixedP(storage_alias), "seed": FixedP(seed), })
         return ContainerCS(Cache.name, Cache.path, components, nodes=[node])
 
     def __init__(self, *args, storage_alias="default_dump", seed=0, components=None, enhance=True, model=True):
