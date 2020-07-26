@@ -4,7 +4,7 @@ from typing import List, Callable, Dict, Any, Tuple
 
 from pjdata.data_creation import read_arff
 from pjdata.content.specialdata import NoData
-from pjdata.transformer.enhancer import Enhancer
+from pjdata.transformer.enhancer import Enhancer, DSStep
 from pjdata.transformer.model import Model
 from pjdata.transformer.transformer import Transformer
 from pjml.config.description.cs.cs import CS
@@ -54,12 +54,12 @@ class File(Component, withNoDataHandling):
         }
         # self._digest = md5digest(serialize(actual_hashes).encode())
 
-        class Enh(withNoInfo, withNoDataHandling, Enhancer):
+        class Step(withNoInfo, withNoDataHandling, DSStep):
             def _transform_impl(self, nodata):
                 self._enforce_nodata(nodata)
                 return data
 
-        super().__init__(config, enhancer_cls=Enh, model_cls=Enh, deterministic=True, **kwargs)
+        super().__init__(config, enhancer_cls=Step, model_cls=Step, deterministic=True, **kwargs)
 
     @classmethod
     def _cs_impl(cls) -> CS:

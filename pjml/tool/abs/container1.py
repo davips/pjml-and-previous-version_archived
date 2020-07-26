@@ -8,8 +8,8 @@ class Container1(Container, ABC):
 
     If more are given, they will be handled as a single Seq component."""
 
-    def __init__(self, config, seed, components, enhancer_cls, model_cls, enhance, model, deterministic):
-        super().__init__(config, seed, components, enhancer_cls, model_cls, enhance, model, deterministic)
+    def __init__(self, config, enhancer_cls, model_cls, seed, components, enhance, model, deterministic):
+        super().__init__(config, enhancer_cls, model_cls, seed, components, enhance, model, deterministic)
 
         # Implementation-wise, Container1(Chain(a,b,c)) is needed to make
         # Container1(a,b,c) possible.

@@ -28,7 +28,7 @@ def switch():
     pass
 
 
-def tsplit(
+def split(
     split_type: str = "cv", partitions: int = 10, test_size: float = 0.3, seed: int = 0, fields: str = "X,Y",
 ) -> Multi:
     """Make a sequence of Data splitters."""

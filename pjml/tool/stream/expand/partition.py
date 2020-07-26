@@ -12,7 +12,7 @@ from pjml.tool.chain import Chain
 from pjml.tool.stream.expand.repeat import Repeat
 
 
-class Partition(Macro, Component):
+class Partition(Macro):
     """Class to perform, e.g. Expand+kfoldCV.
 
     This task is already done by function split(),
@@ -23,16 +23,9 @@ class Partition(Macro, Component):
         previous solution.
     """
 
-    def __init__(
-        self,
-        split_type: str = "cv",
-        partitions: int = 10,
-        test_size: float = 0.3,
-        seed: int = 0,
-        fields: str = "X,Y",
-        **kwargs
-    ):
-        config = self._to_config(locals())  # todo: kwargs is going to locals, em outros comp tb!!!
+    def __init__(self, split_type: str = "cv", partitions: int = 10, test_size: float = 0.3, seed: int = 0,
+                 fields: str = "X,Y", **kwargs):
+        config = self._to_config(locals())
 
         # config cleaning.
         if split_type == "cv":
@@ -47,10 +40,10 @@ class Partition(Macro, Component):
         else:
             raise Exception("Wrong split_type: ", split_type)
 
-        super().__init__(config, **kwargs)
-        from pjml.macro import tsplit
+        from pjml.macro import split
 
-        self._transformer = Chain(Repeat(), tsplit(split_type, partitions, test_size, seed, fields))
+        self._transformer = Chain(Repeat(), split(split_type, partitions, test_size, seed, fields))
+        super().__init__(config, **kwargs)
 
     @property
     def component(self) -> co.Component:

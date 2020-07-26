@@ -4,7 +4,7 @@ from typing import Dict, Any
 from cururu.storage import Storage
 from pjdata import types as t
 from pjdata.mixin.serialization import withSerialization
-from pjdata.transformer.enhancer import Enhancer
+from pjdata.transformer.enhancer import Enhancer, DSStep
 from pjdata.transformer.model import Model
 from pjdata.transformer.transformer import Transformer
 from pjdata.types import Data
@@ -49,7 +49,7 @@ class Cache(Container1):
         config = {"storage_alias": storage_alias, "seed": seed, "components": components}
         outerself = self
 
-        class Enh(withNoInfo, Enhancer):
+        class Step(withNoInfo, DSStep):
             # TODO: CV() is too cheap to be recovered from storage, specially if
             #  it is a LOO. Maybe transformers could inform whether they are cheap.
             def __init__(self, component: withSerialization, *args):
@@ -111,7 +111,7 @@ class Cache(Container1):
                     self.storage.store(output_data, check_dup=False)
                 return output_data
 
-        super().__init__(config, seed, components, Enh, Mod, enhance, model, deterministic=True)
+        super().__init__(config, Step, Mod, seed, components, enhance, model, deterministic=True)
 
     def _cfuuid_impl(self, data=None):  # TODO: override uuidimpl as well?
         return self.component.cfuuid(data)

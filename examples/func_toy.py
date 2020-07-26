@@ -1,6 +1,6 @@
 from pjdata.mixin.printing import withPrinting, disable_global_pretty_printing, \
     enable_global_pretty_printing
-from pjml.pipeline import Pipeline
+from pjml.pipeline import Workflow
 from pjml.tool.chain import Chain
 from pjml.tool.stream.expand.partition import Partition
 from pjml.tool.stream.reduce.summ import Summ
@@ -43,7 +43,7 @@ print('Construindo...')
 #     Report('$S'),
 # )
 
-pipe = Pipeline(
+pipe = Workflow(
     File("abalone3.arff"),
     Binarize(),
     Partition(),

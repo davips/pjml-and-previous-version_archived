@@ -5,7 +5,7 @@ from pjdata.data_creation import read_arff
 from pjdata.mixin.printing import disable_global_pretty_printing
 from pjml.config.search.many import shuffle, select
 from pjml.macro import evaluator
-from pjml.pipeline import Pipeline
+from pjml.pipeline import Workflow
 from pjml.tool.stream.expand.partition import Partition
 from pjml.tool.stream.reduce.summ import Summ
 from pjml.tool.stream.transform.map import Map
@@ -55,7 +55,7 @@ numpy.random.seed(50)
 # import sklearn
 # print('The scikit-learn version is {}.'.format(sklearn.__version__))
 print('expr .................')
-expr = Pipeline(
+expr = Workflow(
     OnlyApply(File('iris.arff')),
     Cache(
     evaluator(

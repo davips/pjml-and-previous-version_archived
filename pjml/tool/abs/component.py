@@ -141,6 +141,9 @@ class Component(withPrinting, withSerialization, asOperand, ABC):
         if "enhance" in config:
             del config["enhance"]
             del config["model"]
+        if "enhancer_cls" in config:
+            del config["enhancer_cls"]
+            del config["model_cls"]
         return config
 
     def _uuid_impl(self):
@@ -210,8 +213,8 @@ class Component(withPrinting, withSerialization, asOperand, ABC):
             config.update(kwargs)
 
         self.disable_pretty_printing()
-        # print('OBJ: ', self)
-        # print('CONFIG: ', config)
+        print('OBJ: ', self.name)
+        print('CONFIG: ', config)
 
         return materialize(self.name, self.path, config)
 

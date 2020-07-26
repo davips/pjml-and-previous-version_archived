@@ -1,24 +1,24 @@
-from functools import lru_cache
 from itertools import tee
-from typing import Optional, Tuple, Dict, Callable, Any
+from itertools import tee
+from typing import Tuple
 
-from typing import TYPE_CHECKING
 import pjdata.types as t
 from pjdata.aux.uuid import UUID
 from pjdata.content.specialdata import NoData, UUIDData
 from pjdata.transformer.enhancer import Enhancer
 from pjdata.transformer.model import Model
 from pjml.config.description.cs.chaincs import ChainCS
-from pjml.tool.abs.minimalcontainer import MinimalContainerN
 from pjml.tool.abs.component import Component
+from pjml.tool.abs.containern import ContainerN
 
 
-class Chain(MinimalContainerN):
+class Chain(ContainerN):
     """Chain the execution of the given components.
 
     Each arg is a component. Optionally, a list of them can be passed as a
     named arg called 'components'.
-    """
+
+    Container with minimum configuration (seed) for more than one component.    """
 
     def __new__(cls, *args: Component, seed: int = 0, components: Tuple[Component, ...] = None, **kwargs):
         """Shortcut to create a ConfigSpace."""
@@ -28,49 +28,49 @@ class Chain(MinimalContainerN):
             return object.__new__(cls)
         return ChainCS(*components)
 
+    def __init__(self, *args, seed=0, components=None, enhance=True, model=True):
+        if components is None:
+            components = args
+        outerself = self
+
+        class Enh(Enhancer):
+
+            def _info_impl(self, data):
+                return {"enhancers": [c.enhancer for c in outerself.components]}
+
+            def _transform_impl(self, data: t.Data) -> t.Result:
+                for enhancer in self.info(data).enhancers:
+                    data = enhancer.transform(data)
+                return data
+
+        class Mod(Model):
+
+            def _info_impl(self, train):
+                models = []
+                for comp in outerself.components:
+                    if train.stream is None:
+                        data0 = data1 = train
+                    else:
+                        stream0, stream1 = tee(train.stream)
+                        # Empty history is acceptable here, because the stream is not changed.
+                        data0, data1 = train.updated((), stream=stream0), train.updated((), stream=stream1)
+                    models.append(comp.model(data0))
+                    train = comp.enhancer.transform(data1)
+                return {"models": models}
+
+            def _transform_impl(self, data: t.Data) -> t.Result:
+                c = 0
+                for model in self.info.models:
+                    data = model.transform(data)
+                    c += 1
+                return data
+
+        super().__init__({}, Enh, Mod, seed, components, enhance, model, deterministic=True)
+
     def dual_transform(self, train: t.Data = NoData, test: t.Data = NoData) -> Tuple[t.Data, t.Data]:
         for comp in self.components:
             train, test = comp.dual_transform(train, test)
         return train, test
-
-    def _enhancer_impl(self) -> Enhancer:
-        enhancers = self._enhancer_info()["enhancers"]
-
-        def transform(prior):
-            for enhancer in enhancers:
-                prior = enhancer.transform(prior)
-            return prior
-
-        return Enhancer(self, transform, lambda _: self._enhancer_info())
-
-    def _model_impl(self, data: t.Data) -> Model:
-        models = self._model_info(data)
-
-        def transform(test: t.Data):
-            c = 0
-            for model in models["models"]:
-                test = model.transform(test)
-                c += 1
-            return test
-
-        return Model(self, transform, self._model_info(data), data)
-
-    @lru_cache()
-    def _enhancer_info(self, data: t.Data = None) -> Dict[str, Any]:
-        return {"enhancers": [c.enhancer for c in self.components]}
-
-    def _model_info(self, data: t.Data) -> Dict[str, Any]:
-        models = []
-        for comp in self.components:
-            if data.stream is None:
-                data0 = data1 = data
-            else:
-                stream0, stream1 = tee(data.stream)
-                # Empty history is acceptable here, because the stream is not changed.
-                data0, data1 = data.updated((), stream=stream0), data.updated((), stream=stream1)
-            models.append(comp.model(data0))
-            data = comp.enhancer.transform(data1)
-        return {"models": models}
 
     def _cfuuid_impl(self, data=None):
         """UUID excluding 'model' and 'enhance' flags. Identifies the transformer.

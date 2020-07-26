@@ -2,14 +2,13 @@ import re
 
 import numpy as np
 
-import pjdata.types as t
 from pjdata.aux.util import flatten
 from pjdata.content.data import Data
 from pjdata.transformer.pholder import PHolder
-from pjdata.transformer.transformer import Transformer
 from pjml.config.description.cs.emptycs import EmptyCS
 from pjml.tool.abs.component import Component
 from pjml.tool.abs.invisible import Invisible
+from pjml.tool.abs.mixin.noinfo import withNoInfo
 
 
 class Report(Invisible, Component):
@@ -23,21 +22,20 @@ class Report(Invisible, Component):
     # TODO: 'default report' poderia ter uma sequencia de matrizes preferidas para tentar, p. ex.: ['s', 'r', 'z',
     #  ..., 'X']
     def __init__(self, text: str = "Default report r=$r", **kwargs):
-        super().__init__({"text": text}, deterministic=True, **kwargs)
+        def pho(step):
+            outerself = self  # TODO: verify if references to encircling class cause memory leak
+
+            class PHo(withNoInfo, PHolder):
+                def _transform_impl(self, data):
+                    print(step.rjust(11), outerself._interpolate(outerself.text, data))
+                    return data
+
+            return PHo
+
+        super().__init__(
+            {"text": text}, enhancer_cls=pho("[enhancer] "), model_cls=pho("[model] "), deterministic=True, **kwargs
+        )
         self.text = text
-
-    def _enhancer_impl(self) -> Transformer:
-        return self._pholder("[enhancer] ")
-
-    def _model_impl(self, data: t.Data) -> Transformer:
-        return self._pholder("[model] ")
-
-    def _pholder(self, step) -> PHolder:
-        def transform(data):
-            print(step.rjust(11), self._interpolate(self.text, data))
-            return data
-
-        return PHolder(self, transform)
 
     @classmethod
     def _interpolate(cls, text: str, data: Data) -> str:

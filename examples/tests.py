@@ -13,7 +13,7 @@ from pjml.config.search.util import (
     sort,
     cut, compare,
 )
-from pjml.pipeline import Pipeline
+from pjml.workflow import Workflow
 from pjml.tool.abs.mixin.timing import withTiming
 from pjml.tool.chain import Chain
 from pjml.tool.data.communication.cache import Cache
@@ -43,23 +43,23 @@ def printable_test():
     print(dt_tree)
 
 
-def test_tsvmc(arq="iris.arff"):
+def test_svmc(arq="iris.arff"):
     cs = File(arq).cs
-    pipe = Pipeline(File(arq), SVMC())
+    pipe = Workflow(File(arq), SVMC())
     train, test = pipe.dual_transform()
     print("Train..............\n", train)
     print("Test..........\n", test)
 
 
 def test_split(arq="iris.arff"):
-    pipe = Pipeline(File(arq), Split(), SVMC())
+    pipe = Workflow(File(arq), Split(), SVMC())
     train, test = pipe.dual_transform()
     print("Train..............\n", str(train))
     print("Test..........\n", str(test))
 
 
 def test_metric(arq="iris.arff"):
-    pipe = Pipeline(File(arq), Split(), SVMC(), Metric(enhance=False))
+    pipe = Workflow(File(arq), Split(), SVMC(), Metric(enhance=False))
     train, test = pipe.dual_transform()
     print("Train..............\n", train)
     print("Test..........\n", test)
@@ -67,14 +67,14 @@ def test_metric(arq="iris.arff"):
 
 def test_pca(arq="iris.arff"):
     cs = File(arq).cs
-    pipe = Pipeline(File(arq), Split(), PCA(), SVMC(), Metric())
+    pipe = Workflow(File(arq), Split(), PCA(), SVMC(), Metric())
     train, test = pipe.dual_transform()
     print("Train..............\n", train.history ^ "name")
     print("Test..........\n", test.history ^ "name")
 
 
 def test_partition(arq="iris.arff"):
-    pipe = Pipeline(
+    pipe = Workflow(
         File(arq),
         Partition(),
         Map(PCA(), SVMC(), Metric(enhance=False)),
@@ -91,7 +91,7 @@ def test_partition(arq="iris.arff"):
 
 
 def test_split_train_test(arq="iris.arff"):
-    pipe = Pipeline(
+    pipe = Workflow(
         File(arq),
         TrSplit(),
         TsSplit(),
@@ -107,7 +107,7 @@ def test_split_train_test(arq="iris.arff"):
 
 
 def test_with_summ_reduce(arq="iris.arff"):
-    pipe = Pipeline(
+    pipe = Workflow(
         File(arq),
         Partition(),
         Map(PCA(), SVMC(), Metric()),
@@ -123,7 +123,7 @@ def test_with_summ_reduce(arq="iris.arff"):
 
 
 def test_cache(arq="iris.arff"):
-    pipe = Pipeline(Cache(File(arq), storage_alias="default_sqlite"), Report("{history}"))
+    pipe = Workflow(Cache(File(arq), storage_alias="default_sqlite"), Report("{history}"))
     train, test = pipe.dual_transform()
 
     print("Train..............\n", train.history ^ "name")
@@ -131,7 +131,7 @@ def test_cache(arq="iris.arff"):
 
 
 def test_check_architecture(arq="iris.arff"):
-    pipe = Pipeline(
+    pipe = Workflow(
         File(arq),
         Partition(partitions=2),
         Map(PCA(), SVMC(), Metric(enhance=False)),
@@ -153,7 +153,7 @@ def test_check_architecture(arq="iris.arff"):
 
 
 def test_check_architecture2(arq="iris.arff"):
-    pipe = Pipeline(
+    pipe = Workflow(
         File(arq),
         Partition(),
         Map(PCA(), SVMC(), Metric(enhance=False)),
@@ -197,7 +197,7 @@ def test_check_architecture2(arq="iris.arff"):
 
 def printing_test(arq="iris.arff"):
     print(Chain(Map(select(File(arq)))))
-    exp = Pipeline(
+    exp = Workflow(
         File(arq),
         Partition(),
         Map(PCA(), SVMC(), Metric(enhance=False)),
@@ -224,7 +224,7 @@ def printing_test(arq="iris.arff"):
 
 def random_search(arq="iris.arff"):
     np.random.seed(0)
-    exp = Pipeline(
+    exp = Workflow(
         File(arq),
         Partition(),
         Map(PCA(), select(SVMC(), DT(criterion="gini")), Metric()),
@@ -243,7 +243,7 @@ def random_search(arq="iris.arff"):
 def ger_workflow(seed=0, arq="iris.arff"):
     np.random.seed(seed)
 
-    workflow = Pipeline(
+    workflow = Workflow(
         File(arq),
         Partition(),
         Map(PCA(), select(SVMC(), DT(criterion="gini")), Metric(enhance=False)),
@@ -336,7 +336,7 @@ def avg_cost_of_a_single_sample():
 
 
 def test_sequence_of_classifiers(arq="abalone.arff"):
-    pipe = Pipeline(
+    pipe = Workflow(
         File(arq),
         Binarize(), Report('1 {X.shape} {history^name}'),
         PCA(n=5), SVMC(), Metric(), Report('2 {X.shape} {history^name}'),
@@ -355,7 +355,7 @@ def test_sequence_of_classifiers(arq="abalone.arff"):
 def main():
     """Main function"""
     # printable_test()
-    test_tsvmc()
+    test_svmc()
     # test_split()
     # test_metric()
     # test_pca()

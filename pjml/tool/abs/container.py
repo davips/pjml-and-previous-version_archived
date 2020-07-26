@@ -9,7 +9,7 @@ from pjml.tool.abs.component import Component
 class Container(Component, ABC):
     """A container modifies 'component(s)'."""
 
-    def __init__(self, config, seed, components, enhancer_cls, model_cls, enhance, model, deterministic):
+    def __init__(self, config, enhancer_cls, model_cls, seed, components, enhance, model, deterministic):
         if not components:
             raise Exception(f"A container ({self.name}) should have at least one " f"component!")
 
@@ -34,6 +34,8 @@ class Container(Component, ABC):
             if not enhance:
                 kwargs["enhance"] = enhance
 
+            print(3333333333333344444444444444)
+            print(kwargs)
             component = component.updated(**kwargs)
             self.components.append(component)
 

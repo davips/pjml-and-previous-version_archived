@@ -1,5 +1,5 @@
 from pjml.config.search.many import select
-from pjml.pipeline import Pipeline
+from pjml.pipeline import Workflow
 from pjml.tool.chain import Chain
 from pjml.tool.stream.expand.partition import Partition
 from pjml.tool.stream.reduce.summ import Summ
@@ -36,7 +36,7 @@ from pjml.tool.meta.wrap import Wrap
 # print(s)
 # exit()
 
-expr = Pipeline(
+expr = Workflow(
     OnlyApply(File("abalone3.arff"), Binarize()),
     Partition(),
     Map(
@@ -83,7 +83,7 @@ pipe = full(rnd(expr, n=5), field='S', n=1).sample()
 
 
 print('apply .................')
-data = Pipeline(File("abalone3.arff"), Binarize()).apply().data
+data = Workflow(File("abalone3.arff"), Binarize()).apply().data
 
 c = Chain(pipe.wrapped, Report())
 model = c.apply(data)

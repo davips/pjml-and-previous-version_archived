@@ -6,7 +6,7 @@ from numpy import ndarray, mean
 
 from pjdata import types as t
 from pjdata.content.data import Data
-from pjdata.transformer.enhancer import Enhancer
+from pjdata.transformer.enhancer import Enhancer, DSStep
 from pjdata.transformer.pholder import PHolder
 from pjdata.transformer.transformer import Transformer
 from pjdata.types import Result
@@ -16,6 +16,7 @@ from pjml.config.description.node import Node
 from pjml.config.description.parameter import CatP
 from pjml.tool.abs.component import Component
 from pjml.tool.abs.mixin.functioninspection import withFunctionInspection
+from pjml.tool.abs.mixin.noinfo import withNoInfo
 from pjml.tool.stream.reduce.accumulator import Accumulator
 
 
@@ -36,34 +37,31 @@ class Summ(Component, withFunctionInspection):
 
     def __init__(self, field: str = "R", function: str = "mean", **kwargs):
         config = self._to_config(locals())
-        super().__init__(config, deterministic=True, **kwargs)
         self.function = Summ.function_from_name()[config["function"]]
         self.field = field
-
-    def _enhancer_impl(self) -> Transformer:
         summarize = self.function
+        outerself = self
 
-        def transform(data: Data) -> Result:
-            def step(d, acc):
-                if d.isfrozen or d.failure:
-                    return d.transformedby(PHolder(self)), None
-                acc.append(d.field(self.field, "Summ"))
-                return d, acc
+        class Step(withNoInfo, DSStep):
 
-            iterator = Accumulator(data.stream, start=[], step_func=step, summ_func=summarize)
+            def _transform_impl(self, data: t.Data) -> t.Result:
+                def step(d, acc):
+                    if d.isfrozen or d.failure:
+                        return d.transformedby(self.pholder), None
+                    acc.append(d.field(outerself.field, "Summ"))
+                    return d, acc
 
-            def lazy():
-                # try:
-                return iterator.result
+                iterator = Accumulator(data.stream, start=[], step_func=step, summ_func=summarize)
 
-            # except StreamException:
+                def lazy():
+                    # try:
+                    return iterator.result
 
-            return {"stream": iterator, "S": lazy}
+                # except StreamException:
 
-        return Enhancer(self, transform, lambda _: {})
+                return {"stream": iterator, "S": lazy}
 
-    def _model_impl(self, data: t.Data) -> Transformer:
-        return self._enhancer_impl()
+        super().__init__(config, enhancer_cls=Step, model_cls=Step, deterministic=True, **kwargs)
 
     @classmethod
     def _cs_impl(cls) -> CS:

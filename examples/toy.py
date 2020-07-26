@@ -1,6 +1,6 @@
 import numpy
 
-from pjml.pipeline import Pipeline
+from pjml.pipeline import Workflow
 from pjml.tool.data.communication.cache import Cache
 from pjml.tool.data.communication.report import Report
 from pjml.tool.data.evaluation.metric import Metric
@@ -23,7 +23,7 @@ from pjml.tool.meta.mfe import MFE
 # except DuplicateEntryException:
 #     pass
 
-pipe = Pipeline(
+pipe = Workflow(
     Cache(File('bank.arff'),
           Binarize(),
           NB(),
@@ -93,7 +93,7 @@ exit(0)
 Save('lixo.arff').apply(dout)
 
 # ML 2 ========================================================================
-pipe = Pipeline(
+pipe = Workflow(
     File('iris.arff'),
 
     OverS(sampling_strategy='not minority'),
@@ -115,7 +115,7 @@ m = pipe.apply()
 dataout2 = m.use()
 
 # ML 3 ========================================================================
-pipe = Pipeline(
+pipe = Workflow(
     File('iris.arff'),
 
     Cache(MFE()),

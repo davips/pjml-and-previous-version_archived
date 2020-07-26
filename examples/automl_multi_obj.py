@@ -8,7 +8,7 @@ from cururu.worker import Worker
 from pjdata.mixin.printing import disable_global_pretty_printing
 from pjml.config.search.many import select
 from pjml.config.search.single import hold
-from pjml.pipeline import Pipeline
+from pjml.pipeline import Workflow
 from pjml.tool.abs.mixin.timing import withTiming
 from pjml.tool.chain import Chain
 from pjml.tool.stream.expand.partition import Partition
@@ -58,7 +58,7 @@ cache = partial(Cache, storage_alias='default_sqlite')
 # expr = Pipeline(File(arq), cache(ApplyUsing(NB())))
 # p = expr
 # p.apply()
-expr = Pipeline(
+expr = Workflow(
     OnlyApply(File(arq), cache(Binarize())),
     cache(
         Partition(),
@@ -108,7 +108,7 @@ pipe = full(rnd(expr, n=2), field='S', n=1).sample()
 
 
 print('apply .................')
-data = Pipeline(File(arq), Binarize()).apply().data
+data = Workflow(File(arq), Binarize()).apply().data
 
 c = Chain(pipe.wrapped, Report())
 model = c.apply(data)
