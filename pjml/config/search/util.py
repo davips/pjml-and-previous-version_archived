@@ -1,5 +1,6 @@
 from collections import Iterable
 from heapq import nsmallest, nlargest
+
 from math import ceil, floor
 
 from pjdata.aux.util import _
@@ -54,16 +55,13 @@ def sort(clist, train=NoData, test=NoData, key=lambda x: (x[1], x[0]), reverse=F
 def optimize(clist, n=1, train=NoData, test=NoData, better="higher"):
     if not isinstance(clist, ConfigList):
         raise Exception("Exhaustive search is only possible on FiniteCS!")
-    higher = "higher"  # TODO: ?? [davi]
-    smaller = "smaller"
 
-    select = None
     if better == "higher":
         select = nlargest
     elif better == "smaller":
         select = nsmallest
     else:
-        raise ValueError(f"Expected '{higher}' or '{smaller}' in 'better', but was given '{better}'")
+        raise ValueError(f"Expected 'higher' or 'smaller' in 'better', but was given '{better}'")
 
     def dual(component):
         return component.dual_transform(train, test)[1], component

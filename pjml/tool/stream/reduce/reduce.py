@@ -45,7 +45,7 @@ class Reduce(Invisible, Component):
         params = {}
         return CS(nodes=[Node(params)])
 
-    def dual_transform(self, train: t.Data, test: t.Data) -> Tuple[t.Data, t.Data]:
+    def dual_transform(self, train: t.Data, test: t.DataOrTup) -> Tuple[t.Data, t.DataOrTup]:
         if self.hasenhancer and self.hasmodel:
             afrozen, afailure = False, None
             bfrozen, bfailure = False, None

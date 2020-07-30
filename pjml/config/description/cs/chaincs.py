@@ -9,3 +9,8 @@ class ChainCS(OperatorCS):
         from pjml.tool.chain import Chain
 
         return Chain(components=components)
+
+    def identified(self, name, path):
+        """OperatorCS has no name."""
+        raise Exception("OperatorCS has no name.")
+        # return self.__class__(self.components)

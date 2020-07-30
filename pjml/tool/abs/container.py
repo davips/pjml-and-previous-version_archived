@@ -34,8 +34,6 @@ class Container(Component, ABC):
             if not enhance:
                 kwargs["enhance"] = enhance
 
-            print(3333333333333344444444444444)
-            print(kwargs)
             component = component.updated(**kwargs)
             self.components.append(component)
 

@@ -56,9 +56,7 @@ class Cache(Container1):
 
             def _transform_impl(self, data: t.Data) -> t.Result:
                 hollow = data.hollow(self.enhancer)
-                print(111111111111111111111111, data.id)
                 output_data = outerself.storage.fetch(hollow, lock=True)
-                print(hollow.id)
 
                 # pra carregar modelo [outdated code here!!]:
                 # self.transformer = self.storage.fetch_transformer(
@@ -90,9 +88,7 @@ class Cache(Container1):
                 self.model = outerself.component.model(data)
 
             def _transform_impl(self, data: t.Data) -> t.Result:
-                print(22222222222222222222222222222222222, data.id)
                 hollow = data.hollow(self.model)
-                print(hollow.id)
                 output_data = outerself.storage.fetch(hollow, lock=True)
 
                 # Use if still needed  ----------------------------------
@@ -100,13 +96,12 @@ class Cache(Container1):
                     try:
                         # Do not exit on error, we need to cleanup storage first.
                         output_data = self.model.transform(data, exit_on_error=False)
-                        print(output_data.id)
                     except:
                         outerself.storage.unlock(hollow)
                         traceback.print_exc()
                         exit(0)
 
-                    self.storage.store(output_data, check_dup=False)
+                    outerself.storage.store(output_data, check_dup=False)
                 return output_data
 
         super().__init__(config, Step, Mod, seed, components, enhance, model, deterministic=True)

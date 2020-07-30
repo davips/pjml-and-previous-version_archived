@@ -19,5 +19,4 @@ class TrSplit(AbstractSplit, ABC):
                 partitions = list(outerself.algorithm.split(X=zeros, y=zeros))
                 return outerself._split(data, partitions[outerself.partition][0])
 
-        print(kwargs, 9999999999999999999)
         super().__init__(enhancer_cls=Step, model_cls=PHolder, **kwargs)

@@ -32,7 +32,8 @@ class PCA(SKLAlgorithm):
                 return outerself._info(data)
 
             def _transform_impl(self, data: t.Data) -> t.Result:
-                return {"X": self.info.sklearn_model.transform(data.X)}
+                # noinspection PyUnresolvedReferences
+                return {"X": self.info(data).sklearn_model.transform(data.X)}
 
         class Mod(Model):
             def _info_impl(self, train):

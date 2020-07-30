@@ -16,8 +16,5 @@ class Macro(co.Component):
         return self.component.cs
 
     def _cfuuid_impl(self, data=None):
-        """UUID excluding 'model' and 'enhance' flags. Identifies the transformer.
-
-        Macro is special case, and needs to calculate the uuid based on its internal component.
-        """
+        """Macro is special case, and needs to calculate the uuid based on its internal component."""
         return self.component.cfuuid(data)

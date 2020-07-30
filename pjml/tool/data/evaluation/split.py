@@ -32,7 +32,6 @@ class Split(Macro):
             **kwargs,
     ):
         config = self._to_config(locals())
-        print(kwargs)
         trsplit = TrSplit(
             split_type=split_type,
             partitions=partitions,
@@ -51,7 +50,8 @@ class Split(Macro):
             fields=fields,
             **kwargs,
         )
-        self._component = Chain(trsplit, tssplit)
+        # HINT: Chain should be in the order below; otherwise, input data will differ for trsplit and tssplit.
+        self._component = Chain(tssplit, trsplit)
         super().__init__(config, **kwargs)
 
     @property

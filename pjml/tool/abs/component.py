@@ -75,7 +75,7 @@ class Component(withPrinting, withSerialization, asOperand, ABC):
             data = data[0]
         return self.model_cls(self, data)
 
-    def dual_transform(self, train: t.Data, test: t.Data) -> Tuple[t.Data, t.Data]:
+    def dual_transform(self, train: t.Data, test: t.DataOrTup) -> Tuple[t.Data, t.DataOrTup]:
         return self.enhancer.transform(train), self.model(train).transform(test)
 
     @classmethod
@@ -209,9 +209,6 @@ class Component(withPrinting, withSerialization, asOperand, ABC):
             config.update(kwargs)
 
         self.disable_pretty_printing()
-        print("OBJ: ", self.name)
-        print("CONFIG: ", config)
-
         return materialize(self.name, self.path, config)
 
     # TODO: Is unbounded lrucache a source of memory leak?
