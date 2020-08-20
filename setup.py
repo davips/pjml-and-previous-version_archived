@@ -37,7 +37,8 @@ CLASSIFIERS = ['Intended Audience :: Science/Research',
 INSTALL_REQUIRES = [
     'imblearn', 'methodtools', 'pjdata', 'cururu', 'pymfe', 'sklearn',
     'compose',
-    'numpy'  # required by tests.py
+    'numpy',  # required by tests.py
+    'cururu @ git+https://github.com/davips/cururu@master#egg=package1.0'
 ]
 
 EXTRAS_REQUIRE = {
@@ -57,6 +58,8 @@ EXTRAS_REQUIRE = {
     ]
 }
 
+SETUP_REQUIRES = ['flake8', 'autopep8', 'wheel']
+
 setuptools.setup(
     name=NAME,
     version=VERSION,
@@ -72,6 +75,7 @@ setuptools.setup(
     classifiers=CLASSIFIERS,
     install_requires=INSTALL_REQUIRES,
     extras_require=EXTRAS_REQUIRE,
+    setup_requires=SETUP_REQUIRES    
 )
 
 package_dir = {'': 'pjml'}  # For IDEs like Intellij to recognize the package.
