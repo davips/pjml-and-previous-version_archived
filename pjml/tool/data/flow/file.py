@@ -1,3 +1,5 @@
+from pjdata.aux.serialization import serialize
+from pjdata.aux.uuid import UUID
 from pjdata.data_creation import read_arff
 from pjdata.transformer.enhancer import DSStep
 from pjml.config.description.cs.cs import CS
@@ -24,14 +26,14 @@ class File(Component, withNoDataHandling):
     """
 
     def __init__(
-            self, name: str, path: str = "./", description: str = "No description.", hashes: str = None, **kwargs,
+            self, name: str, path: str = "./", hashes: str = None, **kwargs,
     ):
 
         # Some checking.
         if not path.endswith("/"):
             raise Exception("Path should end with /", path)
         if name.endswith("arff"):
-            actual_hashes, data = read_arff(path + name, description)
+            actual_hashes, data = read_arff(path + name)
         else:
             raise Exception("Unrecognized file extension:", name)
         if hashes:
@@ -42,9 +44,9 @@ class File(Component, withNoDataHandling):
         config = {
             "name": name,
             "path": path,
-            "description": description,
             "hashes": actual_hashes,
         }
+
         # self._digest = md5digest(serialize(actual_hashes).encode())
 
         class Step(withNoInfo, withNoDataHandling, DSStep):
@@ -59,10 +61,12 @@ class File(Component, withNoDataHandling):
         params = {
             "path": FixedP("./"),
             "name": FixedP("blalbairis.arff"),
-            "description": FixedP("No description."),
             "matrices_hash": FixedP("1234567890123456789"),
         }
 
         # TODO: I think that we should set as follow:
         # TransformerCS(nodes=[Node(params=params)])
         return CS(nodes=[Node(params=params)])
+
+    def _cfuuid_impl(self, data=None):
+        return UUID(serialize(self.config["hashes"]).encode())
