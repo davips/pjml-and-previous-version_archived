@@ -1,7 +1,7 @@
 import numpy
 
 from cururu.persistence import DuplicateEntryException, FailedEntryException
-from pjdata.data_creation import read_arff
+from pjdata.creation import read_arff
 from pjdata.mixin.printing import disable_global_pretty_printing
 from pjml.config.search.many import shuffle, select
 from pjml.macro import evaluator
