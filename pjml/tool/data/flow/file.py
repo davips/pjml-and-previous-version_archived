@@ -1,6 +1,6 @@
 from pjdata.aux.serialization import serialize
 from pjdata.aux.uuid import UUID
-from pjdata.data_creation import read_arff
+from pjdata.creation import read_arff
 from pjdata.transformer.enhancer import DSStep
 from pjml.config.description.cs.cs import CS
 from pjml.config.description.node import Node
@@ -33,7 +33,7 @@ class File(Component, withNoDataHandling):
         if not path.endswith("/"):
             raise Exception("Path should end with /", path)
         if name.endswith("arff"):
-            actual_hashes, data = read_arff(path + name)
+            actual_hashes, data, _, _ = read_arff(path + name)
         else:
             raise Exception("Unrecognized file extension:", name)
         if hashes:
