@@ -1,11 +1,22 @@
-from pjdata.content.specialdata import NoData
+from cururu.sql.mysql import MySQL
+from pjdata.content.specialdata import NoData, UUIDData
 
 # # Partitioning ##############################################
 from pjml.tool.data.flow.file import File
+from pjml.tool.data.modeling.supervised.classifier.dt import DT
 from pjml.tool.stream.expand.partition import Partition
 
 data = (File("iris.arff") * Partition("cv", 10)).enhancer.transform(NoData)
 print(list(map(lambda d: d.X[0], data.stream)))  # P/ pegar todas as partições: list(data.stream)
+
+import _pickle as p
+
+storage = MySQL(db="paje:paje2020@143.107.183.114/paje")
+data = storage.fetch(UUIDData("ĹЇЖȡfĭϹƗͶэգ8Ƀű"))
+data = DT().model(data).transform(data)
+with open("/tmp/lixo", "wb") as f:
+    p.dump(data.history, f)
+
 exit()
 
 #
