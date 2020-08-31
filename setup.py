@@ -36,7 +36,7 @@ CLASSIFIERS = ['Intended Audience :: Science/Research',
 
 INSTALL_REQUIRES = [
     'imblearn', 'methodtools', 'pymfe', 'sklearn', 'compose',
-    'cururu @ git+https://github.com/davips/cururu@master#egg=package1.0',
+    #'cururu @ git+https://github.com/davips/cururu@master#egg=package1.0',
     'numpy',  # required by tests.py    
 ]
 
