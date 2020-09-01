@@ -77,7 +77,7 @@ class Cache(Container1):
                         exit(0)
                     # TODO: quando grava um frozen, é preciso marcar isso dealguma forma
                     #  para que seja devidamente reconhecido como tal na hora do fetch.
-                    outerself.storage.store(output_data, check_dup=False)
+                    outerself.storage.store(output_data.pickable, check_dup=False)
 
                 return output_data
 
@@ -101,7 +101,7 @@ class Cache(Container1):
                         traceback.print_exc()
                         exit(0)
 
-                    outerself.storage.store(output_data, check_dup=False)
+                    outerself.storage.store(output_data.pickable, check_dup=False)
                 return output_data
 
         super().__init__(config, Step, Mod, seed, components, enhance, model, deterministic=True)

@@ -91,7 +91,7 @@ def test_partition(arq="iris.arff"):
 
 
 def test_split_train_test(arq="iris.arff"):
-    pipe = Workflow(
+    pipe = Cache(
         File(arq),
         TsSplit(),  # TsSplit should come before TrSplit to ensure the same original data is used as input for both.
         TrSplit(),
@@ -99,6 +99,7 @@ def test_split_train_test(arq="iris.arff"):
         SVMC(),
         Metric(enhance=False),
         Report("metric ... R: $R", enhance=False),
+        storage_alias="oka"
     )
     train, test = pipe.dual_transform()
 
@@ -315,13 +316,6 @@ def util():
     print("----------------------------")
 
 
-def default_config():
-    print("SVMC: ", SVMC())
-
-    clist = sample(SVMC, n=3)
-    print(clist)
-
-
 def avg_cost_of_a_single_sample():
     np.random.seed(0)
     elapsed_times = []
@@ -362,11 +356,10 @@ def main():
     # test_partition()
     test_split_train_test()
     # test_with_summ_reduce()
-    test_cache()
+    # test_cache()
     # printing_test()
     # random_search()
     # util()
-    default_config()
     # avg_cost_of_a_single_sample()
     #
     # test_sequence_of_classifiers()
