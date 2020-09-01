@@ -3,42 +3,31 @@ from typing import Tuple, Any, Dict
 
 import pjdata.types as t
 from pjdata.content.data import Data
-from pjdata.transformer.enhancer import Enhancer
+from pjdata.transformer.enhancer import Enhancer, DSStep
 from pjdata.transformer.model import Model
 from pjdata.transformer.pholder import PHolder
 from pjml.config.description.cs.cs import CS
 from pjml.config.description.node import Node
 from pjml.tool.abs.component import Component
 from pjml.tool.abs.invisible import Invisible
+from pjml.tool.abs.mixin.noinfo import withNoInfo
 
 
 class Reduce(Invisible, Component):
     def __init__(self, config: dict = None, **kwargs):
         # TODO: delete onenhance/onmodel? senão, consumir pode explodir
         config = {} if config is None else config
-        super().__init__(config, deterministic=True, **kwargs)
 
-    @lru_cache()
-    def _enhancer_info(self, data: t.Data = None) -> Dict[str, Any]:
-        return {}
+        class Step(withNoInfo, DSStep):
+            def _transform_impl(self, data: t.Data) -> t.Result:
+                # Exhaust iterator.
+                frozen, failure = False, None
+                for d in data.stream:
+                    frozen = frozen or d.isfrozen
+                    failure = failure or d.failure  # TODO: is it ok to just get the last failure?
+                return {"stream": None, "frozen": frozen, "failure": failure}
 
-    @lru_cache()
-    def _model_info(self, data: t.Data) -> Dict[str, Any]:
-        return {}
-
-    def _enhancer_func(self) -> t.Transformation:
-        def transform(data: Data) -> t.Result:
-            # Exhaust iterator.
-            frozen, failure = False, None
-            for d in data.stream:
-                frozen = frozen or d.isfrozen
-                failure = failure or d.failure  # TODO: is it ok to just get the last failure?
-            return {"stream": None, "frozen": frozen, "failure": failure}
-
-        return transform
-
-    def _model_func(self, data: t.Data) -> t.Transformation:
-        return self._enhancer_func()
+        super().__init__(config, enhancer_cls=Step, model_cls=Step, deterministic=True, **kwargs)
 
     @classmethod
     def _cs_impl(cls):
