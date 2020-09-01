@@ -15,22 +15,6 @@ from pjml.tool.abs.mixin.noinfo import withNoInfo
 
 
 class Cache(Container1):
-    # def _flatten(self, transformer, acc=None):
-    #     """Depth-first search to solve nesting of transformers.
-    #     Provides only a rough history, since it does not enter inside unpredictable or complex* components.
-    #
-    #     * -> complex components are those - excluding Chain - that generate a sequence of transformations or
-    #     a single transformation different from themselves.
-    #
-    #     This code istemporarily here, nut it is useless for Cache, since it resorts direct to UUID."""
-    #     if acc is None:
-    #         acc = []
-    #     if transformer.info.transformers:
-    #         for e in transformer.info.transformers:
-    #             acc = self._flatten(e, acc)
-    #     acc.append(transformer)
-    #     return acc
-
     def __new__(cls, *args, storage_alias="default_dump", seed=0, components=None, **kwargs):
         """Shortcut to create a ConfigSpace."""
         if components is None:
@@ -53,6 +37,7 @@ class Cache(Container1):
             def __init__(self, component: withSerialization, *args):
                 super().__init__(outerself.component, *args)
                 self.enhancer = outerself.component.enhancer
+                self._uuid = outerself.component.enhancer.uuid
 
             def _transform_impl(self, data: t.Data) -> t.Result:
                 hollow = data.hollow(self.enhancer)
@@ -81,11 +66,13 @@ class Cache(Container1):
 
                 return output_data
 
+        # TODO: uuid criado pelo cache não funciona para componentes sem Model, checar se overriding aqui está correto
         class Mod(withNoInfo, Model):
             def __init__(self, component: withSerialization, data: t.Data):
                 super().__init__(outerself.component, data)
                 # TODO: Check if all models can be cheap? We just need its uuid here.
                 self.model = outerself.component.model(data)
+                self._uuid = outerself.component.model(data).uuid
 
             def _transform_impl(self, data: t.Data) -> t.Result:
                 hollow = data.hollow(self.model)
@@ -108,3 +95,23 @@ class Cache(Container1):
 
     def _cfuuid_impl(self, data=None):  # TODO: override uuidimpl as well?
         return self.component.cfuuid(data)
+
+
+
+
+
+    # def _flatten(self, transformer, acc=None):
+    #     """Depth-first search to solve nesting of transformers.
+    #     Provides only a rough history, since it does not enter inside unpredictable or complex* components.
+    #
+    #     * -> complex components are those - excluding Chain - that generate a sequence of transformations or
+    #     a single transformation different from themselves.
+    #
+    #     This code istemporarily here, nut it is useless for Cache, since it resorts direct to UUID."""
+    #     if acc is None:
+    #         acc = []
+    #     if transformer.info.transformers:
+    #         for e in transformer.info.transformers:
+    #             acc = self._flatten(e, acc)
+    #     acc.append(transformer)
+    #     return acc
