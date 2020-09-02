@@ -14,6 +14,7 @@ from pjml.tool.abs.container1 import Container1
 from pjml.tool.abs.mixin.noinfo import withNoInfo
 
 
+# TODO: remove *args from containers, because they are obsolete when using algebra
 class Cache(Container1):
     def __init__(self, *args, storage_alias="default_dump", seed=0, components=None, enhance=True, model=True):
         if components is None:
