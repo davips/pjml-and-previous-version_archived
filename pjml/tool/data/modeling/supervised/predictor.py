@@ -16,9 +16,11 @@ class Predictor(SKLAlgorithm, ABC):
             def _transform_impl(self, data):
                 return data.frozen
 
+        outerself = self
+
         class Mod(Model):
-            def _info_impl(self_, train):
-                sklearn_model = self.algorithm_factory()
+            def _info_impl(self, train):
+                sklearn_model = outerself.algorithm_factory()
                 sklearn_model.fit(*train.Xy())
                 return {"sklearn_model": sklearn_model}
 
@@ -26,14 +28,3 @@ class Predictor(SKLAlgorithm, ABC):
                 return {"z": self.info.sklearn_model.predict(data.X)}
 
         super().__init__(config, func, enhancer_cls=PHo, model_cls=Mod, enhance=enhance, model=model)
-
-    # def _model_impl(self, data: t.Data) -> Model:
-    #     def lazymodel():
-    #         sklearn_model = self.algorithm_factory()
-    #         sklearn_model.fit(*data.Xy())
-    #         return sklearn_model
-    #
-    #     return Model(self,
-    #                  func=lambda info, test: {"z": info.sklearn_model.predict(test.X)},
-    #                  info={"sklearn_model": lazymodel},
-    #                  data=data)

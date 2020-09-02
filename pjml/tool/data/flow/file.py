@@ -25,10 +25,7 @@ class File(Component, withNoDataHandling):
     In practice, no more than a dozen are expected.
     """
 
-    def __init__(
-            self, name: str, path: str = "./", hashes: str = None, **kwargs,
-    ):
-
+    def __init__(self, name: str, path: str = "./", hashes: str = None, **kwargs):
         # Some checking.
         if not path.endswith("/"):
             raise Exception("Path should end with /", path)
