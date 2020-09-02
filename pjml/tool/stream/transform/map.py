@@ -1,8 +1,6 @@
 import pjdata.types as t
 from pjdata.transformer.enhancer import Enhancer
 from pjdata.transformer.model import Model
-from pjml.config.description.cs.containercs import ContainerCS
-from pjml.tool.abs.component import Component
 from pjml.tool.abs.container1 import Container1
 
 
@@ -11,14 +9,6 @@ class Map(Container1):
 
     Container with minimum configuration (seed) for a single component.
     If more are given, they will be handled as a single Chain component."""
-
-    def __new__(cls, *args, seed=0, components=None, **kwargs):
-        """Shortcut to create a ConfigSpace."""
-        if components is None:
-            components = args
-        if all([isinstance(c, Component) for c in components]):
-            return object.__new__(cls)
-        return ContainerCS(Map.__name__, Map.__module__, components)
 
     def __init__(self, *args, seed=0, components=None, enhance=True, model=True):
         if components is None:
@@ -40,3 +30,11 @@ class Map(Container1):
                 return {"stream": map(outerself.component.model(data).transform, data.stream)}
 
         super().__init__({}, Enh, Mod, seed, components, enhance, model, deterministic=True)
+
+    # def __new__(cls, *args, seed=0, components=None, **kwargs):
+    #     """Shortcut to create a ConfigSpace."""
+    #     if components is None:
+    #         components = args
+    #     if all([isinstance(c, Component) for c in components]):
+    #         return object.__new__(cls)
+    #     return ContainerCS(Map.__name__, Map.__module__, components)

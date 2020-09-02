@@ -15,15 +15,6 @@ from pjml.tool.abs.mixin.noinfo import withNoInfo
 
 
 class Cache(Container1):
-    def __new__(cls, *args, storage_alias="default_dump", seed=0, components=None, **kwargs):
-        """Shortcut to create a ConfigSpace."""
-        if components is None:
-            components = args
-        if all([isinstance(c, Component) for c in components]):
-            return object.__new__(cls)
-        node = Node(params={"storage_alias": FixedP(storage_alias), "seed": FixedP(seed), })
-        return ContainerCS(Cache.name, Cache.path, components, nodes=[node])
-
     def __init__(self, *args, storage_alias="default_dump", seed=0, components=None, enhance=True, model=True):
         if components is None:
             components = args
@@ -96,10 +87,6 @@ class Cache(Container1):
     def _cfuuid_impl(self, data=None):  # TODO: override uuidimpl as well?
         return self.component.cfuuid(data)
 
-
-
-
-
     # def _flatten(self, transformer, acc=None):
     #     """Depth-first search to solve nesting of transformers.
     #     Provides only a rough history, since it does not enter inside unpredictable or complex* components.
@@ -115,3 +102,13 @@ class Cache(Container1):
     #             acc = self._flatten(e, acc)
     #     acc.append(transformer)
     #     return acc
+
+# TIP: with algebraic operators, new is not needed anymore
+# def __new__(cls, *args, storage_alias="default_dump", seed=0, components=None, **kwargs):
+#     """Shortcut to create a ConfigSpace."""
+#     if components is None:
+#         components = args
+#     if all([isinstance(c, Component) for c in components]):
+#         return object.__new__(cls)
+#     node = Node(params={"storage_alias": FixedP(storage_alias), "seed": FixedP(seed), })
+#     return ContainerCS(Cache.name, Cache.path, components, nodes=[node])

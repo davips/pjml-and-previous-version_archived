@@ -8,8 +8,6 @@ from pjdata.content.specialdata import UUIDData, NoData
 from pjdata.mixin.serialization import withSerialization
 from pjdata.transformer.enhancer import Enhancer
 from pjdata.transformer.model import Model
-from pjml.config.description.cs.chaincs import ChainCS
-from pjml.tool.abs.component import Component
 from pjml.tool.abs.containern import ContainerN
 
 
@@ -20,15 +18,6 @@ class Chain(ContainerN):
     named arg called 'components'.
 
     Container with minimum configuration (seed) for more than one component.    """
-
-    def __new__(cls, *args: Component, seed: int = 0, components: Tuple[Component, ...] = None, **kwargs):
-        """Shortcut to create a ConfigSpace."""
-        if components is None:
-            components = args
-        if all([isinstance(t, Component) for t in components]):
-            return object.__new__(cls)
-        return ChainCS(*components)
-
     def __init__(self, *args, seed=0, components=None, enhance=True, model=True):
         if components is None:
             components = args
@@ -124,3 +113,12 @@ class Chain(ContainerN):
         for t in self.components:
             txts.append(t.__str__(depth))
         return "\n".join(txts)
+
+
+    # def __new__(cls, *args: Component, seed: int = 0, components: Tuple[Component, ...] = None, **kwargs):
+    #     """Shortcut to create a ConfigSpace."""
+    #     if components is None:
+    #         components = args
+    #     if all([isinstance(t, Component) for t in components]):
+    #         return object.__new__(cls)
+    #     return ChainCS(*components)

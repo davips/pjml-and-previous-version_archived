@@ -13,6 +13,7 @@ class Multi(ContainerN):
 
     Container with minimum configuration (seed) for more than one component."""
 
+    # TODO: create stream operator to make __new__ obsolete here?
     def __new__(cls, *args: Component, seed: int = 0, components: Tuple[Component, ...] = None, **kwargs):
         """Shortcut to create a ConfigSpace."""
         if components is None:

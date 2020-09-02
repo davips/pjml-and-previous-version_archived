@@ -30,6 +30,7 @@ class MetaOperand(ABCMeta):
         return cls.__name__
 
 
+# noinspection PyPep8Naming
 class asOperand(metaclass=MetaOperand):
     """Operations between Components and CSs."""
 
@@ -43,7 +44,8 @@ class asOperand(metaclass=MetaOperand):
         return SelectCS(self, other)
 
     def __mul__(self, other):
-        from pjml.tool.chain import Chain, ChainCS
+        from pjml.tool.chain import Chain
+        from pjml.config.description.cs.chaincs import ChainCS
 
         if isinstance(other, (Chain, ChainCS)):
             return Chain(self, *other.components)
