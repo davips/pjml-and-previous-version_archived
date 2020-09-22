@@ -79,9 +79,6 @@ class Container(Component, ABC):
         raise Exception(f"Wrong calling of {cls.name}._cs_impl!")
 
     def __str__(self, depth=""):
-        if not self.pretty_printing:
-            return super().__str__()
-
         inner = []
         for t in self.components:
             inner.append("    " + t.__str__(depth).replace("\n", "\n" + "    "))

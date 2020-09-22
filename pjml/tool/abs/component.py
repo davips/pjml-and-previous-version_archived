@@ -208,7 +208,6 @@ class Component(withPrinting, withSerialization, asOperand, ABC):
             config = config.copy()
             config.update(kwargs)
 
-        self.disable_pretty_printing()
         return materialize(self.name, self.path, config)
 
     # TODO: Is unbounded lrucache a source of memory leak?

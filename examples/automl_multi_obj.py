@@ -5,7 +5,6 @@ from time import sleep
 from cururu.persistence import Persistence
 from cururu.storage import Storage
 from cururu.worker import Worker
-from pjdata.mixin.printing import disable_global_pretty_printing
 from pjml.config.search.many import select
 from pjml.config.search.single import hold
 from pjml.pipeline import Workflow

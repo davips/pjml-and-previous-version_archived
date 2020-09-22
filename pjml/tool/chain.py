@@ -105,9 +105,6 @@ class Chain(ContainerN):
     #         result = lst[:-1]
     #     return result
 
-    def __str__(self, depth=""):
-        if not self.pretty_printing:
-            return super().__str__()
 
         txts = []
         for t in self.components:
