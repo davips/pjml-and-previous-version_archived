@@ -61,8 +61,6 @@ class File(Component, withNoDataHandling):
             "matrices_hash": FixedP("1234567890123456789"),
         }
 
-        # TODO: I think that we should set as follow:
-        # TransformerCS(nodes=[Node(params=params)])
         return CS(nodes=[Node(params=params)])
 
     def _cfuuid_impl(self, data=None):
