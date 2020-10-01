@@ -1,7 +1,3 @@
-# pjml - Paje Machine Learning Package
+# pjml [this repository is kept here for historic reasons]
 
-Machine learning library.
-
-## Beware!
-This package is still in the pre-release version, which is changed continuously.
-
+Machine learning stuff
