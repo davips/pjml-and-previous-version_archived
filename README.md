@@ -1,3 +1,3 @@
-# pjml [this repository is kept here only for historic reasons]
+# pjml [old project kept for openness]
 
 Machine learning stuff
